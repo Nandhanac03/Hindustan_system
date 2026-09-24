@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Payee;
 use App\Models\PartnerShare;
 use App\Models\PartnerAllocation;
+use App\Models\PartnerContribution;
 use App\Models\Project;
 use App\Models\Account;
 use App\Models\Receipt;
@@ -136,7 +137,7 @@ class PartnerController extends Controller
             ->with(['linkedAccount', 'partnerShares.project'])
             ->get()
             ->map(function (Payee $partner) {
-                // Total collections received (calculated dynamically from project shares and customer receipts)
+                // Total collections received (calculated dynamically from project shares, customer receipts, and direct partner capital contributions)
                 $shares = DB::table('partner_shares')->where('partner_id', $partner->id)->get();
                 $totalCollected = 0.0;
                 foreach ($shares as $share) {
@@ -146,6 +147,11 @@ class PartnerController extends Controller
                         ->sum('amount');
                     $totalCollected += $projectReceiptsSum * ($share->share_pct / 100);
                 }
+
+                // Add direct partner capital contributions
+                $partnerContributionsSum = (float) PartnerContribution::where('partner_id', $partner->id)->sum('amount');
+                $totalCollected += $partnerContributionsSum;
+
                 $partner->total_collected = $totalCollected;
 
                 // Total allocations paid out
@@ -609,6 +615,24 @@ class PartnerController extends Controller
                 ]);
             });
         }
+
+        // Direct capital contributions (partner_contributions)
+        $contribsQ = PartnerContribution::where('partner_id', $partnerId)->orderBy('contribution_date');
+        if ($projectId !== '') {
+            $contribsQ->where('project_id', $projectId);
+        }
+
+        $contribsQ->get()->each(function ($contrib) use (&$ledger) {
+            $ledger->push([
+                'date'        => Carbon::parse($contrib->contribution_date),
+                'type'        => 'Capital Contribution',
+                'description' => 'Direct Capital Contribution'
+                    . ($contrib->remarks ? ' — ' . $contrib->remarks : '')
+                    . ($contrib->reference_no ? ' (Ref: ' . $contrib->reference_no . ')' : ''),
+                'credit'      => (float) $contrib->amount,
+                'debit'       => 0.00,
+            ]);
+        });
 
         // Allocations / payouts (partner_allocations)
         $allocsQ = PartnerAllocation::where('partner_id', $partnerId)->orderBy('date');

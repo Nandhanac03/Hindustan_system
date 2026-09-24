@@ -1454,8 +1454,44 @@ class ReportController extends Controller
             'vouchers.narration'
         )->get();
 
+        // 4.5 Fetch Direct Partner Capital Contributions (Credits)
+        $contribsQuery = \App\Models\PartnerContribution::with(['partner', 'project']);
+        if ($partnerId) {
+            $contribsQuery->where('partner_id', $partnerId);
+        }
+        if ($projectId) {
+            $contribsQuery->where('project_id', $projectId);
+        }
+        if ($dateFrom) {
+            $contribsQuery->whereDate('contribution_date', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $contribsQuery->whereDate('contribution_date', '<=', $dateTo);
+        }
+        $partnerContributions = $contribsQuery->orderBy('contribution_date')->get();
+
         // 5. Combine into Section A Running Ledger
         $ledgerTransactions = collect();
+
+        // Add Direct Partner Capital Contributions (Credits)
+        foreach ($partnerContributions as $contrib) {
+            $pName = $partners->firstWhere('id', $contrib->partner_id)?->name ?? ('Partner #' . $contrib->partner_id);
+            $dateStr = $contrib->contribution_date ? Carbon::parse($contrib->contribution_date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+            $desc = 'Direct Capital Contribution'
+                . ($contrib->project?->name ? (' — ' . $contrib->project->name) : '')
+                . ($contrib->remarks ? (' (' . $contrib->remarks . ')') : '');
+
+            $ledgerTransactions->push((object)[
+                'date' => $dateStr,
+                'ref_no' => $contrib->reference_no ?: ('PRT-CONTR-' . str_pad((string)$contrib->id, 5, '0', STR_PAD_LEFT)),
+                'description' => $desc,
+                'payment_mode' => 'Bank Transfer',
+                'credit' => (float)$contrib->amount,
+                'debit' => 0.00,
+                'partner_id' => $contrib->partner_id,
+                'partner_name' => $pName,
+            ]);
+        }
 
         // Add Receipts Collection Shares (Credits)
         foreach ($receipts as $receipt) {
@@ -1583,7 +1619,7 @@ class ReportController extends Controller
             $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
             $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
 
-            // Credits for this partner (from all receipts)
+            // Credits for this partner (from all receipts collection shares + direct capital contributions)
             $partnerAllocTotal = 0.0;
             foreach ($receipts as $receipt) {
                 $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
@@ -1591,6 +1627,10 @@ class ReportController extends Controller
                     $partnerAllocTotal += (float)$receipt->amount * ((float)$targetShare->share_pct / 100);
                 }
             }
+
+            // Add direct partner capital contributions
+            $partnerContribTotal = (float)$partnerContributions->where('partner_id', $partner->id)->sum('amount');
+            $partnerAllocTotal += $partnerContribTotal;
 
             // Debits for this partner (from allocations, bill payouts, voucher payouts)
             $partnerPayoutTotal = (float)$allocations->where('partner_id', $partner->id)->sum('allocated_amount')
