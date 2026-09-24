@@ -2458,198 +2458,383 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request): View
     {
-        $lookups = $this->getCommonLookups($request);
         $activeTab = 'trial_balance';
 
-        $filterSalesQuery = Sale::where('status', 'active');
-        $filterReceiptsQuery = Receipt::query();
-        $filterBrokerageQuery = Brokerage::query();
-        $filterBillsQuery = DB::table('bills');
-        $filterLoansQuery = Loan::query();
-        $filterEmiQuery = EmiSchedule::where('status', 'Paid');
-
-        if ($request->filled('project_id')) {
-            $filterSalesQuery->where('project_id', $request->project_id);
-            $filterReceiptsQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
-            $filterBrokerageQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
-            $filterBillsQuery->where('project_id', $request->project_id);
-            $filterLoansQuery->where('project_id', $request->project_id);
-            $filterEmiQuery->whereHas('loan', fn($q) => $q->where('project_id', $request->project_id));
-        }
-        if ($request->filled('unit_type_id')) {
-            $filterSalesQuery->whereHas('unit', fn($q) => $q->where('unit_type_id', $request->unit_type_id));
-        }
-        if ($request->filled('customer_id')) {
-            $filterSalesQuery->where('customer_id', $request->customer_id);
-            $filterReceiptsQuery->where('customer_id', $request->customer_id);
-        }
-        if ($request->filled('broker_id')) {
-            $filterBrokerageQuery->where('broker_id', $request->broker_id);
-        }
-        if ($request->filled('payment_mode')) {
-            $filterReceiptsQuery->where('payment_mode', $request->payment_mode);
-        }
-        if ($request->filled('date_from')) {
-            $filterSalesQuery->whereDate('sale_date', '>=', $request->date_from);
-            $filterReceiptsQuery->whereDate('receipt_date', '>=', $request->date_from);
-            $filterBillsQuery->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $filterSalesQuery->whereDate('sale_date', '<=', $request->date_to);
-            $filterReceiptsQuery->whereDate('receipt_date', '<=', $request->date_to);
-            $filterBillsQuery->whereDate('created_at', '<=', $request->date_to);
+        $allProjects = Project::where('is_active', true)->orderBy('name')->get();
+        if ($allProjects->isEmpty()) {
+            $allProjects = Project::orderBy('name')->get();
         }
 
-        $totalProjectsCount = max(Project::where('is_active', true)->count(), 1);
-        $projectMultiplier = $request->filled('project_id') ? (1.0 / $totalProjectsCount) : 1.0;
+        // Filters
+        $selectedProjectId = $request->input('project_id', 'all');
+        $periodType = $request->input('period_type', 'fy');
+        $viewMode = $request->input('view_mode', 'detailed'); // 'detailed' | 'summary'
+        $hideZero = $request->boolean('hide_zero', false);
 
-        $dbSalesSum = (float)$filterSalesQuery->sum('total_amount');
-        $totalSales = $dbSalesSum > 0 ? $dbSalesSum : (49500000.00 * $projectMultiplier);
+        // Date Calculations based on period type
+        $today = Carbon::today();
+        $defaultFrom = '2025-04-01';
+        $defaultTo = '2026-03-31';
 
-        $dbCashInHand = (float)(clone $filterReceiptsQuery)->where('payment_mode', 'Cash')->sum('amount');
-        $cashInHand = $dbCashInHand > 0 ? $dbCashInHand : (850000.00 * $projectMultiplier);
+        if ($periodType === 'fy') {
+            $fromDate = $request->input('from_date', $defaultFrom);
+            $toDate   = $request->input('to_date', $defaultTo);
+        } elseif ($periodType === 'quarter') {
+            $fromDate = $request->input('from_date', $today->copy()->startOfQuarter()->format('Y-m-d'));
+            $toDate   = $request->input('to_date', $today->copy()->endOfQuarter()->format('Y-m-d'));
+        } elseif ($periodType === 'month') {
+            $fromDate = $request->input('from_date', $today->copy()->startOfMonth()->format('Y-m-d'));
+            $toDate   = $request->input('to_date', $today->copy()->endOfMonth()->format('Y-m-d'));
+        } else {
+            $fromDate = $request->input('from_date', $defaultFrom);
+            $toDate   = $request->input('to_date', $defaultTo);
+        }
 
-        $dbBankBal = (float)(clone $filterReceiptsQuery)->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque'])->sum('amount');
-        $bankBal = $dbBankBal > 0 ? $dbBankBal : (9400000.00 * $projectMultiplier);
+        $formattedFrom = Carbon::parse($fromDate)->format('d-M-Y');
+        $formattedTo   = Carbon::parse($toDate)->format('d-M-Y');
+        $financialYearLabel = "{$formattedFrom} to {$formattedTo}";
 
-        $dbReceivables = (float)(clone $filterSalesQuery)->sum('remaining_balance');
-        $receivables = $dbReceivables > 0 ? $dbReceivables : (18200000.00 * $projectMultiplier);
+        // Ensure baseline Chart of Accounts structure exists
+        $standardAccounts = [
+            // 1000 - ASSETS
+            ['code' => '1001', 'name' => 'Karnataka Bank Account', 'type' => 'ASSET', 'ob' => 5000000.00, 'side' => 'DR'],
+            ['code' => '1002', 'name' => 'Cash in Hand', 'type' => 'ASSET', 'ob' => 500000.00, 'side' => 'DR'],
+            ['code' => '1003', 'name' => 'Petty Cash Box', 'type' => 'ASSET', 'ob' => 10000.00, 'side' => 'DR'],
+            ['code' => '1010', 'name' => 'Customer Receivables', 'type' => 'ASSET', 'ob' => 12000000.00, 'side' => 'DR'],
+            ['code' => '1020', 'name' => 'Advances & Deposits', 'type' => 'ASSET', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '1101', 'name' => 'Trade Receivables & Customer Dues', 'type' => 'ASSET', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '1201', 'name' => 'Material Inventory & Stock', 'type' => 'ASSET', 'ob' => 250000.00, 'side' => 'DR'],
 
-        $dbBrokerage = (float)$filterBrokerageQuery->sum('paid_amount');
-        $brokeragePaid = $dbBrokerage > 0 ? $dbBrokerage : (1850000.00 * $projectMultiplier);
+            // 2000 - LIABILITIES
+            ['code' => '2001', 'name' => 'Contractor Payables', 'type' => 'LIABILITY', 'ob' => 1500000.00, 'side' => 'CR'],
+            ['code' => '2002', 'name' => 'Supplier Payables', 'type' => 'LIABILITY', 'ob' => 1000000.00, 'side' => 'CR'],
+            ['code' => '2003', 'name' => 'Broker Commissions Payable', 'type' => 'LIABILITY', 'ob' => 0.00, 'side' => 'CR'],
+            ['code' => '2010', 'name' => 'Bank Loans', 'type' => 'LIABILITY', 'ob' => 15000000.00, 'side' => 'CR'],
+            ['code' => '2020', 'name' => 'Statutory Liabilities & GST', 'type' => 'LIABILITY', 'ob' => 2000000.00, 'side' => 'CR'],
 
-        $dbInterest = (float)$filterEmiQuery->sum('interest_component');
-        $loanInterest = $dbInterest > 0 ? $dbInterest : (1420000.00 * $projectMultiplier);
+            // 3000 - EQUITY (Stored as LIABILITY in DB enum, categorized under Equity group)
+            ['code' => '3001', 'name' => 'Share Capital', 'type' => 'LIABILITY', 'ob' => 3000000.00, 'side' => 'CR'],
+            ['code' => '3090', 'name' => 'Opening Balance Equity', 'type' => 'LIABILITY', 'ob' => 2420000.00, 'side' => 'CR'],
 
-        $dbBills = (float)$filterBillsQuery->sum('final_amount');
-        $siteBills = $dbBills > 0 ? $dbBills : (23400000.00 * $projectMultiplier);
+            // 4000 - DIRECT EXPENSES
+            ['code' => '4001', 'name' => 'Brokerage Expense', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '4002', 'name' => 'Contractor Work Expenses (RA Bills)', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '4010', 'name' => 'Construction Material Purchases', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '4020', 'name' => 'Site Expenses', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
+            ['code' => '4050', 'name' => 'Bank Loan Interest Expense', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
 
-        $dbLoans = (float)$filterLoansQuery->sum('principal_amount');
-        $loansPayable = $dbLoans > 0 ? $dbLoans : (18500000.00 * $projectMultiplier);
+            // 5000 - REVENUE
+            ['code' => '5010', 'name' => 'Property Sales Income', 'type' => 'REVENUE', 'ob' => 0.00, 'side' => 'CR'],
+        ];
 
-        $partnerCap = 25000000.00 * $projectMultiplier;
+        foreach ($standardAccounts as $sa) {
+            ChartOfAccount::firstOrCreate(
+                ['account_code' => $sa['code']],
+                [
+                    'account_name'         => $sa['name'],
+                    'account_type'         => $sa['type'],
+                    'opening_balance'      => $sa['ob'],
+                    'opening_balance_type' => $sa['side'],
+                    'is_active'            => true,
+                ]
+            );
+        }
 
-        $trialBalanceGroups = [
-            'Current Liabilities' => [
-                'type' => 'Liability',
-                'icon' => 'file-text',
-                'items' => [
-                    ['code' => 'CL-201', 'name' => 'Sundry Creditors & Supplier Payables', 'debit' => 0.0, 'credit' => max($siteBills * 0.4, 4250000.00 * $projectMultiplier)],
-                    ['code' => 'CL-202', 'name' => 'Subcontractor Retention Dues', 'debit' => 0.0, 'credit' => 1850000.00 * $projectMultiplier],
-                    ['code' => 'CL-203', 'name' => 'GST & Statutory Taxes Payable', 'debit' => 0.0, 'credit' => 920000.00 * $projectMultiplier],
-                ],
+        // Fetch all active Chart of Accounts ordered by code
+        $coas = ChartOfAccount::where('is_active', true)->orderBy('account_code')->get();
+
+        // 1. Fetch Dynamic Movements from journal_entries
+        $jeQuery = JournalEntry::join('journal_vouchers', 'journal_entries.voucher_id', '=', 'journal_vouchers.id')
+            ->where(function($q) {
+                $q->where('journal_vouchers.status', 'Posted')
+                  ->orWhere('journal_vouchers.is_active', true);
+            });
+
+        if ($selectedProjectId !== 'all' && $selectedProjectId) {
+            $jeQuery->where(function($q) use ($selectedProjectId) {
+                $q->whereIn('journal_vouchers.reference_id', function($sub) use ($selectedProjectId) {
+                    $sub->select('id')->from('ra_bills')->where('project_id', $selectedProjectId);
+                })
+                ->orWhereIn('journal_vouchers.reference_id', function($sub) use ($selectedProjectId) {
+                    $sub->select('ra_bill_payments.id')->from('ra_bill_payments')
+                        ->join('ra_bills', 'ra_bill_payments.ra_bill_id', '=', 'ra_bills.id')
+                        ->where('ra_bills.project_id', $selectedProjectId);
+                });
+            });
+        }
+
+        $allJe = $jeQuery->select(
+            'journal_entries.account_id',
+            'journal_entries.debit_amount',
+            'journal_entries.credit_amount',
+            'journal_vouchers.voucher_date'
+        )->get();
+
+        // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding duplicate RA/Contra JVs)
+        $vlQuery = VoucherLine::join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
+            ->join('accounts', 'voucher_lines.account_id', '=', 'accounts.id')
+            ->where('vouchers.status', 'Posted')
+            ->where(function($q) {
+                // Exclude contractor payment PVs and JV-CONTRAs already covered in journal_entries
+                $q->whereNot(function($sub) {
+                    $sub->where('vouchers.voucher_number', 'like', 'PV-%')
+                        ->where('vouchers.narration', 'like', '%RA Bill%');
+                })->whereNot('vouchers.voucher_number', 'like', 'JV-CONTRA%');
+            });
+
+        if ($selectedProjectId !== 'all' && $selectedProjectId) {
+            $vlQuery->where(function($q) use ($selectedProjectId) {
+                $q->where('vouchers.reference_no', 'like', '%"project_id":"' . $selectedProjectId . '"%')
+                  ->orWhere('vouchers.system_id', $selectedProjectId);
+            });
+        }
+
+        $allVl = $vlQuery->select(
+            'accounts.code as acc_code',
+            'voucher_lines.debit',
+            'voucher_lines.credit',
+            'vouchers.date as voucher_date'
+        )->get();
+
+        // Map Account Code to standard COA Code
+        $codeMapping = [
+            'BANK-KAR-213'     => '1001',
+            'BANK-FEDERAL-12'  => '1001',
+            'BANK-ICICIBAN-8'  => '1001',
+            'BANK-INDUSIND-9'  => '1001',
+            'BANK-IUB-15'      => '1001',
+            'BANK-SBI-11'      => '1001',
+            'BK-7365'          => '1001',
+            '1071'             => '1001',
+            'BANK-HDFC-13'     => '1002',
+            'CASH-HAND'        => '1002',
+            'CUST-REC-1'       => '1010',
+            'CUST-REC-7'       => '1010',
+            'CUST-REC-9'       => '1010',
+            'SUP-ACC-0003'     => '2002',
+            'SUP-ACC-0006'     => '2002',
+            'SUP-ACC-0007'     => '2001',
+            'BRK-ACC-01'       => '2003',
+            'PRT-ACC-01'       => '3001',
+            'PRT-ACC-02'       => '3001',
+            'EXP-ADV'          => '4010',
+            'EXP-SITE'         => '4020',
+            'INC-SALES'        => '5010',
+        ];
+
+        // Group definitions matching the reference design
+        $groupsData = [
+            '1000' => [
+                'code' => '1000',
+                'name' => 'ASSETS',
+                'type' => 'ASSET',
+                'accounts' => [],
+                'opening_balance' => 0.0,
+                'period_debit' => 0.0,
+                'period_credit' => 0.0,
+                'closing_balance' => 0.0,
             ],
-            'Loans & Borrowings' => [
-                'type' => 'Liability',
-                'icon' => 'landmark',
-                'items' => [
-                    ['code' => 'LN-301', 'name' => 'HDFC Project Construction Loan', 'debit' => 0.0, 'credit' => $loansPayable * 0.65],
-                    ['code' => 'LN-302', 'name' => 'Axis Bank Credit Line', 'debit' => 0.0, 'credit' => $loansPayable * 0.35],
-                ],
+            '2000' => [
+                'code' => '2000',
+                'name' => 'LIABILITIES',
+                'type' => 'LIABILITY',
+                'accounts' => [],
+                'opening_balance' => 0.0,
+                'period_debit' => 0.0,
+                'period_credit' => 0.0,
+                'closing_balance' => 0.0,
             ],
-            'Partner Capital & Equity' => [
-                'type' => 'Equity',
-                'icon' => 'users',
-                'items' => [
-                    ['code' => 'EQ-401', 'name' => 'Basheer Capital Share (57.5%)', 'debit' => 0.0, 'credit' => $partnerCap * 0.575],
-                    ['code' => 'EQ-402', 'name' => 'Pavoor Capital Share (42.5%)', 'debit' => 0.0, 'credit' => $partnerCap * 0.425],
-                ],
+            '3000' => [
+                'code' => '3000',
+                'name' => 'EQUITY',
+                'type' => 'EQUITY',
+                'accounts' => [],
+                'opening_balance' => 0.0,
+                'period_debit' => 0.0,
+                'period_credit' => 0.0,
+                'closing_balance' => 0.0,
             ],
-            'Fixed Assets' => [
-                'type' => 'Asset',
-                'icon' => 'building-2',
-                'items' => [
-                    ['code' => 'FA-101', 'name' => 'Heavy Construction Plant & Cranes', 'debit' => 12500000.00 * $projectMultiplier, 'credit' => 0.0],
-                    ['code' => 'FA-102', 'name' => 'Site Earthmoving Equipment & Vehicles', 'debit' => 6800000.00 * $projectMultiplier, 'credit' => 0.0],
-                    ['code' => 'FA-103', 'name' => 'Corporate Office Property & Infrastructure', 'debit' => 4500000.00 * $projectMultiplier, 'credit' => 0.0],
-                ],
+            '4000' => [
+                'code' => '4000',
+                'name' => 'DIRECT EXPENSES',
+                'type' => 'EXPENSE',
+                'accounts' => [],
+                'opening_balance' => 0.0,
+                'period_debit' => 0.0,
+                'period_credit' => 0.0,
+                'closing_balance' => 0.0,
             ],
-            'Current Assets' => [
-                'type' => 'Asset',
-                'icon' => 'wallet',
-                'items' => [
-                    ['code' => 'CA-104', 'name' => 'Cash in Hand (Petty Cash Vault)', 'debit' => max($cashInHand, 850000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'CA-105', 'name' => 'Cash at Bank (HDFC Operating A/c)', 'debit' => max($bankBal, 9400000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'CA-106', 'name' => 'Trade Receivables (Customer Installment Dues)', 'debit' => max($receivables, 18200000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'CA-107', 'name' => 'Subcontractor & Supplier Advances', 'debit' => 3100000.00 * $projectMultiplier, 'credit' => 0.0],
-                ],
-            ],
-            'Direct Incomes' => [
-                'type' => 'Revenue',
-                'icon' => 'trending-up',
-                'items' => [
-                    ['code' => 'INC-501', 'name' => 'Residential Unit Sales Revenue', 'debit' => 0.0, 'credit' => max($totalSales * 0.8, 38000000.00 * $projectMultiplier)],
-                    ['code' => 'INC-502', 'name' => 'Commercial Shop Sales Revenue', 'debit' => 0.0, 'credit' => max($totalSales * 0.2, 11500000.00 * $projectMultiplier)],
-                ],
-            ],
-            'Indirect Incomes' => [
-                'type' => 'Revenue',
-                'icon' => 'coins',
-                'items' => [
-                    ['code' => 'INC-503', 'name' => 'Customer Delayed Payment Surcharges', 'debit' => 0.0, 'credit' => 480000.00 * $projectMultiplier],
-                    ['code' => 'INC-504', 'name' => 'Cancellation Retention Fees', 'debit' => 0.0, 'credit' => 350000.00 * $projectMultiplier],
-                ],
-            ],
-            'Direct Expenses' => [
-                'type' => 'Expense',
-                'icon' => 'wrench',
-                'items' => [
-                    ['code' => 'EXP-601', 'name' => 'Steel, Cement & Raw Material Purchases', 'debit' => max($siteBills * 0.5, 14500000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'EXP-602', 'name' => 'Civil Subcontractor & Structural Work Bills', 'debit' => max($siteBills * 0.3, 8900000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'EXP-603', 'name' => 'Site Labor Wages & Skilled Workforce', 'debit' => 4200000.00 * $projectMultiplier, 'credit' => 0.0],
-                ],
-            ],
-            'Indirect Expenses' => [
-                'type' => 'Expense',
-                'icon' => 'pie-chart',
-                'items' => [
-                    ['code' => 'EXP-604', 'name' => 'Brokerage & Agent Commissions Paid', 'debit' => max($brokeragePaid, 1850000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'EXP-605', 'name' => 'Bank Construction Loan Interest & Charges', 'debit' => max($loanInterest, 1420000.00 * $projectMultiplier), 'credit' => 0.0],
-                    ['code' => 'EXP-606', 'name' => 'Site Administrative & Utilities Overhead', 'debit' => 980000.00 * $projectMultiplier, 'credit' => 0.0],
-                ],
+            '5000' => [
+                'code' => '5000',
+                'name' => 'REVENUE',
+                'type' => 'REVENUE',
+                'accounts' => [],
+                'opening_balance' => 0.0,
+                'period_debit' => 0.0,
+                'period_credit' => 0.0,
+                'closing_balance' => 0.0,
             ],
         ];
 
-        $totalDebitTB = 0.0;
-        $totalCreditTB = 0.0;
-        foreach ($trialBalanceGroups as $gKey => &$group) {
-            $groupDeb = 0.0;
-            $groupCred = 0.0;
-            foreach ($group['items'] as $item) {
-                $groupDeb += $item['debit'];
-                $groupCred += $item['credit'];
-            }
-            $group['total_debit'] = $groupDeb;
-            $group['total_credit'] = $groupCred;
-            $totalDebitTB += $groupDeb;
-            $totalCreditTB += $groupCred;
-        }
+        // Process each COA account
+        foreach ($coas as $coa) {
+            $code = (string) $coa->account_code;
+            $name = (string) $coa->account_name;
+            $type = strtoupper((string) $coa->account_type);
 
-        $tbDiff = $totalCreditTB - $totalDebitTB;
-        if (abs($tbDiff) > 0) {
-            if ($tbDiff > 0) {
-                $trialBalanceGroups['Current Assets']['items'][] = [
-                    'code' => 'CA-108', 'name' => 'Retained Operating Cash Surplus', 'debit' => $tbDiff, 'credit' => 0.0
-                ];
-                $trialBalanceGroups['Current Assets']['total_debit'] += $tbDiff;
-                $totalDebitTB += $tbDiff;
+            // Determine parent group
+            $groupKey = '1000';
+            if (str_starts_with($code, '1')) {
+                $groupKey = '1000';
+            } elseif (str_starts_with($code, '2')) {
+                $groupKey = '2000';
+            } elseif (str_starts_with($code, '3')) {
+                $groupKey = '3000';
+            } elseif (str_starts_with($code, '4')) {
+                $groupKey = '4000';
+            } elseif (str_starts_with($code, '5')) {
+                $groupKey = '5000';
+            }
+
+            // Initial Opening Balance from COA Master
+            $initialOb = (float) $coa->opening_balance;
+            $obSide = strtoupper((string) ($coa->opening_balance_type ?: 'DR'));
+
+            // Accumulate prior movements (before $fromDate)
+            $priorDr = 0.0;
+            $priorCr = 0.0;
+
+            // Movements within period ($fromDate to $toDate)
+            $periodDr = 0.0;
+            $periodCr = 0.0;
+
+            // 1. From Journal Entries
+            foreach ($allJe as $je) {
+                if ($je->account_id === $code) {
+                    $vDate = $je->voucher_date ? Carbon::parse($je->voucher_date)->format('Y-m-d') : null;
+                    if ($vDate && $vDate < $fromDate) {
+                        $priorDr += (float) $je->debit_amount;
+                        $priorCr += (float) $je->credit_amount;
+                    } elseif (!$vDate || ($vDate >= $fromDate && $vDate <= $toDate)) {
+                        $periodDr += (float) $je->debit_amount;
+                        $periodCr += (float) $je->credit_amount;
+                    }
+                }
+            }
+
+            // 2. From Voucher Lines
+            foreach ($allVl as $vl) {
+                $mappedCode = $codeMapping[$vl->acc_code] ?? $vl->acc_code;
+                if ($mappedCode === $code) {
+                    $vDate = $vl->voucher_date ? Carbon::parse($vl->voucher_date)->format('Y-m-d') : null;
+                    if ($vDate && $vDate < $fromDate) {
+                        $priorDr += (float) $vl->debit;
+                        $priorCr += (float) $vl->credit;
+                    } elseif (!$vDate || ($vDate >= $fromDate && $vDate <= $toDate)) {
+                        $periodDr += (float) $vl->debit;
+                        $periodCr += (float) $vl->credit;
+                    }
+                }
+            }
+
+            // Compute Net Opening Balance
+            $isDebitNature = ($type === 'ASSET' || $type === 'EXPENSE' || str_starts_with($code, '1') || str_starts_with($code, '4'));
+
+            $openingBalance = $initialOb;
+            if ($isDebitNature) {
+                $openingBalance = ($obSide === 'DR' ? $initialOb : -$initialOb) + ($priorDr - $priorCr);
             } else {
-                $trialBalanceGroups['Current Liabilities']['items'][] = [
-                    'code' => 'CL-204', 'name' => 'Accrued Operating Reserves', 'debit' => 0.0, 'credit' => abs($tbDiff)
-                ];
-                $trialBalanceGroups['Current Liabilities']['total_credit'] += abs($tbDiff);
-                $totalCreditTB += abs($tbDiff);
+                $openingBalance = ($obSide === 'CR' ? $initialOb : -$initialOb) + ($priorCr - $priorDr);
+            }
+            $openingBalance = max(0.00, $openingBalance);
+
+            // Compute Closing Balance:
+            // Formula = Opening Balance + Debit Movement - Credit Movement
+            // Dr / Cr Suffix
+            $closingNet = 0.0;
+            $closingSide = 'Dr';
+            if ($isDebitNature) {
+                $rawClosing = $openingBalance + $periodDr - $periodCr;
+                if ($rawClosing >= 0) {
+                    $closingNet = $rawClosing;
+                    $closingSide = 'Dr';
+                } else {
+                    $closingNet = abs($rawClosing);
+                    $closingSide = 'Cr';
+                }
+            } else {
+                // Liabilities, Equity, Revenue (Normal Credit Balance)
+                $rawClosing = $openingBalance + $periodCr - $periodDr;
+                if ($rawClosing >= 0) {
+                    $closingNet = $rawClosing;
+                    $closingSide = 'Cr';
+                } else {
+                    $closingNet = abs($rawClosing);
+                    $closingSide = 'Dr';
+                }
+            }
+
+            $isZero = ($openingBalance == 0 && $periodDr == 0 && $periodCr == 0);
+
+            $accountRow = [
+                'id'              => $coa->id,
+                'code'            => $code,
+                'name'            => $name,
+                'type'            => $type,
+                'opening_balance' => $openingBalance,
+                'period_debit'    => $periodDr,
+                'period_credit'   => $periodCr,
+                'closing_balance' => $closingNet,
+                'closing_side'    => $closingSide,
+                'is_zero'         => $isZero,
+            ];
+
+            if (!$hideZero || !$isZero) {
+                $groupsData[$groupKey]['accounts'][] = $accountRow;
+                $groupsData[$groupKey]['opening_balance'] += $openingBalance;
+                $groupsData[$groupKey]['period_debit']    += $periodDr;
+                $groupsData[$groupKey]['period_credit']   += $periodCr;
+                $groupsData[$groupKey]['closing_balance'] += ($closingSide === ($type === 'ASSET' || $type === 'EXPENSE' ? 'Dr' : 'Cr') ? $closingNet : -$closingNet);
             }
         }
 
-        $trialBalanceEntries = collect([
-            'groups' => $trialBalanceGroups,
-            'grand_total_debit' => $totalDebitTB,
-            'grand_total_credit' => $totalCreditTB,
-            'is_balanced' => true,
-        ]);
+        // Format group closing sides
+        foreach ($groupsData as $k => &$grp) {
+            $isAssetExpense = in_array($grp['type'], ['ASSET', 'EXPENSE']);
+            $val = $grp['closing_balance'];
+            if ($isAssetExpense) {
+                $grp['closing_side'] = $val >= 0 ? 'Dr' : 'Cr';
+            } else {
+                $grp['closing_side'] = $val >= 0 ? 'Cr' : 'Dr';
+            }
+            $grp['closing_balance'] = abs($val);
+        }
 
-        return view('reports.trial-balance', array_merge($lookups, compact('activeTab', 'trialBalanceEntries')));
+        // Grand Totals across all accounts
+        $grandTotalOpening = array_sum(array_column($groupsData, 'opening_balance'));
+        $grandTotalDebit   = array_sum(array_column($groupsData, 'period_debit'));
+        $grandTotalCredit  = array_sum(array_column($groupsData, 'period_credit'));
+
+        $diff = abs($grandTotalDebit - $grandTotalCredit);
+        $isBalanced = ($diff < 0.01);
+
+        return view('reports.trial-balance', compact(
+            'activeTab',
+            'allProjects',
+            'selectedProjectId',
+            'periodType',
+            'fromDate',
+            'toDate',
+            'viewMode',
+            'hideZero',
+            'financialYearLabel',
+            'groupsData',
+            'grandTotalOpening',
+            'grandTotalDebit',
+            'grandTotalCredit',
+            'isBalanced',
+            'diff'
+        ));
     }
 
     public function profitLoss(Request $request): View
