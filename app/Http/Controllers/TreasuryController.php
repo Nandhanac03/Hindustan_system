@@ -46,14 +46,21 @@ class TreasuryController extends Controller
         $bouncedCount = Receipt::where('realization_status', 'bounced')->count();
         $bouncedAmount = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
 
-        // Populate per-bank metrics
+        // Populate per-bank metrics (Receipts + Partner Contributions)
         foreach ($bankAccounts as $account) {
-            $account->realized_count = Receipt::where('company_bank_account_id', $account->id)
+            $rcptCount = Receipt::where('company_bank_account_id', $account->id)
                 ->where('realization_status', 'realized')
                 ->count();
-            $account->realized_sum = (float) Receipt::where('company_bank_account_id', $account->id)
+            $rcptSum = (float) Receipt::where('company_bank_account_id', $account->id)
                 ->where('realization_status', 'realized')
                 ->sum('amount');
+
+            $pcCount = \App\Models\PartnerContribution::where('company_bank_account_id', $account->id)->count();
+            $pcSum = (float) \App\Models\PartnerContribution::where('company_bank_account_id', $account->id)->sum('amount');
+
+            $account->realized_count = $rcptCount + $pcCount;
+            $account->realized_sum = $rcptSum + $pcSum;
+
             $account->pending_count = Receipt::where('company_bank_account_id', $account->id)
                 ->whereIn('realization_status', $pendingStatuses)
                 ->count();
@@ -62,7 +69,7 @@ class TreasuryController extends Controller
                 ->sum('amount');
         }
 
-        // Fetch recent transactions (Credits: Realized Receipts, Debits: RA Bill & Site Expense Payments)
+        // Fetch recent transactions (Credits: Realized Receipts & Partner Contributions, Debits: RA Bill & Site Expense Payments)
         $recentTransactions = [];
         $allRecentTxns = [];
 
@@ -103,6 +110,46 @@ class TreasuryController extends Controller
             $allRecentTxns[] = $txn;
             if ($receipt->company_bank_account_id) {
                 $recentTransactions[$receipt->company_bank_account_id][] = $txn;
+            }
+        }
+
+        // Inward Credit: Partner Contributions
+        $allPartnerContributions = \App\Models\PartnerContribution::with(['partner', 'project', 'companyBankAccount', 'paymentMode'])
+            ->whereNotNull('company_bank_account_id')
+            ->orderByDesc('contribution_date')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($allPartnerContributions as $pc) {
+            $acc = $pc->companyBankAccount;
+            $cDate = $pc->contribution_date ? Carbon::parse($pc->contribution_date) : Carbon::parse($pc->created_at);
+            $partnerName = $pc->partner?->name ?? 'Partner';
+            $projectName = $pc->project?->name ? (' - ' . $pc->project->name) : '';
+
+            $pcTxn = [
+                'id' => 'pc_' . $pc->id,
+                'date' => $cDate ? $cDate->format('d/m/Y') : '—',
+                'raw_date' => $cDate ? $cDate->timestamp : 0,
+                'datetime_formatted' => $cDate ? $cDate->format('d M Y') : '—',
+                'voucher_no' => 'PRTC/' . str_pad((string)$pc->id, 5, '0', STR_PAD_LEFT),
+                'customer_name' => $partnerName . ' (Partner Contribution' . $projectName . ')',
+                'customer_phone' => '',
+                'narration' => 'Partner Contribution from ' . $partnerName . ($pc->project?->name ? (' (' . $pc->project->name . ')') : ''),
+                'payment_mode' => $pc->paymentMode?->name ?? 'Bank Transfer',
+                'cheque_no' => $pc->reference_no ?: '—',
+                'drawee_bank' => '—',
+                'bank_ref_no' => $pc->reference_no ?: '—',
+                'bank_name' => $acc?->bank_name ?? 'Treasury',
+                'bank_account_id' => $pc->company_bank_account_id,
+                'type' => 'Credit',
+                'amount' => (float)$pc->amount,
+                'balance' => (float)($acc?->current_balance ?? 0),
+                'remarks' => $pc->remarks ?: ('Partner Contribution from ' . $partnerName)
+            ];
+
+            $allRecentTxns[] = $pcTxn;
+            if ($pc->company_bank_account_id) {
+                $recentTransactions[$pc->company_bank_account_id][] = $pcTxn;
             }
         }
 
