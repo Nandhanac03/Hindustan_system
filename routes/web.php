@@ -263,6 +263,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/approvals', [\App\Http\Controllers\ReportController::class, 'approvals'])->name('approvals');
     });
 
+    Route::get('/trial-balance', fn() => redirect()->route('reports.trial_balance'));
+
     // Sales Module
     Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');
     Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
