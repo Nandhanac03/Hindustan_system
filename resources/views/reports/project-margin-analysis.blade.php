@@ -54,7 +54,7 @@
                     <div class="relative">
                         @php $projectsList = $allProjects ?? $projects ?? []; @endphp
                         <select name="project_id" onchange="this.form.submit()" class="h-10 min-w-[240px] max-w-[280px] pl-3.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:border-[#a38c29] focus:ring-[#a38c29] focus:outline-none cursor-pointer appearance-none truncate shadow-2xs">
-                            <option value="all" {{ $selectedProjectId === 'all' || !$selectedProjectId ? 'selected' : '' }}>🌐 All Projects Portfolio (Company Overview)</option>
+                            <option value="all" {{ (string)$selectedProjectId === 'all' ? 'selected' : '' }}>🌐 All Projects Portfolio (Company Overview)</option>
                             @foreach($projectsList as $p)
                                 <option value="{{ $p->id }}" {{ (string)$selectedProjectId === (string)$p->id ? 'selected' : '' }}>
                                     {{ $p->name }} ({{ $p->code ?? 'PRJ-'.$p->id }})
