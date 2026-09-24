@@ -177,7 +177,21 @@ function reportsApp() {
                 const excelTable = document.querySelector("#customerLedgerExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Customer_Ledger_Statement.xlsx';
+                    if (customerNames.length === 1) {
+                        const cleanCust = customerNames[0].replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_');
+                        filename = cleanCust + '_Ledger_Statement.xlsx';
+                    } else if (customerNames.length > 1) {
+                        filename = 'Customer_Ledger_Statement.xlsx';
+                    } else {
+                        const custNameBadge = document.querySelector("#customerBadgeName");
+                        const rawCustName = custNameBadge ? custNameBadge.innerText.replace(/^Customer:\s*/i, '').trim() : '';
+                        if (rawCustName && !rawCustName.includes('Customers Selected') && !rawCustName.includes('All Customers')) {
+                            const cleanCust = rawCustName.replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_');
+                            filename = cleanCust + '_Ledger_Statement.xlsx';
+                        } else {
+                            filename = 'Customer_Ledger_Statement.xlsx';
+                        }
+                    }
                 }
             }
 
@@ -330,8 +344,15 @@ function reportsApp() {
 
                     let vertAlign = cell.style.verticalAlign || 'middle';
 
-                    // Formatting detection from custom mso-number-format or data attributes
-                    const numberFormat = cell.style.msoNumberFormat || cell.getAttribute("data-format") || '';
+                    // Formatting detection from custom mso-number-format, data attributes, or style attribute
+                    const styleAttr = cell.getAttribute("style") || '';
+                    let numberFormat = cell.getAttribute("data-format") || cell.style.msoNumberFormat || '';
+                    if (!numberFormat && styleAttr.includes('mso-number-format')) {
+                        const match = styleAttr.match(/mso-number-format\s*:\s*['"]?([^;'"]+)['"]?/i);
+                        if (match) {
+                            numberFormat = match[1];
+                        }
+                    }
                     
                     // Populate excelCell value and format
                     if (numberFormat.includes('\\@') || numberFormat.includes('@') || cell.getAttribute("data-type") === 'text') {

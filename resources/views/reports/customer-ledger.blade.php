@@ -49,21 +49,44 @@
     @include('reports.partials.nav')
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
+        @php
+            $activeCustomerName = null;
+            if(isset($selectedCustomers) && $selectedCustomers->isNotEmpty()) {
+                if($selectedCustomers->count() === 1) {
+                    $activeCustomerName = $selectedCustomers->first()->name;
+                } else {
+                    $activeCustomerName = $selectedCustomers->count() . ' Customers Selected';
+                }
+            } elseif(request('customer_id')) {
+                $reqIds = is_array(request('customer_id')) ? request('customer_id') : [request('customer_id')];
+                $activeCustomers = \App\Models\Customer::whereIn('id', $reqIds)->get();
+                if($activeCustomers->count() === 1) {
+                    $activeCustomerName = $activeCustomers->first()->name;
+                } elseif($activeCustomers->count() > 1) {
+                    $activeCustomerName = $activeCustomers->count() . ' Customers Selected';
+                }
+            }
+        @endphp
+
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3">
             <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Customer Ledger & Accounts Statement</h3>
-            @include('reports.partials.header-badges')
+            
+            <div class="flex flex-wrap items-center gap-2.5">
+                @if($activeCustomerName)
+                <span id="customerBadgeName" class="px-4 py-1.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    Customer: {{ $activeCustomerName }}
+                </span>
+                @endif
+
+                <button type="button" @click="exportCurrentTable()" 
+                        class="h-[42px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Export Excel</span>
+                </button>
+            </div>
         </div>
 
-        {{-- Filter, Print & Export Bar directly above Table (Print omitted) --}}
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
-            @include('reports.partials.filter-bar', [
-                'formId' => 'customerLedgerForm',
-                'actionRoute' => route('reports.customer_ledger'),
-                'exportLabel' => 'Export Excel',
-                'showPrint' => false,
-                'isAjax' => true
-            ])
-        </div>
 
         {{-- Results Container (Refreshed dynamically via AJAX) --}}
         <div id="ledger-results-wrapper" class="space-y-6 relative min-h-[200px]">
@@ -360,9 +383,9 @@
                                         <td class="px-5 py-4 text-center font-mono text-[11px] text-slate-500">
                                             {{ $cs['last_payment'] }}
                                         </td>
-                                        <td class="px-5 py-4 text-right">
+                                        <td class="px-5 py-4 text-right whitespace-nowrap">
                                             <a href="{{ route('reports.customer_ledger', ['customer_id' => $cs['customer_id'], 'project_id' => request('project_id')]) }}"
-                                               class="px-3.5 py-1.5 bg-[#a38c29]/15 hover:bg-[#a38c29] text-[#8a7522] hover:text-white border border-[#a38c29]/30 rounded-xl text-[10px] font-black uppercase tracking-wider transition inline-flex items-center gap-1">
+                                               class="px-4 py-2 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8a7522] hover:to-[#8a7522] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs hover:shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
                                                 <span>View Ledger</span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                             </a>
@@ -457,91 +480,91 @@
                                 <tr height="20" style="height: 20pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
-                                <tr height="36" style="height: 36pt;">
-                                    <th colspan="9" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                <tr height="38" style="height: 38pt;">
+                                    <th colspan="9" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #8A7522; font-family: 'Calibri', 'Aptos', sans-serif;">
                                         HINDUSTAN REAL ESTATE & INFRASTRUCTURE - CUSTOMER EMI & ACCOUNT STATEMENT
                                     </th>
                                 </tr>
-                                <tr height="25" style="height: 25pt;">
-                                    <th colspan="9" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                <tr height="26" style="height: 26pt;">
+                                    <th colspan="9" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-family: 'Calibri', 'Aptos', sans-serif;">
                                         Target Customer(s): {{ $selectedCustomers->pluck('name')->implode(', ') }} | Generated On: {{ date('d M Y, h:i A') }}
                                     </th>
                                 </tr>
-                                <tr height="25" style="height: 25pt;">
-                                    <th colspan="9" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        ACCOUNT SUMMARY & EMI INSTALLMENTS KPI
+                                <tr height="26" style="height: 26pt;">
+                                    <th colspan="9" bgcolor="#8A7522" style="background-color: #8A7522; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #6B5B1E; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                        ACCOUNT SUMMARY & EMI INSTALLMENTS
                                     </th>
                                 </tr>
                                 <tr height="15" style="height: 15pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
                                 <tr height="30" style="height: 30pt;">
-                                    <td colspan="2" bgcolor="#F1F5F9" style="background-color: #F1F5F9; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 12px; font-size: 10pt; color: #334155;">TOTAL SALES AGREEMENTS:</td>
-                                    <td colspan="2" bgcolor="#F1F5F9" style="background-color: #F1F5F9; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 12px; font-size: 11pt; color: #0F172A; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
-                                    <td colspan="2" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 14px; font-size: 10pt; color: #047857;">TOTAL COLLECTIONS:</td>
-                                    <td colspan="3" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 14px; font-size: 11pt; color: #047857; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
+                                    <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #8A7522;">TOTAL SALES AGREEMENTS:</td>
+                                    <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #0F172A;" data-format="₹#,##0.00">₹{{ number_format($totalDebits, 2) }}</td>
+                                    <td colspan="2" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #047857;">TOTAL COLLECTIONS:</td>
+                                    <td colspan="3" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #047857;" data-format="₹#,##0.00">₹{{ number_format($totalCredits, 2) }}</td>
                                 </tr>
                                 <tr height="30" style="height: 30pt;">
-                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 12px; font-size: 10pt; color: #BE123C;">NET OUTSTANDING DUES:</td>
-                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 12px; font-size: 11pt; color: #BE123C; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
-                                    <td colspan="2" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 14px; font-size: 10pt; color: #B45309;">PENDING REALIZATION:</td>
-                                    <td colspan="3" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 14px; font-size: 11pt; color: #B45309; mso-number-format:'\#\,\#\#0\.00';">{{ $totalPendingCredits }}</td>
+                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #BE123C;">NET OUTSTANDING DUES:</td>
+                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #BE123C;" data-format="₹#,##0.00">₹{{ number_format($closingBalance, 2) }}</td>
+                                    <td colspan="2" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #B45309;">PENDING REALIZATION:</td>
+                                    <td colspan="3" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #B45309;" data-format="₹#,##0.00">₹{{ number_format($totalPendingCredits, 2) }}</td>
                                 </tr>
                                 <tr height="15" style="height: 15pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
-                                <tr height="30" style="height: 30pt;">
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">SL NO</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">INSTALLMENT / MILESTONE</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">DUE DATE</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">PROJECT NAME</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">UNIT NO</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">INSTALLMENT (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">PAID AMOUNT (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">OUTSTANDING (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">STATUS</th>
+                                <tr height="32" style="height: 32pt;">
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">SL NO</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">INSTALLMENT / MILESTONE</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">DUE DATE</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PROJECT NAME</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">UNIT NO</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">INSTALLMENT (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PAID AMOUNT (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">OUTSTANDING (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">STATUS</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @if(isset($customerInstallmentsList) && $customerInstallmentsList->isNotEmpty())
                                     @foreach($customerInstallmentsList as $idx => $inst)
-                                    @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; @endphp
+                                    @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F8FAF5'; @endphp
                                     <tr height="25" style="height: 25pt;">
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $idx + 1 }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $inst['label'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $inst['label'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $inst['due_date'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $inst['project'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $inst['unit'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $inst['amount'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $inst['paid_amount'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $inst['outstanding'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $inst['project'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $inst['unit'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $inst['amount'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $inst['paid_amount'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $inst['outstanding'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: {{ strtolower($inst['status']) === 'paid' ? '#047857' : (strtolower($inst['status']) === 'overdue' ? '#be123c' : '#b45309') }};">{{ $inst['status'] }}</td>
                                     </tr>
                                     @endforeach
                                 @else
                                     @foreach($customerSummaryList as $idx => $cs)
-                                    @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; @endphp
+                                    @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F8FAF5'; @endphp
                                     <tr height="25" style="height: 25pt;">
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $idx + 1 }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $cs['project'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $cs['unit'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['project'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['last_payment'] }}</td>
                                     </tr>
                                     @endforeach
                                 @endif
                             </tbody>
                             <tfoot>
-                                <tr height="36" style="height: 36pt; font-weight: bold; color: #ffffff;">
-                                    <td colspan="5" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; border: 1px solid #475569;"></td>
+                                <tr height="40" style="height: 40pt; font-weight: bold; color: #ffffff;">
+                                    <td colspan="5" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; text-align: center; vertical-align: middle;"></td>
                                 </tr>
                             </tfoot>
                         @else
@@ -561,74 +584,74 @@
                                 <tr height="20" style="height: 20pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
-                                <tr height="36" style="height: 36pt;">
-                                    <th colspan="9" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                <tr height="38" style="height: 38pt;">
+                                    <th colspan="9" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #8A7522; font-family: 'Calibri', 'Aptos', sans-serif;">
                                         HINDUSTAN REAL ESTATE & INFRASTRUCTURE - ALL CUSTOMERS ACCOUNTS DIRECTORY
                                     </th>
                                 </tr>
-                                <tr height="25" style="height: 25pt;">
-                                    <th colspan="9" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                <tr height="26" style="height: 26pt;">
+                                    <th colspan="9" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-family: 'Calibri', 'Aptos', sans-serif;">
                                         Comprehensive Accounts Balances & Receivables Overview | Generated On: {{ date('d M Y, h:i A') }}
                                     </th>
                                 </tr>
-                                <tr height="25" style="height: 25pt;">
-                                    <th colspan="9" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        ACCOUNT SUMMARY & RECEIVABLES KPI
+                                <tr height="26" style="height: 26pt;">
+                                    <th colspan="9" bgcolor="#8A7522" style="background-color: #8A7522; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #6B5B1E; font-family: 'Calibri', 'Aptos', sans-serif;">
+                                        ACCOUNT SUMMARY & RECEIVABLES
                                     </th>
                                 </tr>
                                 <tr height="15" style="height: 15pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
                                 <tr height="30" style="height: 30pt;">
-                                    <td colspan="2" bgcolor="#F1F5F9" style="background-color: #F1F5F9; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 12px; font-size: 10pt; color: #334155;">TOTAL SALES AGREEMENTS:</td>
-                                    <td colspan="2" bgcolor="#F1F5F9" style="background-color: #F1F5F9; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 12px; font-size: 11pt; color: #0F172A; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
-                                    <td colspan="2" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 14px; font-size: 10pt; color: #047857;">TOTAL COLLECTIONS:</td>
-                                    <td colspan="3" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 14px; font-size: 11pt; color: #047857; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
+                                    <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #8A7522;">TOTAL SALES AGREEMENTS:</td>
+                                    <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #0F172A;" data-format="₹#,##0.00">₹{{ number_format($totalDebits, 2) }}</td>
+                                    <td colspan="2" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #047857;">TOTAL COLLECTIONS:</td>
+                                    <td colspan="3" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #047857;" data-format="₹#,##0.00">₹{{ number_format($totalCredits, 2) }}</td>
                                 </tr>
                                 <tr height="30" style="height: 30pt;">
-                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 12px; font-size: 10pt; color: #BE123C;">NET OUTSTANDING DUES:</td>
-                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 12px; font-size: 11pt; color: #BE123C; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
-                                    <td colspan="2" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 14px; font-size: 10pt; color: #B45309;">ACTIVE CUSTOMER ACCOUNTS:</td>
-                                    <td colspan="3" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 14px; font-size: 11pt; color: #B45309;">{{ count($customerSummaryList) }} Accounts</td>
+                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #BE123C;">NET OUTSTANDING DUES:</td>
+                                    <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #BE123C;" data-format="₹#,##0.00">₹{{ number_format($closingBalance, 2) }}</td>
+                                    <td colspan="2" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #B45309;">ACTIVE CUSTOMER ACCOUNTS:</td>
+                                    <td colspan="3" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #B45309;">{{ count($customerSummaryList) }} Accounts</td>
                                 </tr>
                                 <tr height="15" style="height: 15pt;" data-no-border="true">
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
-                                <tr height="30" style="height: 30pt;">
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">SL NO</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">CUSTOMER NAME</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">PHONE NUMBER</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">PROJECT NAME</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">UNIT NO</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">TOTAL SALE (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">TOTAL PAID (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">OUTSTANDING (₹)</th>
-                                    <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">LAST PAYMENT</th>
+                                <tr height="32" style="height: 32pt;">
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">SL NO</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">CUSTOMER NAME</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PHONE NUMBER</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PROJECT NAME</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">UNIT NO</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">TOTAL SALE (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">TOTAL PAID (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">OUTSTANDING (₹)</th>
+                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">LAST PAYMENT</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($customerSummaryList as $idx => $cs)
-                                @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; @endphp
+                                @php $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F8FAF5'; @endphp
                                 <tr height="25" style="height: 25pt;">
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $idx + 1 }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $cs['project'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $cs['unit'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['project'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['last_payment'] }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
-                                <tr height="36" style="height: 36pt; font-weight: bold; color: #ffffff;">
-                                    <td colspan="5" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
-                                    <td bgcolor="#2C3E50" style="background-color: #2C3E50; border: 1px solid #475569; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
+                                <tr height="40" style="height: 40pt; font-weight: bold; color: #ffffff;">
+                                    <td colspan="5" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalDebits }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totalCredits }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $closingBalance }}</td>
+                                    <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; text-align: center; vertical-align: middle;"></td>
                                 </tr>
                             </tfoot>
                         @endif

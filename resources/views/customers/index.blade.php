@@ -273,6 +273,11 @@
                                     <button @click="openViewModal(customer)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Customer Details">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
+                                    <button @click="exportSingleCustomerStatement(customer.id)" class="p-2 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 hover:text-emerald-700 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Download Customer Excel">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </button>
                                     <button @click="openEditModal(customer.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Customer">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
@@ -546,6 +551,7 @@
 <script>
 function customersApp() {
     return {
+        defaultProjectTitle: '{{ strtoupper($defaultProject ?? 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.') }}',
         allCustomerList: {{ Js::from($allCustomers ?? []) }},
         customers: [],
         filters: {
@@ -652,24 +658,220 @@ function customersApp() {
                 return;
             }
 
+            // If a specific customer is filtered via dropdown, export that customer's statement
             if (this.filters.customer_id) {
                 await this.exportSingleCustomerStatement(this.filters.customer_id);
                 return;
             }
 
-            if (this.customers && this.customers.length === 1) {
-                await this.exportSingleCustomerStatement(this.customers[0].id);
-                return;
-            }
-
+            // When no customer is specifically selected, export the whole customer table visible on the page
             if (!this.customers || this.customers.length === 0) {
                 alert('No customers available to export.');
                 return;
             }
 
-            // If multiple customers and no specific one selected, export the first customer's statement or prompt
-            const firstCustomer = this.customers[0];
-            await this.exportSingleCustomerStatement(firstCustomer.id);
+            await this.buildAndDownloadCustomerDirectoryWorkbook(this.customers);
+        },
+
+        async buildAndDownloadCustomerDirectoryWorkbook(customerList) {
+            this.showToast('Generating Customer Directory Excel...', 'success');
+
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'TABASCO Human Capital';
+            workbook.lastModifiedBy = 'TABASCO ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            const goldBorder = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'thin', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+
+            const doubleGoldBorder = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'double', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+
+            const thinGrayBorder = {
+                top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
+            };
+
+            const worksheet = workbook.addWorksheet('Customer Directory', {
+                views: [{ showGridLines: true }]
+            });
+
+            worksheet.columns = [
+                { key: 'sl_no', width: 8 },
+                { key: 'customer_name', width: 28 },
+                { key: 'address', width: 30 },
+                { key: 'email', width: 28 },
+                { key: 'phone', width: 18 },
+                { key: 'units_purchased', width: 18 },
+                { key: 'total_sale', width: 24 },
+                { key: 'total_paid', width: 24 },
+                { key: 'balance', width: 24 },
+                { key: 'status', width: 16 }
+            ];
+
+            // Row 1: Spacer
+            worksheet.addRow([]);
+            worksheet.getRow(1).height = 15;
+
+            // Row 2: Top Title Banner (Project Name as Title)
+            const projectTitle = this.defaultProjectTitle || 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.';
+            const r2 = worksheet.addRow([projectTitle + '   |   CUSTOMER DIRECTORY REPORT']);
+            worksheet.mergeCells('A2:J2');
+            r2.height = 36;
+            const c2 = worksheet.getCell('A2');
+            c2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+            c2.alignment = { vertical: 'middle', horizontal: 'center' };
+            c2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            for (let c = 1; c <= 10; c++) {
+                worksheet.getRow(2).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                worksheet.getRow(2).getCell(c).border = goldBorder;
+            }
+
+            // Row 3: Sub-Header
+            const runDateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const r3 = worksheet.addRow([`REPORT RUN DATE: ${runDateStr}   |   TOTAL CUSTOMERS: ${customerList.length}`]);
+            worksheet.mergeCells('A3:J3');
+            r3.height = 24;
+            const c3 = worksheet.getCell('A3');
+            c3.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            c3.alignment = { vertical: 'middle', horizontal: 'center' };
+            c3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            for (let c = 1; c <= 10; c++) {
+                worksheet.getRow(3).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                worksheet.getRow(3).getCell(c).border = goldBorder;
+            }
+
+            // Row 4: Spacer
+            worksheet.addRow([]);
+            worksheet.getRow(4).height = 10;
+
+            // Row 5: Table Headers (Brand Gold #A38C29)
+            const headers = [
+                'SL NO',
+                'CUSTOMER NAME',
+                'ADDRESS',
+                'EMAIL ADDRESS',
+                'PHONE NUMBER',
+                'UNITS PURCHASED',
+                'TOTAL SALE VALUE (₹)',
+                'TOTAL PAID (₹)',
+                'OUTSTANDING BALANCE (₹)',
+                'STATUS'
+            ];
+            const r5 = worksheet.addRow(headers);
+            r5.height = 30;
+            r5.eachCell((cell) => {
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                cell.border = goldBorder;
+            });
+
+            // Data Rows (All Center Aligned)
+            let totalUnitsCount = 0;
+            let sumSaleValue = 0;
+            let sumPaidValue = 0;
+            let sumBalanceValue = 0;
+
+            customerList.forEach((cust, idx) => {
+                const uCount = Number(cust.sales_count || 0);
+                const saleVal = Number(cust.total_purchase || 0);
+                const paidVal = Number(cust.total_paid || 0);
+                const balVal = Math.max(0, saleVal - paidVal);
+
+                totalUnitsCount += uCount;
+                sumSaleValue += saleVal;
+                sumPaidValue += paidVal;
+                sumBalanceValue += balVal;
+
+                const row = worksheet.addRow([
+                    idx + 1,
+                    cust.name || '—',
+                    cust.address || 'No address',
+                    cust.email || '—',
+                    cust.phone || '—',
+                    uCount + ' Units',
+                    saleVal,
+                    paidVal,
+                    balVal,
+                    cust.is_active ? 'Active' : 'Inactive'
+                ]);
+
+                row.height = 22;
+                const isEven = idx % 2 === 1;
+                const rowBg = isEven ? 'FFF6F3E9' : 'FFFFFFFF';
+
+                row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    cell.border = thinGrayBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    
+                    // All excel data center aligned
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                    if (colNumber === 2 || colNumber === 7 || colNumber === 8 || colNumber === 9) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                    }
+                    if (colNumber === 8) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF059669' } };
+                    }
+                    if (colNumber === 9 && balVal > 0) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFE11D48' } };
+                    }
+                    if (colNumber >= 7 && colNumber <= 9) {
+                        cell.numFmt = '#,##0.00';
+                    }
+                });
+            });
+
+            // Grand Total Row (Green Background, Center Aligned, Bold White Text)
+            const totRow = worksheet.addRow([
+                'TOTAL SUMMARY',
+                '',
+                '',
+                '',
+                '',
+                totalUnitsCount + ' Units',
+                sumSaleValue,
+                sumPaidValue,
+                sumBalanceValue,
+                ''
+            ]);
+            const totRowNum = worksheet.rowCount;
+            worksheet.mergeCells(`A${totRowNum}:E${totRowNum}`);
+            totRow.height = 36;
+            totRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.border = goldBorder;
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                if (colNumber >= 7 && colNumber <= 9) {
+                    cell.numFmt = '#,##0.00';
+                }
+            });
+
+            // Write and download file: specific excel name without project name
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Customer_Directory_Report.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            this.showToast('Customer Directory Excel exported successfully.');
         },
 
         async buildAndDownloadStatementWorkbook(statementData) {
@@ -713,13 +915,13 @@ function customersApp() {
                 });
 
                 ws.columns = [
-                    { key: 'date', width: 15 },
-                    { key: 'v_no', width: 18 },
-                    { key: 'description', width: 34 },
-                    { key: 'payment_type', width: 16 },
-                    { key: 'debit', width: 20 },
-                    { key: 'credit', width: 20 },
-                    { key: 'balance', width: 22 }
+                    { key: 'date', width: 18 },
+                    { key: 'v_no', width: 24 },
+                    { key: 'description', width: 44 },
+                    { key: 'payment_type', width: 20 },
+                    { key: 'debit', width: 24 },
+                    { key: 'credit', width: 24 },
+                    { key: 'balance', width: 26 }
                 ];
 
                 // Row 1: Blank Spacer
@@ -739,8 +941,8 @@ function customersApp() {
                     ws.getRow(2).getCell(c).border = goldBorder; 
                 }
 
-                // Row 3: Client Details Sub-Banner (#0B3B2E)
-                const r3 = ws.addRow(['Client Details', '', '', '', customer.name || 'N/A', '', '']);
+                // Row 3: Customer Details Sub-Banner (#0B3B2E)
+                const r3 = ws.addRow(['Customer Details', '', '', '', customer.name || 'N/A', '', '']);
                 ws.mergeCells('A3:D3');
                 ws.mergeCells('E3:G3');
                 r3.height = 28;
@@ -776,11 +978,11 @@ function customersApp() {
                 r5.height = 24;
                 const c5L = ws.getCell('A5');
                 c5L.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF0B3B2E' } };
-                c5L.alignment = { vertical: 'middle', horizontal: 'left' };
+                c5L.alignment = { vertical: 'middle', horizontal: 'center' };
 
                 const c5R = ws.getCell('E5');
                 c5R.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFC00000' } };
-                c5R.alignment = { vertical: 'middle', horizontal: 'right' };
+                c5R.alignment = { vertical: 'middle', horizontal: 'center' };
 
                 // Row 6: Table Header (Brand Gold)
                 const headers = ['Date', 'V.No', 'Description', 'Payment Type', 'Debit', 'Credit', 'Balance'];
@@ -793,7 +995,7 @@ function customersApp() {
                     cell.border = goldBorder;
                 });
 
-                // Rows 7+: Data Rows (Clean White with thin gray borders)
+                // Rows 7+: Data Rows (Clean White, Center Aligned)
                 let runningBalance = 0;
                 let totalDebit = 0;
                 let totalCredit = 0;
@@ -820,14 +1022,10 @@ function customersApp() {
                         cell.border = thinGrayBorder;
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
                         cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-                        if (colNumber === 1 || colNumber === 2 || colNumber === 4) {
-                            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                        } else if (colNumber === 3) {
-                            cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                        } else if (colNumber >= 5 && colNumber <= 7) {
-                            cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                            cell.numFmt = '0.00';
+                        if (colNumber >= 5 && colNumber <= 7) {
+                            cell.numFmt = '#,##0.00';
                         }
                     });
                 });
@@ -842,51 +1040,34 @@ function customersApp() {
                     });
                 }
 
-                // Sub Total Row
-                const subTotalRow = ws.addRow(['Sub Total', '', '', '', totalDebit, totalCredit, runningBalance]);
-                const subRowNum = ws.rowCount;
-                ws.mergeCells(`A${subRowNum}:D${subRowNum}`);
-                subTotalRow.height = 24;
-                subTotalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-                    cell.border = thinGrayBorder;
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                    else if (colNumber >= 5 && colNumber <= 7) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                        cell.numFmt = '0.00';
-                    }
-                });
-
-                // Grand Total Row
+                // Grand Total Row (Green Background, Bold White Text)
                 const grandTotalRow = ws.addRow(['Grand Total', '', '', '', totalDebit, totalCredit, runningBalance]);
                 const grandRowNum = ws.rowCount;
                 ws.mergeCells(`A${grandRowNum}:D${grandRowNum}`);
                 grandTotalRow.height = 36;
                 grandTotalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF000000' } };
-                    cell.border = doubleGoldBorder;
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                    else if (colNumber >= 5 && colNumber <= 7) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                        cell.numFmt = '0.00';
+                    cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.border = goldBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    if (colNumber >= 5 && colNumber <= 7) {
+                        cell.numFmt = '#,##0.00';
                     }
                 });
             };
 
-            // 1. SHEET: Client Master (Exact match with user image)
-            const wsMaster = workbook.addWorksheet('Client Master', { views: [{ showGridLines: true }] });
+            // 1. SHEET: Customer Master
+            const wsMaster = workbook.addWorksheet('Customer Master', { views: [{ showGridLines: true }] });
             wsMaster.columns = [
-                { key: 'colA', width: 6 },   // #
-                { key: 'colB', width: 22 },  // Sale / Booking No.
-                { key: 'colC', width: 34 },  // Project Name / Client Name
-                { key: 'colD', width: 28 },  // Block / Door No. / Milestone
-                { key: 'colE', width: 18 },  // Floor / Due Date
-                { key: 'colF', width: 16 },  // Unit Type / Total Installment (₹)
-                { key: 'colG', width: 18 },  // Agreement Date / Paid Amount (₹)
-                { key: 'colH', width: 24 },  // Total Consideration (₹) / Balance Due (₹)
-                { key: 'colI', width: 16 }   // Status
+                { key: 'colA', width: 8 },   // #
+                { key: 'colB', width: 28 },  // Sale / Booking No.
+                { key: 'colC', width: 42 },  // Project Name / Customer Name
+                { key: 'colD', width: 36 },  // Block / Door No. / Milestone
+                { key: 'colE', width: 22 },  // Floor / Due Date
+                { key: 'colF', width: 22 },  // Unit Type / Total Installment (₹)
+                { key: 'colG', width: 22 },  // Agreement Date / Paid Amount (₹)
+                { key: 'colH', width: 28 },  // Total Consideration (₹) / Balance Due (₹)
+                { key: 'colI', width: 18 }   // Status
             ];
 
             // Row 1: Blank Spacer
@@ -894,7 +1075,7 @@ function customersApp() {
             wsMaster.getRow(1).height = 15;
 
             // Row 2: Top Title Banner (#0B3B2E)
-            const mr2 = wsMaster.addRow([projectTitle + '   |   CLIENT MASTER']);
+            const mr2 = wsMaster.addRow([projectTitle + '   |   CUSTOMER MASTER']);
             wsMaster.mergeCells('A2:I2');
             mr2.height = 36;
             const mc2 = wsMaster.getCell('A2');
@@ -906,8 +1087,8 @@ function customersApp() {
                 wsMaster.getRow(2).getCell(c).border = goldBorder; 
             }
 
-            // Row 3: Client Details Sub-Banner (#0B3B2E)
-            const mr3 = wsMaster.addRow(['Client Details', '', '', '', '', customer.name || 'N/A', '', '', '']);
+            // Row 3: Customer Details Sub-Banner (#0B3B2E)
+            const mr3 = wsMaster.addRow(['Customer Details', '', '', '', '', customer.name || 'N/A', '', '', '']);
             wsMaster.mergeCells('A3:E3');
             wsMaster.mergeCells('F3:I3');
             mr3.height = 28;
@@ -920,17 +1101,23 @@ function customersApp() {
             wsMaster.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
             wsMaster.getCell('F3').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            // Rows 4, 5, 6: Customer Info Card
-            const mr4 = wsMaster.addRow(['Customer ID', ':', customer.id || '-', '', 'Email Address', ':', customer.email || 'N/A', '', '']);
+            // Rows 4, 5, 6: Customer Info Card (Clean spacing & center alignment)
+            const mr4 = wsMaster.addRow(['Customer ID', '', customer.id || '-', '', 'Email Address', '', customer.email || 'N/A', '', '']);
+            wsMaster.mergeCells('A4:B4');
             wsMaster.mergeCells('C4:D4');
+            wsMaster.mergeCells('E4:F4');
             wsMaster.mergeCells('G4:I4');
 
-            const mr5 = wsMaster.addRow(['Full Name', ':', customer.name || 'N/A', '', 'Phone Number', ':', customer.phone || 'N/A', '', '']);
+            const mr5 = wsMaster.addRow(['Full Name', '', customer.name || 'N/A', '', 'Phone Number', '', customer.phone || 'N/A', '', '']);
+            wsMaster.mergeCells('A5:B5');
             wsMaster.mergeCells('C5:D5');
+            wsMaster.mergeCells('E5:F5');
             wsMaster.mergeCells('G5:I5');
 
-            const mr6 = wsMaster.addRow(['Status', ':', customer.is_active ? 'ACTIVE' : 'INACTIVE', '', 'Address', ':', customer.address || 'N/A', '', '']);
+            const mr6 = wsMaster.addRow(['Status', '', customer.is_active ? 'ACTIVE' : 'INACTIVE', '', 'Address', '', customer.address || 'N/A', '', '']);
+            wsMaster.mergeCells('A6:B6');
             wsMaster.mergeCells('C6:D6');
+            wsMaster.mergeCells('E6:F6');
             wsMaster.mergeCells('G6:I6');
 
             [mr4, mr5, mr6].forEach(r => {
@@ -941,12 +1128,8 @@ function customersApp() {
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
                     if (colNumber === 1 || colNumber === 5) {
                         cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF000000' } };
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    } else if (colNumber === 2 || colNumber === 6) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                    } else {
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
                     }
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 });
             });
 
@@ -975,7 +1158,7 @@ function customersApp() {
                 c.border = goldBorder;
             });
 
-            // Rows 9+: Properties Data Rows
+            // Rows 9+: Properties Data Rows (Center Aligned)
             let totalPropsVal = 0;
             properties.forEach((prop, idx) => {
                 const val = Number(prop.total_amount || 0);
@@ -996,13 +1179,9 @@ function customersApp() {
                     cell.border = thinGrayBorder;
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
                     cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
-                    if (colNumber === 1 || colNumber === 2 || colNumber === 5 || colNumber === 6 || colNumber === 7 || colNumber === 9) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                    } else if (colNumber === 3 || colNumber === 4) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    } else if (colNumber === 8) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                        cell.numFmt = '0.00';
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    if (colNumber === 8) {
+                        cell.numFmt = '#,##0.00';
                     }
                 });
             });
@@ -1013,17 +1192,17 @@ function customersApp() {
                 row.eachCell(c => { c.border = thinGrayBorder; c.alignment = { vertical: 'middle', horizontal: 'center' }; });
             }
 
-            // Total Consideration Row
+            // Total Consideration Row (Green Background, Bold White Text)
             const ptotRow = wsMaster.addRow(['Total Consideration Value', '', '', '', '', '', '', totalPropsVal, '']);
             const ptotNum = wsMaster.rowCount;
             wsMaster.mergeCells(`A${ptotNum}:G${ptotNum}`);
             ptotRow.height = 36;
             ptotRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF000000' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                cell.border = doubleGoldBorder;
-                if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                if (colNumber === 8) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
+                cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.border = goldBorder;
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                if (colNumber === 8) { cell.numFmt = '#,##0.00'; }
             });
 
             // Blank spacer
@@ -1044,8 +1223,8 @@ function customersApp() {
                 wsMaster.getRow(emiNum).getCell(c).border = goldBorder; 
             }
 
-            // Installments Table Header (Col C is Client Name / Unit)
-            const emiHeaders = ['#', 'Sale / Booking No.', 'Client Name', 'Installment / Milestone', 'Due Date', 'Total Installment (₹)', 'Paid Amount (₹)', 'Balance Due (₹)', 'Status'];
+            // Installments Table Header (Customer Name / Unit)
+            const emiHeaders = ['#', 'Sale / Booking No.', 'Customer Name', 'Installment / Milestone', 'Due Date', 'Total Installment (₹)', 'Paid Amount (₹)', 'Balance Due (₹)', 'Status'];
             const ehr = wsMaster.addRow(emiHeaders);
             ehr.height = 30;
             ehr.eachCell(c => {
@@ -1060,7 +1239,7 @@ function customersApp() {
                 return Number(inst.paid_amount || 0) > 0 || (inst.status && inst.status.toUpperCase() === 'PAID');
             });
 
-            // Installment Data Rows
+            // Installment Data Rows (Center Aligned)
             let totalEmiScheduled = 0;
             let totalEmiPaid = 0;
             let totalEmiBalance = 0;
@@ -1089,13 +1268,9 @@ function customersApp() {
                     cell.border = thinGrayBorder;
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
                     cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
-                    if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5 || colNumber === 9) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                    } else if (colNumber === 3) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    } else if (colNumber >= 6 && colNumber <= 8) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                        cell.numFmt = '0.00';
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    if (colNumber >= 6 && colNumber <= 8) {
+                        cell.numFmt = '#,##0.00';
                     }
                 });
             });
@@ -1106,17 +1281,17 @@ function customersApp() {
                 row.eachCell(c => { c.border = thinGrayBorder; c.alignment = { vertical: 'middle', horizontal: 'center' }; });
             }
 
-            // Total Installments Row
+            // Total Installments Row (Green Background, Bold White Text)
             const etotRow = wsMaster.addRow(['Total Installments Summary', '', '', '', '', totalEmiScheduled, totalEmiPaid, totalEmiBalance, '']);
             const etotNum = wsMaster.rowCount;
             wsMaster.mergeCells(`A${etotNum}:E${etotNum}`);
             etotRow.height = 36;
             etotRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF000000' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                cell.border = doubleGoldBorder;
-                if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                if (colNumber >= 6 && colNumber <= 8) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
+                cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.border = goldBorder;
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                if (colNumber >= 6 && colNumber <= 8) { cell.numFmt = '#,##0.00'; }
             });
 
             // 2. SHEET: Statement-Loan (Cheque / Bank / Loan transactions)
@@ -1134,9 +1309,9 @@ function customersApp() {
             const wsSum = workbook.addWorksheet('Summary', { views: [{ showGridLines: true }] });
             wsSum.columns = [
                 { key: 'idx', width: 8 },
-                { key: 'metric', width: 42 },
-                { key: 'amount', width: 25 },
-                { key: 'notes', width: 32 }
+                { key: 'metric', width: 48 },
+                { key: 'amount', width: 28 },
+                { key: 'notes', width: 36 }
             ];
 
             // Row 1: Blank Spacer
@@ -1156,8 +1331,8 @@ function customersApp() {
                 wsSum.getRow(2).getCell(c).border = goldBorder; 
             }
 
-            // Row 3: Client Details Sub-Banner
-            const sr3 = wsSum.addRow(['Client Details', '', customer.name || 'N/A', '']);
+            // Row 3: Customer Details Sub-Banner
+            const sr3 = wsSum.addRow(['Customer Details', '', customer.name || 'N/A', '']);
             wsSum.mergeCells('A3:B3');
             wsSum.mergeCells('C3:D3');
             sr3.height = 28;
@@ -1223,36 +1398,32 @@ function customersApp() {
                     cell.border = thinGrayBorder;
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
                     cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
-                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                    if (colNumber === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    if (colNumber === 3) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
-                    if (colNumber === 4) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    if (colNumber === 3) { cell.numFmt = '#,##0.00'; }
                 });
             });
 
+            // Net Outstanding Balance Row (Green Background, Bold White Text)
             const outRow = wsSum.addRow(['', 'NET OUTSTANDING BALANCE PAYABLE', netOutstanding, 'Current Due Balance']);
             outRow.height = 36;
             outRow.eachCell((cell, colNumber) => {
-                cell.border = doubleGoldBorder;
-                cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF000000' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-                if (colNumber === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                cell.border = goldBorder;
+                cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 if (colNumber === 3) {
-                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                    cell.numFmt = '0.00';
-                    cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: netOutstanding > 0 ? 'FFC00000' : 'FF059669' } };
+                    cell.numFmt = '#,##0.00';
                 }
-                if (colNumber === 4) cell.alignment = { vertical: 'middle', horizontal: 'left' };
             });
 
-            // Download file
+            // Download file: specific customer name without id prefix
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            const safeName = (customer.name || 'Customer').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim();
-            a.download = `${customer.id}.Customer-${safeName}.xlsx`;
+            const safeName = (customer.name || 'Customer').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_');
+            a.download = `${safeName}_Ledger_Statement.xlsx`;
             a.click();
             window.URL.revokeObjectURL(url);
             this.showToast('Statement of Account exported successfully.');

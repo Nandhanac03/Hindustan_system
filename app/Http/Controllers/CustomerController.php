@@ -61,8 +61,9 @@ class CustomerController extends Controller
         }
  
         $allCustomers = Customer::orderBy('name')->select('id', 'name', 'phone', 'email')->get();
+        $defaultProject = Project::first()?->name ?? 'Tabasco Hindustan Infra Developers Pvt. Ltd';
 
-        return view('customers.index', compact('allCustomers'));
+        return view('customers.index', compact('allCustomers', 'defaultProject'));
     }
 
     public function store(Request $request): JsonResponse
