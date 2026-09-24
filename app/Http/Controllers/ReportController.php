@@ -2182,7 +2182,17 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'exchange_report';
 
-        $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs'])->where('status', 'exchanged');
+        $exQuery = Sale::with([
+            'customer', 
+            'unit.unitType', 
+            'unit.floor', 
+            'project', 
+            'statusLogs',
+            'saleUnits.unit.floor',
+            'saleUnits.unit.unitType',
+            'receipts'
+        ])->where('status', 'exchanged');
+
         if ($request->filled('project_id')) {
             $exQuery->where('project_id', $request->project_id);
         }
@@ -2190,39 +2200,213 @@ class ReportController extends Controller
             $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
             $exQuery->whereIn('customer_id', $customerIds);
         }
-        $exchangeEntries = $exQuery->orderByDesc('sale_date')->paginate(50);
+        if ($request->filled('date_from')) {
+            $exQuery->where(function($q) use ($request) {
+                $q->whereDate('updated_at', '>=', $request->date_from)
+                  ->orWhereDate('sale_date', '>=', $request->date_from);
+            });
+        }
+        if ($request->filled('date_to')) {
+            $exQuery->where(function($q) use ($request) {
+                $q->whereDate('updated_at', '<=', $request->date_to)
+                  ->orWhereDate('sale_date', '<=', $request->date_to);
+            });
+        }
+        $exchangeEntries = $exQuery->orderByDesc('updated_at')->paginate(50);
 
-        $allExSales = Sale::with('statusLogs')
+        // Preload replacement sales efficiently
+        $saleNumbers = $exchangeEntries->pluck('sale_number')->filter()->values();
+        $replacementSales = collect();
+        if ($saleNumbers->isNotEmpty()) {
+            $replacementSales = Sale::with(['unit.unitType', 'unit.floor', 'customer', 'project', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
+                ->where(function ($q) use ($saleNumbers) {
+                    foreach ($saleNumbers as $num) {
+                        $q->orWhere('notes', 'like', "%{$num}%");
+                    }
+                })
+                ->get();
+        }
+
+        $targetUnitIds = [];
+        foreach ($exchangeEntries as $sale) {
+            $newSale = $replacementSales->first(fn($ns) => 
+                str_contains($ns->notes ?? '', 'Exchanged from sale ' . $sale->sale_number) || 
+                str_contains($ns->notes ?? '', 'Exchanged from ' . $sale->sale_number) || 
+                str_contains($ns->notes ?? '', (string)$sale->sale_number)
+            );
+            $sale->replacement_sale = $newSale;
+            
+            if (!$newSale) {
+                $log = $sale->statusLogs->first(fn($l) => $l->event_type === 'exchanged');
+                $tId = $log?->snapshot_data['exchange_meta']['target_unit_id'] ?? null;
+                if ($tId) {
+                    $targetUnitIds[] = $tId;
+                }
+            }
+        }
+
+        $targetUnits = collect();
+        if (!empty($targetUnitIds)) {
+            $targetUnits = Unit::with(['unitType', 'floor'])->whereIn('id', array_unique($targetUnitIds))->get()->keyBy('id');
+        }
+
+        foreach ($exchangeEntries as $sale) {
+            $newSale = $sale->replacement_sale;
+            
+            // Exchange Code/Number (matching /sales?tab=exchange: EXC-YYYY-XXX)
+            $year = $sale->updated_at ? $sale->updated_at->format('Y') : ($sale->sale_date ? $sale->sale_date->format('Y') : '2026');
+            $sale->exchange_no = 'EXC-' . $year . '-' . str_pad((string)$sale->id, 3, '0', STR_PAD_LEFT);
+            $sale->exchange_date = $sale->updated_at ?? $sale->sale_date;
+
+            // Old Unit Details
+            if ($sale->saleUnits && $sale->saleUnits->count() > 1) {
+                $sale->old_unit_details = $sale->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->join(', ');
+            } else {
+                $sale->old_unit_details = $sale->unit?->formatted_name ?? '—';
+            }
+            $sale->old_customer_name = $sale->customer?->name ?? '—';
+
+            // New Unit Details
+            if ($newSale) {
+                if ($newSale->saleUnits && $newSale->saleUnits->isNotEmpty()) {
+                    $sale->new_unit_details = $newSale->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->join(', ');
+                } else {
+                    $sale->new_unit_details = $newSale->unit?->formatted_name ?? '—';
+                }
+                $sale->new_customer_name = $newSale->customer?->name ?? ($sale->customer?->name ?? '—');
+                $newUnitValue = (float)$newSale->total_amount;
+            } else {
+                $log = $sale->statusLogs->first(fn($l) => $l->event_type === 'exchanged');
+                $tId = $log?->snapshot_data['exchange_meta']['target_unit_id'] ?? null;
+                $tDoor = $log?->snapshot_data['exchange_meta']['target_door_no'] ?? null;
+                if ($tId && isset($targetUnits[$tId])) {
+                    $sale->new_unit_details = $targetUnits[$tId]->formatted_name;
+                } else {
+                    $sale->new_unit_details = $tDoor ?? '—';
+                }
+                $sale->new_customer_name = $sale->customer?->name ?? '—';
+                $newUnitValue = 0.00;
+            }
+
+            // Financial amounts
+            $paidEquity = (float)$sale->transferred_equity;
+            if ($paidEquity <= 0 && $sale->receipts) {
+                $paidEquity = (float)$sale->receipts->whereNull('partner_id')->sum('amount');
+            }
+            $sale->equity_paid = $paidEquity;
+            $sale->new_unit_value = $newUnitValue;
+
+            $netDue = round($newUnitValue - $paidEquity, 2);
+            $sale->net_due = $netDue;
+            $sale->difference_amount = abs($netDue);
+
+            if ($netDue > 0) {
+                $sale->settlement_status = 'Payable by Customer';
+                $sale->settlement_class = 'text-orange-600 font-bold';
+            } elseif ($netDue < 0) {
+                $sale->settlement_status = 'Refundable to Customer';
+                $sale->settlement_class = 'text-teal-600 font-bold';
+            } else {
+                $sale->settlement_status = 'Fully Settled';
+                $sale->settlement_class = 'text-slate-600 font-bold';
+            }
+        }
+
+        $allExSales = Sale::with(['statusLogs', 'receipts'])
             ->where('status', 'exchanged')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
             ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
+            ->when($request->filled('date_from'), fn($q) => $q->where(function($dq) use ($request) {
+                $dq->whereDate('updated_at', '>=', $request->date_from)
+                   ->orWhereDate('sale_date', '>=', $request->date_from);
+            }))
+            ->when($request->filled('date_to'), fn($q) => $q->where(function($dq) use ($request) {
+                $dq->whereDate('updated_at', '<=', $request->date_to)
+                   ->orWhereDate('sale_date', '<=', $request->date_to);
+            }))
             ->get();
 
-        $monthlyGrouped = $allExSales->groupBy(fn($s) => $s->sale_date ? $s->sale_date->format('M Y') : 'Unknown');
+        $allSaleNumbers = $allExSales->pluck('sale_number')->filter()->values();
+        $allReplacementSales = collect();
+        if ($allSaleNumbers->isNotEmpty()) {
+            $allReplacementSales = Sale::where(function ($q) use ($allSaleNumbers) {
+                foreach ($allSaleNumbers as $num) {
+                    $q->orWhere('notes', 'like', "%{$num}%");
+                }
+            })->get();
+        }
+
+        $totalDiff = 0.0;
+        $payableByCustomer = 0.0;
+        $refundableToCustomer = 0.0;
+        $totalNewContract = 0.0;
+        $totalEquity = 0.0;
+
+        foreach ($allExSales as $s) {
+            $ns = $allReplacementSales->first(fn($rep) => 
+                str_contains($rep->notes ?? '', 'Exchanged from sale ' . $s->sale_number) || 
+                str_contains($rep->notes ?? '', 'Exchanged from ' . $s->sale_number) || 
+                str_contains($rep->notes ?? '', (string)$s->sale_number)
+            );
+            $newVal = $ns ? (float)$ns->total_amount : 0.0;
+            $paid = (float)$s->transferred_equity;
+            if ($paid <= 0 && $s->receipts) {
+                $paid = (float)$s->receipts->whereNull('partner_id')->sum('amount');
+            }
+            $net = round($newVal - $paid, 2);
+            $totalDiff += abs($net);
+            if ($net > 0) {
+                $payableByCustomer += $net;
+            } elseif ($net < 0) {
+                $refundableToCustomer += abs($net);
+            }
+            $totalNewContract += $newVal;
+            $totalEquity += $paid;
+        }
+
+        $minDate = $allExSales->map(fn($s) => $s->updated_at ?? $s->sale_date)->filter()->min();
+        $startDate = $minDate ? Carbon::parse($minDate)->startOfMonth() : Carbon::now()->subMonths(5)->startOfMonth();
+        $endDate = Carbon::now()->startOfMonth();
+
+        if ($startDate->diffInMonths($endDate) < 5) {
+            $startDate = (clone $endDate)->subMonths(5);
+        }
 
         $exMonths = [];
         $exCounts = [];
         $exEquities = [];
-        if ($monthlyGrouped->isNotEmpty()) {
-            foreach ($monthlyGrouped as $mLabel => $salesInMonth) {
-                $exMonths[] = $mLabel;
-                $exCounts[] = $salesInMonth->count();
-                $exEquities[] = (float)$salesInMonth->sum('transferred_equity');
-            }
-        } else {
-            for ($i = 5; $i >= 0; $i--) {
-                $dt = Carbon::now()->subMonths($i);
-                $exMonths[] = $dt->format('M Y');
-                $exCounts[] = 0;
-                $exEquities[] = 0.0;
-            }
+
+        $currentMonth = clone $startDate;
+        while ($currentMonth <= $endDate) {
+            $monthKey = $currentMonth->format('Y-m');
+            $monthLabel = $currentMonth->format('M Y');
+            $exMonths[] = $monthLabel;
+
+            $salesInMonth = $allExSales->filter(function($s) use ($monthKey) {
+                $dt = $s->updated_at ?? $s->sale_date;
+                return $dt ? Carbon::parse($dt)->format('Y-m') === $monthKey : false;
+            });
+
+            $exCounts[] = $salesInMonth->count();
+            $exEquities[] = (float)$salesInMonth->sum(function($s) {
+                $paid = (float)$s->transferred_equity;
+                if ($paid <= 0 && $s->receipts) {
+                    $paid = (float)$s->receipts->whereNull('partner_id')->sum('amount');
+                }
+                return $paid;
+            });
+
+            $currentMonth->addMonth();
         }
         $exchangeChartData = [
             'months' => $exMonths,
             'counts' => $exCounts,
             'equities' => $exEquities,
-            'total_equity' => (float)$allExSales->sum('transferred_equity'),
-            'total_contract' => (float)$allExSales->sum('total_amount'),
+            'total_equity' => $totalEquity,
+            'total_diff' => $totalDiff,
+            'payable_by_customer' => $payableByCustomer,
+            'refundable_to_customer' => $refundableToCustomer,
+            'total_contract' => $totalNewContract,
             'total_count' => $allExSales->count(),
         ];
 

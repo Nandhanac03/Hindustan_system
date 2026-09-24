@@ -1152,10 +1152,11 @@ function reportsApp() {
                         }],
                         chart: { 
                             type: 'area', 
-                            height: 180, 
+                            height: 175, 
                             toolbar: { show: false }, 
                             fontFamily: 'Inter, sans-serif',
-                            sparkline: { enabled: false }
+                            sparkline: { enabled: false },
+                            animations: { enabled: true }
                         },
                         colors: ['#2563eb'],
                         stroke: { curve: 'smooth', width: 2.5 },
@@ -1171,7 +1172,14 @@ function reportsApp() {
                         dataLabels: { enabled: false },
                         xaxis: { 
                             categories: exMonths,
-                            labels: { show: false },
+                            labels: { 
+                                show: true,
+                                style: {
+                                    fontSize: '10px',
+                                    fontWeight: 600,
+                                    colors: '#64748b'
+                                }
+                            },
                             axisBorder: { show: false },
                             axisTicks: { show: false }
                         },
@@ -1182,11 +1190,13 @@ function reportsApp() {
                             show: false 
                         },
                         grid: { 
-                            show: false,
-                            padding: { top: 6, right: 10, bottom: 0, left: 10 }
+                            show: true,
+                            borderColor: '#f1f5f9',
+                            strokeDashArray: 3,
+                            padding: { top: 6, right: 15, bottom: 0, left: 15 }
                         },
                         tooltip: { 
-                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } 
+                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } 
                         }
                     }).render();
                 }
