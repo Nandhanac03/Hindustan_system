@@ -522,6 +522,29 @@
                     views: [{ showGridLines: true }]
                 });
 
+                // Determine active selected project name for header title
+                let activeProjName = '';
+                const projSelect = document.querySelector('select[name="project_id"]');
+                if (projSelect && projSelect.selectedIndex >= 0) {
+                    const selectedOpt = projSelect.options[projSelect.selectedIndex];
+                    if (selectedOpt && selectedOpt.value && selectedOpt.text && selectedOpt.text.trim().toLowerCase() !== 'all sites') {
+                        activeProjName = selectedOpt.text.trim().toUpperCase();
+                    }
+                }
+                if (!activeProjName && projSelect && projSelect.options.length > 1) {
+                    for (let i = 0; i < projSelect.options.length; i++) {
+                        if (projSelect.options[i].value) {
+                            activeProjName = projSelect.options[i].text.trim().toUpperCase();
+                            break;
+                        }
+                    }
+                }
+                if (!activeProjName) {
+                    activeProjName = 'SITE PROJECT';
+                }
+
+                const reportTitleText = activeProjName + ' - PETTY CASH BALANCE REGISTER';
+
                 // ── 1. Column Definitions ──
                 const totalCols = 8;
                 worksheet.columns = [
@@ -540,58 +563,58 @@
 
                 // ── 3. Banner 1: Company / Report Title (Row 2) ──
                 const row2 = worksheet.getRow(2);
-                row2.height = 32;
+                row2.height = 36;
                 worksheet.mergeCells('A2:H2');
                 const titleCell = worksheet.getCell('A2');
-                titleCell.value = 'HINDUSTAN ERP : PETTY CASH BALANCE REGISTER';
+                titleCell.value = reportTitleText;
                 titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row2.getCell(c);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } }; // Theme Golden Color
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        bottom: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        right: { style: 'thin', color: { argb: 'FF8A7522' } }
                     };
                 }
 
                 // ── 4. Banner 2: Subtitle / Context (Row 3) ──
                 const row3 = worksheet.getRow(3);
-                row3.height = 24;
+                row3.height = 26;
                 worksheet.mergeCells('A3:H3');
                 const subCell = worksheet.getCell('A3');
-                subCell.value = 'Petty Cash & Site Expense Balance Audit';
+                subCell.value = 'PETTY CASH & SITE EXPENSE BALANCE AUDIT REGISTER';
                 subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                subCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row3.getCell(c);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } }; // Green
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF047857' } },
+                        bottom: { style: 'thin', color: { argb: 'FF047857' } },
+                        left: { style: 'thin', color: { argb: 'FF047857' } },
+                        right: { style: 'thin', color: { argb: 'FF047857' } }
                     };
                 }
 
                 // ── 5. Banner 3: Transaction Details (Row 4) ──
                 const row4 = worksheet.getRow(4);
-                row4.height = 24;
+                row4.height = 26;
                 worksheet.mergeCells('A4:H4');
                 const bannerCell = worksheet.getCell('A4');
-                bannerCell.value = 'TRANSACTION DETAILS';
+                bannerCell.value = '1. FINANCIAL TRANSACTIONS & CASH FLOW AUDIT DESK';
                 bannerCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                bannerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                bannerCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row4.getCell(c);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8A7522' } }; // Theme Golden Color
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF6B5A19' } },
+                        bottom: { style: 'thin', color: { argb: 'FF6B5A19' } },
+                        left: { style: 'thin', color: { argb: 'FF6B5A19' } },
+                        right: { style: 'thin', color: { argb: 'FF6B5A19' } }
                     };
                 }
 
@@ -610,26 +633,32 @@
                     'Balance (₹)',
                     'Reference'
                 ];
-                headerRow.height = 30;
+                headerRow.height = 32;
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = headerRow.getCell(c);
                     cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
                     cell.alignment = {
-                        horizontal: (c === 5 || c === 6 || c === 7 ? 'right' : (c === 4 || c === 8 ? 'left' : 'center')),
+                        horizontal: 'center',
                         vertical: 'middle',
-                        indent: (c === 4 || c === 8 ? 1 : 0)
+                        wrapText: true
                     };
+                    let headerBg = 'FFA38C29'; // Theme Golden Color for cols 1-4
+                    if (c >= 5 && c <= 7) {
+                        headerBg = 'FF0B3B2E'; // Green for cash flow cols
+                    } else if (c === 8) {
+                        headerBg = 'FF8A7522'; // Theme Golden Color for reference col
+                    }
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF34495E' }
+                        fgColor: { argb: headerBg }
                     };
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                     };
                 }
 
@@ -695,10 +724,10 @@
                         balanceVal,
                         (txn.reference && txn.reference !== 'N/A') ? txn.reference : '-'
                     ];
-                    dataRow.height = 25;
+                    dataRow.height = 26;
 
                     const isEven = (index + 1) % 2 === 0;
-                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
 
                     for (let c = 1; c <= totalCols; c++) {
                         const cell = dataRow.getCell(c);
@@ -708,6 +737,11 @@
                             pattern: 'solid',
                             fgColor: { argb: rowBg }
                         };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
                         cell.border = {
                             top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                             bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
@@ -715,65 +749,51 @@
                             right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                         };
 
-                        if (c === 1 || c === 2) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        } else if (c === 3) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        if (c === 3) {
                             cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-                        } else if (c === 4) {
-                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-                        } else if (c === 5) {
-                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                            cell.numFormat = '#,##0.00';
-                            if (cashInVal > 0) {
-                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
-                            }
-                        } else if (c === 6) {
-                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                            cell.numFormat = '#,##0.00';
-                            if (cashOutVal > 0) {
+                        } else if (c === 5 || c === 6 || c === 7) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                            if (c === 5 && cashInVal > 0) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF15803D' } };
+                            } else if (c === 6 && cashOutVal > 0) {
                                 cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                            } else if (c === 7) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
                             }
-                        } else if (c === 7) {
-                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                            cell.numFormat = '#,##0.00';
-                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
-                        } else if (c === 8) {
-                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
                         }
                     }
 
                     currentRowIdx++;
                 });
 
-                // ── 9. Bottom Summary / Total Row (Row 7 + N) (Matching Image 2) ──
+                // ── 9. Bottom Summary / Total Row (Row 7 + N) ──
                 const totalRow = worksheet.getRow(currentRowIdx);
-                totalRow.height = 36;
+                totalRow.height = 34;
                 worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
 
                 const totalLabelCell = worksheet.getCell(`A${currentRowIdx}`);
                 totalLabelCell.value = 'TOTAL CLOSING BALANCE';
-                totalLabelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                totalLabelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                totalLabelCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 const totalValCell = worksheet.getCell(`G${currentRowIdx}`);
                 totalValCell.value = lastBalance;
-                totalValCell.numFormat = '#,##0.00';
-                totalValCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+                totalValCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                totalValCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalValCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = totalRow.getCell(c);
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF2C3E50' }
+                        fgColor: { argb: 'FF0B3B2E' } // Dark Green Footer Background
                     };
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF047857' } },
+                        bottom: { style: 'thin', color: { argb: 'FF047857' } },
+                        left: { style: 'thin', color: { argb: 'FF047857' } },
+                        right: { style: 'thin', color: { argb: 'FF047857' } }
                     };
                 }
 
@@ -783,8 +803,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-                anchor.download = `HindustanERP_PettyCash_BalanceRegister_${todayStr}.xlsx`;
+                anchor.download = 'petty-cash-balance-register.xlsx';
                 document.body.appendChild(anchor);
                 anchor.click();
                 document.body.removeChild(anchor);

@@ -1329,6 +1329,34 @@ function dailySiteExpenses() {
                     views: [{ showGridLines: true }]
                 });
 
+                // Determine active selected project name for header title
+                let activeProjName = '';
+                if (this.filters && this.filters.project_id) {
+                    const projSelect = document.querySelector('select[x-model="filters.project_id"]') || document.querySelector('select[name="project_id"]');
+                    if (projSelect && projSelect.selectedIndex >= 0) {
+                        const opt = projSelect.options[projSelect.selectedIndex];
+                        if (opt && opt.value && opt.text && opt.text.trim().toLowerCase() !== 'all projects' && opt.text.trim().toLowerCase() !== 'all sites') {
+                            activeProjName = opt.text.trim().toUpperCase();
+                        }
+                    }
+                }
+                if (!activeProjName) {
+                    const projSelect = document.querySelector('select[x-model="filters.project_id"]') || document.querySelector('select[name="project_id"]');
+                    if (projSelect && projSelect.options.length > 0) {
+                        for (let i = 0; i < projSelect.options.length; i++) {
+                            if (projSelect.options[i].value && projSelect.options[i].text.trim().toLowerCase() !== 'all projects' && projSelect.options[i].text.trim().toLowerCase() !== 'all sites') {
+                                activeProjName = projSelect.options[i].text.trim().toUpperCase();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!activeProjName) {
+                    activeProjName = 'SITE PROJECT';
+                }
+
+                const reportTitleText = activeProjName + ' - DAILY SITE EXPENSES REGISTER';
+
                 // Column definitions
                 worksheet.columns = [
                     { key: 'sl', width: 9 },         // A: SL NO
@@ -1365,9 +1393,9 @@ function dailySiteExpenses() {
                 const row2 = worksheet.getRow(2);
                 row2.height = 36;
                 const cellA2 = worksheet.getCell('A2');
-                cellA2.value = 'HINDUSTAN REAL ESTATE & INFRASTRUCTURE - DAILY SITE EXPENSES DIRECTORY';
+                cellA2.value = reportTitleText;
                 cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-                cellA2.alignment = { horizontal: 'center', vertical: 'middle' };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= 9; c++) {
                     worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     worksheet.getCell(2, c).border = headerBorder;
@@ -1381,7 +1409,7 @@ function dailySiteExpenses() {
                 const cellA3 = worksheet.getCell('A3');
                 cellA3.value = `Comprehensive Daily Site Outflow & Petty Cash Expenses | Generated On: ${nowStr}`;
                 cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                cellA3.alignment = { horizontal: 'center', vertical: 'middle' };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= 9; c++) {
                     worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
                     worksheet.getCell(3, c).border = headerBorder;
@@ -1394,7 +1422,7 @@ function dailySiteExpenses() {
                 const cellA4 = worksheet.getCell('A4');
                 cellA4.value = 'EXPENSE SUMMARY & PETTY CASH KPI';
                 cellA4.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                cellA4.alignment = { horizontal: 'center', vertical: 'middle' };
+                cellA4.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= 9; c++) {
                     worksheet.getCell(4, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
                     worksheet.getCell(4, c).border = headerBorder;
@@ -1415,13 +1443,13 @@ function dailySiteExpenses() {
                 const cellA6 = worksheet.getCell('A6');
                 cellA6.value = 'TOTAL SITE EXPENSES:';
                 cellA6.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF334155' } };
-                cellA6.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                cellA6.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 const cellC6 = worksheet.getCell('C6');
                 cellC6.value = totalExpenseAmount;
-                cellC6.numFormat = '#,##0.00_ ';
+                cellC6.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 cellC6.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
-                cellC6.alignment = { horizontal: 'right', vertical: 'middle' };
+                cellC6.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 1; c <= 4; c++) {
                     worksheet.getCell(6, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
@@ -1431,13 +1459,13 @@ function dailySiteExpenses() {
                 const cellE6 = worksheet.getCell('E6');
                 cellE6.value = 'PETTY CASH BALANCE:';
                 cellE6.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
-                cellE6.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                cellE6.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 const cellG6 = worksheet.getCell('G6');
                 cellG6.value = availableBalanceVal;
-                cellG6.numFormat = '#,##0.00_ ';
+                cellG6.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 cellG6.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF047857' } };
-                cellG6.alignment = { horizontal: 'right', vertical: 'middle' };
+                cellG6.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 5; c <= 9; c++) {
                     worksheet.getCell(6, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
@@ -1455,13 +1483,13 @@ function dailySiteExpenses() {
                 const cellA7 = worksheet.getCell('A7');
                 cellA7.value = 'THIS MONTH OUTFLOW:';
                 cellA7.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFBE123C' } };
-                cellA7.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                cellA7.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 const cellC7 = worksheet.getCell('C7');
                 cellC7.value = thisMonthTotalVal;
-                cellC7.numFormat = '#,##0.00_ ';
+                cellC7.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 cellC7.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFBE123C' } };
-                cellC7.alignment = { horizontal: 'right', vertical: 'middle' };
+                cellC7.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 1; c <= 4; c++) {
                     worksheet.getCell(7, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
@@ -1471,12 +1499,12 @@ function dailySiteExpenses() {
                 const cellE7 = worksheet.getCell('E7');
                 cellE7.value = 'TOTAL VOUCHER ENTRIES:';
                 cellE7.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFB45309' } };
-                cellE7.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                cellE7.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 const cellG7 = worksheet.getCell('G7');
                 cellG7.value = `${voucherCountVal} Vouchers`;
                 cellG7.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFB45309' } };
-                cellG7.alignment = { horizontal: 'right', vertical: 'middle' };
+                cellG7.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 5; c <= 9; c++) {
                     worksheet.getCell(7, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
@@ -1497,9 +1525,9 @@ function dailySiteExpenses() {
                     hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                     hCell.border = headerBorder;
                     hCell.alignment = {
-                        horizontal: (c === 1 || c === 2 || c === 7 || c === 8) ? 'center' : (c === 9 ? 'right' : 'left'),
+                        horizontal: 'center',
                         vertical: 'middle',
-                        indent: (c === 3 || c === 4 || c === 5 || c === 6) ? 1 : 0
+                        wrapText: true
                     };
                 }
 
@@ -1535,18 +1563,13 @@ function dailySiteExpenses() {
                             bold: (c === 1 || c === 3 || c === 5 || c === 9),
                             color: { argb: (c === 3 ? 'FF1E40AF' : 'FF000000') }
                         };
-
-                        if (c === 1) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        } else if (c === 2) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        } else if (c === 3 || c === 4 || c === 5 || c === 6) {
-                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-                        } else if (c === 7 || c === 8) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        } else if (c === 9) {
-                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                            cell.numFormat = '#,##0.00_ ';
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 9) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         }
                     }
                 });
@@ -1560,7 +1583,7 @@ function dailySiteExpenses() {
                 const labelCell = worksheet.getCell(`A${totalRowNum}`);
                 labelCell.value = 'TOTAL SUMMARY';
                 labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                labelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 1; c <= 8; c++) {
                     worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
@@ -1569,9 +1592,9 @@ function dailySiteExpenses() {
 
                 const sumCell = worksheet.getCell(`I${totalRowNum}`);
                 sumCell.value = totalExpenseAmount > 0 ? totalExpenseAmount : dataGrandTotal;
-                sumCell.numFormat = '#,##0.00_ ';
+                sumCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 sumCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                sumCell.alignment = { horizontal: 'right', vertical: 'middle' };
+                sumCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 sumCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 sumCell.border = headerBorder;
 
@@ -1581,7 +1604,7 @@ function dailySiteExpenses() {
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                anchor.download = `HindustanERP_Daily_Site_Expenses_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                anchor.download = 'daily-site-expenses-report.xlsx';
                 anchor.click();
                 window.URL.revokeObjectURL(url);
 

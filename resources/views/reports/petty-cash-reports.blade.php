@@ -358,26 +358,7 @@
             </div>
         </div>
 
-        <!-- ── EXECUTIVE SIGN-OFF FOOTER (ONLY VISIBLE IN PRINT/PDF) ── -->
-        <div class="hidden print:block mt-8 pt-6 border-t-2 border-slate-300">
-            <div class="grid grid-cols-3 gap-8 text-center text-[9.5px]">
-                <div>
-                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">PREPARED BY</div>
-                    <div class="text-slate-500 font-mono">{{ auth()->user()->name ?? 'Finance Officer' }}</div>
-                </div>
-                <div>
-                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">CHECKED &amp; VERIFIED BY</div>
-                    <div class="text-slate-500 italic">Internal Audit &amp; Accounts</div>
-                </div>
-                <div>
-                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">AUTHORIZED SIGNATORY</div>
-                    <div class="text-slate-500 italic">Director / Management</div>
-                </div>
-            </div>
-            <div class="text-center text-[8px] text-slate-400 mt-6 italic">
-                This is an official system-generated audit report produced by Hindustan ERP. All financial figures are reconciled from active site registers and bank contra withdrawals.
-            </div>
-        </div>
+
 
     </div>
 
@@ -500,6 +481,33 @@
         }
 
         try {
+            // ── Determine Dynamic Project / Site Name ──
+            let activeProjName = '';
+            const projSelect = document.querySelector('select[name="project_id"]') || document.querySelector('select[x-model="filters.project_id"]');
+            if (projSelect && projSelect.selectedIndex >= 0) {
+                const opt = projSelect.options[projSelect.selectedIndex];
+                if (opt && opt.value && opt.text && !['all projects', 'all sites'].includes(opt.text.trim().toLowerCase())) {
+                    activeProjName = opt.text.trim().toUpperCase();
+                }
+            }
+            if (!activeProjName && projSelect && projSelect.options.length > 1) {
+                for (let i = 0; i < projSelect.options.length; i++) {
+                    if (projSelect.options[i].value && !['all projects', 'all sites'].includes(projSelect.options[i].text.trim().toLowerCase())) {
+                        activeProjName = projSelect.options[i].text.trim().toUpperCase();
+                        break;
+                    }
+                }
+            }
+            if (!activeProjName) {
+                const bladeSite = "{{ addslashes($siteName) }}".trim();
+                if (bladeSite && !['all projects', 'all sites'].includes(bladeSite.toLowerCase())) {
+                    activeProjName = bladeSite.toUpperCase();
+                }
+            }
+            if (!activeProjName) activeProjName = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+
+            const reportTitleText = activeProjName + ' - PETTY CASH STATEMENT REPORT';
+
             const workbook = new ExcelJS.Workbook();
             workbook.creator = 'Hindustan ERP';
             workbook.lastModifiedBy = 'Hindustan ERP';
@@ -513,27 +521,27 @@
             // ── 1. Column Definitions ──
             const totalCols = 8;
             worksheet.columns = [
-                { key: 'sl', width: 8 },          // Col 1: SL NO
+                { key: 'sl', width: 10 },          // Col 1: SL NO
                 { key: 'date', width: 16 },        // Col 2: Date
                 { key: 'voucher', width: 22 },     // Col 3: Voucher No.
-                { key: 'particulars', width: 38 }, // Col 4: Type / Particulars
-                { key: 'cash_in', width: 20 },     // Col 5: Cash In (₹)
-                { key: 'cash_out', width: 20 },    // Col 6: Cash Out (₹)
-                { key: 'balance', width: 20 },     // Col 7: Balance (₹)
+                { key: 'particulars', width: 40 }, // Col 4: Type / Particulars
+                { key: 'cash_in', width: 22 },     // Col 5: Cash In (₹)
+                { key: 'cash_out', width: 22 },    // Col 6: Cash Out (₹)
+                { key: 'balance', width: 22 },     // Col 7: Balance (₹)
                 { key: 'reference', width: 24 }    // Col 8: Reference
             ];
 
             // ── 2. Spacing Row 1 ──
             worksheet.getRow(1).height = 15;
 
-            // ── 3. Banner 1: Company / Report Title (Row 2) ──
+            // ── 3. Banner 1: Project Header / Title (Row 2) - Dark Slate Blue (#2C3E50) ──
             const row2 = worksheet.getRow(2);
             row2.height = 32;
             worksheet.mergeCells('A2:H2');
             const titleCell = worksheet.getCell('A2');
-            titleCell.value = 'HINDUSTAN ERP : PETTY CASH REPORT';
+            titleCell.value = reportTitleText;
             titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
             for (let c = 1; c <= totalCols; c++) {
                 const cell = row2.getCell(c);
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
@@ -545,14 +553,20 @@
                 };
             }
 
-            // ── 4. Banner 2: Subtitle / Context (Row 3) ──
+            // ── 4. Banner 2: Context / Subtitle (Row 3) - Teal Blue (#007398) ──
             const row3 = worksheet.getRow(3);
             row3.height = 24;
             worksheet.mergeCells('A3:H3');
             const subCell = worksheet.getCell('A3');
-            subCell.value = 'Site: {{ addslashes($siteName) }} | Period: {{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}';
+            
+            let siteHeaderPrefix = '';
+            if (activeProjName && !['TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD', 'ALL PROJECTS', 'ALL SITES', 'SITE PROJECT'].includes(activeProjName.trim().toUpperCase())) {
+                siteHeaderPrefix = 'Site: ' + activeProjName + ' | ';
+            }
+            
+            subCell.value = siteHeaderPrefix + 'Period: {{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}';
             subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-            subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            subCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
             for (let c = 1; c <= totalCols; c++) {
                 const cell = row3.getCell(c);
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
@@ -564,14 +578,14 @@
                 };
             }
 
-            // ── 5. Banner 3: Transaction Details (Row 4) ──
+            // ── 5. Banner 3: Transaction Details (Row 4) - Deep Green (#006039) ──
             const row4 = worksheet.getRow(4);
             row4.height = 24;
             worksheet.mergeCells('A4:H4');
             const bannerCell = worksheet.getCell('A4');
             bannerCell.value = 'TRANSACTION DETAILS';
             bannerCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-            bannerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            bannerCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
             for (let c = 1; c <= totalCols; c++) {
                 const cell = row4.getCell(c);
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
@@ -586,7 +600,7 @@
             // ── 6. Spacing Row 5 ──
             worksheet.getRow(5).height = 10;
 
-            // ── 7. Table Column Headers (Row 6) ──
+            // ── 7. Table Column Headers (Row 6) - Dark Slate Gray (#34495E) ──
             const headerRow = worksheet.getRow(6);
             headerRow.values = [
                 'SL NO',
@@ -603,11 +617,7 @@
             for (let c = 1; c <= totalCols; c++) {
                 const cell = headerRow.getCell(c);
                 cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                cell.alignment = {
-                    horizontal: (c === 5 || c === 6 || c === 7 ? 'right' : (c === 4 || c === 8 ? 'left' : 'center')),
-                    vertical: 'middle',
-                    indent: (c === 4 || c === 8 ? 1 : 0)
-                };
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
@@ -638,7 +648,7 @@
                 tableRows.forEach(tr => {
                     const tds = tr.querySelectorAll('td');
                     if (tds.length >= 7 && !tr.innerText.includes('No transactions found')) {
-                        const btn = tr.querySelector('button[data-voucher]');
+                        const btn = tr.querySelector('span[data-voucher]');
                         if (btn) {
                             txnsData.push({
                                 date: btn.getAttribute('data-date'),
@@ -656,6 +666,8 @@
 
             let currentRowIdx = 7;
             let lastBalance = 0;
+            let sumCashIn = 0;
+            let sumCashOut = 0;
 
             txnsData.forEach((txn, index) => {
                 const rowNum = index + 1;
@@ -663,6 +675,8 @@
                 const cashOutVal = parseFloat(txn.cash_out) || 0;
                 const balanceVal = parseFloat(txn.balance) || 0;
                 lastBalance = balanceVal;
+                sumCashIn += cashInVal;
+                sumCashOut += cashOutVal;
 
                 let formattedDate = txn.date || '-';
                 if (formattedDate.includes('-') && formattedDate.length === 10) {
@@ -688,10 +702,10 @@
                     balanceVal,
                     (txn.reference_no && txn.reference_no !== '-' && txn.reference_no !== 'N/A') ? txn.reference_no : (txn.reference || '-')
                 ];
-                dataRow.height = 25;
+                dataRow.height = 26;
 
                 const isEven = (index + 1) % 2 === 0;
-                const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+                const rowBg = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = dataRow.getCell(c);
@@ -707,53 +721,41 @@
                         left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                         right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                     };
+                    // Center align all data cells
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-                    if (c === 1 || c === 2) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    } else if (c === 3) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-                    } else if (c === 4) {
-                        cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-                    } else if (c === 5) {
-                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    if (c === 3) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF17365D' } };
+                    } else if (c === 5 || c === 6 || c === 7) {
                         cell.numFormat = '#,##0.00';
-                        if (cashInVal > 0) {
-                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
-                        }
-                    } else if (c === 6) {
-                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                        cell.numFormat = '#,##0.00';
-                        if (cashOutVal > 0) {
+                        if (c === 5 && cashInVal > 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0B3B2E' } };
+                        } else if (c === 6 && cashOutVal > 0) {
                             cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                        } else if (c === 7) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF17365D' } };
                         }
-                    } else if (c === 7) {
-                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                        cell.numFormat = '#,##0.00';
-                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
-                    } else if (c === 8) {
-                        cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
                     }
                 }
 
                 currentRowIdx++;
             });
 
-            // ── 9. Bottom Summary / Total Row (Matching Image 2) ──
+            // ── 9. Bottom Summary / Total Row (#2C3E50) ──
             const totalRow = worksheet.getRow(currentRowIdx);
             totalRow.height = 36;
-            worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
 
+            worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
             const totalLabelCell = worksheet.getCell(`A${currentRowIdx}`);
             totalLabelCell.value = 'TOTAL CLOSING BALANCE';
-            totalLabelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-            totalLabelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+            totalLabelCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-            const totalValCell = worksheet.getCell(`G${currentRowIdx}`);
-            totalValCell.value = lastBalance;
-            totalValCell.numFormat = '#,##0.00';
-            totalValCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-            totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+            const totalBalCell = worksheet.getCell(`G${currentRowIdx}`);
+            totalBalCell.value = lastBalance;
+            totalBalCell.numFormat = '#,##0.00';
+            totalBalCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            totalBalCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
             for (let c = 1; c <= totalCols; c++) {
                 const cell = totalRow.getCell(c);
@@ -776,8 +778,7 @@
             const url = window.URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             anchor.href = url;
-            const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-            anchor.download = `HindustanERP_PettyCash_Report_${todayStr}.xlsx`;
+            anchor.download = 'petty-cash-statement-report.xlsx';
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);

@@ -55,7 +55,7 @@
 
         {{-- Quick Navigation Actions --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            {{-- Return to Cheque Realization Console --}}
+            <!-- {{-- Return to Cheque Realization Console --}}
             <a href="{{ route('cheque-realization.queue') }}" 
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-xs hover:shadow transition-all group">
                 <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
                 @if($totalPendingCount > 0)
                     <span class="px-2 py-0.5 rounded-full bg-white/25 text-white text-[10px] font-black">{{ $totalPendingCount }} Pending</span>
                 @endif
-            </a>
+            </a> -->
 
             {{-- Bank Statement Reports Button --}}
             <a href="{{ route('reports.bank_reports') }}" 
