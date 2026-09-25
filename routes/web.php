@@ -522,6 +522,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/vouchers/{id}/payment-voucher-print', [\App\Http\Controllers\VoucherController::class, 'printPaymentVoucher'])->name('vouchers.payment-voucher-print');
 
     Route::get('/treasury/dashboard', [\App\Http\Controllers\TreasuryController::class, 'dashboard'])->name('treasury.dashboard');
+    Route::get('/treasury/report', [\App\Http\Controllers\TreasuryController::class, 'report'])->name('treasury.report');
     
     // Outward Payments Workflow (Screens 5.5 - 5.6)
     Route::get('/outward-payments/create', [\App\Http\Controllers\OutwardPaymentController::class, 'create'])->name('outward-payments.create');
