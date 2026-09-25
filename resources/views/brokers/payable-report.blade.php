@@ -1,9 +1,99 @@
-<x-erp-layout title="Broker Payout Release" headerTitle="Broker Payout Release">
+<x-erp-layout title="Broker Payout Release Report" headerTitle="Broker Payout Release">
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 0;
+    }
+    *, *::before, *::after {
+        box-sizing: border-box !important;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8pt !important;
+        padding: 6mm 8mm !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .print\:grid {
+        display: grid !important;
+    }
+    .print\:flex {
+        display: flex !important;
+    }
+    .print\:table {
+        display: table !important;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
+        box-shadow: none !important;
+    }
+    .border-slate-200, .border-slate-100 {
+        border-color: #cbd5e1 !important;
+    }
+}
+</style>
 
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="brokerPayoutApp()">
 
+    <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Brokerage &amp; Payout Intelligence</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">BROKER PAYOUT RELEASE &amp; COMMISSION SETTLEMENT REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ date('d-M-Y') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Scope:</span> <span class="font-bold text-[#a38c29]">All Registered Brokers</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Brokers:</span> <span class="font-mono font-bold text-slate-800">{{ count($brokerReports) }} Brokers</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Payable:</span> <span class="font-mono font-bold text-emerald-700">₹{{ number_format($totalPayable, 2) }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── EXECUTIVE PRINT KPI CARDS (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:grid grid-cols-3 gap-3 mb-5">
+        <div class="border border-amber-300 rounded-xl p-3 bg-amber-50/40">
+            <span class="text-[8.5px] font-black uppercase text-amber-600 block">Accrued Commission (Locked)</span>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹{{ number_format($totalAccrued, 2) }}</strong>
+            <span class="text-[8px] text-slate-500 font-bold">Pending customer full payment / EMI</span>
+        </div>
+        <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/40">
+            <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Payable Commission (Unlocked)</span>
+            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5">₹{{ number_format($totalPayable, 2) }}</strong>
+            <span class="text-[8px] text-emerald-600 font-bold">Ready for immediate disbursement</span>
+        </div>
+        <div class="border border-indigo-300 rounded-xl p-3 bg-indigo-50/40">
+            <span class="text-[8.5px] font-black uppercase text-indigo-600 block">Total Settled &amp; Paid</span>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹{{ number_format($totalPaid, 2) }}</strong>
+            <span class="text-[8px] text-indigo-600 font-bold">Historical commission payouts</span>
+        </div>
+    </div>
+
     {{-- Header & Navigation --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div>
             <div class="flex items-center gap-2.5">
                 <a href="{{ route('brokers.index') }}" class="text-slate-400 hover:text-slate-700 transition-colors">
@@ -19,10 +109,11 @@
                class="inline-flex items-center gap-2 rounded-xl border border-slate-250 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-2xs transition-all hover:bg-slate-50">
                 ← Back to Brokerage Dashboard
             </a>
-            <button onclick="window.print()" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-all hover:bg-slate-800">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Print Report
+            
+            <button type="button" onclick="printCleanPDF()" 
+                    class="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>EXPORT PDF</span>
             </button>
         </div>
     </div>
@@ -48,7 +139,7 @@
     @endif
 
     {{-- KPI Highlights Banner --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
         <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex items-center justify-between group overflow-hidden">
             <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-400 rounded-l-2xl group-hover:w-2 transition-all"></div>
             <div>
@@ -87,7 +178,7 @@
     </div>
 
     {{-- Master Broker Table --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden print:hidden">
         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
                 <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Broker Payout Settlement Dashboard</h2>
@@ -300,6 +391,57 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- ── EXECUTIVE PRINTABLE BROKER PAYABLE TABLE (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:block mb-8">
+        <div class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Broker Payout Settlement Summary</div>
+        <table class="w-full text-xs text-left border-collapse border border-slate-300">
+            <thead>
+                <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[9px]">
+                    <th class="px-2 py-2 border border-slate-300 w-8">#</th>
+                    <th class="px-3 py-2 border border-slate-300 text-left">Broker Name</th>
+                    <th class="px-3 py-2 border border-slate-300 text-left">Ledger Account</th>
+                    <th class="px-3 py-2 border border-slate-300">Default Rate</th>
+                    <th class="px-3 py-2 border border-slate-300 text-right">Accrued (Locked)</th>
+                    <th class="px-3 py-2 border border-slate-300 text-right">Payable (Unlocked)</th>
+                    <th class="px-3 py-2 border border-slate-300 text-right">Total Pending</th>
+                    <th class="px-3 py-2 border border-slate-300 text-right">Total Settled</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                @forelse($brokerReports as $index => $report)
+                    @php
+                        $rowBg = $loop->even ? 'bg-[#F6F3E9]/40' : 'bg-white';
+                    @endphp
+                    <tr class="text-center text-[10px] font-semibold text-slate-800 {{ $rowBg }}">
+                        <td class="px-2 py-2 border border-slate-300 text-center font-mono">{{ $index + 1 }}</td>
+                        <td class="px-3 py-2 border border-slate-300 text-left font-bold text-slate-900">{{ $report->broker->name }}</td>
+                        <td class="px-3 py-2 border border-slate-300 text-left font-mono text-slate-600">
+                            {{ $report->broker->linkedAccount->code ?? 'N/A' }} - {{ $report->broker->linkedAccount->name ?? '' }}
+                        </td>
+                        <td class="px-3 py-2 border border-slate-300 text-center font-mono font-bold">{{ number_format($report->broker->default_commission_pct, 2) }}%</td>
+                        <td class="px-3 py-2 border border-slate-300 text-right font-mono text-amber-800">₹{{ number_format($report->accrued, 2) }}</td>
+                        <td class="px-3 py-2 border border-slate-300 text-right font-mono font-bold text-emerald-800">₹{{ number_format($report->payable, 2) }}</td>
+                        <td class="px-3 py-2 border border-slate-300 text-right font-mono font-black text-slate-900">₹{{ number_format($report->total_pending, 2) }}</td>
+                        <td class="px-3 py-2 border border-slate-300 text-right font-mono text-slate-700">₹{{ number_format($report->paid, 2) }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-3 py-4 border border-slate-300 text-center text-slate-500 italic">No broker records found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+            <tfoot>
+                <tr class="bg-slate-100 font-bold text-slate-900 text-[10px] border-t-2 border-slate-400">
+                    <td colspan="4" class="px-3 py-2.5 border border-slate-300 text-right uppercase tracking-wider">Grand Total Summary:</td>
+                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-amber-900">₹{{ number_format($totalAccrued, 2) }}</td>
+                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-emerald-900 font-black">₹{{ number_format($totalPayable, 2) }}</td>
+                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-slate-900 font-black">₹{{ number_format($totalAccrued + $totalPayable, 2) }}</td>
+                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-slate-800">₹{{ number_format($totalPaid, 2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 
     {{-- Unified Record Broker Payout Modal --}}
@@ -563,6 +705,15 @@ function brokerPayoutApp() {
             return 'Rs. ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
     };
+}
+
+function printCleanPDF() {
+    const origTitle = document.title;
+    document.title = '';
+    window.print();
+    setTimeout(() => {
+        document.title = origTitle;
+    }, 1000);
 }
 </script>
 
