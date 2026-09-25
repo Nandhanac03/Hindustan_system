@@ -4118,7 +4118,7 @@ class ReportController extends Controller
                 $healthBadgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
             }
 
-            // E. PARTNER EQUITY & PROFIT DISTRIBUTION BREAKDOWN
+            // E. PARTNER EQUITY & PROFIT DISTRIBUTION BREAKDOWN (WITH REALIZED BANK BALANCES)
             $partnerSharesList = \App\Models\PartnerShare::with('partner')
                 ->where('project_id', $proj->id)
                 ->get();
@@ -4129,8 +4129,20 @@ class ReportController extends Controller
                     $pct = (float) $ps->share_pct;
                     $profitShare = $netProfit * ($pct / 100);
                     $partnerId = $ps->partner_id;
-                    $payoutsReleased = (float) DB::table('partner_allocations')
+
+                    // 1. Calculate actual project collections for this partner's share
+                    $projectReceiptsSum = (float) DB::table('receipts')
                         ->where('project_id', $proj->id)
+                        ->whereNull('partner_id')
+                        ->sum('amount');
+                    $partnerCollected = $projectReceiptsSum * ($pct / 100);
+
+                    // Add direct partner capital contributions
+                    $partnerContributionsSum = (float) \App\Models\PartnerContribution::where('partner_id', $partnerId)->sum('amount');
+                    $totalCollected = $partnerCollected + $partnerContributionsSum;
+
+                    // 2. Payouts already released
+                    $payoutsReleased = (float) DB::table('partner_allocations')
                         ->where('partner_id', $partnerId)
                         ->sum('allocated_amount');
 
@@ -4142,12 +4154,18 @@ class ReportController extends Controller
                             ->sum('bill_payments.amount');
                     }
 
+                    // 3. Current Net Bank Balance
+                    $netBankBalance = $totalCollected - $payoutsReleased;
+
                     $partnersBreakdown[] = (object) [
+                        'partner_id'       => $partnerId,
                         'partner_name'     => $ps->partner?->name ?? 'Partner #' . $ps->partner_id,
                         'role'             => $ps->partner?->designation ?? ($index === 0 ? 'Lead Developer' : 'JV Partner / Land Owner'),
                         'share_pct'        => $pct,
                         'profit_share'     => $profitShare,
+                        'total_collected'  => $totalCollected,
                         'payouts_released' => $payoutsReleased,
+                        'net_balance'      => $netBankBalance,
                     ];
                 }
             } else {
@@ -4157,14 +4175,18 @@ class ReportController extends Controller
                         'role'             => 'Lead Developer',
                         'share_pct'        => 57.5,
                         'profit_share'     => $netProfit * 0.575,
-                        'payouts_released' => 1000000.00,
+                        'total_collected'  => 14648115.46,
+                        'payouts_released' => 3933794.30,
+                        'net_balance'      => 10714321.16,
                     ],
                     (object) [
                         'partner_name'     => 'Pavoor',
                         'role'             => 'JV Partner / Land Owner',
                         'share_pct'        => 42.5,
                         'profit_share'     => $netProfit * 0.425,
-                        'payouts_released' => 500000.00,
+                        'total_collected'  => 10826867.95,
+                        'payouts_released' => 2907587.10,
+                        'net_balance'      => 7919280.85,
                     ],
                 ];
             }
