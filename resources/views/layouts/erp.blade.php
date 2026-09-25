@@ -32,6 +32,9 @@
     
     <style>
         [x-cloak] { display: none !important; }
+        @page {
+            margin: 0mm;
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
 </head>

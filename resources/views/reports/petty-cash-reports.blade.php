@@ -10,7 +10,7 @@
 @media print {
     @page {
         size: landscape;
-        margin: 8mm 8mm 10mm 8mm;
+        margin: 0 !important;
     }
     *, *::before, *::after {
         box-sizing: border-box !important;
@@ -19,6 +19,7 @@
         background: #ffffff !important;
         color: #0f172a !important;
         font-size: 9pt !important;
+        padding: 6mm 8mm !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -128,7 +129,7 @@
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto">
             <!-- Print / Export PDF Button -->
-            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
+            <button type="button" onclick="printCleanPDF()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                 <span>EXPORT PDF</span>
             </button>
@@ -432,6 +433,18 @@
 </div>
 
 <script>
+    function printCleanPDF() {
+        const origTitle = document.title;
+        document.title = '';
+        const restore = () => {
+            document.title = origTitle;
+            window.removeEventListener('afterprint', restore);
+        };
+        window.addEventListener('afterprint', restore, { once: true });
+        window.print();
+        setTimeout(restore, 2000);
+    }
+
     // Modal Handling
     function showDetailModal(btn) {
         if (!btn || !btn.dataset) return;
@@ -523,12 +536,12 @@
             worksheet.columns = [
                 { key: 'sl', width: 10 },          // Col 1: SL NO
                 { key: 'date', width: 16 },        // Col 2: Date
-                { key: 'voucher', width: 22 },     // Col 3: Voucher No.
-                { key: 'particulars', width: 40 }, // Col 4: Type / Particulars
+                { key: 'voucher', width: 28 },     // Col 3: Voucher No.
+                { key: 'particulars', width: 48 }, // Col 4: Type / Particulars
                 { key: 'cash_in', width: 22 },     // Col 5: Cash In (₹)
                 { key: 'cash_out', width: 22 },    // Col 6: Cash Out (₹)
                 { key: 'balance', width: 22 },     // Col 7: Balance (₹)
-                { key: 'reference', width: 24 }    // Col 8: Reference
+                { key: 'reference', width: 30 }    // Col 8: Reference
             ];
 
             // ── 2. Spacing Row 1 ──
@@ -536,7 +549,7 @@
 
             // ── 3. Banner 1: Project Header / Title (Row 2) - Dark Slate Blue (#2C3E50) ──
             const row2 = worksheet.getRow(2);
-            row2.height = 32;
+            row2.height = 36;
             worksheet.mergeCells('A2:H2');
             const titleCell = worksheet.getCell('A2');
             titleCell.value = reportTitleText;
@@ -555,7 +568,7 @@
 
             // ── 4. Banner 2: Context / Subtitle (Row 3) - Teal Blue (#007398) ──
             const row3 = worksheet.getRow(3);
-            row3.height = 24;
+            row3.height = 26;
             worksheet.mergeCells('A3:H3');
             const subCell = worksheet.getCell('A3');
             
@@ -580,7 +593,7 @@
 
             // ── 5. Banner 3: Transaction Details (Row 4) - Deep Green (#006039) ──
             const row4 = worksheet.getRow(4);
-            row4.height = 24;
+            row4.height = 26;
             worksheet.mergeCells('A4:H4');
             const bannerCell = worksheet.getCell('A4');
             bannerCell.value = 'TRANSACTION DETAILS';
@@ -612,7 +625,7 @@
                 'Balance (₹)',
                 'Reference'
             ];
-            headerRow.height = 30;
+            headerRow.height = 32;
 
             for (let c = 1; c <= totalCols; c++) {
                 const cell = headerRow.getCell(c);
@@ -702,7 +715,7 @@
                     balanceVal,
                     (txn.reference_no && txn.reference_no !== '-' && txn.reference_no !== 'N/A') ? txn.reference_no : (txn.reference || '-')
                 ];
-                dataRow.height = 26;
+                dataRow.height = 34;
 
                 const isEven = (index + 1) % 2 === 0;
                 const rowBg = isEven ? 'FFFFFFFF' : 'FFF8FAFC';

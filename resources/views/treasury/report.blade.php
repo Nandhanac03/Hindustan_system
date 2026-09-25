@@ -6,8 +6,8 @@
 <style>
 /* CRITICAL: @page must be defined at the stylesheet root for Chromium/WebKit to honor landscape mode */
 @page {
-    size: A4 landscape;
-    margin: 5mm 6mm 5mm 6mm;
+    size: landscape;
+    margin: 0;
 }
 
 @media screen {
@@ -19,8 +19,8 @@
 
 @media print {
     @page {
-        size: A4 landscape;
-        margin: 6mm 8mm 6mm 8mm;
+        size: landscape;
+        margin: 0;
     }
     html, body {
         background: #ffffff !important;
@@ -28,7 +28,7 @@
         font-size: 7.5pt !important;
         width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 6mm 8mm !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -905,12 +905,15 @@ function treasuryReportApp() {
         exportPDF() {
             const prevPerPage = this.perPage;
             const prevPage = this.currentPage;
+            const origTitle = document.title;
             this.perPage = 999999;
             this.currentPage = 1;
+            document.title = '';
 
             this.$nextTick(() => {
                 setTimeout(() => {
                     const restore = () => {
+                        document.title = origTitle;
                         this.perPage = prevPerPage;
                         this.currentPage = prevPage;
                         window.removeEventListener('afterprint', restore);
@@ -1135,179 +1138,191 @@ function treasuryReportApp() {
                     views: [{ showGridLines: true }]
                 });
 
-                // Column definitions
+                const totalCols = 13;
                 worksheet.columns = [
-                    { key: 'index', width: 8 },
-                    { key: 'date', width: 14 },
-                    { key: 'voucher', width: 22 },
-                    { key: 'bank', width: 28 },
-                    { key: 'account_no', width: 18 },
-                    { key: 'counterparty', width: 34 },
-                    { key: 'category', width: 24 },
-                    { key: 'flow_type', width: 14 },
-                    { key: 'mode_ref', width: 22 },
-                    { key: 'narration', width: 38 },
-                    { key: 'inflow', width: 18 },
-                    { key: 'outflow', width: 18 },
-                    { key: 'running_bal', width: 18 },
+                    { key: 'index', width: 10 },       // Col 1: SL NO
+                    { key: 'date', width: 16 },        // Col 2: Date
+                    { key: 'voucher', width: 28 },     // Col 3: Voucher No
+                    { key: 'bank', width: 30 },        // Col 4: Bank Account
+                    { key: 'account_no', width: 20 },   // Col 5: Account No
+                    { key: 'counterparty', width: 42 },// Col 6: Counterparty / Payee
+                    { key: 'category', width: 30 },    // Col 7: Category
+                    { key: 'flow_type', width: 16 },   // Col 8: Direction
+                    { key: 'mode_ref', width: 32 },    // Col 9: Payment Mode
+                    { key: 'narration', width: 50 },   // Col 10: Narration
+                    { key: 'inflow', width: 22 },      // Col 11: Inflow (₹)
+                    { key: 'outflow', width: 22 },     // Col 12: Outflow (₹)
+                    { key: 'running_bal', width: 22 }, // Col 13: Running Bal (₹)
                 ];
 
-                const totalCols = 13;
+                const activeBankLabel = this.filters.bank_account_id === 'all' ? 'ALL COMPANY BANK ACCOUNTS' : (this.activeBankName || 'COMPANY BANK ACCOUNT').toUpperCase();
+                const reportTitleText = `${activeBankLabel} - CASH FLOW & TREASURY REPORT`;
 
-                // Title Banner Row 1
+                // ── Title Banner Row 1 (#2C3E50) ──
                 const row1 = worksheet.getRow(1);
-                row1.height = 32;
+                row1.height = 36;
                 worksheet.mergeCells('A1:M1');
                 const titleCell = worksheet.getCell('A1');
-                titleCell.value = 'HINDUSTAN REAL ESTATE ERP : TREASURY CASH FLOW REPORT';
+                titleCell.value = reportTitleText;
                 titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row1.getCell(c);
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
                 }
 
-                // Subtitle Row 2
+                // ── Subtitle Row 2 (#007398) ──
                 const row2 = worksheet.getRow(2);
-                row2.height = 24;
+                row2.height = 26;
                 worksheet.mergeCells('A2:M2');
                 const subCell = worksheet.getCell('A2');
                 const bankLabel = this.filters.bank_account_id === 'all' ? 'All Company Accounts' : this.activeBankName;
-                const rangeLabel = (this.filters.date_from || this.filters.date_to) ? ` (${this.filters.date_from || 'Beginning'} to ${this.filters.date_to || 'Today'})` : ' (All Dates)';
+                const rangeLabel = (this.filters.date_from || this.filters.date_to) ? `${this.filters.date_from || 'Beginning'} to ${this.filters.date_to || 'Today'}` : 'All Dates';
                 subCell.value = `Bank Account: ${bankLabel} | Period: ${rangeLabel} | Generated: ${new Date().toLocaleDateString('en-GB')}`;
                 subCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                subCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row2.getCell(c);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8A7522' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
                 }
 
-                // Spacer Row 3
-                worksheet.getRow(3).height = 10;
+                // ── Section Banner Row 3 (#006039) ──
+                const row3 = worksheet.getRow(3);
+                row3.height = 26;
+                worksheet.mergeCells('A3:M3');
+                const bannerCell = worksheet.getCell('A3');
+                bannerCell.value = 'TRANSACTION DETAILS & CASH FLOW AUDIT';
+                bannerCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                bannerCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = row3.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
 
-                // Executive KPI Summary Tile in Excel (Row 4)
-                worksheet.mergeCells('A4:C4');
-                worksheet.getCell('A4').value = `Total Inflow: +₹${this.formatMoney(this.totalInflow)}`;
-                worksheet.getCell('A4').font = { bold: true, color: { argb: 'FF065F46' } };
+                // ── Spacer Row 4 ──
+                worksheet.getRow(4).height = 10;
 
-                worksheet.mergeCells('D4:F4');
-                worksheet.getCell('D4').value = `Total Outflow: -₹${this.formatMoney(this.totalOutflow)}`;
-                worksheet.getCell('D4').font = { bold: true, color: { argb: 'FF9F1239' } };
-
-                worksheet.mergeCells('G4:I4');
-                worksheet.getCell('G4').value = `Net Cash Flow: ${this.netCashFlow >= 0 ? '+' : ''}₹${this.formatMoney(this.netCashFlow)}`;
-                worksheet.getCell('G4').font = { bold: true, color: { argb: 'FF1E293B' } };
-
-                worksheet.mergeCells('J4:M4');
-                worksheet.getCell('J4').value = `Bank Balance: ₹${this.formatMoney(this.activeBankBalance)}`;
-                worksheet.getCell('J4').font = { bold: true, color: { argb: 'FF4338CA' } };
-
-                worksheet.getRow(4).height = 22;
-                worksheet.getRow(4).alignment = { vertical: 'middle' };
-
-                // Spacer Row 5
-                worksheet.getRow(5).height = 10;
-
-                // Table Header Row 6
-                const headerRow = worksheet.getRow(6);
-                headerRow.height = 26;
-                const headers = ['#', 'Date', 'Voucher No', 'Bank Account', 'Account No', 'Counterparty / Payee', 'Category', 'Direction', 'Payment Mode', 'Narration', 'Inflow (₹)', 'Outflow (₹)', 'Running Bal (₹)'];
+                // ── Table Header Row 5 (#34495E) ──
+                const headerRow = worksheet.getRow(5);
+                headerRow.height = 32;
+                const headers = ['SL NO', 'Date', 'Voucher No', 'Bank Account', 'Account No', 'Counterparty / Payee', 'Category', 'Direction', 'Payment Mode', 'Narration', 'Inflow (₹)', 'Outflow (₹)', 'Running Bal (₹)'];
                 headers.forEach((h, i) => {
                     const cell = headerRow.getCell(i + 1);
                     cell.value = h;
                     cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-                    cell.alignment = { horizontal: (i >= 10 ? 'right' : (i === 0 ? 'center' : 'left')), vertical: 'middle' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF8A7522' } },
-                        bottom: { style: 'medium', color: { argb: 'FF8A7522' } },
-                        left: { style: 'thin', color: { argb: 'FF8A7522' } },
-                        right: { style: 'thin', color: { argb: 'FF8A7522' } }
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
                     };
                 });
 
-                // Populate Rows
-                let currentRowIndex = 7;
+                // ── Populate Rows (Starting Row 6) ──
+                let currentRowIndex = 6;
                 this.filteredTransactions.forEach((t, idx) => {
                     const row = worksheet.getRow(currentRowIndex);
-                    row.height = 20;
+                    row.height = 34;
 
                     row.getCell(1).value = idx + 1;
                     row.getCell(2).value = t.date_formatted;
-                    row.getCell(3).value = t.voucher_no;
-                    row.getCell(4).value = t.bank_name;
+                    row.getCell(3).value = t.voucher_no || '-';
+                    row.getCell(4).value = t.bank_name || '-';
                     row.getCell(5).value = t.account_number ? `•••• ${t.account_number.slice(-4)}` : '—';
-                    row.getCell(6).value = t.counterparty;
-                    row.getCell(7).value = t.category;
-                    row.getCell(8).value = (t.flow_type || '').toUpperCase();
-                    row.getCell(9).value = `${t.payment_mode || ''} ${t.reference_no && t.reference_no !== '—' ? '(' + t.reference_no + ')' : ''}`.trim();
-                    row.getCell(10).value = t.narration || '';
+                    row.getCell(6).value = t.counterparty || '-';
+                    row.getCell(7).value = t.category || '-';
+                    row.getCell(8).value = (t.flow_type || '').toUpperCase() || '-';
+                    row.getCell(9).value = `${t.payment_mode || ''} ${t.reference_no && t.reference_no !== '—' ? '(' + t.reference_no + ')' : ''}`.trim() || '-';
+                    row.getCell(10).value = t.narration || '-';
                     row.getCell(11).value = t.inflow_amount || 0;
                     row.getCell(12).value = t.outflow_amount || 0;
                     row.getCell(13).value = t.running_balance || 0;
 
-                    row.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-                    for (let c = 2; c <= 10; c++) {
-                        row.getCell(c).alignment = { horizontal: 'left', vertical: 'middle' };
-                    }
-                    for (let c = 11; c <= 13; c++) {
-                        row.getCell(c).numFmt = '#,##0.00';
-                        row.getCell(c).alignment = { horizontal: 'right', vertical: 'middle' };
-                    }
-
-                    row.getCell(11).font = { color: { argb: t.inflow_amount > 0 ? 'FF047857' : 'FF94A3B8' } };
-                    row.getCell(12).font = { color: { argb: t.outflow_amount > 0 ? 'FFE11D48' : 'FF94A3B8' } };
-                    row.getCell(13).font = { bold: true };
-
                     const isEven = (idx % 2 === 1);
+                    const rowBg = isEven ? 'FFF8FAFC' : 'FFFFFFFF';
+
                     for (let c = 1; c <= totalCols; c++) {
                         const cell = row.getCell(c);
-                        if (isEven) {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F3E9' } };
-                        }
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         cell.border = {
-                            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                         };
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                        if (c === 3) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF17365D' } };
+                        } else if (c >= 11 && c <= 13) {
+                            cell.numFmt = '#,##0.00';
+                            if (c === 11 && t.inflow_amount > 0) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0B3B2E' } };
+                            } else if (c === 12 && t.outflow_amount > 0) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                            } else if (c === 13) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF17365D' } };
+                            }
+                        } else {
+                            cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        }
                     }
 
                     currentRowIndex++;
                 });
 
-                // Grand Totals Row
+                // ── Grand Totals Row (#2C3E50) ──
                 const totalsRow = worksheet.getRow(currentRowIndex);
-                totalsRow.height = 24;
+                totalsRow.height = 36;
                 worksheet.mergeCells(`A${currentRowIndex}:J${currentRowIndex}`);
                 const totLabel = worksheet.getCell(`A${currentRowIndex}`);
-                totLabel.value = 'GRAND TOTALS FOR SELECTED CRITERIA:';
-                totLabel.font = { bold: true, color: { argb: 'FF1E293B' } };
-                totLabel.alignment = { horizontal: 'right', vertical: 'middle' };
+                totLabel.value = 'TOTAL CLOSING BALANCE';
+                totLabel.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totLabel.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 totalsRow.getCell(11).value = this.totalInflow;
                 totalsRow.getCell(11).numFmt = '#,##0.00';
-                totalsRow.getCell(11).font = { bold: true, color: { argb: 'FF065F46' } };
-                totalsRow.getCell(11).alignment = { horizontal: 'right', vertical: 'middle' };
+                totalsRow.getCell(11).font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalsRow.getCell(11).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 totalsRow.getCell(12).value = this.totalOutflow;
                 totalsRow.getCell(12).numFmt = '#,##0.00';
-                totalsRow.getCell(12).font = { bold: true, color: { argb: 'FF9F1239' } };
-                totalsRow.getCell(12).alignment = { horizontal: 'right', vertical: 'middle' };
+                totalsRow.getCell(12).font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalsRow.getCell(12).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 totalsRow.getCell(13).value = this.netCashFlow;
                 totalsRow.getCell(13).numFmt = '#,##0.00';
-                totalsRow.getCell(13).font = { bold: true, color: { argb: 'FF1E293B' } };
-                totalsRow.getCell(13).alignment = { horizontal: 'right', vertical: 'middle' };
+                totalsRow.getCell(13).font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalsRow.getCell(13).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = totalsRow.getCell(c);
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     cell.border = {
-                        top: { style: 'medium', color: { argb: 'FFA38C29' } },
-                        bottom: { style: 'medium', color: { argb: 'FFA38C29' } },
-                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
                     };
                 }
 
@@ -1315,8 +1330,7 @@ function treasuryReportApp() {
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                const fileDate = new Date().toISOString().split('T')[0];
-                link.setAttribute('download', `Treasury_Cash_Flow_Report_${fileDate}.xlsx`);
+                link.setAttribute('download', 'treasury-cash-flow-report.xlsx');
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
