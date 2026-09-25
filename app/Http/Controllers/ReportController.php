@@ -3205,15 +3205,29 @@ class ReportController extends Controller
         $statutoryDues = max((float)$statutoryDues, 0.0);
 
         // Agent Commission Payables (Account code 2003)
-        $agentPayables = (float)JournalEntry::where('account_id', '2003')
-            ->selectRaw('SUM(debit_amount) as net')
+        ChartOfAccount::firstOrCreate(
+            ['account_code' => '2003'],
+            [
+                'account_name' => 'Broker Commissions Payable',
+                'account_type' => 'LIABILITY',
+                'is_active'    => true,
+            ]
+        );
+
+        $jeAgentNet = (float)JournalEntry::where('account_id', '2003')
+            ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
-        if ($agentPayables <= 0) {
-            $agentPayables = (float)Brokerage::whereIn('status', ['payable', 'partial', 'pending'])
-                ->selectRaw('SUM(commission_amount - paid_amount) as net')
-                ->value('net');
+
+        $brokerageQuery = Brokerage::query();
+        if ($request->filled('project_id')) {
+            $brokerageQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
         }
-        $agentPayables = max((float)$agentPayables, 0.0);
+        $dbBrokeragePending = (float)$brokerageQuery
+            ->where('status', '!=', 'paid')
+            ->selectRaw('SUM(GREATEST(0, commission_amount - paid_amount)) as net')
+            ->value('net');
+
+        $agentPayables = max($jeAgentNet, $dbBrokeragePending, 0.0);
 
         // Advances Received from Customers (Unbilled) (Account code 2130)
         $customerAdvances = (float)JournalEntry::where('account_id', '2130')
@@ -3288,15 +3302,15 @@ class ReportController extends Controller
 
             $jeCount = JournalEntry::where('account_id', $code)->count();
 
-            if ($jeCount > 0) {
+            if (isset($calculatedAmounts[$code])) {
+                $amt = (float)$calculatedAmounts[$code];
+            } elseif ($jeCount > 0) {
                 if ($type === 'LIABILITY' || $type === 'EQUITY' || str_starts_with($code, '2') || str_starts_with($code, '3') || $code === '5001') {
                     $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(credit_amount - debit_amount) as net')->value('net');
                 } else {
                     $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(debit_amount - credit_amount) as net')->value('net');
                 }
                 $amt = $net;
-            } elseif (isset($calculatedAmounts[$code])) {
-                $amt = (float)$calculatedAmounts[$code];
             } else {
                 $amt = 0.0;
             }
@@ -3320,29 +3334,52 @@ class ReportController extends Controller
             }
         }
 
+        // Calculate Exact Group Totals from Displayed Account Lists
+        $totalCurrentAssets        = (float)array_sum(array_column($currentAssetsList, 'amount'));
+        $totalFixedAssets          = (float)array_sum(array_column($fixedAssetsList, 'amount'));
+        $totalAssets               = $totalCurrentAssets + $totalFixedAssets;
+
+        $totalCurrentLiabilities   = (float)array_sum(array_column($currentLiabilitiesList, 'amount'));
+        $totalLongTermLiabilities = (float)array_sum(array_column($longTermLiabilitiesList, 'amount'));
+        $totalLiabilities          = $totalCurrentLiabilities + $totalLongTermLiabilities;
+
+        // Recalculate Retained Earnings / Equity to maintain 100% Balance Sheet Equation (Assets = Liabilities + Equity)
+        $netEquity = max(0.0, $totalAssets - $totalLiabilities);
+        $partner1Capital = round($netEquity * ($partner1Pct / 100), 2);
+        $partner2Capital = round($netEquity * ($partner2Pct / 100), 2);
+
         // Add 3010 Retained Earnings / Accumulated Profit from P&L if not present in DB
         $existingCodes = array_column($equityList, 'code');
+        $sumOtherEquity = 0.0;
+        foreach ($equityList as $eqItem) {
+            $sumOtherEquity += (float)$eqItem['amount'];
+        }
+        $retainedEarnings = max(0.0, $netEquity - $sumOtherEquity);
+
         if (!in_array('3010', $existingCodes)) {
-            $sumCurrentEquity = 0.0;
-            foreach ($equityList as $eqItem) {
-                $sumCurrentEquity += (float)$eqItem['amount'];
-            }
-            $retainedEarnings = max(0.0, $netEquity - $sumCurrentEquity);
             $equityList[] = [
                 'code'   => '3010',
                 'name'   => 'Retained Earnings / Accumulated Profit from P&L',
                 'amount' => $retainedEarnings,
             ];
+        } else {
+            foreach ($equityList as &$eqItem) {
+                if ($eqItem['code'] === '3010') {
+                    $eqItem['amount'] = $retainedEarnings;
+                }
+            }
+            unset($eqItem);
         }
 
         usort($equityList, fn($a, $b) => strcmp($a['code'], $b['code']));
+        $totalEquity = (float)array_sum(array_column($equityList, 'amount'));
 
         $balanceSheetData = [
             'as_on_date'                  => $request->get('date_as_on', ''),
             'current_assets'              => $currentAssetsList,
             'total_current_assets'        => $totalCurrentAssets,
             'fixed_assets'                => $fixedAssetsList,
-            'total_fixed_assets'          => $fixedAssets,
+            'total_fixed_assets'          => $totalFixedAssets,
             'total_assets'                => $totalAssets,
             'current_liabilities'         => $currentLiabilitiesList,
             'total_current_liabilities'   => $totalCurrentLiabilities,

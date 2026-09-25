@@ -375,7 +375,7 @@ class SalesController extends Controller
                     '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     // '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
-                    // '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
+                    '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(
@@ -475,15 +475,15 @@ class SalesController extends Controller
                     //     'line_narration' => 'Brokerage Expense',
                     // ]);
 
-                    // JournalEntry::create([
-                    //     'voucher_id'     => $journalVoucher->id,
-                    //     'account_id'     => '2003',
-                    //     'debit_amount'   => 0.00,
-                    //     'credit_amount'  => $brokerageAmount,
-                    //     'entity_type'    => 'AGENT',
-                    //     'entity_id'      => $validated['broker_id'],
-                    //     'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
-                    // ]);
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '2003',
+                        'debit_amount'   => 0.00,
+                        'credit_amount'  => $brokerageAmount,
+                        'entity_type'    => 'AGENT',
+                        'entity_id'      => $validated['broker_id'],
+                        'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
+                    ]);
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Sale #' . $sale->id . ': ' . $e->getMessage());

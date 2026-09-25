@@ -325,7 +325,7 @@ class BrokerController extends Controller
 
                 if (!empty($validated['commission_entry_id'])) {
                     $entry = Brokerage::where('id', $validated['commission_entry_id'])
-                        ->whereIn('status', ['payable', 'partial'])
+                        ->whereIn('status', ['pending', 'payable', 'partial'])
                         ->firstOrFail();
 
                     // Validate system_id ownership via Broker
@@ -342,7 +342,7 @@ class BrokerController extends Controller
                 } elseif (!empty($validated['broker_id'])) {
                     $broker = Broker::where('system_id', $systemId)->findOrFail($validated['broker_id']);
                     $entries = Brokerage::where('broker_id', $broker->id)
-                        ->whereIn('status', ['payable', 'partial'])
+                        ->whereIn('status', ['pending', 'payable', 'partial'])
                         ->get();
 
                     foreach ($entries as $entry) {

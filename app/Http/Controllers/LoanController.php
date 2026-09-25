@@ -448,6 +448,7 @@ class LoanController extends Controller
             }
 
             $totalCredit = $amount + $otherCharges;
+            $totalDebitInterest = $interestAmount + $otherCharges;
 
             // Resolve Company Bank Account & Ledger Account
             $companyBank = \App\Models\CompanyBankAccount::find($bankAccountId);
@@ -468,7 +469,112 @@ class LoanController extends Controller
                 $voucherBankAccountId = $payingAccount?->id ?? 1;
             }
 
-            // Create Payment Voucher
+            // Chart of Accounts (COA) Codes & Account Mapping
+            $loanAccCode = ($loan->loan_account_no == '2210' || str_contains(strtolower($loan->lender_name ?? ''), 'land')) ? '2210' : '2201';
+            $loanAccName = ($loanAccCode == '2210') 
+                ? 'Bank Land Acquisition Loan Accounts' 
+                : 'Bank Construction Loans / Project Credit Limits';
+
+            // 1. Ensure ChartOfAccount entries exist in chart_of_accounts table
+            \App\Models\ChartOfAccount::firstOrCreate(
+                ['account_code' => '1001'],
+                ['account_name' => 'Bank Balances', 'account_type' => 'ASSET', 'is_active' => true]
+            );
+            \App\Models\ChartOfAccount::firstOrCreate(
+                ['account_code' => $loanAccCode],
+                ['account_name' => $loanAccName, 'account_type' => 'LIABILITY', 'is_active' => true]
+            );
+            // \App\Models\ChartOfAccount::firstOrCreate(
+            //     ['account_code' => '5001'],
+            //     ['account_name' => 'Bank Loan Interest Expense & Charges', 'account_type' => 'EXPENSE', 'is_active' => true]
+            // );
+
+            // 2. Ensure Account entries exist for integer foreign keys
+            $accBank = \App\Models\Account::firstOrCreate(
+                ['system_id' => $systemId, 'code' => '1001'],
+                ['name' => 'Bank Balances (Karnataka Bank)', 'type' => 'Asset', 'is_active' => true]
+            );
+            $accLoan = \App\Models\Account::firstOrCreate(
+                ['system_id' => $systemId, 'code' => $loanAccCode],
+                ['name' => $loanAccName, 'type' => 'Liability', 'is_active' => true]
+            );
+            // $accInterest = \App\Models\Account::firstOrCreate(
+            //     ['system_id' => $systemId, 'code' => '5001'],
+            //     ['name' => 'Bank Loan Interest Expense', 'type' => 'Expense', 'is_active' => true]
+            // );
+
+            // Ensure loan has ledger_account_id linked
+            if (!$loan->ledger_account_id) {
+                $loan->update([
+                    'ledger_account_id' => $accLoan->id,
+                ]);
+            }
+
+            // 3. Double-Entry Accounting Postings (journal_vouchers & journal_entries)
+            $voucherType = \App\Models\VoucherType::firstOrCreate(
+                ['code' => 'LOAN_EMI_PAYMENT'],
+                [
+                    'name'        => 'Bank Loan EMI Payment Voucher',
+                    'prefix'      => 'JV-EMI',
+                    'description' => 'Generated on Bank Loan EMI / Interest repayment',
+                    'is_active'   => true,
+                ]
+            );
+
+            $jvNo = 'JV-EMI-' . date('Y') . '-' . str_pad((string)$installment->id, 5, '0', STR_PAD_LEFT);
+            $counter = 1;
+            while (\App\Models\JournalVoucher::where('voucher_no', $jvNo)->exists()) {
+                $jvNo = 'JV-EMI-' . date('Y') . '-' . str_pad((string)$installment->id, 5, '0', STR_PAD_LEFT) . '-' . $counter;
+                $counter++;
+            }
+
+            $journalVoucher = \App\Models\JournalVoucher::create([
+                'voucher_no'      => $jvNo,
+                'voucher_type_id' => $voucherType->id,
+                'voucher_date'    => $paidDate,
+                'reference_id'    => $loan->id,
+                'narration'       => 'Bank Loan EMI Payment Inst #' . $installment->installment_no . ' (' . $loan->lender_name . ')',
+                'is_active'       => true,
+            ]);
+
+            // Journal Entry 1: Debit Loan Principal Liability Account (Code 2201 or 2210)
+            if ($principalAmount > 0) {
+                \App\Models\JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => $loanAccCode,
+                    'debit_amount'   => $principalAmount,
+                    'credit_amount'  => 0.00,
+                    'entity_type'    => 'LOAN',
+                    'entity_id'      => $loan->id,
+                    'line_narration' => 'Principal Repayment - ' . $loanAccName . ' (' . $loan->loan_account_no . ')',
+                ]);
+            }
+
+            // Journal Entry 2: Debit Interest Expense Account (Code 5001)
+            // if ($totalDebitInterest > 0) {
+            //     \App\Models\JournalEntry::create([
+            //         'voucher_id'     => $journalVoucher->id,
+            //         'account_id'     => '5001',
+            //         'debit_amount'   => $totalDebitInterest,
+            //         'credit_amount'  => 0.00,
+            //         'entity_type'    => 'EXPENSE',
+            //         'entity_id'      => $loan->id,
+            //         'line_narration' => 'Loan Interest Expense & Charges - Inst #' . $installment->installment_no,
+            //     ]);
+            // }
+
+            // Journal Entry 3: Credit Bank Account (Code 1001)
+            \App\Models\JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '1001',
+                'debit_amount'   => 0.00,
+                'credit_amount'  => $totalCredit,
+                'entity_type'    => 'BANK',
+                'entity_id'      => $companyBank?->id ?? $bankAccountId,
+                'line_narration' => ($companyBank ? $companyBank->bank_name : 'Bank Account') . ' EMI Outflow',
+            ]);
+
+            // Create Payment Voucher (Vouchers & VoucherLines & LedgerEntries)
             $voucherNumber = 'PAY-LOAN-' . $loan->id . '-' . time();
             $voucherData = [
                 'system_id'      => $systemId,
@@ -505,10 +611,11 @@ class LoanController extends Controller
             ]);
 
             // 2. Debit Loan Principal Liability Account (Principal Only)
-            if ($loan->ledger_account_id && $principalAmount > 0) {
+            $targetLedgerAccId = $loan->ledger_account_id ?: $accLoan->id;
+            if ($principalAmount > 0) {
                 $principalLine = \App\Models\VoucherLine::create([
                     'voucher_id'     => $voucher->id,
-                    'account_id'     => $loan->ledger_account_id,
+                    'account_id'     => $targetLedgerAccId,
                     'debit'          => $principalAmount,
                     'credit'         => 0.00,
                     'line_narration' => 'Loan Principal Repayment - Inst #' . $installment->installment_no . ' (' . $loan->loan_account_no . ')',
@@ -516,7 +623,7 @@ class LoanController extends Controller
 
                 \App\Models\LedgerEntry::create([
                     'system_id'       => $systemId,
-                    'account_id'      => $loan->ledger_account_id,
+                    'account_id'      => $targetLedgerAccId,
                     'voucher_id'      => $voucher->id,
                     'voucher_line_id' => $principalLine->id,
                     'date'            => $paidDate,
@@ -527,11 +634,11 @@ class LoanController extends Controller
             }
 
             // 3. Debit Interest Expense Account (Interest + Other Charges Only)
-            $totalDebitInterest = $interestAmount + $otherCharges;
-            if ($loan->interest_account_id && $totalDebitInterest > 0) {
+            $targetInterestAccId = $loan->interest_account_id ?: $accInterest->id;
+            if ($totalDebitInterest > 0) {
                 $interestLine = \App\Models\VoucherLine::create([
                     'voucher_id'     => $voucher->id,
-                    'account_id'     => $loan->interest_account_id,
+                    'account_id'     => $targetInterestAccId,
                     'debit'          => $totalDebitInterest,
                     'credit'         => 0.00,
                     'line_narration' => 'Loan Interest Expense - Inst #' . $installment->installment_no . ($otherCharges > 0 ? ' (incl. ₹' . number_format($otherCharges, 2) . ' charges)' : '') . ' (' . $loan->loan_account_no . ')',
@@ -539,7 +646,7 @@ class LoanController extends Controller
 
                 \App\Models\LedgerEntry::create([
                     'system_id'       => $systemId,
-                    'account_id'      => $loan->interest_account_id,
+                    'account_id'      => $targetInterestAccId,
                     'voucher_id'      => $voucher->id,
                     'voucher_line_id' => $interestLine->id,
                     'date'            => $paidDate,
