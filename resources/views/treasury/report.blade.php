@@ -376,10 +376,7 @@
                     {{-- Title + Audit Badge --}}
                     <div class="flex items-center gap-3 flex-wrap">
                         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Company Bank Accounts Cash Flow Report</h1>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-2xs">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Audit Trail</span>
-                        </span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-2xs">Audit Trail</span>
                     </div>
                 </div>
             </div>
@@ -542,19 +539,13 @@
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm h-full flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span>
-                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Inflow Sources Breakdown</h3>
-                        </div>
+                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Inflow Sources Breakdown</h3>
                         <span class="text-xs font-mono font-black text-emerald-700" x-text="'₹' + formatMoney(totalInflow)"></span>
                     </div>
                     <div class="space-y-2">
                         <template x-for="[catName, catAmt] in inflowCategories" :key="catName">
                             <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-[#F6F3E9] border border-slate-200/70 transition">
-                                <span class="text-xs font-bold text-slate-700 flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    <span x-text="catName"></span>
-                                </span>
+                                <span class="text-xs font-bold text-slate-700" x-text="catName"></span>
                                 <span class="font-black text-[#8a7522] font-mono text-xs" x-text="'₹' + formatMoney(catAmt)"></span>
                             </div>
                         </template>
@@ -569,19 +560,13 @@
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm h-full flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs"></span>
-                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Outflow Uses Breakdown</h3>
-                        </div>
+                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Outflow Uses Breakdown</h3>
                         <span class="text-xs font-mono font-black text-rose-700" x-text="'₹' + formatMoney(totalOutflow)"></span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <template x-for="[catName, catAmt] in outflowCategories" :key="catName">
                             <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-[#F6F3E9] border border-slate-200/70 transition">
-                                <span class="text-xs font-bold text-slate-700 truncate pr-2 flex items-center gap-1.5" :title="catName">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                                    <span class="truncate" x-text="catName"></span>
-                                </span>
+                                <span class="text-xs font-bold text-slate-700 truncate pr-2" :title="catName" x-text="catName"></span>
                                 <span class="font-black text-rose-700 font-mono text-xs whitespace-nowrap" x-text="'₹' + formatMoney(catAmt)"></span>
                             </div>
                         </template>
@@ -713,7 +698,7 @@
                         </template>
                         <template x-if="filters.date_from || filters.date_to">
                             <span>
-                                <span class="text-slate-300">•</span>
+                                
                                 <span>(from <span class="font-semibold text-slate-700" x-text="filters.date_from || 'Beginning'"></span> to <span class="font-semibold text-slate-700" x-text="filters.date_to || 'Today'"></span>)</span>
                             </span>
                         </template>
@@ -771,8 +756,8 @@
                             <td class="py-3 px-3.5 whitespace-nowrap border-r border-slate-200/40">
                                 <div class="font-bold text-slate-800 text-xs" x-text="t.bank_name"></div>
                                 <div class="text-[10px] text-slate-400 flex items-center gap-1.5 font-medium mt-0.5">
-                                    <span class="font-mono font-semibold text-slate-500" x-show="t.account_number" x-text="'•••• ' + (t.account_number ? t.account_number.slice(-4) : '')"></span>
-                                    <span x-show="t.account_number">·</span>
+                                    <span class="font-mono font-semibold text-slate-500" x-show="t.account_number" x-text="t.account_number ? ('A/C ' + t.account_number.slice(-4)) : ''"></span>
+                                    <span x-show="t.account_number" class="text-slate-300">/</span>
                                     <span x-text="t.payment_mode"></span>
                                 </div>
                             </td>
