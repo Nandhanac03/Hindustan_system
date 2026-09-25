@@ -2,29 +2,6 @@
 
 <div class="w-full space-y-6">
 
-    {{-- Under Construction Notice --}}
-    <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
-        <div class="flex items-start md:items-center gap-4">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
-                🚧
-            </div>
-            <div class="flex-1 space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
-                    <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
-                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                        Work In Progress
-                    </span>
-                </div>
-                <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
-                    We're working on this module. It is not yet ready for use and will be released shortly.
-                </h2>
-                <p class="text-xs md:text-sm font-medium text-red-800">
-                    This module is currently being finalized. Please check back soon for full availability.
-                </p>
-            </div>
-        </div>
-    </div>
 
     @include('reports.partials.nav')
 
@@ -99,26 +76,26 @@
                 </div>
             </div>
 
-            <!-- 4 KPI Metric Cards Row -->
+            <!-- 4 KPI Metric Cards Row (Clean, User-Friendly Business Terminology) -->
             <div class="bg-white pb-4 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
-                <!-- Column 1: Realized Collections -->
+                <!-- Column 1: Cash Collected (In Bank) -->
                 <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-emerald-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-emerald-800">Realized Collections</span>
+                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-emerald-800">Total Collections</span>
                             <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-emerald-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-emerald-700/80 font-bold pt-1">
-                        <span class="truncate">Actual cash in bank from buyers</span>
+                    <div class="text-[10.5px] text-emerald-700/90 font-bold pt-1">
+                        <span class="truncate">Received from buyers to date</span>
                     </div>
                 </div>
 
-                <!-- Column 2: Pending Receivables -->
+                <!-- Column 2: Pending from Booked Units -->
                 <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-blue-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between text-slate-500">
@@ -129,16 +106,16 @@
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-blue-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-blue-700/80 font-bold pt-1">
-                        <span class="truncate">Balance due from booked units</span>
+                    <div class="text-[10.5px] text-blue-700/90 font-bold pt-1">
+                        <span class="truncate">Remaining balance due from buyers</span>
                     </div>
                 </div>
 
-                <!-- Column 3: Projected Unsold Inventory -->
+                <!-- Column 3: Unsold Flats Expected Value -->
                 <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-amber-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-800">Projected Unsold Inventory</span>
+                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-800">Available Flats Market Value</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
                             </div>
@@ -146,24 +123,24 @@
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</h4>
                     </div>
                     <div class="text-[10.5px] text-amber-700 font-bold pt-1">
-                        <span class="truncate">@ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft. market rate</span>
+                        <span class="truncate">{{ number_format($projData->unsold_area, 0) }} Sq.Ft left @ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft</span>
                     </div>
                 </div>
 
-                <!-- Column 4: Total Gross Revenue -->
+                <!-- Column 4: Total Project Estimated Value -->
                 <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-[#a38c29] border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-[#a38c29]">Total Gross Revenue</span>
+                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-[#a38c29]">Total Project Expected Value</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0 border border-amber-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                             </div>
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->total_gross_revenue, 2) }}</h4>
                     </div>
-                    <div class="flex items-center justify-between text-[10.5px] text-[#a38c29] font-bold pt-1">
-                        <span>Cost: ₹{{ number_format($projData->cost_per_sqft, 0) }}/Sq.Ft.</span>
-                        <span class="text-emerald-700 font-bold">Net: ₹{{ number_format($projData->net_profit / 1000000, 1) }}M</span>
+                    <div class="flex items-center justify-between text-[10.5px] font-bold pt-1">
+                        <span class="text-slate-500">Cost: ₹{{ number_format($projData->cost_per_sqft, 0) }}/Sq.Ft</span>
+                        <span class="text-emerald-700 font-extrabold">Net Profit: ₹{{ number_format($projData->net_profit / 10000000, 2) }} Cr</span>
                     </div>
                 </div>
 
@@ -258,10 +235,16 @@
                         </div>
                     </div>
 
-                    <!-- Summary Pool Badge -->
-                    <div class="px-4 py-2 bg-amber-50/80 rounded-xl border border-amber-200 text-right shrink-0">
-                        <span class="text-[10px] font-extrabold uppercase text-[#7a671b] tracking-wider block">Total Net Profit Pool</span>
-                        <span class="text-base font-mono font-black text-emerald-800">₹{{ number_format($projData->net_profit, 2) }}</span>
+                    <!-- Summary Pool Badges -->
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-200 text-right">
+                            <span class="text-[9px] font-extrabold uppercase text-slate-500 tracking-wider block">Realized Collections</span>
+                            <span class="text-xs sm:text-sm font-mono font-black text-slate-800">₹{{ number_format($projData->realized_collections, 2) }}</span>
+                        </div>
+                        <div class="px-3.5 py-2 bg-amber-50/80 rounded-xl border border-amber-200 text-right">
+                            <span class="text-[9px] font-extrabold uppercase text-[#7a671b] tracking-wider block">Total Net Profit Pool (Projected)</span>
+                            <span class="text-xs sm:text-sm font-mono font-black text-emerald-800">₹{{ number_format($projData->net_profit, 2) }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -305,10 +288,43 @@
                                 </div>
                             </div>
 
-                            <!-- Bottom Row: Calculated Profit -->
-                            <div class="pt-2 flex flex-col justify-between bg-white p-3 rounded-xl border border-slate-200">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1">Calculated Share of Net Profit</span>
-                                <span class="text-lg sm:text-xl font-mono font-black text-emerald-700 whitespace-nowrap">₹{{ number_format($partner->profit_share, 2) }}</span>
+                            <!-- 1. Projected Lifetime Profit (100% Sold Projection) -->
+                            <div class="p-3 bg-gradient-to-r from-amber-50/60 to-white rounded-xl border border-amber-200/80">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Projected Lifetime Net Profit</span>
+                                    <span class="text-[9px] font-bold text-[#8a7522] uppercase bg-[#a38c29]/15 px-2 py-0.5 rounded border border-[#a38c29]/30">100% Sold Projection</span>
+                                </div>
+                                <div class="text-lg sm:text-xl font-mono font-black text-slate-900 mt-1 whitespace-nowrap">
+                                    ₹{{ number_format($partner->profit_share, 2) }}
+                                </div>
+                            </div>
+
+                            <!-- 2. Real-Time Cash & Bank Liquidity (From Partner Management) -->
+                            <div class="pt-1 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Realized Collections & Bank Balance</span>
+                                    <span class="text-[9px] font-bold text-emerald-700 uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Live Bank Ledger</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                                        <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Total Collected</span>
+                                        <span class="text-xs font-mono font-black text-emerald-700 block mt-0.5 truncate" title="₹{{ number_format($partner->total_collected ?? 0, 2) }}">
+                                            ₹{{ number_format($partner->total_collected ?? 0, 2) }}
+                                        </span>
+                                    </div>
+                                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                                        <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Total Payouts</span>
+                                        <span class="text-xs font-mono font-black text-rose-700 block mt-0.5 truncate" title="₹{{ number_format($partner->payouts_released ?? 0, 2) }}">
+                                            ₹{{ number_format($partner->payouts_released ?? 0, 2) }}
+                                        </span>
+                                    </div>
+                                    <div class="p-2.5 bg-[#F6F3E9] rounded-xl border border-[#a38c29]/40">
+                                        <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-[#7a671b] block">Net Bank Balance</span>
+                                        <span class="text-xs font-mono font-black text-[#5c4a10] block mt-0.5 truncate" title="₹{{ number_format($partner->net_balance ?? 0, 2) }}">
+                                            ₹{{ number_format($partner->net_balance ?? 0, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
