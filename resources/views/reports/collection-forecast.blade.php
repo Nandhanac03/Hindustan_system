@@ -7,12 +7,12 @@
 @media print {
     @page {
         size: landscape;
-        margin: 8mm 8mm 10mm 8mm;
+        margin: 5mm 6mm 5mm 6mm;
     }
     html, body {
         background: #ffffff !important;
         color: #0f172a !important;
-        font-size: 9pt !important;
+        font-size: 8.5pt !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -47,6 +47,59 @@
     .border-slate-200, .border-slate-100 {
         border-color: #cbd5e1 !important;
     }
+
+    /* Print 4 KPI Cards Flex Row */
+    .print-kpi-row {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+    .print-kpi-row > div {
+        flex: 1 1 0% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Print Charts Side-by-Side Row (Page 1) */
+    .print-charts-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    .print-chart-box-left {
+        width: 48% !important;
+        flex: 0 0 48% !important;
+        box-sizing: border-box !important;
+        padding: 8px 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
+    }
+    .print-chart-box-right {
+        width: 50.5% !important;
+        flex: 0 0 50.5% !important;
+        box-sizing: border-box !important;
+        padding: 8px 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
+    }
+    .print-donut-size {
+        width: 130px !important;
+        height: 130px !important;
+    }
+    .print-bar-size {
+        width: 100% !important;
+        height: 155px !important;
+    }
 }
 </style>
 
@@ -72,23 +125,23 @@
     </div>
 
     <!-- ── EXECUTIVE PRINT KPI CARDS (ONLY VISIBLE IN PRINT/PDF) ── -->
-    <div class="hidden print:grid grid-cols-4 gap-3 mb-5">
-        <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50">
+    <div class="hidden print:grid grid-cols-4 gap-3 mb-3 print-kpi-row">
+        <div class="border border-slate-300 rounded-xl p-2.5 bg-slate-50/50">
             <span class="text-[8.5px] font-black uppercase text-slate-500 block">Total Outstanding</span>
             <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></strong>
             <span class="text-[8px] text-slate-500 font-bold" x-text="kpis.total_customers + ' Customer Accounts'"></span>
         </div>
-        <div class="border border-rose-300 rounded-xl p-3 bg-rose-50/30">
+        <div class="border border-rose-300 rounded-xl p-2.5 bg-rose-50/30">
             <span class="text-[8.5px] font-black uppercase text-rose-600 block">Total Overdue</span>
             <strong class="text-sm font-black text-rose-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></strong>
             <span class="text-[8px] text-rose-600 font-bold" x-text="kpis.overdue_customers + ' Overdue Accounts'"></span>
         </div>
-        <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/30">
+        <div class="border border-emerald-300 rounded-xl p-2.5 bg-emerald-50/30">
             <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Current (Not Due)</span>
             <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></strong>
             <span class="text-[8px] text-emerald-600 font-bold">Within Credit Period</span>
         </div>
-        <div class="border border-blue-300 rounded-xl p-3 bg-blue-50/30">
+        <div class="border border-blue-300 rounded-xl p-2.5 bg-blue-50/30">
             <span class="text-[8.5px] font-black uppercase text-blue-600 block">Expected Realization</span>
             <strong class="text-sm font-black text-blue-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></strong>
             <span class="text-[8px] text-blue-600 font-bold">Probability Weighted</span>
@@ -170,43 +223,43 @@
         </div>
     </div>
 
-    <!-- Charts (Web Only) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 print:hidden">
-        <!-- Donut Chart -->
-        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-6">
+    <!-- Charts & Ageing Summary (Visible on Web & Print/PDF Side-by-Side on Page 1) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 print-charts-container">
+        <!-- Donut Chart & Ageing Summary Table -->
+        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5 print:p-2.5 print-chart-box-left">
+            <div class="flex items-center justify-between mb-3">
                 <div>
                     <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Summary (Overdue)' : '1-Year Collection Forecast'"></h3>
                     <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Breakdown of dues by overdue age buckets' : 'Upcoming collection timeline horizons'"></p>
                 </div>
                 <template x-if="!isOverdueMode">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider shadow-2xs">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider shadow-2xs print:hidden">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         No Overdue Dues
                     </span>
                 </template>
             </div>
 
-            <div class="flex flex-col md:flex-row items-center justify-center gap-6">
-                <div id="donutChart" class="w-48 h-48"></div>
+            <div class="flex flex-col md:flex-row print:flex-row items-center justify-center gap-4 print:gap-2">
+                <div id="donutChart" class="w-48 h-48 print-donut-size shrink-0"></div>
                 <div class="flex-1 w-full">
-                    <table class="w-full text-xs">
+                    <table class="w-full text-xs print:text-[9.5px]">
                         <tbody class="divide-y divide-slate-100">
                             <template x-for="bucket in summaryTableBuckets" :key="bucket.key">
-                                <tr class="py-2">
-                                    <td class="py-2 flex items-center gap-2 text-slate-600">
+                                <tr class="py-1.5">
+                                    <td class="py-1 flex items-center gap-1.5 text-slate-600">
                                         <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color: ' + bucket.color"></span>
                                         <span class="font-medium truncate" x-text="bucket.label"></span>
                                     </td>
-                                    <td class="py-2 text-right font-semibold text-slate-800 whitespace-nowrap">
+                                    <td class="py-1 text-right font-semibold text-slate-800 whitespace-nowrap">
                                         <span x-text="'₹ ' + formatNumber(bucket.amount)"></span>
-                                        <span class="text-slate-400 font-normal ml-1 text-[11px]" x-text="'(' + bucket.pct + '%)'"></span>
+                                        <span class="text-slate-400 font-normal ml-0.5 text-[10.5px] print:text-[8.5px]" x-text="'(' + bucket.pct + '%)'"></span>
                                     </td>
                                 </tr>
                             </template>
                             <tr>
-                                <td class="py-3 font-bold text-slate-800" x-text="isOverdueMode ? 'Total Overdue' : 'Total Outstanding'"></td>
-                                <td class="py-3 text-right font-bold text-slate-800 whitespace-nowrap" x-text="'₹ ' + formatNumber(isOverdueMode ? kpis.total_overdue : kpis.total_outstanding)"></td>
+                                <td class="py-2 font-bold text-slate-800" x-text="isOverdueMode ? 'Total Overdue' : 'Total Outstanding'"></td>
+                                <td class="py-2 text-right font-bold text-slate-800 whitespace-nowrap" x-text="'₹ ' + formatNumber(isOverdueMode ? kpis.total_overdue : kpis.total_outstanding)"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -214,20 +267,20 @@
             </div>
         </div>
 
-        <!-- Bar Chart -->
-        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-2">
+        <!-- Bar Chart & Ageing Distribution -->
+        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-5 print:p-2.5 print-chart-box-right">
+            <div class="flex items-center justify-between mb-1">
                 <div>
                     <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Distribution' : 'Monthly Inflow Forecast (Next 12 Months)'"></h3>
                     <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Overdue exposure grouped by risk buckets' : 'Month-by-month scheduled receivable timeline'"></p>
                 </div>
                 <template x-if="!isOverdueMode">
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider print:hidden">
                         12-Month Schedule
                     </span>
                 </template>
             </div>
-            <div id="barChart" class="w-full h-64"></div>
+            <div id="barChart" class="w-full h-64 print-bar-size"></div>
         </div>
     </div>
 
@@ -494,26 +547,7 @@
         </div>
     </div>
 
-    <!-- ── EXECUTIVE SIGN-OFF FOOTER (ONLY VISIBLE IN PRINT/PDF) ── -->
-    <div class="hidden print:block mt-8 pt-6 border-t-2 border-slate-300">
-        <div class="grid grid-cols-3 gap-8 text-center text-[9.5px]">
-            <div>
-                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">PREPARED BY</div>
-                <div class="text-slate-500 font-mono">{{ auth()->user()->name ?? 'Finance Executive' }}</div>
-            </div>
-            <div>
-                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">CHECKED & VERIFIED BY</div>
-                <div class="text-slate-500 italic">Internal Audit & Accounts</div>
-            </div>
-            <div>
-                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">AUTHORIZED SIGNATORY</div>
-                <div class="text-slate-500 italic">Director / Management</div>
-            </div>
-        </div>
-        <div class="text-center text-[8px] text-slate-400 mt-6 italic">
-            This is an official system-generated audit report produced by Hindustan ERP. All financial figures are reconciled from active property bookings.
-        </div>
-    </div>
+
 
     <!-- OVERDUE INSTALLMENT DETAILS MODAL -->
     <template x-teleport="body">
@@ -741,6 +775,7 @@
 function collectionForecastApp() {
     return {
         allInstallments: @json($allInstallmentsFormatted ?? []),
+        projects: @json($projects ?? []),
         filters: {
             as_of_date: '{{ request('as_of_date', '') }}',
             project_id: '{{ request('project_id', '') }}',
@@ -1283,13 +1318,21 @@ function collectionForecastApp() {
                     }
                 });
 
-                // Column Setup (11 Clean Spacious Columns with wider Project Name)
+                // Calculate dynamic width for Unit No based on data
+                let maxUnitLen = 30;
+                (this.filteredInstallments || []).forEach(inst => {
+                    const len = (inst.unit_name || '').length;
+                    if (len > maxUnitLen) maxUnitLen = len;
+                });
+                const calculatedUnitWidth = Math.min(Math.max(maxUnitLen + 4, 65), 90);
+
+                // Column Setup (11 Clean Spacious Columns with wider Unit No)
                 const columnsConfig = [
                     { header: 'SL NO', key: 'sl', width: 8 },
                     { header: 'Customer Name', key: 'customer', width: 26 },
                     { header: 'Phone Number', key: 'phone', width: 18 },
-                    { header: 'Project Name', key: 'project', width: 48 },
-                    { header: 'Unit No', key: 'unit', width: 20 },
+                    { header: 'Project Name', key: 'project', width: 45 },
+                    { header: 'Unit No', key: 'unit', width: calculatedUnitWidth },
                     { header: 'Due Date', key: 'due_date', width: 16 },
                     { header: 'Outstanding (₹)', key: 'outstanding', width: 22 },
                     { header: 'Days Overdue', key: 'days_overdue', width: 15 },
@@ -1307,56 +1350,68 @@ function collectionForecastApp() {
                 row1.height = 20;
 
                 // ── 2. Main Title Banner (Row 2) ──
+                let projectTitle = 'ALL PROJECTS';
+                if (this.filters.project_id && this.projects) {
+                    const selectedProj = (this.projects || []).find(p => String(p.id) === String(this.filters.project_id));
+                    if (selectedProj && selectedProj.name) {
+                        projectTitle = selectedProj.name.toUpperCase();
+                    }
+                }
+
                 const row2 = worksheet.getRow(2);
-                row2.values = ['HINDUSTAN ERP : COLLECTION FORECAST & OVERDUE REPORT'];
+                row2.values = [`${projectTitle} - COLLECTION FORECAST & OVERDUE REPORT`];
                 worksheet.mergeCells('A2:K2');
-                row2.height = 30;
+                row2.height = 32;
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row2.getCell(c);
-                    cell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
                     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } }; // Theme Gold
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        bottom: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                        right: { style: 'thin', color: { argb: 'FF8A7522' } }
                     };
                 }
 
                 // ── 3. Subheader Banner (Row 3) ──
+                const asOfStr = this.filters.as_of_date || 'Current Live Date';
+                const totalRecs = this.filteredInstallments.length;
+                const currentDateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
                 const row3 = worksheet.getRow(3);
-                row3.values = ['Collection Forecast & Overdue Ageing Audit'];
+                row3.values = [`Generated On: ${currentDateStr} | As On Date: ${asOfStr} | Total Records: ${totalRecs} Installment(s)`];
                 worksheet.mergeCells('A3:K3');
                 row3.height = 25;
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row3.getCell(c);
-                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
                     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } }; // Dark Theme Green
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF047857' } },
+                        bottom: { style: 'thin', color: { argb: 'FF047857' } },
+                        left: { style: 'thin', color: { argb: 'FF047857' } },
+                        right: { style: 'thin', color: { argb: 'FF047857' } }
                     };
                 }
 
                 // ── 4. Section Banner (Row 4) ──
                 const row4 = worksheet.getRow(4);
-                row4.values = ['TRANSACTION DETAILS'];
+                row4.values = ['TRANSACTION & OVERDUE AGEING DETAILS'];
                 worksheet.mergeCells('A4:K4');
-                row4.height = 25;
+                row4.height = 24;
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = row4.getCell(c);
-                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
                     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8A7522' } }; // Gold Dark
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF6B5B1E' } },
+                        bottom: { style: 'thin', color: { argb: 'FF6B5B1E' } },
+                        left: { style: 'thin', color: { argb: 'FF6B5B1E' } },
+                        right: { style: 'thin', color: { argb: 'FF6B5B1E' } }
                     };
                 }
 
@@ -1367,26 +1422,22 @@ function collectionForecastApp() {
                 // ── 6. Table Column Headers (Row 6) ──
                 const headerRow = worksheet.getRow(6);
                 headerRow.values = columnsConfig.map(col => col.header);
-                headerRow.height = 30;
+                headerRow.height = 28;
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = headerRow.getCell(c);
                     cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                    cell.alignment = { 
-                        horizontal: (c === 7 ? 'right' : (c === 2 || c === 4 || c === 5 ? 'left' : 'center')), 
-                        vertical: 'middle',
-                        indent: (c === 2 || c === 4 || c === 5 ? 1 : 0)
-                    };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' }; // Center align all column headers
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF34495E' }
+                        fgColor: { argb: 'FF0B3B2E' } // Deep Dark Emerald Green Header
                     };
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF047857' } },
+                        bottom: { style: 'thin', color: { argb: 'FF047857' } },
+                        left: { style: 'thin', color: { argb: 'FF047857' } },
+                        right: { style: 'thin', color: { argb: 'FF047857' } }
                     };
                 }
 
@@ -1418,11 +1469,10 @@ function collectionForecastApp() {
                         inst.risk_level || 'Normal',
                         inst.last_reminder_date || '-'
                     ];
-                    dataRow.height = 25;
+                    dataRow.height = 24;
 
-                    // Light blue for zebra striping (#F0F8FF / #FFFFFF)
                     const isEven = (index + 1) % 2 === 0;
-                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF8FAF5';
 
                     for (let c = 1; c <= totalCols; c++) {
                         const cell = dataRow.getCell(c);
@@ -1439,46 +1489,30 @@ function collectionForecastApp() {
                             right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                         };
 
-                        if (c === 1 || c === 6 || c === 8 || c === 9 || c === 10 || c === 11) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        } else if (c === 2) {
-                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                        // Center alignment + wrapText for all data cells
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                        if (c === 2) {
                             cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
                         } else if (c === 3) {
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
                             cell.numFormat = '@';
-                        } else if (c === 4 || c === 5) {
-                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
                         } else if (c === 7) {
-                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
                             cell.numFormat = '#,##0.00';
-                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
                         }
 
-                        // Risk Level Background Colored Cell (High / Medium / Low)
+                        // Risk Level Background Colored Cell
                         if (c === 10) {
                             const risk = (inst.risk_level || '').toLowerCase().trim();
                             if (risk === 'high' || risk === 'critical' || risk === 'severe') {
                                 cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF991B1B' } };
-                                cell.fill = {
-                                    type: 'pattern',
-                                    pattern: 'solid',
-                                    fgColor: { argb: 'FFFFCDD2' } // Soft Light Red
-                                };
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCDD2' } };
                             } else if (risk === 'medium') {
                                 cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF92400E' } };
-                                cell.fill = {
-                                    type: 'pattern',
-                                    pattern: 'solid',
-                                    fgColor: { argb: 'FFFFE082' } // Soft Light Amber/Yellow
-                                };
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE082' } };
                             } else if (risk === 'low') {
                                 cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF065F46' } };
-                                cell.fill = {
-                                    type: 'pattern',
-                                    pattern: 'solid',
-                                    fgColor: { argb: 'FFC8E6C9' } // Soft Light Green
-                                };
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC8E6C9' } };
                             } else {
                                 cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF64748B' } };
                             }
@@ -1488,35 +1522,36 @@ function collectionForecastApp() {
                     currentRowIdx++;
                 });
 
-                // ── 8. Bottom Summary / Total Row (Row 7 + N) ──
+                // ── 8. Bottom Summary / Total Row (Green Background Footer) ──
                 const totalRow = worksheet.getRow(currentRowIdx);
-                totalRow.height = 36;
+                totalRow.height = 32;
                 worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
 
                 const totalLabelCell = worksheet.getCell(`A${currentRowIdx}`);
                 totalLabelCell.value = 'TOTAL OUTSTANDING AMOUNT';
-                totalLabelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                totalLabelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                totalLabelCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
                 const totalValCell = worksheet.getCell(`G${currentRowIdx}`);
                 totalValCell.value = totalOutstanding;
                 totalValCell.numFormat = '#,##0.00';
-                totalValCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+                totalValCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalValCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
                 for (let c = 1; c <= totalCols; c++) {
                     const cell = totalRow.getCell(c);
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF2C3E50' }
+                        fgColor: { argb: 'FF0B3B2E' } // Green Background Footer
                     };
                     cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF475569' } },
-                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
-                        left: { style: 'thin', color: { argb: 'FF475569' } },
-                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                        top: { style: 'thin', color: { argb: 'FF047857' } },
+                        bottom: { style: 'thin', color: { argb: 'FF047857' } },
+                        left: { style: 'thin', color: { argb: 'FF047857' } },
+                        right: { style: 'thin', color: { argb: 'FF047857' } }
                     };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
                 }
 
                 // ── 9. Generate & Trigger Download ──
@@ -1525,8 +1560,8 @@ function collectionForecastApp() {
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                const dateSlug = (this.filters.as_of_date || new Date().toISOString().split('T')[0]).replace(/-/g, '');
-                anchor.download = `HindustanERP_Collection_Forecast_${dateSlug}.xlsx`;
+
+                anchor.download = 'collection-forecast-report.xlsx';
                 document.body.appendChild(anchor);
                 anchor.click();
                 document.body.removeChild(anchor);

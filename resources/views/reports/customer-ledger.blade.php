@@ -385,7 +385,7 @@
                                         </td>
                                         <td class="px-5 py-4 text-right whitespace-nowrap">
                                             <a href="{{ route('reports.customer_ledger', ['customer_id' => $cs['customer_id'], 'project_id' => request('project_id')]) }}"
-                                               class="px-4 py-2 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8a7522] hover:to-[#8a7522] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs hover:shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
+                                               class="px-4 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs hover:shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
                                                 <span>View Ledger</span>
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                             </a>
