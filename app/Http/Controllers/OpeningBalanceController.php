@@ -26,14 +26,14 @@ class OpeningBalanceController extends Controller
         // Account 3090: Opening Balance Equity
         $equityAccount = ChartOfAccount::where('account_code', '3090')->first();
         if (!$equityAccount) {
-            $equityAccount = ChartOfAccount::create([
-                'account_code' => '3090',
-                'account_name' => 'Opening Balance Equity',
-                'account_type' => 'LIABILITY',
-                'opening_balance' => 0.00,
-                'opening_balance_type' => 'CR',
-                'is_active' => true,
-            ]);
+            // $equityAccount = ChartOfAccount::create([
+            //     'account_code' => '3090',
+            //     'account_name' => 'Opening Balance Equity',
+            //     'account_type' => 'LIABILITY',
+            //     'opening_balance' => 0.00,
+            //     'opening_balance_type' => 'CR',
+            //     'is_active' => true,
+            // ]);
             $accounts = ChartOfAccount::orderBy('account_code')->get();
         }
 

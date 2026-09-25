@@ -2064,6 +2064,8 @@ function salesApp() {
         customerRefundForm: { company_bank_account_id: '', refund_amount: 0, payment_mode: 'Bank Transfer', remarks: 'Customer refund processed as per cancellation agreement.' },
         customerRefundFormErrors: {},
         isSubmittingRefund: false,
+        bankSearch: '',
+        bankDropdownOpen: false,
         init() {
             this.fetchSales();
             this.$watch('returnFilters', () => {
@@ -2390,8 +2392,64 @@ function salesApp() {
             if (!this.customerRefundForm || !this.customerRefundForm.company_bank_account_id) return null;
             return this.companyBankAccountsList.find(acc => acc.id == this.customerRefundForm.company_bank_account_id) || null;
         },
+        get filteredCompanyBankAccounts() {
+            if (!this.bankSearch || !this.bankSearch.trim()) {
+                return this.companyBankAccountsList;
+            }
+            const q = this.bankSearch.toLowerCase().trim();
+            return this.companyBankAccountsList.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.account_type && b.account_type.toLowerCase().includes(q)) ||
+                (b.ifsc_code && b.ifsc_code.toLowerCase().includes(q))
+            );
+        },
+        selectCompanyBank(bankId) {
+            this.customerRefundForm.company_bank_account_id = bankId;
+            this.bankDropdownOpen = false;
+            this.bankSearch = '';
+        },
+        get selectedBankBalance() {
+            const b = this.getSelectedBankAccount();
+            return b ? (parseFloat(b.current_balance) || 0) : 0;
+        },
+        numberToWords(val) {
+            let num = Math.floor(parseFloat(val) || 0);
+            if (!num || num <= 0) return '';
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function toWords(n) {
+                if (n < 20) return a[n];
+                let digit = n % 10;
+                return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+            }
+            let str = '';
+            let crore = Math.floor(num / 10000000);
+            num %= 10000000;
+            let lakh = Math.floor(num / 100000);
+            num %= 100000;
+            let thousand = Math.floor(num / 1000);
+            num %= 1000;
+            let hundred = Math.floor(num / 100);
+            let rest = num % 100;
+            if (crore > 0) str += toWords(crore) + ' Crore ';
+            if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+            if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+            if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+            if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+            return str.trim() + ' Rupees Only';
+        },
+        get selectedBankBalanceInWords() {
+            return this.numberToWords(this.selectedBankBalance);
+        },
+        get refundAmountInWordsText() {
+            return this.numberToWords(this.customerRefundForm.refund_amount || 0);
+        },
         openCustomerRefund(sale) {
             this.refundModalSale = sale;
+            this.bankSearch = '';
+            this.bankDropdownOpen = false;
             let remaining = this.getRemainingRefund(sale);
             if (remaining <= 0) {
                 remaining = this.getRefundDue(sale);

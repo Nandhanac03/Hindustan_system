@@ -1425,14 +1425,45 @@ class SalesController extends Controller
                 // 3. Create Voucher Record (Payment type)
                 $voucherNumber = 'PY-REF-' . date('Ymd-His') . '-' . rand(100, 999);
                 $voucher = Voucher::create([
-                    'system_id'      => $systemId,
-                    'voucher_number' => $voucherNumber,
-                    'type'           => 'Payment',
-                    'date'           => date('Y-m-d'),
-                    'reference_no'   => $refNoJson,
-                    'narration'      => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : ''),
-                    'created_by'     => auth()->id() ?? 1,
-                    'status'         => 'Posted',
+                    'system_id'               => $systemId,
+                    'company_bank_account_id' => $companyBankId,
+                    'voucher_number'          => $voucherNumber,
+                    'type'                    => 'Payment',
+                    'date'                    => date('Y-m-d'),
+                    'reference_no'            => $refNoJson,
+                    'narration'               => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : ''),
+                    'created_by'              => auth()->id() ?? 1,
+                    'status'                  => 'Posted',
+                ]);
+
+                // Fetch or create corresponding Accounts for VoucherLine foreign key
+                $customerAccCode = 'CUST-REC-' . $sale->customer_id;
+                $customerAccount = \App\Models\Account::firstOrCreate(
+                    ['system_id' => $systemId, 'code' => $customerAccCode],
+                    ['name' => 'Customer Receivable - ' . ($sale->customer?->name ?? 'Customer'), 'type' => 'Asset', 'is_active' => true]
+                );
+
+                $bankAccCode = 'BANK-' . $companyBankId;
+                $bankAccount = \App\Models\Account::firstOrCreate(
+                    ['system_id' => $systemId, 'code' => $bankAccCode],
+                    ['name' => ($companyBank ? $companyBank->bank_name . ' (' . ($companyBank->account_number ?? '') . ')' : 'Bank Account'), 'type' => 'Asset', 'is_active' => true]
+                );
+
+                // Create Voucher Lines for Treasury & Financial Ledger
+                \App\Models\VoucherLine::create([
+                    'voucher_id'     => $voucher->id,
+                    'account_id'     => $customerAccount->id,
+                    'debit'          => $amount,
+                    'credit'         => 0.00,
+                    'line_narration' => 'Customer Refund Payout to ' . ($sale->customer?->name ?? 'Customer'),
+                ]);
+
+                \App\Models\VoucherLine::create([
+                    'voucher_id'     => $voucher->id,
+                    'account_id'     => $bankAccount->id,
+                    'debit'          => 0.00,
+                    'credit'         => $amount,
+                    'line_narration' => ($companyBank ? $companyBank->bank_name : 'Bank Account') . ' Payout',
                 ]);
 
                 // 4. Double-Entry Accounting: Ensure VoucherType (CUSTOMER_REFUND) & ChartOfAccounts ('1001', '1010')

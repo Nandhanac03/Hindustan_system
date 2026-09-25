@@ -2725,20 +2725,88 @@
                     <div class="space-y-5">
                         
                         {{-- Select Company Account --}}
-                        <div class="space-y-2">
+                        <div class="space-y-2 relative" @click.outside="bankDropdownOpen = false">
                             <div class="flex items-center gap-1.5 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
                                 <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 <span>Select Company Account <span class="text-rose-500">*</span></span>
                             </div>
-                            <select x-model="customerRefundForm.company_bank_account_id"
-                                    class="w-full px-3 py-2.5 text-xs font-semibold bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-800"
-                                    :class="customerRefundFormErrors.company_bank_account_id ? 'border-rose-500' : 'border-slate-250'">
-                                <option value="">Select Company Account</option>
-                                <template x-for="acc in companyBankAccountsList" :key="acc.id">
-                                    <option :value="acc.id" x-text="acc.bank_name + (acc.account_type ? ' - ' + acc.account_type : '') + (acc.account_number ? ' / A/c No: ' + acc.account_number : '') + (acc.ifsc_code ? ' | IFSC: ' + acc.ifsc_code : '')"></option>
+                            
+                            {{-- Hidden Required Input for Form Submission --}}
+                            <input type="hidden" name="company_bank_account_id" :value="customerRefundForm.company_bank_account_id">
+
+                            {{-- Dropdown Trigger Button --}}
+                            <div @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) { bankSearch = ''; $nextTick(() => $refs.bankSearchInput?.focus()); }"
+                                 class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
+                                 :class="customerRefundFormErrors.company_bank_account_id ? 'border-rose-500' : 'border-slate-300 hover:border-[#a38c29]/60'">
+                                <template x-if="getSelectedBankAccount()">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="getSelectedBankAccount().bank_name"></span>
+                                        <span class="font-bold text-slate-800 truncate" x-text="getSelectedBankAccount().account_name || getSelectedBankAccount().bank_name"></span>
+                                        <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (getSelectedBankAccount().account_number || '—') + ')'"></span>
+                                    </div>
                                 </template>
-                            </select>
+                                <template x-if="!getSelectedBankAccount()">
+                                    <span class="text-slate-400 font-medium">Select Company Account...</span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="bankDropdownOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+
+                            {{-- Dropdown Popover List --}}
+                            <div x-show="bankDropdownOpen" 
+                                 x-transition
+                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
+                                 style="display: none;">
+                                
+                                {{-- Search Input inside Popover --}}
+                                <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                    <div class="relative">
+                                        <input type="text" 
+                                               x-model="bankSearch" 
+                                               x-ref="bankSearchInput"
+                                               placeholder="Search bank name, account no, branch..." 
+                                               class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                        <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                </div>
+
+                                {{-- Results List --}}
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                    <template x-for="acc in filteredCompanyBankAccounts" :key="acc.id">
+                                        <div @click="selectCompanyBank(acc.id)"
+                                             class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                             :class="customerRefundForm.company_bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                            <div class="flex flex-col min-w-0 pr-2">
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                    <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                </div>
+                                                <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—') + (acc.ifsc_code ? ' • IFSC: ' + acc.ifsc_code : '')"></div>
+                                            </div>
+                                            <div class="text-right font-mono shrink-0">
+                                                <div class="text-[8px] text-slate-400 uppercase font-sans font-bold tracking-wider">Current Balance</div>
+                                                <div class="font-bold text-slate-800 text-[11px]" x-text="fmt(acc.current_balance || 0)"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="filteredCompanyBankAccounts.length === 0">
+                                        <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                    </template>
+                                </div>
+                            </div>
                             <span x-show="customerRefundFormErrors.company_bank_account_id" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.company_bank_account_id"></span>
+
+                            {{-- Selected Bank Balance & Words Display (Screenshot 3 replica) --}}
+                            <div class="mt-1.5 space-y-0.5" x-show="getSelectedBankAccount()">
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-slate-500 font-medium">Selected Bank Balance:</span>
+                                    <span class="font-mono font-bold text-[#a38c29]" x-text="fmt(selectedBankBalance)"></span>
+                                </div>
+                                <div x-show="selectedBankBalanceInWords" 
+                                     class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                     x-text="selectedBankBalanceInWords"></div>
+                            </div>
 
                             {{-- Source Bank Account Summary Card (Image 1 replica) --}}
                             <template x-if="getSelectedBankAccount()">
@@ -2772,13 +2840,23 @@
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
                                     ₹
                                 </div>
-                                <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount"
+                                <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount" data-no-words="true"
                                        placeholder="Enter refund amount (e.g. 500000)"
                                        class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20"
                                        :class="customerRefundFormErrors.refund_amount ? 'border-rose-500' : 'border-slate-250'">
                             </div>
                             <span class="text-[10px] text-slate-400 font-medium block">(Total refund amount will be transferred to customer)</span>
                             <span x-show="customerRefundFormErrors.refund_amount" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.refund_amount"></span>
+                            
+                            {{-- Amount in Words Box --}}
+                            <div x-show="refundAmountInWordsText" 
+                                 class="mt-2 px-3 py-1.5 bg-[#faf9f5] border border-[#a38c29]/40 rounded-xl text-xs font-bold text-[#8a7522] tracking-wide shadow-2xs flex items-center gap-2" 
+                                 x-cloak>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 012 2h-3l-4 4z"/>
+                                </svg>
+                                <span x-text="refundAmountInWordsText"></span>
+                            </div>
                         </div>
 
                         {{-- Insufficient Funds Error Banner (Image 2 design) --}}
