@@ -1,6 +1,129 @@
 <x-erp-layout title="Internal Contra Transfers - HindustanERP" headerTitle="Financial Accounting Workspace">
 
-<div class="max-w-[1600px] mx-auto space-y-6" x-data="contraVoucherWorkspace()">
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 10mm 12mm 10mm 12mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8.5pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar, [class*="nav"], [class*="sidebar"] {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .print\:grid {
+        display: grid !important;
+    }
+    .print\:flex {
+        display: flex !important;
+    }
+    .print\:table {
+        display: table !important;
+    }
+    
+    /* Container Reset with proper breathing room */
+    .max-w-\[1800px\], .max-w-3xl, .overflow-x-auto {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* Executive Print Header with elegant spacing */
+    .print-exec-header {
+        display: block !important;
+        margin-bottom: 16px !important;
+        padding-bottom: 12px !important;
+        border-bottom: 2px solid #a38c29 !important;
+    }
+
+    /* Table Container in Print */
+    .print-table-container {
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        margin-top: 8px !important;
+    }
+
+    /* Table Formatting & Generous Row Spacing for PDF */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        font-size: 8pt !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    th, td {
+        padding: 8.5px 10px !important; /* Comfortable executive padding */
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.4 !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+    th {
+        background-color: #a38c29 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 7.5pt !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        border-bottom: 2px solid #8a7522 !important;
+    }
+    td {
+        border-bottom: 0.75pt solid #e2e8f0 !important;
+        color: #1e293b !important;
+    }
+    tbody tr:nth-child(even) td {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+</style>
+
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="contraVoucherWorkspace()">
+
+    <!-- ── EXECUTIVE PRINT HEADER (EXACT EXCHANGE REPORT STYLE - ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Treasury & Bank Fund Movements</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">INTERNAL CONTRA TRANSFERS & FUND AUDIT REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Filtered Bank:</span> <span class="font-mono font-bold text-slate-800" x-text="selectedBankFilter || 'All Bank Accounts'">All Bank Accounts</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Vouchers:</span> <span class="font-mono font-bold text-[#a38c29]" x-text="filteredContras.length + ' Records'">15 Records</span></div>
+            </div>
+        </div>
+    </div>
 
     {{-- Under Development Notice Banner --}}
     <!-- <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-4 md:p-5 shadow-2xs relative overflow-hidden backdrop-blur-sm">
@@ -24,7 +147,7 @@
     </div> -->
 
     <!-- ── 1. HEADER BAR WITH + ADD CONTRA ENTRY BUTTON ── -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div class="flex items-center gap-3.5">
             <div class="w-11 h-11 bg-slate-900 text-white rounded-xl shadow-2xs flex items-center justify-center shrink-0 border border-slate-800">
                 <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,15 +158,15 @@
                 <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                     <span>Internal Contra Transfers</span>
                 </h1>
-                <p class="text-xs font-semibold text-slate-500">Bank to Bank Transfers, Cash Deposits & Cash Withdrawals</p>
+                <p class="text-xs font-semibold text-slate-500">Bank-to-Bank Digital Fund Transfers Between Corporate Accounts</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3 shrink-0">
-            <span class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
+            <!-- <span class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 <span>{{ date('d-M-Y') }}</span>
-            </span>
+            </span> -->
 
             <!-- + ADD CONTRA ENTRY BUTTON (OPENS FORM MODAL) -->
             <button type="button" @click="showFormModal = true" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 border border-[#a38c29]/40 cursor-pointer">
@@ -57,7 +180,7 @@
     <div class="space-y-4">
         
         <!-- TOP FILTER CONTROL CARD (BORDERLESS WITH FLAT GOLD SVG BANK ICON) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs print:hidden">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
@@ -65,9 +188,9 @@
                 <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">SELECT BANK ACCOUNT / FILTER FOR CONTRA VOUCHERS</h3>
             </div>
 
-            <div class="flex flex-col md:flex-row items-center gap-3">
+            <div class="flex flex-col lg:flex-row items-center gap-3">
                 <!-- SELECT BANK ACCOUNT FILTER WITH FLAT GOLD SVG BANK ICON -->
-                <div class="w-full md:w-5/12 relative flex items-center">
+                <div class="w-full lg:flex-1 relative flex items-center">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
@@ -75,23 +198,33 @@
                     </div>
                     <select x-model="selectedBankFilter" @change="currentPage = 1"
                             class="w-full h-11 pl-10 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition shadow-2xs truncate cursor-pointer appearance-none">
-                        <option value="">— All Bank Accounts & Cash Boxes —</option>
+                        <option value="">— All Bank Accounts —</option>
                         @php
-                            $allBankNames = collect();
+                            /* Internal Contra Transfers (Menu 14) = Bank-to-Bank digital transfers only.
+                               List ALL bank accounts in the system (from Company Bank Accounts & Asset Ledger Accounts)
+                               Excludes Cash-in-Hand and Petty Cash boxes. */
+                            $bankFilterOptions = collect();
                             if(isset($companyBankAccounts)) {
                                 foreach($companyBankAccounts as $b) {
-                                    $allBankNames->push($b->bank_name);
+                                    $displayName = $b->bank_name;
+                                    if (!empty($b->account_number)) {
+                                        $displayName .= ' (A/c ...'.substr($b->account_number, -4).')';
+                                    }
+                                    $bankFilterOptions->push(['display' => $displayName, 'key' => $b->bank_name]);
                                 }
                             }
                             if(isset($assetAccounts)) {
-                                foreach($assetAccounts as $a) {
-                                    $allBankNames->push($a->name);
+                                foreach($assetAccounts as $acc) {
+                                    $lower = strtolower($acc->name);
+                                    if (!str_contains($lower, 'cash') && !str_contains($lower, 'petty')) {
+                                        $bankFilterOptions->push(['display' => $acc->name, 'key' => $acc->name]);
+                                    }
                                 }
                             }
-                            $uniqueBanks = $allBankNames->unique()->sort();
+                            $bankFilterOptions = $bankFilterOptions->unique('key')->sortBy('display');
                         @endphp
-                        @foreach($uniqueBanks as $bName)
-                            <option value="{{ $bName }}">{{ $bName }}</option>
+                        @foreach($bankFilterOptions as $bankOpt)
+                            <option value="{{ $bankOpt['key'] }}">{{ $bankOpt['display'] }}</option>
                         @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
@@ -100,7 +233,7 @@
                 </div>
 
                 <!-- LIVE SEARCH INPUT BAR (WITH INTEGRATED FLAT GOLD SEARCH ICON) -->
-                <div class="w-full md:w-5/12 relative flex items-center">
+                <div class="w-full lg:flex-1 relative flex items-center">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -110,30 +243,42 @@
                            class="w-full h-11 pl-10 pr-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition shadow-2xs">
                 </div>
 
-                <!-- ACTION BUTTONS GRID (PRINT & EXCEL) -->
-                <div class="w-full md:w-2/12 flex items-center gap-2">
-                    <button type="button" @click="printTable()" class="flex-1 h-11 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        <span>PRINT</span>
+                <!-- RESET FILTER BUTTON (SIGNATURE GOLD GRADIENT) -->
+                <button type="button" @click="resetFilters()"
+                        class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-4 py-2 text-xs font-black text-white shadow-sm hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-[0.98] shrink-0 cursor-pointer whitespace-nowrap"
+                        title="Reset all filters">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span class="whitespace-nowrap">RESET FILTER</span>
+                </button>
+
+                <!-- ACTION BUTTONS GRID (EXPORT EXCEL & EXPORT PDF - EXACT REPORT STYLE) -->
+                <div class="w-full sm:w-auto flex items-center gap-2.5 shrink-0">
+                    <button type="button" @click="exportExcel()" 
+                            class="flex-1 sm:flex-none h-11 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98] whitespace-nowrap">
+                        <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="whitespace-nowrap">EXPORT EXCEL</span>
                     </button>
-                    <button type="button" @click="exportExcel()" class="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>EXCEL</span>
+                    <button type="button" @click="printTable()" 
+                            class="flex-1 sm:flex-none h-11 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98] whitespace-nowrap">
+                        <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span class="whitespace-nowrap">EXPORT PDF</span>
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- DIRECTORY TABLE CONTAINER WITH PURE WHITE BANNER HEADER BAR -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs space-y-0">
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs space-y-0 print-table-container">
             
             <!-- WHITE BANNER HEADER BAR -->
-            <div class="bg-white text-slate-900 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div class="bg-white text-slate-900 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between print:px-4 print:py-3 print:bg-slate-50">
                 <div>
-                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">ALL CONTRA ENTRIES DIRECTORY</h3>
-                    <p class="text-[11px] text-slate-500 font-medium">Overview of digital fund movements, cash deposits, and petty cash replenishments.</p>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 print:text-sm">ALL CONTRA ENTRIES DIRECTORY</h3>
+                    <p class="text-[11px] text-slate-500 font-medium">Overview of digital fund movements and inter-bank transfers across corporate accounts.</p>
                 </div>
-                <span class="px-3 py-1 rounded-lg bg-amber-50 text-[#a38c29] border border-amber-200/80 text-xs font-mono font-extrabold uppercase tracking-wider shadow-2xs" x-text="filteredContras.length + ' CONTRA VOUCHERS'">
+                <span class="px-3 py-1 rounded-lg bg-amber-50 text-[#a38c29] border border-amber-200/80 text-xs font-mono font-extrabold uppercase tracking-wider shadow-2xs print:border print:border-amber-300" x-text="filteredContras.length + ' CONTRA VOUCHERS'">
                     15 CONTRA VOUCHERS
                 </span>
             </div>
@@ -150,11 +295,11 @@
                             <th class="px-4 py-3.5 text-white">TO ACCOUNT (DESTINATION)</th>
                             <th class="px-4 py-3.5 text-white">MODE / REF NO.</th>
                             <th class="px-4 py-3.5 text-right text-white">TRANSFER AMOUNT (₹)</th>
-                            <th class="px-4 py-3.5 text-center text-white">ACTION</th>
+                            <th class="px-4 py-3.5 text-center text-white print:hidden">ACTION</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-800 bg-white">
-                        <template x-for="(item, index) in paginatedContras" :key="item.id || item.voucher_number">
+                        <template x-for="(item, index) in (isPrinting ? filteredContras : paginatedContras)" :key="item.id || item.voucher_number">
                             <tr class="hover:bg-amber-50/20 bg-white transition">
                                 <td class="px-4 py-3.5 font-mono font-bold text-slate-500" x-text="(currentPage - 1) * pageSize + index + 1"></td>
                                 <td class="px-4 py-3.5 font-mono font-bold text-slate-900" x-text="item.voucher_number"></td>
@@ -163,7 +308,7 @@
                                 <td class="px-4 py-3.5 font-bold text-slate-900" x-text="item.to_account"></td>
                                 <td class="px-4 py-3.5 text-slate-600 font-semibold" x-text="item.reference_no || 'RTGS / UTR8821'"></td>
                                 <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900 text-sm" x-text="'₹ ' + formatCurrency(item.amount)"></td>
-                                <td class="px-4 py-3.5 text-center">
+                                <td class="px-4 py-3.5 text-center print:hidden">
                                     <button type="button" @click="openSlipModal(item)" title="View Slip" class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-amber-200/80 transition flex items-center justify-center mx-auto shadow-2xs cursor-pointer group">
                                         <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -176,7 +321,11 @@
 
                         <tr x-show="filteredContras.length === 0">
                             <td colspan="8" class="px-4 py-8 text-center text-slate-400 font-bold">
-                                No contra voucher records match your search or filter criteria.
+                                <div>No contra voucher records match your search or filter criteria.</div>
+                                <button type="button" @click="resetFilters()" class="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#a38c29] hover:underline cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    <span>Click here to reset filters</span>
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -184,7 +333,7 @@
             </div>
 
             <!-- FOOTER PAGINATION BAR -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
                 <div class="text-xs font-semibold text-slate-500">
                     Showing <span class="font-bold text-slate-900" x-text="paginationStart"></span> to <span class="font-bold text-slate-900" x-text="paginationEnd"></span> of <span class="font-bold text-slate-900" x-text="filteredContras.length"></span> entries
                 </div>
@@ -213,7 +362,7 @@
     </div>
 
     <!-- ── 3. ADD CONTRA ENTRY FORM MODAL (EXACT UNIT SETUP MODAL STYLE) ── -->
-    <div x-show="showFormModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+    <div x-show="showFormModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity print:hidden"
          x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
         
@@ -402,7 +551,7 @@
     </div>
 
     <!-- ── 4. CONTRA VOUCHERS SLIP / RECEIPT MODAL (MATCHING UNIT SETUP MODAL EXACT STYLE) ── -->
-    <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+    <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity print:hidden"
          x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
         
@@ -552,25 +701,16 @@ function contraVoucherWorkspace() {
         selectedFromAccountName: '',
         selectedToAccountName: '',
 
-        // Populate From Accounts directly from Company Bank Account Master
+        // Populate From & To Accounts with cash tagging
         rawFromAccounts: [
-            @if(isset($companyBankAccounts) && count($companyBankAccounts) > 0)
-                @foreach($companyBankAccounts as $cBank)
-                    {
-                        id: {{ $cBank->chart_account_id ?? $cBank->id }},
-                        name: '{{ addslashes($cBank->bank_name . ($cBank->account_number ? " - " . $cBank->account_number : "")) }}',
-                        balance: {{ (float) ($cBank->calculated_balance ?? $cBank->current_balance ?? 0) }}
-                    },
-                @endforeach
-            @else
-                @foreach($assetAccounts as $acc)
-                    {
-                        id: {{ $acc->id }},
-                        name: '{{ addslashes($acc->name) }}',
-                        balance: {{ (float) ($acc->current_balance ?? 0) }}
-                    },
-                @endforeach
-            @endif
+            @foreach($assetAccounts as $acc)
+                {
+                    id: {{ $acc->id }},
+                    name: '{{ addslashes($acc->name) }}',
+                    balance: {{ (float) ($acc->current_balance ?? 0) }},
+                    is_cash: {{ (str_contains(strtolower($acc->name), 'cash') || str_contains(strtolower($acc->name), 'petty')) ? 'true' : 'false' }}
+                },
+            @endforeach
         ],
 
         rawToAccounts: [
@@ -578,7 +718,8 @@ function contraVoucherWorkspace() {
                 {
                     id: {{ $acc->id }},
                     name: '{{ addslashes($acc->name) }}',
-                    balance: {{ (float) ($acc->current_balance ?? 0) }}
+                    balance: {{ (float) ($acc->current_balance ?? 0) }},
+                    is_cash: {{ (str_contains(strtolower($acc->name), 'cash') || str_contains(strtolower($acc->name), 'petty')) ? 'true' : 'false' }}
                 },
             @endforeach
         ],
@@ -588,15 +729,27 @@ function contraVoucherWorkspace() {
         projectName: '',
 
         filteredFromAccounts(query) {
-            if (!query || query.trim() === '') return this.rawFromAccounts;
+            let list = this.rawFromAccounts;
+            if (this.transactionType === 'bank_to_bank' || this.transactionType === 'cash_withdrawal') {
+                list = list.filter(a => !a.is_cash);
+            } else if (this.transactionType === 'cash_deposit') {
+                list = list.filter(a => a.is_cash);
+            }
+            if (!query || query.trim() === '') return list;
             const q = query.toLowerCase().trim();
-            return this.rawFromAccounts.filter(a => a.name.toLowerCase().includes(q));
+            return list.filter(a => a.name.toLowerCase().includes(q));
         },
 
         filteredToAccounts(query) {
-            if (!query || query.trim() === '') return this.rawToAccounts;
+            let list = this.rawToAccounts;
+            if (this.transactionType === 'bank_to_bank' || this.transactionType === 'cash_deposit') {
+                list = list.filter(a => !a.is_cash);
+            } else if (this.transactionType === 'cash_withdrawal') {
+                list = list.filter(a => a.is_cash);
+            }
+            if (!query || query.trim() === '') return list;
             const q = query.toLowerCase().trim();
-            return this.rawToAccounts.filter(a => a.name.toLowerCase().includes(q));
+            return list.filter(a => a.name.toLowerCase().includes(q));
         },
 
         submitted: false,
@@ -684,6 +837,12 @@ function contraVoucherWorkspace() {
             return Math.min(this.currentPage * this.pageSize, this.filteredContras.length);
         },
 
+        resetFilters() {
+            this.selectedBankFilter = '';
+            this.searchQuery = '';
+            this.currentPage = 1;
+        },
+
         onTransactionTypeChange() {
             if (this.transactionType === 'bank_to_bank') {
                 this.form.payment_mode = 'RTGS';
@@ -725,8 +884,15 @@ function contraVoucherWorkspace() {
             this.showSlipModal = false;
         },
 
+        isPrinting: false,
         printTable() {
-            window.print();
+            this.isPrinting = true;
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => { this.isPrinting = false; }, 800);
+                }, 100);
+            });
         },
 
         async exportExcel() {
