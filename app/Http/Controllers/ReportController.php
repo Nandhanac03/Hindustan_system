@@ -3137,7 +3137,7 @@ class ReportController extends Controller
         $jeCashNet = (float)JournalEntry::whereIn('account_id', ['1002', '1102'])
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $cashInHand = $pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, (float)$jeCashNet, 0.0);
+        $cashInHand = $jeCashNet > 0 ? $jeCashNet : ($pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, 0.0));
 
         // 3. Customer Receivables (1010)
         $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110', '1003'])

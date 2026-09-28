@@ -118,7 +118,7 @@
             const url = window.URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = 'HindustanERP_Balance_Sheet_Summary.xlsx';
+            anchor.download = 'Balance_Sheet_Summary.xlsx';
             anchor.click();
             window.URL.revokeObjectURL(url);
         });
