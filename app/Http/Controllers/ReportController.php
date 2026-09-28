@@ -3205,14 +3205,14 @@ class ReportController extends Controller
         $statutoryDues = max((float)$statutoryDues, 0.0);
 
         // Agent Commission Payables (Account code 2003)
-        ChartOfAccount::firstOrCreate(
-            ['account_code' => '2003'],
-            [
-                'account_name' => 'Broker Commissions Payable',
-                'account_type' => 'LIABILITY',
-                'is_active'    => true,
-            ]
-        );
+        // ChartOfAccount::firstOrCreate(
+        //     ['account_code' => '2003'],
+        //     [
+        //         'account_name' => 'Broker Commissions Payable',
+        //         'account_type' => 'LIABILITY',
+        //         'is_active'    => true,
+        //     ]
+        // );
 
         $jeAgentNet = (float)JournalEntry::where('account_id', '2003')
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
