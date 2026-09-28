@@ -330,12 +330,16 @@ class LoanController extends Controller
         }
 
         $principalAmount = isset($validated['principal_amount']) && $validated['principal_amount'] !== ''
-            ? (float)$validated['principal_amount']
+            ? min((float)$validated['principal_amount'], $amount)
             : (float)$installment->principal_component;
 
         $interestAmount = isset($validated['interest_amount']) && $validated['interest_amount'] !== ''
-            ? (float)$validated['interest_amount']
+            ? min((float)$validated['interest_amount'], $amount)
             : max(0, round($amount - $principalAmount, 2));
+
+        if (round($principalAmount + $interestAmount, 2) > $amount) {
+            $principalAmount = max(0, round($amount - $interestAmount, 2));
+        }
 
         $newInterestRate = isset($validated['interest_rate']) && $validated['interest_rate'] !== ''
             ? (float)$validated['interest_rate']

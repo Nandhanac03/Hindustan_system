@@ -285,6 +285,7 @@ class BrokerController extends Controller
                 'accrued' => $accrued,
                 'payable' => $payable,
                 'paid' => $paid,
+                'paid_out' => $paid,
                 'total_pending' => $accrued + $payable,
                 'pending_deals_count' => $pendingDealsCount,
             ];
@@ -308,9 +309,10 @@ class BrokerController extends Controller
     public function recordPayout(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'commission_entry_id' => ['nullable', 'exists:brokerages,id'],
-            'broker_id' => ['nullable', 'exists:brokers,id'],
+            'commission_entry_id'     => ['nullable', 'exists:brokerages,id'],
+            'broker_id'               => ['nullable', 'exists:brokers,id'],
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
+            'amount'                  => ['nullable', 'numeric', 'min:0.01'],
         ]);
 
         $systemId = Auth::user()->system_id;
@@ -319,40 +321,91 @@ class BrokerController extends Controller
         $totalPaid = 0.0;
 
         try {
-            DB::transaction(function () use ($validated, $systemId, $user, &$count, &$totalPaid) {
+            DB::transaction(function () use ($validated, $systemId, $user, &$count, &$totalPaid, $request) {
                 $broker = null;
                 $narration = '';
 
                 if (!empty($validated['commission_entry_id'])) {
                     $entry = Brokerage::where('id', $validated['commission_entry_id'])
-                        ->whereIn('status', ['pending', 'payable', 'partial'])
                         ->firstOrFail();
 
-                    // Validate system_id ownership via Broker
                     if ($entry->broker->system_id !== $systemId) abort(403);
 
-                    $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount]);
+                    $commAmt = (float)$entry->commission_amount;
+                    $currentPaid = (float)($entry->paid_amount ?? 0);
+                    $maxPayable = max(0.0, $commAmt - $currentPaid);
+
+                    if ($maxPayable <= 0) {
+                        throw new \Exception("This commission deal has already been fully paid.");
+                    }
+
+                    $payAmount = $request->filled('amount') ? (float)$request->amount : $maxPayable;
+                    $payAmount = min($payAmount, $maxPayable);
+
+                    if ($payAmount <= 0) {
+                        throw new \Exception("Please enter a valid payout amount.");
+                    }
+
+                    $newPaidAmount = $currentPaid + $payAmount;
+                    $newStatus = 'payable';
+                    if ($newPaidAmount >= $commAmt - 0.01) {
+                        $newStatus = 'paid';
+                    } elseif ($newPaidAmount > 0) {
+                        $newStatus = 'partial';
+                    }
+
+                    $entry->update([
+                        'paid_amount' => $newPaidAmount,
+                        'status'      => $newStatus,
+                    ]);
+
                     $count = 1;
-                    $totalPaid = (float)$entry->commission_amount;
+                    $totalPaid = $payAmount;
                     $broker = $entry->broker;
                     $brokerName = $broker->name ?? 'Broker';
-                    $narration = "Commission payout to broker '{$brokerName}' for Sale #{$entry->sale->sale_number}.";
+                    $statusLabel = $newStatus === 'paid' ? 'Fully Paid' : 'Partially Paid';
+                    $narration = "Commission payout of ₹" . number_format($payAmount, 2) . " ({$statusLabel}) to broker '{$brokerName}' for Sale #{$entry->sale?->sale_number}.";
 
                     ActivityLog::record('broker.payout', $narration);
                 } elseif (!empty($validated['broker_id'])) {
                     $broker = Broker::where('system_id', $systemId)->findOrFail($validated['broker_id']);
                     $entries = Brokerage::where('broker_id', $broker->id)
-                        ->whereIn('status', ['pending', 'payable', 'partial'])
                         ->get();
 
+                    $amountToDistribute = $request->filled('amount') ? (float)$request->amount : 9999999999.0;
+
                     foreach ($entries as $entry) {
-                        $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount]);
+                        $commAmt = (float)$entry->commission_amount;
+                        $currentPaid = (float)($entry->paid_amount ?? 0);
+                        $remaining = max(0.0, $commAmt - $currentPaid);
+
+                        if ($remaining <= 0) continue;
+
+                        $payForThis = min($amountToDistribute, $remaining);
+                        if ($payForThis <= 0) break;
+
+                        $newPaidAmount = $currentPaid + $payForThis;
+                        $newStatus = 'payable';
+                        if ($newPaidAmount >= $commAmt - 0.01) {
+                            $newStatus = 'paid';
+                        } elseif ($newPaidAmount > 0) {
+                            $newStatus = 'partial';
+                        }
+
+                        $entry->update([
+                            'paid_amount' => $newPaidAmount,
+                            'status'      => $newStatus,
+                        ]);
+
+                        $totalPaid += $payForThis;
+                        $amountToDistribute -= $payForThis;
                         $count++;
-                        $totalPaid += (float)$entry->commission_amount;
+
+                        if ($amountToDistribute <= 0) break;
                     }
 
                     if ($count > 0) {
-                        $narration = "Bulk commission payout across {$count} deal(s) to broker '{$broker->name}'.";
+                        $narration = "Commission payout of ₹" . number_format($totalPaid, 2) . " across {$count} deal(s) to broker '{$broker->name}'.";
                         ActivityLog::record('broker.payout', $narration);
                     }
                 }

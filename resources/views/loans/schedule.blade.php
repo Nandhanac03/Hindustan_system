@@ -1014,18 +1014,49 @@ function scheduleApp() {
             this.payForm.other_charges = 0;
             this.payModalOpen = true;
         },
+        onTotalAmountChange() {
+            delete this.payErrors.amount;
+            delete this.payErrors.principal_amount;
+            delete this.payErrors.interest_amount;
+
+            let total = parseFloat(this.payForm.amount);
+            if (isNaN(total) || total < 0) total = 0;
+
+            let interest = parseFloat(this.payForm.interest_amount) || 0;
+            if (interest > total) {
+                interest = total;
+                this.payForm.interest_amount = interest.toFixed(2);
+            }
+
+            let principal = Math.max(0, total - interest);
+            this.payForm.principal_amount = principal.toFixed(2);
+        },
         onPrincipalAmountChange() {
             delete this.payErrors.principal_amount;
+            delete this.payErrors.interest_amount;
             delete this.payErrors.amount;
+
+            let total = parseFloat(this.payForm.amount);
+            if (isNaN(total) || total <= 0) {
+                total = (parseFloat(this.payForm.principal_amount) || 0) + (parseFloat(this.payForm.interest_amount) || 0);
+                this.payForm.amount = total.toFixed(2);
+            }
 
             let principal = parseFloat(this.payForm.principal_amount);
             if (isNaN(principal) || principal < 0) principal = 0;
 
-            let interest = parseFloat(this.payForm.interest_amount);
-            if (isNaN(interest) || interest < 0) interest = 0;
+            if (principal > total) {
+                principal = total;
+                this.payForm.principal_amount = principal.toFixed(2);
+            }
 
-            // Interest component is NOT affected by change in principal amount
-            this.payForm.amount = (principal + interest).toFixed(2);
+            let interest = Math.max(0, total - principal);
+            this.payForm.interest_amount = interest.toFixed(2);
+
+            if (this.originalInterest > 0 && this.originalRate > 0) {
+                let newRate = (interest / this.originalInterest) * this.originalRate;
+                this.payForm.interest_rate = Number(newRate).toFixed(2);
+            }
         },
         onInterestRateChange() {
             delete this.payErrors.interest_rate;
@@ -1035,6 +1066,7 @@ function scheduleApp() {
             let rate = parseFloat(this.payForm.interest_rate);
             if (isNaN(rate) || rate < 0) rate = 0;
 
+            let total = parseFloat(this.payForm.amount) || 0;
             let newInterest = 0;
             if (this.originalRate > 0 && this.originalInterest > 0) {
                 newInterest = (rate / this.originalRate) * this.originalInterest;
@@ -1044,17 +1076,40 @@ function scheduleApp() {
                 newInterest = (parseFloat(this.payForm.principal_amount) || 0) * rate / 1200;
             }
 
+            if (total > 0 && newInterest > total) {
+                newInterest = total;
+            }
+
             this.payForm.interest_amount = Number(newInterest).toFixed(2);
-            let principal = parseFloat(this.payForm.principal_amount) || 0;
-            this.payForm.amount = (principal + newInterest).toFixed(2);
+            if (total > 0) {
+                let principal = Math.max(0, total - newInterest);
+                this.payForm.principal_amount = principal.toFixed(2);
+            } else {
+                let principal = parseFloat(this.payForm.principal_amount) || 0;
+                this.payForm.amount = (principal + newInterest).toFixed(2);
+            }
         },
         onInterestAmountChange() {
             delete this.payErrors.interest_rate;
             delete this.payErrors.interest_amount;
             delete this.payErrors.amount;
 
+            let total = parseFloat(this.payForm.amount);
+            if (isNaN(total) || total <= 0) {
+                total = (parseFloat(this.payForm.principal_amount) || 0) + (parseFloat(this.payForm.interest_amount) || 0);
+                this.payForm.amount = total.toFixed(2);
+            }
+
             let interest = parseFloat(this.payForm.interest_amount);
             if (isNaN(interest) || interest < 0) interest = 0;
+
+            if (interest > total) {
+                interest = total;
+                this.payForm.interest_amount = interest.toFixed(2);
+            }
+
+            let principal = Math.max(0, total - interest);
+            this.payForm.principal_amount = principal.toFixed(2);
 
             let newRate = 0;
             if (this.originalInterest > 0 && this.originalRate > 0) {
@@ -1066,8 +1121,6 @@ function scheduleApp() {
             }
 
             this.payForm.interest_rate = Number(newRate).toFixed(2);
-            let principal = parseFloat(this.payForm.principal_amount) || 0;
-            this.payForm.amount = (principal + interest).toFixed(2);
         },
         openPrepayModal() {
             this.prepayErrors = {};
