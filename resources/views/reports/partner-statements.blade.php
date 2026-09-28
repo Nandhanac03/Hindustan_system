@@ -373,6 +373,7 @@
                             <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Role / Entity Type</th>
                             <th class="px-5 py-3.5 text-center text-white font-extrabold border-r border-[#8e7a23]">Agreed Share (%)</th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Allocated Net Profit (Rs.)</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Capital Contributions (Rs.)</th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Payouts Released (Rs.)</th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Current Net Balance Owed (Rs.)</th>
                             <th class="px-4 py-3.5 text-center text-white font-extrabold">Action</th>
@@ -388,6 +389,7 @@
                                 <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100" x-text="pRow.role"></td>
                                 <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
                                 <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_allocated)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
                                 <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_payouts)"></td>
                                 <td class="px-5 py-3.5 text-right font-mono font-black text-[#a38c29] border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.net_balance)"></td>
                                 <td class="px-4 py-3.5 text-center whitespace-nowrap">
@@ -402,9 +404,10 @@
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td colspan="2" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">PROJECT TOTALS</td>
                             <td class="px-5 py-3.5 text-center font-mono text-slate-900 border-r border-slate-200" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixPayouts)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated - totalMatrixPayouts)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs + totalMatrixAllocated - totalMatrixPayouts)"></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -414,7 +417,7 @@
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
                 <div class="flex items-center gap-1.5 text-slate-500">
                     <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Net Balance Owed = Total Allocated Net Profit - Total Payouts Released</span>
+                    <span>Net Balance Owed = (Capital Contributions + Total Allocated Net Profit) - Total Payouts Released</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span x-text="'Showing ' + filteredMatrixList.length + ' entries'"></span>
@@ -947,6 +950,10 @@ function partnerStatementApp() {
 
         get totalMatrixAgreedPct() {
             return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.share_pct || 0), 0);
+        },
+
+        get totalMatrixContribs() {
+            return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.total_contribs || 0), 0);
         },
 
         get totalMatrixAllocated() {
@@ -1729,7 +1736,7 @@ function partnerStatementApp() {
         </colgroup>
         <thead>
             <tr height="45" style="height: 45pt;">
-                <th colspan="7" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="8" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
                     HINDUSTAN ERP: PROJECT PROFIT SHARING & EQUITY DISTRIBUTION SUMMARY
                 </th>
             </tr>
@@ -1738,6 +1745,7 @@ function partnerStatementApp() {
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PARTNER NAME</th>
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">ROLE / ENTITY TYPE</th>
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">AGREED SHARE (%)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">CAPITAL CONTRIBUTIONS</th>
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">TOTAL ALLOCATED NET PROFIT</th>
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">TOTAL PAYOUTS RELEASED</th>
                 <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">CURRENT NET BALANCE OWED</th>
@@ -1750,6 +1758,7 @@ function partnerStatementApp() {
                     <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->name : ($pRow['name'] ?? '') }}</td>
                     <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->role : ($pRow['role'] ?? '') }}</td>
                     <td style="text-align: center; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.00%';">{{ number_format((float)(is_object($pRow) ? $pRow->share_pct : ($pRow['share_pct'] ?? 0)), 2) }}%</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? ($pRow->total_contribs ?? 0) : ($pRow['total_contribs'] ?? 0)) }}</td>
                     <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->total_allocated : ($pRow['total_allocated'] ?? 0)) }}</td>
                     <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->total_payouts : ($pRow['total_payouts'] ?? 0)) }}</td>
                     <td style="text-align: right; color: #17365D; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->net_balance : ($pRow['net_balance'] ?? 0)) }}</td>
@@ -1760,9 +1769,10 @@ function partnerStatementApp() {
             <tr height="28" style="height: 28pt; background-color: #ffffff;">
                 <td colspan="3" bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">PROJECT TOTALS</td>
                 <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.00%';">{{ number_format((float)($totalMatrixAgreedPct ?? 0), 2) }}%</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalMatrixContribs ?? 0) }}</td>
                 <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalMatrixAllocated ?? 0) }}</td>
                 <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalMatrixPayouts ?? 0) }}</td>
-                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #17365D; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(($totalMatrixAllocated ?? 0) - ($totalMatrixPayouts ?? 0)) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #17365D; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)((($totalMatrixContribs ?? 0) + ($totalMatrixAllocated ?? 0)) - ($totalMatrixPayouts ?? 0)) }}</td>
             </tr>
         </tfoot>
     </table>
