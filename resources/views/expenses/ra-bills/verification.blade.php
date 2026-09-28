@@ -360,14 +360,14 @@
     </div>
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
-    <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="closeAddModal()">
-            {{-- Dark Header with Gold Glow --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-4 flex-shrink-0 border-b border-[#a38c29]/30">
+    <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col my-auto" style="max-height: calc(100vh - 40px);" @click.away="closeAddModal()">
+            {{-- Dark Header with Gold Glow (Fixed at Top) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/30 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills · New Progress Claim</p>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-0.5">Contractor RA Bills · New Progress Claim</p>
                         <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Log New Contractor RA Progress Bill</h2>
                     </div>
                     <button type="button" @click="closeAddModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
@@ -376,111 +376,115 @@
                 </div>
             </div>
 
-            <form id="addRaBillForm" action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+            <form id="addRaBillForm" action="{{ route('expenses.ra-bills.store') }}" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
                 @csrf
 
-                <!-- Row 1: Bill No & Submit Date -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">
-                            RA Bill No <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
-                        @error('ra_bill_number')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">
-                            Contractor Submit Date <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
-                        @error('submit_date')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <!-- Row 2: Contractor & Project -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">
-                            Contractor Name <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <select name="contractor_id" x-model="selectedContractorId" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
-                            <option value="">Select Contractor</option>
-                            @foreach($contractors as $contractor)
-                                <option value="{{ $contractor->id }}" {{ (old('contractor_id') == $contractor->id || (empty(old('contractor_id')) && count($contractors) === 1)) ? 'selected' : '' }}>
-                                    {{ $contractor->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('contractor_id')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">
-                            Site Project <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
-                            <option value="">Select Project</option>
-                            @foreach($projects as $proj)
-                                <option value="{{ $proj->id }}" {{ (old('project_id') == $proj->id || (empty(old('project_id')) && count($projects) === 1)) ? 'selected' : '' }}>
-                                    {{ $proj->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('project_id')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <!-- Row 3: Gross Amount & Due Date -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">
-                            RA Bill Gross Amount (₹) <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
-                            <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
-                                   class="w-full pl-7 pr-3 py-2.5 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                <!-- Scrollable Body (Only scrolls if screen is very short, otherwise fits without scrollbar) -->
+                <div class="p-5 space-y-3" style="overflow-y: auto; flex: 1 1 auto; min-height: 0;">
+                    <!-- Row 1: Bill No, Submit Date, Due Date (3 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">
+                                RA Bill No <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                            @error('ra_bill_number')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                        @error('gross_amount')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">
+                                Submit Date <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                            @error('submit_date')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                RA Bill Due Date
+                            </label>
+                            <input type="date" name="due_date" value="{{ old('due_date') }}"
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            RA Bill Due Date
-                        </label>
-                        <input type="date" name="due_date" value="{{ old('due_date') }}"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                    <!-- Row 2: Contractor & Project (2 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">
+                                Contractor Name <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <select name="contractor_id" x-model="selectedContractorId" required
+                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                                <option value="">Select Contractor</option>
+                                @foreach($contractors as $contractor)
+                                    <option value="{{ $contractor->id }}" {{ (old('contractor_id') == $contractor->id || (empty(old('contractor_id')) && count($contractors) === 1)) ? 'selected' : '' }}>
+                                        {{ $contractor->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('contractor_id')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">
+                                Site Project <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required
+                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                                <option value="">Select Project</option>
+                                @foreach($projects as $proj)
+                                    <option value="{{ $proj->id }}" {{ (old('project_id') == $proj->id || (empty(old('project_id')) && count($projects) === 1)) ? 'selected' : '' }}>
+                                        {{ $proj->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('project_id')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Gross Amount & Remarks (2 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">
+                                RA Bill Gross Amount (₹) <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                                <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
+                                       class="w-full h-[38px] pl-7 pr-3 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                            </div>
+                            @error('gross_amount')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Remarks / Notes
+                            </label>
+                            <input type="text" name="remarks" value="{{ old('remarks') }}" placeholder="Notes regarding progress work done..."
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Remarks / Notes
-                    </label>
-                    <textarea name="remarks" rows="2" placeholder="Notes regarding progress work done..."
-                              class="w-full p-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">{{ old('remarks') }}</textarea>
-                </div>
-
-                <div class="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
-                    <button type="button" @click="closeAddModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                <!-- Sticky / Default-Displayed Footer Buttons (ALWAYS 100% visible by default, never cut off) -->
+                <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 flex-shrink-0">
+                    <button type="button" @click="closeAddModal()" class="px-5 py-2 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>Save RA Bill</span>
                     </button>
@@ -488,15 +492,16 @@
             </form>
         </div>
     </div>
-        <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
-    <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="verifyModalOpen = false">
-            {{-- Dark Header with Gold Glow --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-4 flex-shrink-0 border-b border-[#a38c29]/30">
+
+    <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
+    <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col my-auto" style="max-height: calc(100vh - 40px);" @click.away="verifyModalOpen = false">
+            {{-- Dark Header with Gold Glow (Fixed at Top) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/30 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills · Final Verification</p>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-0.5">Contractor RA Bills · Final Verification</p>
                         <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Site Engineer Verification & Correction Sign-Off</h2>
                     </div>
                     <button type="button" @click="verifyModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
@@ -505,181 +510,182 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
                 @csrf
 
-                <!-- KPI Summary Bar (Polished 4-Col Card) -->
-                <div class="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs items-center shadow-2xs">
-                    <div class="sm:border-r border-slate-200 sm:pr-3">
-                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">RA BILL NO.</span>
-                        <div class="mt-0.5">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-extrabold bg-slate-200/70 text-slate-800 border border-slate-300/60" x-text="selectedBill ? selectedBill.ra_bill_number : '—'"></span>
+                <!-- Scrollable Body (Only scrolls if screen is very short, otherwise fits without scrollbar) -->
+                <div class="p-4 sm:p-5 space-y-2.5" style="overflow-y: auto; flex: 1 1 auto; min-height: 0;">
+
+                    <!-- KPI Summary Bar (Polished 4-Col Card) -->
+                    <div class="px-3.5 py-2 bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs items-center shadow-2xs">
+                        <div class="sm:border-r border-slate-200 sm:pr-3">
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">RA BILL NO.</span>
+                            <div class="mt-0.5">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-extrabold bg-slate-200/70 text-slate-800 border border-slate-300/60" x-text="selectedBill ? selectedBill.ra_bill_number : '—'"></span>
+                            </div>
+                        </div>
+
+                        <div class="border-l sm:border-l-0 sm:border-r border-slate-200 pl-3 sm:pl-0 sm:pr-3">
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">GROSS CLAIMED</span>
+                            <span class="text-xs font-mono font-extrabold text-slate-900 truncate block mt-0.5" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.gross_amount) : '₹ 0.00'"></span>
+                        </div>
+
+                        <div class="border-t sm:border-t-0 sm:border-r border-slate-200 pt-1 sm:pt-0 sm:pr-3">
+                            <span class="block text-[9px] font-bold text-[#7a671b] uppercase tracking-wider">AFTER CORRECTION</span>
+                            <span class="text-xs font-mono font-extrabold text-[#a38c29] truncate block mt-0.5" x-text="'₹ ' + numberFormat(calculatedAfterCorrection)"></span>
+                        </div>
+
+                        <div class="border-t sm:border-t-0 border-l sm:border-l-0 border-slate-200 pt-1 sm:pt-0 pl-3 sm:pl-0">
+                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS</span>
+                            <template x-if="selectedBill && selectedBill.status === 'cleared'">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Cleared</span>
+                                </span>
+                            </template>
+                            <template x-if="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Verified</span>
+                                </span>
+                            </template>
+                            <template x-if="selectedBill && !selectedBill.verified_date">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs">
+                                    <span>Submitted</span>
+                                </span>
+                            </template>
                         </div>
                     </div>
 
-                    <div class="border-l sm:border-l-0 sm:border-r border-slate-200 pl-3 sm:pl-0 sm:pr-3">
-                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">GROSS CLAIMED</span>
-                        <span class="text-xs font-mono font-extrabold text-slate-900 truncate block mt-0.5" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.gross_amount) : '₹ 0.00'"></span>
-                    </div>
-
-                    <div class="border-t sm:border-t-0 sm:border-r border-slate-200 pt-2 sm:pt-0 sm:pr-3">
-                        <span class="block text-[9px] font-bold text-[#7a671b] uppercase tracking-wider">AFTER CORRECTION</span>
-                        <span class="text-xs font-mono font-extrabold text-[#a38c29] truncate block mt-0.5" x-text="'₹ ' + numberFormat(calculatedAfterCorrection)"></span>
-                    </div>
-
-                    <div class="border-t sm:border-t-0 border-l sm:border-l-0 border-slate-200 pt-2 sm:pt-0 pl-3 sm:pl-0">
-                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS</span>
-                        <template x-if="selectedBill && selectedBill.status === 'cleared'">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1 shadow-2xs">
-                                <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                <span>Cleared</span>
-                            </span>
-                        </template>
-                        <template x-if="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
-                                <svg class="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                <span>Verified</span>
-                            </span>
-                        </template>
-                        <template x-if="selectedBill && !selectedBill.verified_date">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs">
-                                <span>Submitted</span>
-                            </span>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Verification Already Done Banner (If verified) -->
-                <div x-show="selectedBill && selectedBill.verified_date" class="py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between shadow-2xs" style="display: none;">
-                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-[11px]">
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>VERIFICATION COMPLETED</span>
-                    </div>
-                    <div class="text-slate-700 text-[11px] font-medium">
-                        Verified By: <span class="font-bold text-slate-900" x-text="selectedBill ? (selectedBill.engineer_name || 'Engineer') : ''"></span>
-                    </div>
-                </div>
-
-                <!-- Row 1: Verified Date & Site Engineer -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Verified Date <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <input type="date" name="verified_date" x-model="verifyDateInput" required
-                               class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Site Engineer (From Master) <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <select name="engineer_id" x-model="selectedEngineerId" required
-                                class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
-                            <option value="">Select Verifying Engineer</option>
-                            @foreach($engineers as $eng)
-                                <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
-                                    {{ $eng->name }} {{ $eng->designation ? '('.$eng->designation.')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Row 2: Correction of Bill & Amount After Correction -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Correction of Bill (Deduction ₹) <span class="text-rose-500 font-bold">*</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
-                            <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
-                                   class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
-                                   placeholder="0.00">
+                    <!-- Verification Already Done Banner (If verified) -->
+                    <div x-show="selectedBill && selectedBill.verified_date" class="py-1.5 px-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between shadow-2xs" style="display: none;">
+                        <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-[11px]">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>VERIFICATION COMPLETED</span>
                         </div>
-                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center" x-text="selectedBill ? 'Max Deduction: ₹ ' + numberFormat(selectedBill.gross_amount) : ''"></p>
+                        <div class="text-slate-700 text-[11px] font-medium">
+                            Verified By: <span class="font-bold text-slate-900" x-text="selectedBill ? (selectedBill.engineer_name || 'Engineer') : ''"></span>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Amount After Correction (₹)
-                        </label>
-                        <div class="w-full h-[38px] pl-7 pr-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 flex items-center shadow-2xs relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
-                            <span x-text="numberFormat(calculatedAfterCorrection)"></span>
+                    <!-- Row 1: Verified Date, Site Engineer & Due Date (3 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Verified Date <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <input type="date" name="verified_date" x-model="verifyDateInput" required
+                                   class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                         </div>
-                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Gross Claimed − Correction Deduction</p>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Site Engineer <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <select name="engineer_id" x-model="selectedEngineerId" required
+                                    class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
+                                <option value="">Select Verifying Engineer</option>
+                                @foreach($engineers as $eng)
+                                    <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
+                                        {{ $eng->name }} {{ $eng->designation ? '('.$eng->designation.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                RA Bill Due Date
+                            </label>
+                            <input type="date" name="due_date" x-model="verifyDueDateInput"
+                                   class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                        </div>
                     </div>
+
+                    <!-- Row 2: Correction of Bill & Amount After Correction (2 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Correction of Bill (Deduction ₹) <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                                <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
+                                       class="w-full h-[36px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
+                                       placeholder="0.00">
+                            </div>
+                            <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center" x-text="selectedBill ? 'Max Deduction: ₹ ' + numberFormat(selectedBill.gross_amount) : ''"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Amount After Correction (₹)
+                            </label>
+                            <div class="w-full h-[36px] pl-7 pr-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 flex items-center shadow-2xs relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                                <span x-text="numberFormat(calculatedAfterCorrection)"></span>
+                            </div>
+                            <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center">Gross Claimed − Correction Deduction</p>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Additional Work (%), Additional Work (₹) & Net RA Payable (3 cols) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Additional Work (%)
+                            </label>
+                            <div class="relative">
+                                <input type="number" step="0.01" name="additional_percentage" x-model="verifyAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="0.00"
+                                       data-no-words="true"
+                                       class="w-full h-[36px] pl-3 pr-7 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">%</span>
+                            </div>
+                            <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center truncate" x-text="verifyAdditionalPercent ? verifyAdditionalPercent + '% of ₹ ' + numberFormat(calculatedAfterCorrection) : 'Applied on After-Correction base'"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Additional Work (₹)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                                <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
+                                       class="w-full h-[36px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                            </div>
+                            <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center">Added to After-Correction base</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider mb-1">
+                                Net RA Payable (Final Claim)
+                            </label>
+                            <div class="w-full h-[36px] pl-7 pr-2.5 bg-gradient-to-r from-blue-50/90 to-indigo-50/60 border-2 border-blue-400/50 rounded-xl text-xs font-mono font-black text-blue-950 flex items-center justify-between shadow-2xs relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500 text-xs font-extrabold">₹</span>
+                                <span x-text="numberFormat(calculatedNet)"></span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-blue-600 text-white uppercase tracking-wider">Approved</span>
+                            </div>
+                            <p class="mt-0.5 text-[9.5px] font-semibold text-blue-700/80 h-3.5 flex items-center truncate" x-text="'After Corr. + Add. Work'"></p>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Remarks (1 col) -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Verification Remarks
+                        </label>
+                        <input type="text" name="remarks" x-model="verifyRemarksInput" placeholder="Details of measurements checked, corrections or retentions applied..."
+                               class="w-full h-[36px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                    </div>
+
                 </div>
 
-                <!-- Row 3: Additional Work (% and ₹ with respect to After-Correction Amount) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Additional Work (%)
-                        </label>
-                        <div class="relative">
-                            <input type="number" step="0.01" name="additional_percentage" x-model="verifyAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="0.00"
-                                   data-no-words="true"
-                                   class="w-full h-[38px] pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
-                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">%</span>
-                        </div>
-                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center truncate" x-text="verifyAdditionalPercent ? verifyAdditionalPercent + '% of ₹ ' + numberFormat(calculatedAfterCorrection) : 'Applied on After-Correction base'"></p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Additional Work (₹)
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
-                            <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
-                                   class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
-                        </div>
-                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Added to After-Correction base</p>
-                    </div>
-                </div>
-
-                <!-- Row 4: Net RA Payable & Due Date -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
-                    <div>
-                        <label class="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider mb-1.5">
-                            Net RA Payable (Final Claim)
-                        </label>
-                        <div class="w-full h-[38px] pl-7 pr-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/60 border-2 border-blue-400/50 rounded-xl text-sm font-mono font-black text-blue-950 flex items-center justify-between shadow-2xs relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500 text-xs font-extrabold">₹</span>
-                            <span x-text="numberFormat(calculatedNet)"></span>
-                            <span class="px-2 py-0.5 rounded text-[8.5px] font-black bg-blue-600 text-white uppercase tracking-wider">Approved</span>
-                        </div>
-                        <p class="mt-1 text-[10px] font-semibold text-blue-700/80 h-4 flex items-center truncate" x-text="'After Corr. (₹ ' + numberFormat(calculatedAfterCorrection) + ') + Add. (₹ ' + numberFormat(parseFloat(verifyAdditionalAmount) || 0) + ')'"></p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            RA Bill Due Date
-                        </label>
-                        <input type="date" name="due_date" x-model="verifyDueDateInput"
-                               class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
-                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Payment due date for finance release</p>
-                    </div>
-                </div>
-
-                <!-- Row 5: Remarks -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Verification Remarks
-                    </label>
-                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of measurements checked, corrections or retentions applied..."
-                              class="w-full p-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"></textarea>
-                </div>
-
-                <!-- Footer Actions -->
-                <div class="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
-                    <button type="button" @click="verifyModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                <!-- Sticky / Default-Displayed Footer Buttons (ALWAYS 100% visible by default, never cut off) -->
+                <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 flex-shrink-0">
+                    <button type="button" @click="verifyModalOpen = false" class="px-5 py-2 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span x-text="selectedBill && selectedBill.verified_date ? 'UPDATE VERIFICATION SIGN-OFF' : 'CONFIRM SIGN-OFF'"></span>
                     </button>
