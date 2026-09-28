@@ -1619,7 +1619,7 @@ class ReportController extends Controller
             $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
             $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
 
-            // Credits for this partner (from all receipts collection shares + direct capital contributions)
+            // Credits for this partner (from all receipts collection shares)
             $partnerAllocTotal = 0.0;
             foreach ($receipts as $receipt) {
                 $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
@@ -1628,9 +1628,8 @@ class ReportController extends Controller
                 }
             }
 
-            // Add direct partner capital contributions
+            // Direct partner capital contributions (tracked separately)
             $partnerContribTotal = (float)$partnerContributions->where('partner_id', $partner->id)->sum('amount');
-            $partnerAllocTotal += $partnerContribTotal;
 
             // Debits for this partner (from allocations, bill payouts, voucher payouts)
             $partnerPayoutTotal = (float)$allocations->where('partner_id', $partner->id)->sum('allocated_amount')
@@ -1643,7 +1642,7 @@ class ReportController extends Controller
                 }
             }
 
-            $partnerNetBalance = $partnerAllocTotal - $partnerPayoutTotal;
+            $partnerNetBalance = ($partnerContribTotal + $partnerAllocTotal) - $partnerPayoutTotal;
 
             $totalMatrixAgreedPct += $sharePct;
             $totalMatrixAllocated += $partnerAllocTotal;
@@ -1654,6 +1653,7 @@ class ReportController extends Controller
                 'name' => $partner->name,
                 'role' => $partner->role ?? $partner->designation ?? ($partner->id == 1 ? 'Lead Developer' : 'JV Partner / Land Owner'),
                 'share_pct' => $sharePct,
+                'total_contribs' => $partnerContribTotal,
                 'total_allocated' => $partnerAllocTotal,
                 'total_payouts' => $partnerPayoutTotal,
                 'net_balance' => $partnerNetBalance,
@@ -1851,8 +1851,9 @@ class ReportController extends Controller
                 $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
                 $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
-                    $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'EQUITY'],
-                    '1001'       => ['name' => 'Bank Balances', 'type' => 'ASSET'],
+                    // $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'EQUITY'],
+                    '3001' => ['name' => 'Share Capital', 'type' => 'EQUITY'],
+                    '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(
@@ -1888,7 +1889,7 @@ class ReportController extends Controller
                 // Debit Partner Capital Account (Account 3001 for 1st Partner, 3002 for 2nd Partner, etc.)
                 JournalEntry::create([
                     'voucher_id'     => $journalVoucher->id,
-                    'account_id'     => $partnerCode,
+                    'account_id'     => '3001',
                     'debit_amount'   => $amount,
                     'credit_amount'  => 0.00,
                     'entity_type'    => 'PARTNER',
@@ -3249,19 +3250,34 @@ class ReportController extends Controller
 
         $netEquity = max(0.0, $totalAssets - $totalLiabilities);
 
-        // Fetch dynamic partner share percentages from DB
-        $partnerShares = DB::table('partner_shares')->get();
-        $partner1Pct = 57.5;
-        $partner2Pct = 42.5;
-        foreach ($partnerShares as $ps) {
-            if ($ps->partner_id == 1) $partner1Pct = (float)$ps->share_pct;
-            if ($ps->partner_id == 2) $partner2Pct = (float)$ps->share_pct;
+        // Fetch dynamic Partner Capital / Allocated Net Profit from Partner Statements matrix logic
+        $allPartnerSharesForBS = PartnerShare::all();
+        $allReceiptsForPartnersBS = Receipt::whereNull('partner_id')->get();
+        $allPartnerContribsBS = \App\Models\PartnerContribution::all();
+
+        $partner1Capital = 0.0;
+        $partner2Capital = 0.0;
+
+        foreach ([1, 2] as $pId) {
+            $pAllocTotal = 0.0;
+            foreach ($allReceiptsForPartnersBS as $r) {
+                $tShare = $allPartnerSharesForBS->where('project_id', $r->project_id)->where('partner_id', $pId)->first();
+                if ($tShare) {
+                    $pAllocTotal += (float)$r->amount * ((float)$tShare->share_pct / 100);
+                }
+            }
+            $pContribTotal = (float)$allPartnerContribsBS->where('partner_id', $pId)->sum('amount');
+            $pAllocTotal += $pContribTotal;
+
+            if ($pId == 1) {
+                $partner1Capital = round($pAllocTotal, 2);
+            } else {
+                $partner2Capital = round($pAllocTotal, 2);
+            }
         }
 
-        $partner1Capital = round($netEquity * ($partner1Pct / 100), 2);
-        $partner2Capital = round($netEquity * ($partner2Pct / 100), 2);
-        $totalPartnerCapital = $netEquity;
-        $retainedEarnings = max(0.0, $netEquity - ($partner1Capital + $partner2Capital));
+        $totalPartnerCapital = $partner1Capital + $partner2Capital;
+        $retainedEarnings = max(0.0, $netEquity - $totalPartnerCapital);
         $totalEquity = $netEquity;
 
         $calculatedAmounts = [
@@ -3345,8 +3361,7 @@ class ReportController extends Controller
 
         // Recalculate Retained Earnings / Equity to maintain 100% Balance Sheet Equation (Assets = Liabilities + Equity)
         $netEquity = max(0.0, $totalAssets - $totalLiabilities);
-        $partner1Capital = round($netEquity * ($partner1Pct / 100), 2);
-        $partner2Capital = round($netEquity * ($partner2Pct / 100), 2);
+        // Maintain dynamically computed partner capital accounts from Partner Statements
 
         // Add 3010 Retained Earnings / Accumulated Profit from P&L if not present in DB
         $existingCodes = array_column($equityList, 'code');
