@@ -4191,7 +4191,8 @@ class ReportController extends Controller
 
                     // Add direct partner capital contributions
                     $partnerContributionsSum = (float) \App\Models\PartnerContribution::where('partner_id', $partnerId)->sum('amount');
-                    $totalCollected = $partnerCollected + $partnerContributionsSum;
+                    // $totalCollected = $partnerCollected + $partnerContributionsSum;
+                    $totalCollected = $partnerCollected;
 
                     // 2. Payouts already released
                     $payoutsReleased = (float) DB::table('partner_allocations')

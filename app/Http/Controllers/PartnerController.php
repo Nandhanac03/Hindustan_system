@@ -150,7 +150,7 @@ class PartnerController extends Controller
 
                 // Add direct partner capital contributions
                 $partnerContributionsSum = (float) PartnerContribution::where('partner_id', $partner->id)->sum('amount');
-                $totalCollected += $partnerContributionsSum;
+                // $totalCollected += $partnerContributionsSum;
 
                 $partner->total_collected = $totalCollected;
 
