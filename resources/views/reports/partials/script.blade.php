@@ -43,7 +43,7 @@ function reportsApp() {
 
         exportCurrentTable(reportType = null) {
             let table = document.querySelector("#reportsTable");
-            let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
+            let filename = 'Report_' + (this.activeTab || 'Statement') + '.xlsx';
             let isSales = false;
 
             // Detect customer filter for filename
@@ -73,81 +73,87 @@ function reportsApp() {
                 }
             }
 
-            if (this.activeTab === 'partner_statements' || reportType) {
+            if (this.activeTab === 'dashboard') {
+                const excelTable = document.querySelector("#dashboardExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'Executive_Dashboard_Analytics_Report.xlsx';
+                }
+            } else if (this.activeTab === 'partner_statements' || reportType) {
                 const type = reportType || 'partner_statement';
                 if (type === 'partner_statement') {
                     const excelTable = document.querySelector("#partnerStatementExcelTable");
                     if (excelTable) {
                         table = excelTable;
-                        filename = 'HindustanERP_Partner_Statement.xlsx';
+                        filename = 'Partner_Statement.xlsx';
                     }
                 } else if (type === 'profit_sharing_summary') {
                     const excelTable = document.querySelector("#profitSharingExcelTable");
                     if (excelTable) {
                         table = excelTable;
-                        filename = 'HindustanERP_Profit_Sharing_Summary.xlsx';
+                        filename = 'Profit_Sharing_Summary.xlsx';
                     }
                 } else if (type === 'distribution_history_log') {
                     const excelTable = document.querySelector("#distributionHistoryExcelTable");
                     if (excelTable) {
                         table = excelTable;
-                        filename = 'HindustanERP_Distribution_History_Log.xlsx';
+                        filename = 'Distribution_History_Log.xlsx';
                     }
                 } else if (type === 'cancellation_charges') {
                     const excelTable = document.querySelector("#cancellationChargesExcelTable");
                     if (excelTable) {
                         table = excelTable;
-                        filename = 'HindustanERP_Cancellation_Charges_Report.xlsx';
+                        filename = 'Cancellation_Charges_Report.xlsx';
                     }
                 } else if (type === 'additional_work') {
                     const excelTable = document.querySelector("#additionalWorkExcelTable");
                     if (excelTable) {
                         table = excelTable;
-                        filename = 'HindustanERP_Additional_Work_Report.xlsx';
+                        filename = 'Additional_Work_Report.xlsx';
                     }
                 }
             } else if (this.activeTab === 'cancellation' || this.activeTab === 'cancellation_charges') {
                 const excelTable = document.querySelector("#cancellationChargesExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Cancellation_Charges_Report.xlsx';
+                    filename = 'Cancellation_Charges_Report.xlsx';
                 }
             } else if (this.activeTab === 'additional' || this.activeTab === 'additional_work') {
                 const excelTable = document.querySelector("#additionalWorkExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Additional_Work_Report.xlsx';
+                    filename = 'Additional_Work_Report.xlsx';
                 }
             } else if (this.activeTab === 'sales') {
                 const excelTable = document.querySelector("#salesExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Sales_Booking_Report.xlsx';
+                    filename = 'Sales_Booking_Report.xlsx';
                     isSales = true;
                 }
             } else if (this.activeTab === 'emi_collections') {
                 const excelTable = document.querySelector("#emiExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_EMI_Collection_Report.xlsx';
+                    filename = 'EMI_Collection_Report.xlsx';
                 }
             } else if (this.activeTab === 'gst' || this.activeTab === 'gst_report') {
                 const excelTable = document.querySelector("#gstExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_GST_Statutory_Report.xlsx';
+                    filename = 'GST_Statutory_Report.xlsx';
                 }
             } else if (this.activeTab === 'cash_book') {
                 const excelTable = document.querySelector("#cashBookExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Cash_Book_Analytics.xlsx';
+                    filename = 'Cash_Book_Analytics.xlsx';
                 }
             } else if (this.activeTab === 'bank_reports') {
                 const excelTable = document.querySelector("#bankExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Bank_Transaction_Statement.xlsx';
+                    filename = 'Bank_Transaction_Statement.xlsx';
                 }
             } else if (this.activeTab === 'sales_return') {
                 const excelTable = document.querySelector("#saleReturnExcelTable");
@@ -165,13 +171,13 @@ function reportsApp() {
                 const excelTable = document.querySelector("#loanScheduleExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Loan_Schedules_Report.xlsx';
+                    filename = 'Loan_Schedules_Report.xlsx';
                 }
             } else if (this.activeTab === 'supplier_contractor') {
                 const excelTable = document.querySelector("#contractorExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Contractor_Statement_Report.xlsx';
+                    filename = 'Contractor_Statement_Report.xlsx';
                 }
             } else if (this.activeTab === 'customer_ledger' || this.activeTab === 'customer_ledger_statement') {
                 const excelTable = document.querySelector("#customerLedgerExcelTable");

@@ -482,12 +482,12 @@
                                 </tr>
                                 <tr height="38" style="height: 38pt;">
                                     <th colspan="9" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #8A7522; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        HINDUSTAN REAL ESTATE & INFRASTRUCTURE - CUSTOMER EMI & ACCOUNT STATEMENT
+                                        HINDUSTAN REAL ESTATE & INFRASTRUCTURE @if(request('project_id') && ($activeProj = \App\Models\Project::find(request('project_id')))) - {{ strtoupper($activeProj->name) }} @endif - CUSTOMER EMI & ACCOUNT STATEMENT
                                     </th>
                                 </tr>
                                 <tr height="26" style="height: 26pt;">
                                     <th colspan="9" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        Target Customer(s): {{ $selectedCustomers->pluck('name')->implode(', ') }} | Generated On: {{ date('d M Y, h:i A') }}
+                                        Target Customer(s): {{ $selectedCustomers->pluck('name')->implode(', ') }} @if(request('project_id') && ($activeProj = \App\Models\Project::find(request('project_id')))) | Project: {{ $activeProj->name }} @else | Project: All Projects @endif | Generated On: {{ date('d M Y, h:i A') }}
                                     </th>
                                 </tr>
                                 <tr height="26" style="height: 26pt;">
@@ -514,15 +514,15 @@
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
                                 <tr height="32" style="height: 32pt;">
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">SL NO</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">INSTALLMENT / MILESTONE</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">DUE DATE</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PROJECT NAME</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">UNIT NO</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">INSTALLMENT (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PAID AMOUNT (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">OUTSTANDING (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">STATUS</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">SL NO</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">INSTALLMENT / MILESTONE</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">DUE DATE</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PROJECT NAME</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">UNIT NO</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">INSTALLMENT (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PAID AMOUNT (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">OUTSTANDING (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">STATUS</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -586,12 +586,12 @@
                                 </tr>
                                 <tr height="38" style="height: 38pt;">
                                     <th colspan="9" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #8A7522; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        HINDUSTAN REAL ESTATE & INFRASTRUCTURE - ALL CUSTOMERS ACCOUNTS DIRECTORY
+                                        HINDUSTAN REAL ESTATE & INFRASTRUCTURE @if(request('project_id') && ($activeProj = \App\Models\Project::find(request('project_id')))) - {{ strtoupper($activeProj->name) }} @endif - ALL CUSTOMERS ACCOUNTS DIRECTORY
                                     </th>
                                 </tr>
                                 <tr height="26" style="height: 26pt;">
                                     <th colspan="9" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-size: 11pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-family: 'Calibri', 'Aptos', sans-serif;">
-                                        Comprehensive Accounts Balances & Receivables Overview | Generated On: {{ date('d M Y, h:i A') }}
+                                        @if(request('project_id') && ($activeProj = \App\Models\Project::find(request('project_id')))) Project: {{ $activeProj->name }} | @endif Comprehensive Accounts Balances & Receivables Overview | Generated On: {{ date('d M Y, h:i A') }}
                                     </th>
                                 </tr>
                                 <tr height="26" style="height: 26pt;">
@@ -618,15 +618,15 @@
                                     <th colspan="9" style="background-color: #ffffff; border: none;"></th>
                                 </tr>
                                 <tr height="32" style="height: 32pt;">
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">SL NO</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">CUSTOMER NAME</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PHONE NUMBER</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">PROJECT NAME</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">UNIT NO</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">TOTAL SALE (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">TOTAL PAID (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">OUTSTANDING (₹)</th>
-                                    <th bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #047857;">LAST PAYMENT</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">SL NO</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">CUSTOMER NAME</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PHONE NUMBER</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PROJECT NAME</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">UNIT NO</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">TOTAL SALE (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">TOTAL PAID (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">OUTSTANDING (₹)</th>
+                                    <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">LAST PAYMENT</th>
                                 </tr>
                             </thead>
                             <tbody>

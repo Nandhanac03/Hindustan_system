@@ -4,7 +4,7 @@
 @media print {
     @page {
         size: landscape !important;
-        margin: 8mm 10mm !important;
+        margin: 6mm 8mm !important;
     }
     *, *::before, *::after {
         box-sizing: border-box !important;
@@ -41,12 +41,23 @@
     }
     tr {
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
     .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
         box-shadow: none !important;
     }
     .border-slate-200, .border-slate-100 {
         border-color: #cbd5e1 !important;
+    }
+
+    /* Outer Container Wrapper (Remove Outer Border in PDF) */
+    .print-card-wrapper {
+        border: none !important;
+        border-style: none !important;
+        border-width: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
     }
 
     /* Print 5 KPI Cards Flex Row (Exact Match with Image 1) */
@@ -56,16 +67,16 @@
         justify-content: space-between !important;
         gap: 8px !important;
         width: 100% !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 8px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
     .print-kpi-row > div {
         flex: 1 1 0% !important;
         box-sizing: border-box !important;
-        padding: 8px 10px !important;
+        padding: 6px 8px !important;
         border: 1px solid #cbd5e1 !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         background: #ffffff !important;
     }
 
@@ -77,7 +88,7 @@
         justify-content: space-between !important;
         gap: 10px !important;
         width: 100% !important;
-        margin-bottom: 14px !important;
+        margin-bottom: 10px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
@@ -85,23 +96,23 @@
         width: 49% !important;
         flex: 0 0 49% !important;
         box-sizing: border-box !important;
-        padding: 10px 12px !important;
+        padding: 8px 10px !important;
         border: 1px solid #cbd5e1 !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         background: #ffffff !important;
         overflow: hidden !important;
     }
 
     .print-chart-size {
         width: 100% !important;
-        height: 170px !important;
+        height: 150px !important;
     }
 
     /* Print Section Containers Margin & Page Breaks */
     .print-section {
-        margin-bottom: 16px !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
+        margin-bottom: 10px !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
     }
 }
 </style>
@@ -131,7 +142,7 @@
     </div>
 
     {{-- Dashboard Card Container --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6 print:p-0 print:border-none print:shadow-none print:space-y-4">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6 print:p-0 print:border-none print:shadow-none print:space-y-4 print-card-wrapper">
         
         {{-- Dashboard Web Header (Hidden on Print) --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-150 pb-4 print:hidden">
@@ -357,6 +368,127 @@
                     </tfoot>
                 </table>
             </div>
+        </div>
+
+        {{-- Hidden Formatted Excel Export Table for Dashboard --}}
+        <div class="hidden">
+            <table id="dashboardExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+                <colgroup>
+                    <col width="70" style="width: 55pt;" />   {{-- SL NO --}}
+                    <col width="260" style="width: 195pt;" /> {{-- PROJECT NAME --}}
+                    <col width="180" style="width: 135pt;" /> {{-- EXPECTED REVENUE --}}
+                    <col width="180" style="width: 135pt;" /> {{-- ACTUAL REVENUE --}}
+                    <col width="180" style="width: 135pt;" /> {{-- PARTNER PAYOUTS --}}
+                    <col width="180" style="width: 135pt;" /> {{-- BROKERAGE --}}
+                    <col width="180" style="width: 135pt;" /> {{-- MATERIAL COSTS --}}
+                    <col width="180" style="width: 135pt;" /> {{-- CONTRACTOR PAYMENTS --}}
+                    <col width="180" style="width: 135pt;" /> {{-- TOTAL COST --}}
+                    <col width="180" style="width: 135pt;" /> {{-- NET PROFIT --}}
+                    <col width="140" style="width: 105pt;" /> {{-- MARGIN % --}}
+                </colgroup>
+                <thead>
+                    {{-- Row 1: Spacer --}}
+                    <tr height="20" style="height: 20pt;" data-no-border="true">
+                        <th colspan="11" style="background-color: #ffffff; border: none;"></th>
+                    </tr>
+                    {{-- Row 2: Main Header --}}
+                    <tr height="38" style="height: 38pt;">
+                        <th colspan="11" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #8A7522; font-family: 'Calibri', 'Aptos', sans-serif;">
+                            @if(request('project_id') && ($activeProj = \App\Models\Project::find(request('project_id')))) {{ strtoupper($activeProj->name) }} - @endif EXECUTIVE FINANCIAL SUMMARY & PROJECT PROFITABILITY OVERVIEW
+                        </th>
+                    </tr>
+                    {{-- Row 3: Spacer --}}
+                    <tr height="15" style="height: 15pt;" data-no-border="true">
+                        <th colspan="11" style="background-color: #ffffff; border: none;"></th>
+                    </tr>
+                    {{-- Summary KPI Rows --}}
+                    <tr height="30" style="height: 30pt;">
+                        <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #8A7522;">TOTAL PROJECTS:</td>
+                        <td colspan="2" bgcolor="#FEF9C3" style="background-color: #FEF9C3; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #0F172A;">{{ $dashboardData['total_projects'] }} Active</td>
+                        <td colspan="2" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #047857;">TOTAL COLLECTIONS:</td>
+                        <td colspan="5" bgcolor="#ECFDF5" style="background-color: #ECFDF5; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #047857;" data-format="₹#,##0.00">₹{{ number_format($dashboardData['collections'], 2) }}</td>
+                    </tr>
+                    <tr height="30" style="height: 30pt;">
+                        <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #BE123C;">UNITS (SOLD / TOTAL):</td>
+                        <td colspan="2" bgcolor="#FFF1F2" style="background-color: #FFF1F2; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #BE123C;">{{ $dashboardData['sold_units'] }} / {{ $dashboardData['total_units'] }}</td>
+                        <td colspan="2" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 10pt; color: #B45309;">OUTSTANDING RECEIVABLE:</td>
+                        <td colspan="5" bgcolor="#FEF3C7" style="background-color: #FEF3C7; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-size: 11pt; color: #B45309;" data-format="₹#,##0.00">₹{{ number_format($dashboardData['outstanding'], 2) }}</td>
+                    </tr>
+                    {{-- Row 8: Spacer --}}
+                    <tr height="15" style="height: 15pt;" data-no-border="true">
+                        <th colspan="11" style="background-color: #ffffff; border: none;"></th>
+                    </tr>
+                    {{-- Row 9: Table Headers --}}
+                    <tr height="32" style="height: 32pt;">
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">SL NO</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PROJECT NAME</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">EXPECTED REVENUE (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">ACTUAL REVENUE (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">PARTNER PAYOUTS (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">BROKERAGE (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">MATERIAL COSTS (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">CONTRACTOR PAYMENTS (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">TOTAL COST (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">NET PROFIT (₹)</th>
+                        <th bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #8A7522;">MARGIN %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totExpected = 0;
+                        $totActual = 0;
+                        $totPartner = 0;
+                        $totBrokerage = 0;
+                        $totMaterial = 0;
+                        $totContractor = 0;
+                        $totCost = 0;
+                        $totProfit = 0;
+                    @endphp
+                    @foreach($dashboardData['project_profitability'] as $idx => $row)
+                    @php
+                        $totExpected += $row['expected_revenue'];
+                        $totActual += $row['actual_revenue'];
+                        $totPartner += $row['partner_payouts'];
+                        $totBrokerage += $row['brokerage_costs'];
+                        $totMaterial += $row['material_costs'];
+                        $totContractor += $row['contractor_payments'];
+                        $totCost += $row['total_cost'];
+                        $totProfit += $row['profit'];
+                        $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F8FAF5';
+                    @endphp
+                    <tr height="25" style="height: 25pt;">
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $idx + 1 }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $row['project']->name }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $row['expected_revenue'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $row['actual_revenue'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $row['partner_payouts'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $row['brokerage_costs'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $row['material_costs'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $row['contractor_payments'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $row['total_cost'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #0f172a;">{{ $row['profit'] }}</td>
+                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'0.0%'; color: {{ $row['margin'] > 15 ? '#047857' : '#b45309' }};">{{ number_format($row['margin'], 1) }}%</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    @php
+                        $overallMargin = $totActual > 0 ? ($totProfit / $totActual) * 100 : 0;
+                    @endphp
+                    <tr height="40" style="height: 40pt; font-weight: bold; color: #ffffff;">
+                        <td colspan="2" bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif;">GRAND TOTAL SUMMARY</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totExpected }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totActual }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totPartner }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totBrokerage }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totMaterial }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totContractor }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totCost }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format:'\#\,\#\#0\.00';">{{ $totProfit }}</td>
+                        <td bgcolor="#0B3B2E" style="background-color: #0B3B2E; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #047857; font-size: 14pt; font-family: 'Calibri', 'Aptos', sans-serif;">{{ number_format($overallMargin, 1) }}%</td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
 </div>
