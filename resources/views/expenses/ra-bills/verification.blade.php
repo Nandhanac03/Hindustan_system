@@ -3,12 +3,6 @@
 @section('title', 'RA Bill Verification & Sign-off')
 
 @section('content')
-<style>
-    .ra-modal .amount-in-words-label,
-    [data-no-words="true"] .amount-in-words-label {
-        display: none !important;
-    }
-</style>
 <div x-data="raBillVerification()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
@@ -37,7 +31,7 @@
             </button>
 
             <!-- New RA Progress Bill Button -->
-            <button type="button" @click="addModalOpen = true"
+            <button type="button" @click="openAddModal()"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>New RA Progress Bill</span>
@@ -367,7 +361,7 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="addModalOpen = false">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="closeAddModal()">
             {{-- Dark Header with Gold Glow --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-4 flex-shrink-0 border-b border-[#a38c29]/30">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -376,13 +370,13 @@
                         <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills · New Progress Claim</p>
                         <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Log New Contractor RA Progress Bill</h2>
                     </div>
-                    <button type="button" @click="addModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                    <button type="button" @click="closeAddModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form action="{{ route('expenses.ra-bills.store') }}" method="POST" data-no-words="true" class="ra-modal p-5 sm:p-6 space-y-4 overflow-y-auto">
+            <form id="addRaBillForm" action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
                 @csrf
 
                 <!-- Row 1: Bill No & Submit Date -->
@@ -458,7 +452,6 @@
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                             <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
-                                   data-no-words="true"
                                    class="w-full pl-7 pr-3 py-2.5 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
                         </div>
                         @error('gross_amount')
@@ -484,7 +477,7 @@
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
-                    <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                    <button type="button" @click="closeAddModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
                         Cancel
                     </button>
                     <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
@@ -512,7 +505,7 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" data-no-words="true" class="ra-modal p-5 sm:p-6 space-y-4 overflow-y-auto">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
                 @csrf
 
                 <!-- KPI Summary Bar (Polished 4-Col Card) -->
@@ -602,7 +595,6 @@
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                             <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
-                                   data-no-words="true"
                                    class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
                                    placeholder="0.00">
                         </div>
@@ -643,7 +635,6 @@
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                             <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
-                                   data-no-words="true"
                                    class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                         </div>
                         <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Added to After-Correction base</p>
@@ -772,7 +763,61 @@ function raBillVerification() {
         verifyRemarksInput: '',
         verifyDueDateInput: '',
 
+        openAddModal() {
+            this.resetAddModal();
+            this.addModalOpen = true;
+        },
+
+        closeAddModal() {
+            this.addModalOpen = false;
+            this.resetAddModal();
+        },
+
+        resetAddModal() {
+            const form = document.getElementById('addRaBillForm');
+            if (form) {
+                form.reset();
+                const grossInput = form.querySelector('input[name="gross_amount"]');
+                if (grossInput) {
+                    grossInput.value = '';
+                }
+                const words = form.querySelector('.amount-in-words-label');
+                if (words) {
+                    words.textContent = '';
+                    words.style.display = 'none';
+                }
+            }
+        },
+
+        updateVerifyWords() {
+            this.$nextTick(() => {
+                const corrEl = document.querySelector('input[name="correction_amount"]');
+                if (corrEl && typeof window.updateAmountInWordsForInput === 'function') {
+                    window.updateAmountInWordsForInput(corrEl);
+                }
+                const addEl = document.querySelector('input[name="additional_amount"]');
+                if (addEl && typeof window.updateAmountInWordsForInput === 'function') {
+                    window.updateAmountInWordsForInput(addEl);
+                }
+            });
+        },
+
         init() {
+            this.$watch('addModalOpen', (val) => {
+                if (!val) {
+                    this.resetAddModal();
+                }
+            });
+            this.$watch('verifyModalOpen', (val) => {
+                if (val) {
+                    this.updateVerifyWords();
+                } else {
+                    const corrWords = document.querySelector('input[name="correction_amount"]')?.closest('.relative')?.parentElement?.querySelector('.amount-in-words-label');
+                    if (corrWords) corrWords.style.display = 'none';
+                    const addWords = document.querySelector('input[name="additional_amount"]')?.closest('.relative')?.parentElement?.querySelector('.amount-in-words-label');
+                    if (addWords) addWords.style.display = 'none';
+                }
+            });
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
                 this.selectedContractorId = String(this.allContractors[0].id);
             }
@@ -827,6 +872,7 @@ function raBillVerification() {
             this.selectedEngineerId = matchedEng ? matchedEng.id : (bill.engineer_id || '');
 
             this.verifyModalOpen = true;
+            this.updateVerifyWords();
         },
 
         recalcVerification() {
@@ -854,6 +900,7 @@ function raBillVerification() {
 
             const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
             this.calculatedNet = Math.max(0, this.calculatedAfterCorrection + addAmt);
+            this.updateVerifyWords();
         },
 
         calcAdditionalFromPercent() {
@@ -866,6 +913,7 @@ function raBillVerification() {
             }
             const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
             this.calculatedNet = Math.max(0, base + addAmt);
+            this.updateVerifyWords();
         },
 
         calcPercentFromAdditional() {
@@ -879,6 +927,7 @@ function raBillVerification() {
             }
             const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
             this.calculatedNet = Math.max(0, base + addAmt);
+            this.updateVerifyWords();
         },
 
         calcPercentage(additional, gross) {
