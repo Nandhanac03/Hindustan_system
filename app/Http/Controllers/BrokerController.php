@@ -126,6 +126,7 @@ class BrokerController extends Controller
         $totalAccrued = $brokers->sum('accrued_commission');
         $totalPayable = $brokers->sum('payable_commission');
         $totalPaid = $brokers->sum('paid_commission');
+        $totalCommission = $totalAccrued + $totalPayable + $totalPaid;
 
         // Fetch recent deals/transactions with broker visibility
         $dealsQuery = Brokerage::whereHas('broker', function ($q) use ($systemId) {
@@ -149,6 +150,7 @@ class BrokerController extends Controller
             'brokers',
             'deals',
             'projects',
+            'totalCommission',
             'totalAccrued',
             'totalPayable',
             'totalPaid'
