@@ -1573,45 +1573,6 @@ class VoucherController extends Controller
             $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0) + (float)$debits - (float)$credits, 2);
         }
 
-        // Also include all other Bank accounts from Chart of Accounts (Asset accounts excluding cash/petty cash)
-        $otherBankAccounts = Account::where('system_id', $systemId)
-            ->where('type', 'Asset')
-            ->where(function($q) {
-                $q->where('name', 'LIKE', '%Bank%')
-                  ->orWhere('name', 'LIKE', '%Account%')
-                  ->orWhere('code', 'LIKE', 'BANK-%');
-            })
-            ->where('name', 'NOT LIKE', '%Cash%')
-            ->where('name', 'NOT LIKE', '%Petty%')
-            ->whereNotIn('id', $linkedChartAccountIds)
-            ->orderBy('name')
-            ->get();
-
-        foreach ($otherBankAccounts as $oAcc) {
-            $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $oAcc->id)->sum('debit');
-            $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $oAcc->id)->sum('credit');
-            $bal = round((float)$debits - (float)$credits, 2);
-
-            $accNum = '';
-            if (preg_match('/\d{3,}/', $oAcc->name . ' ' . $oAcc->code, $m)) {
-                $accNum = $m[0];
-            }
-
-            $virtualBank = new CompanyBankAccount([
-                'bank_name' => $oAcc->name,
-                'account_name' => $oAcc->name,
-                'account_number' => $accNum,
-                'branch_name' => 'Corporate Branch',
-                'current_balance' => $bal,
-                'status' => 'active',
-                'is_default' => 0,
-            ]);
-            $virtualBank->id = 1000 + $oAcc->id;
-            $virtualBank->chart_account_id = $oAcc->id;
-            $virtualBank->calculated_balance = $bal;
-            $companyBankAccounts->push($virtualBank);
-        }
-
         // Load recent Contra vouchers
         $recentContras = Voucher::where('system_id', $systemId)
             ->where('type', 'Contra')
@@ -1629,13 +1590,36 @@ class VoucherController extends Controller
         $systemId = $user->system_id;
 
         $request->validate([
-            'voucher_number' => 'required|string',
+            'voucher_number' => 'nullable|string',
             'date' => 'required|date',
             'destination_account_id' => 'required',
             'credit_account_id' => 'required',
             'amount' => 'required|numeric|min:0.01',
             'narration' => 'nullable|string',
         ]);
+
+        // Auto-generate voucher number server-side if not provided by the form
+        $voucherNumber = $request->voucher_number;
+        if (!$voucherNumber) {
+            $currentYear = date('Y');
+            $lastVoucher = Voucher::where('system_id', $systemId)
+                ->where('type', 'Contra')
+                ->where('voucher_number', 'LIKE', "JV-CONTRA-{$currentYear}-%")
+                ->orderBy('id', 'desc')
+                ->first();
+            $nextNum = 1;
+            if ($lastVoucher) {
+                $parts = explode('-', $lastVoucher->voucher_number);
+                $lastSeg = end($parts);
+                if (is_numeric($lastSeg)) {
+                    $nextNum = (int)$lastSeg + 1;
+                }
+            }
+            $voucherNumber = 'JV-CONTRA-' . $currentYear . '-' . str_pad((string)$nextNum, 4, '0', STR_PAD_LEFT);
+        }
+
+        // Merge the (possibly auto-generated) voucher number back into the request
+        $request->merge(['voucher_number' => $voucherNumber]);
 
         $creditBankId = $request->credit_bank_id;
         $destBankId = $request->destination_bank_id;

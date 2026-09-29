@@ -2565,16 +2565,16 @@ class ReportController extends Controller
             'journal_vouchers.voucher_date'
         )->get();
 
-        // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding duplicate RA/Contra JVs)
+        // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding only duplicate RA Bill PVs covered in journal_entries)
         $vlQuery = VoucherLine::join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
             ->join('accounts', 'voucher_lines.account_id', '=', 'accounts.id')
             ->where('vouchers.status', 'Posted')
             ->where(function($q) {
-                // Exclude contractor payment PVs and JV-CONTRAs already covered in journal_entries
+                // Exclude contractor payment PVs already covered in journal_entries
                 $q->whereNot(function($sub) {
                     $sub->where('vouchers.voucher_number', 'like', 'PV-%')
                         ->where('vouchers.narration', 'like', '%RA Bill%');
-                })->whereNot('vouchers.voucher_number', 'like', 'JV-CONTRA%');
+                });
             });
 
         if ($selectedProjectId !== 'all' && $selectedProjectId) {

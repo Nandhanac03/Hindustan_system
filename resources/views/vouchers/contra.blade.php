@@ -174,6 +174,24 @@
         </div>
     </div>
 
+    @if(session('status'))
+    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span>{{ session('status') }}</span>
+    </div>
+    @endif
+
+    @if(session('error') || $errors->any())
+    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold space-y-1">
+        @if(session('error'))
+            <p>{{ session('error') }}</p>
+        @endif
+        @foreach($errors->all() as $err)
+            <p class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{{ $err }}</p>
+        @endforeach
+    </div>
+    @endif
+
     <!-- ── 2. DEFAULT MAIN PAGE DISPLAY: DIRECTORY TABLE & FILTER CARD ── -->
     <div class="space-y-4">
         
@@ -406,6 +424,7 @@
                 <div>
                     <span class="text-[#a38c29] text-[10px] font-extrabold uppercase tracking-widest block mb-1">CONTRA VOUCHER SETUP</span>
                     <h2 class="text-base sm:text-lg font-extrabold text-white leading-tight">Add Contra Entry</h2>
+                    <span class="text-slate-400 text-[10px] font-mono mt-0.5 block" x-text="form.voucher_number ? 'Voucher No: ' + form.voucher_number : ''"></span>
                 </div>
                 <button type="button" @click="showFormModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-sm cursor-pointer">✕</button>
             </div>
@@ -413,9 +432,17 @@
             <!-- MODAL BODY FORM (PURE WHITE BACKGROUND WITH ROOMY SPACING) -->
             <form action="{{ route('vouchers.contra.store') }}" method="POST" enctype="multipart/form-data" @submit="submitForm($event)" class="flex-1 overflow-y-auto p-6 md:p-7 space-y-5 font-sans text-xs bg-white">
                 @csrf
+                {{-- Voucher number is generated server-side and passed to Alpine; bind it as hidden input --}}
+                <input type="hidden" name="voucher_number" x-model="form.voucher_number">
 
-                <!-- Row 1: Date & Transaction Type (2 COLS) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Row 1: Voucher No + Date + Transaction Type -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {{-- Voucher Number (auto-generated, read-only display) --}}
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1.5">Voucher No.</label>
+                        <div class="w-full px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-mono font-black text-[#8a7522] shadow-2xs select-all" x-text="form.voucher_number || '—'"></div>
+                    </div>
+
                     <div>
                         <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" :class="errors.date ? 'text-rose-500' : 'text-slate-600'">Voucher Date <span class="text-rose-500">*</span></label>
                         <input type="date" name="date" required x-model="form.date" @change="delete errors.date"
@@ -597,10 +624,10 @@
                         <label class="block text-[10px] font-extrabold text-slate-600 uppercase tracking-widest mb-1.5">Payment Mode <span class="text-rose-500">*</span></label>
                         <select name="payment_mode" required x-model="form.payment_mode"
                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs cursor-pointer">
-                            <option value="RTGS">RTGS / NEFT / IMPS</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Cash Withdrawal">Cash Withdrawal</option>
-                            <option value="Cash Deposit Slip">Cash Deposit Slip</option>
+                            <option value="">— Select Payment Mode —</option>
+                            @foreach($paymentModes as $pm)
+                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -690,32 +717,34 @@
                             <tr>
                                 <th class="px-4 py-3 text-white">Particulars / Account Head</th>
                                 <th class="px-4 py-3 text-center text-white">Voucher Type / Code</th>
-                                <th class="px-4 py-3 text-right text-white">Debit (Rs.)</th>
-                                <th class="px-4 py-3 text-right text-white">Credit (Rs.)</th>
+                                <th class="px-4 py-3 text-right text-white w-36">Debit (₹)</th>
+                                <th class="px-4 py-3 text-right text-white w-36">Credit (₹)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-800 bg-white">
+                            {{-- DR Row: Destination Account (debit) --}}
                             <tr>
-                                <td class="px-4 py-3.5 text-emerald-800 font-bold">
+                                <td class="px-4 py-3.5 font-bold">
                                     <div class="flex items-center gap-2">
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-800">DR</span>
-                                        <span x-text="activeVoucher.to_account || 'Petty Cash Account - Site Box (1020)'">Petty Cash Account - Site Box (1020)</span>
+                                        <span class="text-slate-800" x-text="activeVoucher.to_account || '—'"></span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C) · 1020</td>
-                                <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-700 text-sm" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</td>
+                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C)</td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-700" x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'"></td>
                                 <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
                             </tr>
+                            {{-- CR Row: Source Account (credit) --}}
                             <tr>
-                                <td class="px-4 py-3.5 text-rose-800 font-bold pl-8">
+                                <td class="px-4 py-3.5 font-bold pl-8">
                                     <div class="flex items-center gap-2">
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-100 text-rose-800">CR</span>
-                                        <span x-text="'To ' + (activeVoucher.from_account || 'Karnataka Bank Current A/c (1001)')">To Karnataka Bank Current A/c (1001)</span>
+                                        <span class="text-slate-800" x-text="activeVoucher.from_account ? 'To ' + activeVoucher.from_account : '—'"></span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C) · 1001</td>
+                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C)</td>
                                 <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
-                                <td class="px-4 py-3.5 text-right font-mono font-bold text-rose-700 text-sm" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-rose-700" x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -766,26 +795,20 @@ function contraVoucherWorkspace() {
                     $creditLine = $v->lines->firstWhere('credit', '>', 0);
                     $debitLine = $v->lines->firstWhere('debit', '>', 0);
                     $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
-                    $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
-                    $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
+                    $fromName = $creditLine?->account?->name ?? '—';
+                    $toName = $debitLine?->account?->name ?? '—';
                     $formattedContras[] = [
                         'id' => $v->id,
                         'voucher_number' => (string)$v->voucher_number,
                         'date' => \Carbon\Carbon::parse($v->date)->format('d-M-Y'),
                         'from_account' => (string)$fromName,
                         'to_account' => (string)$toName,
-                        'reference_no' => (string)($v->reference_no ?? 'RTGS / UTR8821'),
+                        'reference_no' => (string)($v->reference_no ?? '—'),
                         'amount' => (float)$transferAmt,
-                        'narration' => (string)($v->narration ?? 'Fund transfer for site payroll release'),
-                        'project_name' => (string)($v->project?->name ?? 'Global Treasury'),
+                        'narration' => (string)($v->narration ?? '—'),
+                        'project_name' => (string)($v->project?->name ?? '—'),
                     ];
                 }
-            } else {
-                $formattedContras = [
-                    ['id' => 1, 'voucher_number' => 'JV-CONTRA-045', 'date' => '31-Aug-2026', 'from_account' => 'Karnataka Bank Current A/c (1001)', 'to_account' => 'Petty Cash Account - Site Box (1020)', 'reference_no' => 'Cheque #40012', 'amount' => 25000, 'narration' => 'Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box', 'project_name' => 'Global Treasury'],
-                    ['id' => 2, 'voucher_number' => 'JV-CONTRA-044', 'date' => '20-Aug-2026', 'from_account' => 'HDFC Escrow Account (1002)', 'to_account' => 'Karnataka Bank Operational A/c (1001)', 'reference_no' => 'RTGS / UTR8821', 'amount' => 1000000, 'narration' => 'Site payroll release', 'project_name' => 'Global Treasury'],
-                    ['id' => 3, 'voucher_number' => 'JV-CONTRA-043', 'date' => '10-Aug-2026', 'from_account' => 'Petty Cash Account - Site Box', 'to_account' => 'SBI Current - 2005', 'reference_no' => 'Cash Deposit Slip', 'amount' => 15000, 'narration' => 'Cash deposit to SBI', 'project_name' => 'Global Treasury'],
-                ];
             }
         @endphp
         rawRecentContras: {!! json_encode($formattedContras) !!},
@@ -796,7 +819,7 @@ function contraVoucherWorkspace() {
             destination_account_id: '',
             credit_account_id: '',
             amount: '',
-            payment_mode: 'RTGS',
+            payment_mode: '',
             reference_no: '',
             project_id: '',
             narration: ''
@@ -865,18 +888,16 @@ function contraVoucherWorkspace() {
         },
 
         initBankDefaults() {
-            if (this.companyBankAccounts && this.companyBankAccounts.length > 0) {
-                if (!this.selectedFromBankId) {
-                    this.selectFromBank(this.companyBankAccounts[0]);
-                }
-                if (!this.selectedToBankId) {
-                    if (this.companyBankAccounts.length > 1) {
-                        this.selectToBank(this.companyBankAccounts[1]);
-                    } else {
-                        this.selectToBank(this.companyBankAccounts[0]);
-                    }
-                }
-            }
+            // No default bank pre-selected — user must choose FROM and TO manually
+            this.selectedFromBankId = '';
+            this.selectedToBankId = '';
+            this.form.credit_account_id = '';
+            this.form.destination_account_id = '';
+            this.selectedFromAccountName = '';
+            this.selectedToAccountName = '';
+            this.fromAccountBalance = 0;
+            this.toAccountBalance = 0;
+            this.errors = {};
         },
 
         get selectedFromAccount() {
@@ -900,7 +921,8 @@ function contraVoucherWorkspace() {
         },
 
         get filteredToAccounts() {
-            let list = this.companyBankAccounts;
+            // Exclude the currently selected FROM bank from destination list
+            let list = this.companyBankAccounts.filter(b => b.id != this.selectedFromBankId);
             if (!this.toBankSearch) return list;
             const q = this.toBankSearch.toLowerCase().trim();
             return list.filter(b => 
@@ -919,11 +941,14 @@ function contraVoucherWorkspace() {
             this.fromBankOpen = false;
             this.fromBankSearch = '';
             delete this.errors.credit_account_id;
+            // If TO was same bank, auto-clear it so user must pick a different one
             if (this.selectedToBankId && this.selectedToBankId == acc.id) {
-                this.errors.destination_account_id = 'Source and destination cannot be the same bank account.';
-            } else if (this.errors.destination_account_id === 'Source and destination cannot be the same bank account.') {
-                delete this.errors.destination_account_id;
+                this.selectedToBankId = '';
+                this.form.destination_account_id = '';
+                this.selectedToAccountName = '';
+                this.toAccountBalance = 0;
             }
+            delete this.errors.destination_account_id;
         },
 
         selectToBank(acc) {
@@ -1076,13 +1101,8 @@ function contraVoucherWorkspace() {
         },
 
         onTransactionTypeChange() {
-            if (this.transactionType === 'bank_to_bank') {
-                this.form.payment_mode = 'RTGS';
-            } else if (this.transactionType === 'cash_withdrawal') {
-                this.form.payment_mode = 'Cash Withdrawal';
-            } else if (this.transactionType === 'cash_deposit') {
-                this.form.payment_mode = 'Cash Deposit Slip';
-            }
+            // Payment mode is chosen by the user from DB-driven dropdown; just reset it when type changes
+            this.form.payment_mode = '';
         },
 
         updateProjectName() {
