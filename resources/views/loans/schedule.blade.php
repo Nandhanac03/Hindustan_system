@@ -23,7 +23,11 @@
 
         <div class="flex flex-wrap gap-3">
             @if($loan->status === 'Active')
-                <button @click="openPrepayModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                <button @click="recalculateSchedule()" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-750 hover:text-slate-900 rounded-xl text-xs font-bold transition border border-slate-200 shadow-2xs uppercase tracking-wide cursor-pointer" title="Recalculate & align unpaid installments with current outstanding balance">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Recalculate Schedule
+                </button>
+                <button @click="openPrepayModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Prepayment & Reschedule
                 </button>
@@ -334,33 +338,36 @@
                             </div>
 
                             {{-- Interest Rate & Interest Amount Grid --}}
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_rate ? 'text-rose-600' : 'text-slate-700'">
-                                        Interest Rate (% P.A.) <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="number" step="0.01" x-model="payForm.interest_rate" @input="onInterestRateChange()" data-no-words="true"
-                                           :class="payErrors.interest_rate ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="payErrors.interest_rate" x-text="payErrors.interest_rate" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            <div>
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_rate ? 'text-rose-600' : 'text-slate-700'">
+                                            Interest Rate (% P.A.) <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="number" step="0.01" x-model="payForm.interest_rate" @input="onInterestRateChange()" data-no-words="true"
+                                               :class="payErrors.interest_rate ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                               class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                        <span x-show="payErrors.interest_rate" x-text="payErrors.interest_rate" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_amount ? 'text-rose-600' : 'text-slate-700'">
+                                            Interest Amount (₹) <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="number" step="0.01" x-model="payForm.interest_amount" @input="onInterestAmountChange()" data-no-words="true"
+                                               :class="payErrors.interest_amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                               class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                        <span x-show="payErrors.interest_amount" x-text="payErrors.interest_amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_amount ? 'text-rose-600' : 'text-slate-700'">
-                                        Interest Amount (₹) <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="number" step="0.01" x-model="payForm.interest_amount" @input="onInterestAmountChange()" data-no-words="true"
-                                           :class="payErrors.interest_amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="payErrors.interest_amount" x-text="payErrors.interest_amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                </div>
                             </div>
 
                             {{-- ROW 2 --}}
                             {{-- Payment Amount --}}
                             <div>
                                 <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.amount ? 'text-rose-600' : 'text-slate-700'">
-                                    Payment Amount (₹) <span class="text-rose-500">*</span>
+                                    EMI Amount (₹) <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="number" step="0.01" x-model="payForm.amount" readonly data-no-words="true"
                                        :class="payErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200/80 bg-slate-100/90'"
@@ -552,7 +559,12 @@
                     {{-- 4. Footer Action Bar --}}
                     <div class="mt-4 pt-3 flex items-center justify-between border-t border-slate-100">
                         <button type="button" @click="payModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition cursor-pointer">← Back</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Submit Payment</button>
+                        <button type="submit" :disabled="isSubmitting" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer disabled:opacity-60 flex items-center gap-2">
+                            <template x-if="isSubmitting">
+                                <svg class="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </template>
+                            <span x-text="isSubmitting ? 'Submitting...' : 'Submit Payment'"></span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -849,12 +861,118 @@
                     {{-- 4. Footer Action Bar --}}
                     <div class="mt-4 pt-3 flex items-center justify-between border-t border-slate-100">
                         <button type="button" @click="prepayModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition cursor-pointer">← Back</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Apply & Reschedule</button>
+                        <button type="submit" :disabled="isSubmitting" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer disabled:opacity-60 flex items-center gap-2">
+                            <template x-if="isSubmitting">
+                                <svg class="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </template>
+                            <span x-text="isSubmitting ? 'Applying...' : 'Apply & Reschedule'"></span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    {{-- ═══════ REAL-TIME ACTION & SUCCESS STATUS MODAL (EXACT MATCH TO ERP / BANK MODAL) ═══════ --}}
+    <div x-show="statusModal.open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs text-left"
+         style="display: none;">
+        
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto transform transition-all"
+             style="animation: successModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;"
+             @click.away="closeStatusPopup()">
+            
+            {{-- Gold shimmer top stripe --}}
+            <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
+
+            {{-- Dark header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        {{-- Icon Box with Gold Checkmark --}}
+                        <div class="w-12 h-12 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 flex items-center justify-center shadow-lg shadow-[#a38c29]/20 ring-1 ring-[#d9bf3b]/20 shrink-0"
+                             style="animation: iconPop 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;">
+                            <svg class="w-6 h-6 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+
+                        <div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span x-text="statusModal.badge"></span>
+                            </span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1" x-text="statusModal.title"></h2>
+                            <p class="text-[10px] text-slate-400 mt-0.5 font-medium" x-text="statusModal.subtitle"></p>
+                        </div>
+                    </div>
+
+                    {{-- Close Button --}}
+                    <button type="button" @click="closeStatusPopup()"
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-[#a38c29]/30 text-white hover:text-[#d9bf3b] flex items-center justify-center transition-all focus:outline-none shrink-0 border border-white/10 hover:border-[#a38c29]/40 text-sm font-bold cursor-pointer"
+                            title="Close">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 bg-gradient-to-b from-slate-50/80 to-white space-y-3">
+                {{-- Message Card --}}
+                <div class="flex items-center gap-3 bg-white border border-[#a38c29]/25 rounded-xl px-4 py-3.5 shadow-sm ring-1 ring-[#a38c29]/10">
+                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/20 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[9px] font-bold text-[#a38c29]/70 uppercase tracking-widest">System Message</p>
+                        <p class="text-xs font-extrabold text-slate-900 mt-0.5" x-text="statusModal.message"></p>
+                    </div>
+                </div>
+
+                {{-- Auto-close progress bar --}}
+                <div class="flex items-center gap-2.5">
+                    <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-[#a38c29] to-[#d9bf3b] rounded-full transition-all duration-75 ease-linear"
+                             :style="'width: ' + statusModal.progressWidth + '%;'"></div>
+                    </div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider whitespace-nowrap">Auto-close</span>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
+                <button type="button" @click="closeStatusPopup()"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/25 uppercase tracking-wider transition-all ring-1 ring-[#a38c29]/30 flex items-center gap-2 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Got it</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes successModalIn {
+            from { opacity: 0; transform: scale(0.85) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes iconPop {
+            from { opacity: 0; transform: scale(0.4); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+    </style>
 
     {{-- Alert Toast --}}
     <div x-show="toast.open" 
@@ -886,6 +1004,23 @@ function scheduleApp() {
         activeInst: {},
         payErrors: {},
         prepayErrors: {},
+        isSubmitting: false,
+        statusModal: {
+            open: false,
+            badge: 'EMI PAYMENT RECORDED',
+            title: 'EMI PAYMENT ADDED!',
+            subtitle: 'Installment payment recorded successfully.',
+            message: '',
+            progressWidth: 100,
+            timer: null,
+            interval: null
+        },
+        closeStatusPopup() {
+            if (this.statusModal.timer) clearTimeout(this.statusModal.timer);
+            if (this.statusModal.interval) clearInterval(this.statusModal.interval);
+            this.statusModal.open = false;
+            window.location.reload();
+        },
         get selectedPayAccount() {
             return (this.companyBankAccounts || []).find(b => b.id == this.payForm.bank_account_id) || null;
         },
@@ -999,9 +1134,9 @@ function scheduleApp() {
             const interest = Number(inst.interest_component || 0);
             const defaultRate = Number(this.loan.interest_rate || 0);
 
-            this.originalPrincipal = principal > 0 ? principal : 1;
+            this.originalPrincipal = principal;
             this.originalInterest = interest;
-            this.originalRate = defaultRate > 0 ? defaultRate : 1;
+            this.originalRate = defaultRate;
 
             this.payForm.principal_amount = principal.toFixed(2);
             this.payForm.interest_rate = defaultRate.toFixed(2);
@@ -1014,113 +1149,119 @@ function scheduleApp() {
             this.payForm.other_charges = 0;
             this.payModalOpen = true;
         },
-        onTotalAmountChange() {
-            delete this.payErrors.amount;
-            delete this.payErrors.principal_amount;
-            delete this.payErrors.interest_amount;
-
-            let total = parseFloat(this.payForm.amount);
-            if (isNaN(total) || total < 0) total = 0;
-
-            let interest = parseFloat(this.payForm.interest_amount) || 0;
-            if (interest > total) {
-                interest = total;
-                this.payForm.interest_amount = interest.toFixed(2);
-            }
-
-            let principal = Math.max(0, total - interest);
-            this.payForm.principal_amount = principal.toFixed(2);
-        },
         onPrincipalAmountChange() {
             delete this.payErrors.principal_amount;
             delete this.payErrors.interest_amount;
             delete this.payErrors.amount;
 
-            let total = parseFloat(this.payForm.amount);
-            if (isNaN(total) || total <= 0) {
-                total = (parseFloat(this.payForm.principal_amount) || 0) + (parseFloat(this.payForm.interest_amount) || 0);
-                this.payForm.amount = total.toFixed(2);
-            }
-
+            let totalEmi = parseFloat(this.activeInst?.emi_amount || this.payForm.amount) || 0;
             let principal = parseFloat(this.payForm.principal_amount);
             if (isNaN(principal) || principal < 0) principal = 0;
 
-            if (principal > total) {
-                principal = total;
-                this.payForm.principal_amount = principal.toFixed(2);
+            if (totalEmi > 0) {
+                if (principal > totalEmi) {
+                    principal = totalEmi;
+                    this.payForm.principal_amount = principal.toFixed(2);
+                }
+                let interest = Math.max(0, totalEmi - principal);
+                this.payForm.interest_amount = interest.toFixed(2);
+                this.payForm.amount = totalEmi.toFixed(2);
+            } else {
+                let interest = parseFloat(this.payForm.interest_amount) || 0;
+                this.payForm.amount = (principal + interest).toFixed(2);
             }
+        },
+        onInterestAmountChange() {
+            delete this.payErrors.interest_amount;
+            delete this.payErrors.principal_amount;
+            delete this.payErrors.amount;
 
-            let interest = Math.max(0, total - principal);
-            this.payForm.interest_amount = interest.toFixed(2);
+            let totalEmi = parseFloat(this.activeInst?.emi_amount || this.payForm.amount) || 0;
+            let interest = parseFloat(this.payForm.interest_amount);
+            if (isNaN(interest) || interest < 0) interest = 0;
 
-            if (this.originalInterest > 0 && this.originalRate > 0) {
-                let newRate = (interest / this.originalInterest) * this.originalRate;
-                this.payForm.interest_rate = Number(newRate).toFixed(2);
+            if (totalEmi > 0) {
+                if (interest > totalEmi) {
+                    interest = totalEmi;
+                    this.payForm.interest_amount = interest.toFixed(2);
+                }
+                let principal = Math.max(0, totalEmi - interest);
+                this.payForm.principal_amount = principal.toFixed(2);
+                this.payForm.amount = totalEmi.toFixed(2);
+            } else {
+                let principal = parseFloat(this.payForm.principal_amount) || 0;
+                this.payForm.amount = (principal + interest).toFixed(2);
             }
         },
         onInterestRateChange() {
             delete this.payErrors.interest_rate;
             delete this.payErrors.interest_amount;
-            delete this.payErrors.amount;
+            delete this.payErrors.principal_amount;
 
             let rate = parseFloat(this.payForm.interest_rate);
             if (isNaN(rate) || rate < 0) rate = 0;
 
-            let total = parseFloat(this.payForm.amount) || 0;
-            let newInterest = 0;
-            if (this.originalRate > 0 && this.originalInterest > 0) {
-                newInterest = (rate / this.originalRate) * this.originalInterest;
-            } else if (Number(this.loan.principal_amount) > 0) {
-                newInterest = (Number(this.loan.principal_amount) * rate) / 1200;
-            } else {
-                newInterest = (parseFloat(this.payForm.principal_amount) || 0) * rate / 1200;
-            }
+            let totalEmi = parseFloat(this.activeInst?.emi_amount || this.payForm.amount) || 0;
+            let basePrincipal = Number(this.loan?.principal_amount || 0);
+            let newInterest = (basePrincipal > 0 && rate > 0) ? (basePrincipal * rate) / 1200 : 0;
 
-            if (total > 0 && newInterest > total) {
-                newInterest = total;
-            }
-
-            this.payForm.interest_amount = Number(newInterest).toFixed(2);
-            if (total > 0) {
-                let principal = Math.max(0, total - newInterest);
+            if (totalEmi > 0) {
+                if (newInterest > totalEmi) newInterest = totalEmi;
+                let principal = Math.max(0, totalEmi - newInterest);
                 this.payForm.principal_amount = principal.toFixed(2);
+                this.payForm.interest_amount = Number(newInterest).toFixed(2);
+                this.payForm.amount = totalEmi.toFixed(2);
             } else {
+                this.payForm.interest_amount = Number(newInterest).toFixed(2);
                 let principal = parseFloat(this.payForm.principal_amount) || 0;
                 this.payForm.amount = (principal + newInterest).toFixed(2);
             }
         },
-        onInterestAmountChange() {
-            delete this.payErrors.interest_rate;
-            delete this.payErrors.interest_amount;
-            delete this.payErrors.amount;
+        recalculateSchedule() {
+            this.isSubmitting = true;
+            fetch(`{{ url('loans') }}/${this.loan.id}/recalculate-schedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(async res => {
+                let data = await res.json();
+                this.isSubmitting = false;
+                if (!res.ok) {
+                    this.showToast(data.error || data.message || 'Recalculation error.', 'error');
+                } else {
+                    this.statusModal = {
+                        open: true,
+                        badge: 'SCHEDULE SYNCHRONIZED',
+                        title: 'SUCCESS!',
+                        subtitle: 'Schedule aligned.',
+                        message: data.message || 'Loan repayment schedule has been recalculated and synchronized successfully.',
+                        progressWidth: 100,
+                        timer: null,
+                        interval: null
+                    };
 
-            let total = parseFloat(this.payForm.amount);
-            if (isNaN(total) || total <= 0) {
-                total = (parseFloat(this.payForm.principal_amount) || 0) + (parseFloat(this.payForm.interest_amount) || 0);
-                this.payForm.amount = total.toFixed(2);
-            }
+                    const duration = 3000;
+                    const step = 50;
+                    let elapsed = 0;
+                    this.statusModal.interval = setInterval(() => {
+                        elapsed += step;
+                        this.statusModal.progressWidth = Math.max(0, 100 - (elapsed / duration) * 100);
+                    }, step);
 
-            let interest = parseFloat(this.payForm.interest_amount);
-            if (isNaN(interest) || interest < 0) interest = 0;
-
-            if (interest > total) {
-                interest = total;
-                this.payForm.interest_amount = interest.toFixed(2);
-            }
-
-            let principal = Math.max(0, total - interest);
-            this.payForm.principal_amount = principal.toFixed(2);
-
-            let newRate = 0;
-            if (this.originalInterest > 0 && this.originalRate > 0) {
-                newRate = (interest / this.originalInterest) * this.originalRate;
-            } else if (Number(this.loan.principal_amount) > 0) {
-                newRate = (interest * 1200) / Number(this.loan.principal_amount);
-            } else {
-                newRate = (interest * 1200) / (parseFloat(this.payForm.principal_amount) || 1);
-            }
-
-            this.payForm.interest_rate = Number(newRate).toFixed(2);
+                    this.statusModal.timer = setTimeout(() => {
+                        this.closeStatusPopup();
+                    }, duration);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.isSubmitting = false;
+                this.showToast('A network error occurred while recalculating schedule.', 'error');
+            });
         },
         openPrepayModal() {
             this.prepayErrors = {};
@@ -1174,6 +1315,10 @@ function scheduleApp() {
                 return;
             }
 
+            this.isSubmitting = true;
+            const instNo = this.activeInst?.installment_no || '';
+            const formattedAmt = Number(this.payForm.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
             fetch(`{{ url('loans') }}/${this.loan.id}/pay-emi/${this.activeInst.id}`, {
                 method: 'POST',
                 headers: {
@@ -1185,23 +1330,45 @@ function scheduleApp() {
             })
             .then(async res => {
                 let data = await res.json();
+                this.isSubmitting = false;
                 if (!res.ok) {
                     if (data.errors && typeof data.errors === 'object') {
                         for (const [k, v] of Object.entries(data.errors)) {
                             this.payErrors[k] = Array.isArray(v) ? v[0] : v;
                         }
                     }
-                    let errMsg = data.error || data.message;
-                    this.showToast(errMsg || 'Failed to submit payment.', 'error');
+                    let errMsg = data.error || data.message || 'Failed to submit payment.';
+                    this.showToast(errMsg, 'error');
                 } else {
-                    this.showToast('Payment submitted successfully.');
                     this.payModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1200);
+                    this.statusModal = {
+                        open: true,
+                        badge: 'EMI PAYMENT RECORDED',
+                        title: 'EMI PAYMENT ADDED!',
+                        subtitle: 'Installment payment recorded successfully.',
+                        message: data.message || `Installment #${instNo} payment of ₹${formattedAmt} recorded successfully.`,
+                        progressWidth: 100,
+                        timer: null,
+                        interval: null
+                    };
+
+                    const duration = 3500;
+                    const step = 50;
+                    let elapsed = 0;
+                    this.statusModal.interval = setInterval(() => {
+                        elapsed += step;
+                        this.statusModal.progressWidth = Math.max(0, 100 - (elapsed / duration) * 100);
+                    }, step);
+
+                    this.statusModal.timer = setTimeout(() => {
+                        this.closeStatusPopup();
+                    }, duration);
                 }
             })
             .catch(err => {
                 console.error(err);
-                this.showToast('Network error occurred.', 'error');
+                this.isSubmitting = false;
+                this.showToast('A network error occurred while posting EMI payment.', 'error');
             });
         },
         submitPrepayForm() {
@@ -1244,6 +1411,9 @@ function scheduleApp() {
                 return;
             }
 
+            this.isSubmitting = true;
+            const formattedPrepayAmt = Number(this.prepayForm.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
             fetch(`{{ url('loans') }}/${this.loan.id}/prepay`, {
                 method: 'POST',
                 headers: {
@@ -1255,23 +1425,45 @@ function scheduleApp() {
             })
             .then(async res => {
                 let data = await res.json();
+                this.isSubmitting = false;
                 if (!res.ok) {
                     if (data.errors && typeof data.errors === 'object') {
                         for (const [k, v] of Object.entries(data.errors)) {
                             this.prepayErrors[k] = Array.isArray(v) ? v[0] : v;
                         }
                     }
-                    let errMsg = data.error || data.message;
-                    this.showToast(errMsg || 'Failed to apply prepayment.', 'error');
+                    let errMsg = data.error || data.message || 'Failed to apply prepayment.';
+                    this.showToast(errMsg, 'error');
                 } else {
-                    this.showToast('Prepayment applied and schedule rescheduled successfully.');
                     this.prepayModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1200);
+                    this.statusModal = {
+                        open: true,
+                        badge: 'PREPAYMENT RECORDED',
+                        title: 'PREPAYMENT APPLIED!',
+                        subtitle: 'Loan prepayment applied successfully.',
+                        message: data.message || `Prepayment of ₹${formattedPrepayAmt} applied and loan schedule updated successfully.`,
+                        progressWidth: 100,
+                        timer: null,
+                        interval: null
+                    };
+
+                    const duration = 3500;
+                    const step = 50;
+                    let elapsed = 0;
+                    this.statusModal.interval = setInterval(() => {
+                        elapsed += step;
+                        this.statusModal.progressWidth = Math.max(0, 100 - (elapsed / duration) * 100);
+                    }, step);
+
+                    this.statusModal.timer = setTimeout(() => {
+                        this.closeStatusPopup();
+                    }, duration);
                 }
             })
             .catch(err => {
                 console.error(err);
-                this.showToast('Network error occurred.', 'error');
+                this.isSubmitting = false;
+                this.showToast('A network error occurred while applying prepayment.', 'error');
             });
         }
     }

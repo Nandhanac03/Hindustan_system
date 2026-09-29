@@ -1,630 +1,532 @@
-<x-erp-layout title="Broker Payout Release Report" headerTitle="Broker Payout Release">
+<x-erp-layout title="Broker Statement & Payout Ledger" headerTitle="Brokerage Reports Center">
 
-<style>
-@media print {
-    @page {
-        size: landscape;
-        margin: 0;
-    }
-    *, *::before, *::after {
-        box-sizing: border-box !important;
-    }
-    html, body {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        font-size: 8pt !important;
-        padding: 6mm 8mm !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar {
-        display: none !important;
-    }
-    .print\:block {
-        display: block !important;
-    }
-    .print\:grid {
-        display: grid !important;
-    }
-    .print\:flex {
-        display: flex !important;
-    }
-    .print\:table {
-        display: table !important;
-    }
-    table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
-    thead {
-        display: table-header-group !important;
-    }
-    tr {
-        page-break-inside: avoid !important;
-    }
-    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
-        box-shadow: none !important;
-    }
-    .border-slate-200, .border-slate-100 {
-        border-color: #cbd5e1 !important;
-    }
-}
-</style>
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="brokerPayoutApp()" x-init="init()">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="brokerPayoutApp()">
-
-    <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
-    <div class="hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
-        <div class="flex items-center justify-between">
+    {{-- Top Header & Reports Export Bar --}}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
+        
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
-                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Brokerage &amp; Payout Intelligence</span>
-                </div>
-                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
-                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">BROKER PAYOUT RELEASE &amp; COMMISSION SETTLEMENT REPORT</h2>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Broker Statement & Payout Ledger</h1>
+                <p class="text-xs text-slate-500 font-medium mt-1">Track broker commission share, payouts released and current net balance owed.</p>
             </div>
-            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
-                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ date('d-M-Y') }}</span></div>
-                <div><span class="font-bold text-slate-400 uppercase">Scope:</span> <span class="font-bold text-[#a38c29]">All Registered Brokers</span></div>
-                <div><span class="font-bold text-slate-400 uppercase">Total Brokers:</span> <span class="font-mono font-bold text-slate-800">{{ count($brokerReports) }} Brokers</span></div>
-                <div><span class="font-bold text-slate-400 uppercase">Total Payable:</span> <span class="font-mono font-bold text-emerald-700">₹{{ number_format($totalPayable, 2) }}</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── EXECUTIVE PRINT KPI CARDS (ONLY VISIBLE IN PRINT/PDF) ── -->
-    <div class="hidden print:grid grid-cols-3 gap-3 mb-5">
-        <div class="border border-amber-300 rounded-xl p-3 bg-amber-50/40">
-            <span class="text-[8.5px] font-black uppercase text-amber-600 block">Accrued Commission (Locked)</span>
-            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹{{ number_format($totalAccrued, 2) }}</strong>
-            <span class="text-[8px] text-slate-500 font-bold">Pending customer full payment / EMI</span>
-        </div>
-        <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/40">
-            <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Payable Commission (Unlocked)</span>
-            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5">₹{{ number_format($totalPayable, 2) }}</strong>
-            <span class="text-[8px] text-emerald-600 font-bold">Ready for immediate disbursement</span>
-        </div>
-        <div class="border border-indigo-300 rounded-xl p-3 bg-indigo-50/40">
-            <span class="text-[8.5px] font-black uppercase text-indigo-600 block">Total Settled &amp; Paid</span>
-            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹{{ number_format($totalPaid, 2) }}</strong>
-            <span class="text-[8px] text-indigo-600 font-bold">Historical commission payouts</span>
-        </div>
-    </div>
-
-    {{-- Header & Navigation --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
-        <div>
-            <div class="flex items-center gap-2.5">
-                <a href="{{ route('brokers.index') }}" class="text-slate-400 hover:text-slate-700 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                </a>
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Broker Payout Release</h1>
-            </div>
-            <p class="text-xs text-slate-500 mt-1">Disburse commission payments from bank accounts to brokers. Commissions become payable only after full payment or EMI completion.</p>
-        </div>
-
-        <div class="flex items-center gap-2.5">
-            <a href="{{ route('brokers.index') }}" 
-               class="inline-flex items-center gap-2 rounded-xl border border-slate-250 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-2xs transition-all hover:bg-slate-50">
-                ← Back to Brokerage Dashboard
-            </a>
             
-            <button type="button" onclick="printCleanPDF()" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>EXPORT PDF</span>
-            </button>
-        </div>
-    </div>
-
-    {{-- Feedback Messages --}}
-    @if(session('status'))
-        <div class="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-xs font-bold text-emerald-800 uppercase tracking-wide flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ session('status') }}</span>
+            <div class="flex flex-wrap items-center gap-2.5">
+                {{-- Record Broker Payout Button --}}
+                <button @click="openPayoutModal()" 
+                        class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0">
+                    <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Record Broker Payout</span>
+                </button>
             </div>
-            <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
         </div>
-    @endif
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-250 rounded-2xl text-xs font-bold text-rose-800 uppercase tracking-wide flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>{{ session('error') }}</span>
-            </div>
-            <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
-        </div>
-    @endif
 
-    {{-- KPI Highlights Banner --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
-        {{-- Card 1: Locked Commission --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden border-l-4 border-l-[#a38c29]">
-            <div class="flex items-center justify-between">
+        @if(session('status'))
+            <div class="p-4 bg-[#a38c29]/10 border border-[#a38c29]/30 rounded-2xl flex items-center justify-between text-[#7c691c] text-xs font-bold shadow-2xs">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-8 h-8 rounded-xl bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 flex items-center justify-center font-bold shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    </span>
-                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider">LOCKED COMMISSION</span>
+                    <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ session('status') }}</span>
                 </div>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
-                    LOCKED
-                </span>
+                <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
             </div>
-            <div class="mt-3">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">₹{{ number_format($totalAccrued, 2) }}</span>
-                <span class="text-[11px] text-slate-400 font-medium mt-1 block">Commissions awaiting customer payment completion</span>
-            </div>
-        </div>
-
-        {{-- Card 2: Ready to Pay --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden border-l-4 border-l-emerald-500">
-            <div class="flex items-center justify-between">
+        @endif
+        @if(session('error'))
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between text-rose-800 text-xs font-bold shadow-2xs">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    </span>
-                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider">READY TO PAY</span>
+                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>{{ session('error') }}</span>
                 </div>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
-                    READY
-                </span>
+                <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
             </div>
-            <div class="mt-3">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">₹{{ number_format($totalPayable, 2) }}</span>
-                <span class="text-[11px] text-slate-400 font-medium mt-1 block">Unlocked commission ready for immediate payment</span>
-            </div>
-        </div>
+        @endif
 
-        {{-- Card 3: Total Paid Commission --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden border-l-4 border-l-rose-500">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center font-bold shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </span>
-                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider">TOTAL PAID COMMISSION</span>
-                </div>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
-                    SETTLED
-                </span>
-            </div>
-            <div class="mt-3">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">₹{{ number_format($totalPaid, 2) }}</span>
-                <span class="text-[11px] text-slate-400 font-medium mt-1 block">Total commission payments disbursed to date</span>
-            </div>
-        </div>
-    </div>
-
-    {{-- Master Broker Table --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden print:hidden">
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Broker Payout Settlement Dashboard</h2>
-                <p class="text-[10px] text-slate-450 mt-0.5">Summary of pending commissions per broker. Expand a broker to release payments selectively or disburse ready balances in bulk.</p>
-            </div>
-            <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs">Showing {{ count($brokerReports) }} Registered Broker(s)</span>
-        </div>
-
-        <style>
-            .broker-table thead th { border-color: #8a7522 !important; }
-        </style>
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left min-w-[1000px] broker-table border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-2 py-3 border w-12"></th>
-                        <th class="px-3 py-3 border text-left">Broker Name & Ledger Account</th>
-                        <th class="px-3 py-3 border">Default Rate</th>
-                        <th class="px-3 py-3 border">Locked Commission</th>
-                        <th class="px-3 py-3 border">Ready to Pay</th>
-                        <th class="px-3 py-3 border">Total Pending</th>
-                        <th class="px-3 py-3 border">Total Paid</th>
-                        <th class="px-3 py-3 border text-right">Settlement Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 broker-tbody">
-                    @forelse($brokerReports as $report)
-                        @php
-                            $rowBg = $loop->even ? 'bg-[#F6F3E9]/60' : 'bg-white';
-                        @endphp
-                        <tr class="master-row transition-colors text-center text-xs font-semibold text-slate-700 {{ $rowBg }} hover:bg-[#ebe5d0]/80">
-                            <td class="px-2 py-4 border text-center">
-                                <button @click="expanded = (expanded === {{ $report->broker->id }} ? null : {{ $report->broker->id }})" 
-                                        class="p-1.5 rounded-lg hover:bg-slate-200/80 text-slate-600 transition-all focus:outline-none cursor-pointer"
-                                        title="View itemized deals">
-                                    <svg class="w-4 h-4 transform transition-transform duration-300" 
-                                         :class="expanded === {{ $report->broker->id }} ? 'rotate-180 text-[#a38c29]' : ''" 
-                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
-                            </td>
-                            <td class="px-3 py-4 border text-left">
-                                <div class="font-bold text-slate-900 text-sm">{{ $report->broker->name }}</div>
-                                <div class="text-[9px] text-slate-500 font-mono mt-0.5 flex items-center gap-1.5">
-                                    <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-bold shadow-sm">A/C: {{ $report->broker->linkedAccount->code ?? 'N/A' }}</span>
-                                    <span>{{ $report->broker->linkedAccount->name ?? '' }}</span>
-                                </div>
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-bold text-slate-700">
-                                {{ number_format($report->broker->default_commission_pct, 2) }}%
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-semibold text-amber-700">
-                                ₹{{ number_format($report->accrued, 2) }}
-                                @if($report->accrued > 0)
-                                    <span class="text-[9px] text-amber-600/80 block font-sans font-normal mt-0.5">Awaiting EMI completion</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-bold text-emerald-700 text-sm">
-                                ₹{{ number_format($report->payable, 2) }}
-                                @if($report->payable > 0)
-                                    <span class="text-[9px] bg-white text-emerald-700 px-1.5 py-0.5 rounded font-sans font-bold border border-emerald-200 block mt-1 w-max mx-auto shadow-sm">Ready to Pay</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-black text-slate-900">
-                                ₹{{ number_format($report->total_pending, 2) }}
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-semibold text-slate-600">
-                                ₹{{ number_format($report->paid_out, 2) }}
-                            </td>
-                            <td class="px-3 py-4 border text-right">
-                                @if($report->payable > 0 || $report->total_pending > 0)
-                                    <button type="button" 
-                                            @click="openBulkPayout({{ $report->broker->id }}, '{{ addslashes($report->broker->name) }}', {{ (float)$report->payable }}, {{ (float)$report->total_pending }})"
-                                            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-xl text-xs transition-all shadow-md uppercase tracking-wide cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 00-2 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                        <span>Record Payment {{ $report->payable > 0 ? '₹'.number_format($report->payable, 0) : '' }}</span>
-                                    </button>
-                                @else
-                                    <span class="text-emerald-700 font-bold text-xs flex items-center justify-end gap-1">
-                                        <svg class="w-4 h-4 text-emerald-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        Fully Settled
-                                    </span>
-                                @endif
-                            </td>
-                        </tr>
-
-                        {{-- Expanded Detail Row --}}
-                        <tr x-show="expanded === {{ $report->broker->id }}" style="display: none;" class="bg-slate-50/70">
-                            <td colspan="8" class="px-6 py-4 border">
-                                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden p-4 space-y-4 text-left">
-                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                                        <div>
-                                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wide">Itemized Commission Deals — {{ $report->broker->name }}</span>
-                                            <p class="text-[10px] text-slate-450 mt-0.5">Locked commissions automatically unlock to "Payable" when the customer booking outstanding balance reaches zero.</p>
-                                        </div>
-                                        <span class="text-[10px] font-bold text-[#a38c29] bg-[#a38c29]/10 px-2.5 py-1 rounded-lg">{{ $report->broker->brokerages->count() }} total deal(s)</span>
-                                    </div>
-
-                                    <div class="overflow-x-auto">
-                                        <table class="w-full text-xs text-left border-collapse">
-                                            <thead>
-                                                <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                                                    <th class="px-3 py-3 border text-left">Booking & Date</th>
-                                                    <th class="px-3 py-3 border">Property & Unit</th>
-                                                    <th class="px-3 py-3 border">Customer</th>
-                                                    <th class="px-3 py-3 border text-right">Sale Value</th>
-                                                    <th class="px-3 py-3 border text-right">Commission Amount</th>
-                                                    <th class="px-3 py-3 border">EMI / Collection Progress</th>
-                                                    <th class="px-3 py-3 border">Status</th>
-                                                    <th class="px-3 py-3 border text-right">Disbursement Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-slate-100">
-                                                @forelse($report->broker->brokerages as $entry)
-                                                    @php
-                                                        $sale = $entry->sale;
-                                                        if (!$sale) continue;
-
-                                                        $status = $entry->status ?? 'pending';
-                                                        $commAmount = (float)($entry->commission_amount ?? 0);
-                                                        $paidAmount = (float)($entry->paid_amount ?? 0);
-                                                        $remainingPayable = max(0.0, $commAmount - $paidAmount);
-                                                        
-                                                        if ($remainingPayable <= 0.01 || $status === 'paid') {
-                                                            $statusLabel = 'Fully Paid';
-                                                            $badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold';
-                                                        } elseif ($paidAmount > 0 || $status === 'partial') {
-                                                            $statusLabel = 'Partially Paid';
-                                                            $badgeClass = 'bg-amber-100 text-amber-800 border-amber-300 font-extrabold';
-                                                        } else {
-                                                            if ($status === 'payable' || $sale->remaining_balance <= 0) {
-                                                                $statusLabel = 'Pending Payment';
-                                                                $badgeClass = 'bg-blue-100 text-blue-800 border-blue-300 font-extrabold';
-                                                            } else {
-                                                                $statusLabel = 'Pending (Locked)';
-                                                                $badgeClass = 'bg-slate-100 text-slate-700 border-slate-300 font-extrabold';
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    <tr class="hover:bg-slate-50/50 transition-colors text-center text-xs">
-                                                        <td class="px-3 py-3 border text-left">
-                                                            <div class="font-bold text-[#a38c29] font-mono">{{ $sale->sale_number ?? 'N/A' }}</div>
-                                                            <div class="text-[9px] text-slate-500 mt-0.5">{{ $sale->sale_date ? $sale->sale_date->format('d M Y') : 'N/A' }}</div>
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-center">
-                                                            <div class="font-bold text-slate-900">{{ $sale->project->name ?? 'N/A' }}</div>
-                                                            <div class="text-[10px] text-slate-550 mt-0.5">Unit: <span class="font-bold text-slate-800 font-mono">{{ $sale->unit->door_no ?? 'N/A' }}</span></div>
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-center font-semibold text-slate-700">
-                                                            {{ $sale->customer->name ?? 'Customer' }}
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-right font-mono font-bold text-slate-900">
-                                                            ₹{{ number_format($sale->total_amount ?? 0, 2) }}
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-right">
-                                                            <div class="font-mono font-black text-slate-900">₹{{ number_format($commAmount, 2) }}</div>
-                                                            @if($entry->commission_percent)
-                                                                <div class="text-[9px] text-slate-450 mt-0.5">@ {{ number_format($entry->commission_percent, 2) }}%</div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-center">
-                                                            @if($sale->remaining_balance <= 0)
-                                                                <span class="inline-flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300 shadow-2xs">
-                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                                    100% Paid / EMI Complete
-                                                                </span>
-                                                            @else
-                                                                <div class="space-y-1 mx-auto max-w-[120px]">
-                                                                    <div class="flex justify-between text-[10px]">
-                                                                        <span class="text-slate-600 font-semibold">Bal.</span>
-                                                                        <span class="font-mono font-bold text-rose-700">₹{{ number_format($sale->remaining_balance, 2) }}</span>
-                                                                    </div>
-                                                                    <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden border border-slate-350">
-                                                                        @php
-                                                                            $pctPaid = $sale->total_amount > 0 ? (($sale->total_amount - $sale->remaining_balance) / $sale->total_amount) * 100 : 0;
-                                                                        @endphp
-                                                                        <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, max(0, $pctPaid)) }}%;"></div>
-                                                                    </div>
-                                                                    <span class="text-[9px] text-slate-500 block text-center font-bold">{{ number_format($pctPaid, 0) }}% collected</span>
-                                                                </div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-center">
-                                                            <span class="border px-2.5 py-1 rounded-xl font-bold text-[9px] uppercase {{ $badgeClass }} inline-block shadow-2xs">
-                                                                {{ $statusLabel }}
-                                                            </span>
-                                                            @if($paidAmount > 0 && $remainingPayable > 0.01)
-                                                                <div class="text-[9px] text-slate-500 font-mono mt-1 font-bold">Paid: ₹{{ number_format($paidAmount, 2) }}</div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-3 py-3 border text-right">
-                                                            @if($remainingPayable > 0.01)
-                                                                <button type="button" 
-                                                                        @click="openDealPayout({{ $entry->id }}, '{{ addslashes($report->broker->name) }}', '{{ addslashes($sale->sale_number ?? '') }}', {{ $commAmount }}, {{ $paidAmount }}, {{ $remainingPayable }})"
-                                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] transition uppercase tracking-wide shadow-2xs cursor-pointer">
-                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                                                    <span>Pay Now</span>
-                                                                </button>
-                                                            @else
-                                                                <span class="text-[10px] text-emerald-700 font-bold inline-flex items-center gap-1">
-                                                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                                    Fully Settled
-                                                                </span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="8" class="px-3 py-6 text-center text-slate-500 italic">No commission deals linked to this broker.</td>
-                                                    </tr>
-                                                @endforelse
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-3 py-12 border text-center text-slate-500 italic">No broker records found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ── EXECUTIVE PRINTABLE BROKER PAYABLE TABLE (ONLY VISIBLE IN PRINT/PDF) ── -->
-    <div class="hidden print:block mb-8">
-        <div class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Broker Payout Settlement Summary</div>
-        <table class="w-full text-xs text-left border-collapse border border-slate-300">
-            <thead>
-                <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[9px]">
-                    <th class="px-2 py-2 border border-slate-300 w-8">#</th>
-                    <th class="px-3 py-2 border border-slate-300 text-left">Broker Name</th>
-                    <th class="px-3 py-2 border border-slate-300 text-left">Ledger Account</th>
-                    <th class="px-3 py-2 border border-slate-300">Default Rate</th>
-                    <th class="px-3 py-2 border border-slate-300 text-right">Accrued (Locked)</th>
-                    <th class="px-3 py-2 border border-slate-300 text-right">Payable (Unlocked)</th>
-                    <th class="px-3 py-2 border border-slate-300 text-right">Total Pending</th>
-                    <th class="px-3 py-2 border border-slate-300 text-right">Total Settled</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-                @forelse($brokerReports as $index => $report)
-                    @php
-                        $rowBg = $loop->even ? 'bg-[#F6F3E9]/40' : 'bg-white';
-                    @endphp
-                    <tr class="text-center text-[10px] font-semibold text-slate-800 {{ $rowBg }}">
-                        <td class="px-2 py-2 border border-slate-300 text-center font-mono">{{ $index + 1 }}</td>
-                        <td class="px-3 py-2 border border-slate-300 text-left font-bold text-slate-900">{{ $report->broker->name }}</td>
-                        <td class="px-3 py-2 border border-slate-300 text-left font-mono text-slate-600">
-                            {{ $report->broker->linkedAccount->code ?? 'N/A' }} - {{ $report->broker->linkedAccount->name ?? '' }}
-                        </td>
-                        <td class="px-3 py-2 border border-slate-300 text-center font-mono font-bold">{{ number_format($report->broker->default_commission_pct, 2) }}%</td>
-                        <td class="px-3 py-2 border border-slate-300 text-right font-mono text-amber-800">₹{{ number_format($report->accrued, 2) }}</td>
-                        <td class="px-3 py-2 border border-slate-300 text-right font-mono font-bold text-emerald-800">₹{{ number_format($report->payable, 2) }}</td>
-                        <td class="px-3 py-2 border border-slate-300 text-right font-mono font-black text-slate-900">₹{{ number_format($report->total_pending, 2) }}</td>
-                        <td class="px-3 py-2 border border-slate-300 text-right font-mono text-slate-700">₹{{ number_format($report->paid, 2) }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="px-3 py-4 border border-slate-300 text-center text-slate-500 italic">No broker records found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-            <tfoot>
-                <tr class="bg-slate-100 font-bold text-slate-900 text-[10px] border-t-2 border-slate-400">
-                    <td colspan="4" class="px-3 py-2.5 border border-slate-300 text-right uppercase tracking-wider">Grand Total Summary:</td>
-                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-amber-900">₹{{ number_format($totalAccrued, 2) }}</td>
-                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-emerald-900 font-black">₹{{ number_format($totalPayable, 2) }}</td>
-                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-slate-900 font-black">₹{{ number_format($totalAccrued + $totalPayable, 2) }}</td>
-                    <td class="px-3 py-2.5 border border-slate-300 text-right font-mono text-slate-800">₹{{ number_format($totalPaid, 2) }}</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-
-    {{-- Unified Record Broker Payout Modal --}}
-    <div x-show="payoutModal.open" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
-         style="display: none;" 
-         x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="payoutModal.open = false">
-            {{-- Header --}}
-            <div class="bg-[#2a2415] px-5 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-0.5">BROKER PAYOUT SETUP</span>
-                    <h3 class="font-black text-sm uppercase tracking-wider text-white">Record Broker Payout</h3>
-                </div>
-                <button type="button" @click="payoutModal.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
-            </div>
-
-            <form action="{{ route('brokers.payout') }}" method="POST" class="p-5 space-y-3.5 text-xs font-sans bg-white">
-                @csrf
-                <template x-if="payoutModal.isBulk">
-                    <input type="hidden" name="broker_id" :value="payoutModal.brokerId">
-                </template>
-                <template x-if="!payoutModal.isBulk">
-                    <input type="hidden" name="commission_entry_id" :value="payoutModal.commissionEntryId">
-                </template>
-
-                {{-- Summary Prompt Note --}}
-                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                    <template x-if="payoutModal.isBulk">
-                        <p class="text-xs text-slate-700 leading-snug">
-                            You are recording a bulk commission payout to <span class="font-extrabold text-slate-900" x-text="payoutModal.brokerName"></span>. Total pending: <span class="font-mono font-black text-emerald-700" x-text="formatCurrency(payoutModal.availablePayable)"></span>.
-                        </p>
-                    </template>
-                    <template x-if="!payoutModal.isBulk">
-                        <p class="text-xs text-slate-700 leading-snug">
-                            You are recording a commission payout for Sale <span class="font-bold text-[#a38c29]" x-text="'#' + payoutModal.saleNumber"></span> to <span class="font-extrabold text-slate-900" x-text="payoutModal.brokerName"></span>. Total commission: <span class="font-mono font-black text-emerald-700" x-text="formatCurrency(payoutModal.commAmount)"></span>.
-                        </p>
-                    </template>
-                </div>
-
-                {{-- Inputs Grid (2 Columns) --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    {{-- Customizable Payout Amount Input --}}
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                                PAYOUT AMOUNT (₹) <span class="text-rose-500">*</span>
-                            </label>
-                            <span class="text-[10px] text-slate-500 font-bold">
-                                Max: <span class="font-mono text-emerald-700" x-text="formatCurrency(payoutModal.availablePayable)"></span>
-                            </span>
+        {{-- 4 Metric KPI Cards Grid --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {{-- Card 1: Registered Brokers / Commission Info --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </div>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-xs font-black text-slate-400">₹</span>
-                            <input type="number" step="0.01" min="0.01" :max="payoutModal.availablePayable"
-                                   name="amount"
-                                   x-model.number="payoutModal.payoutAmount"
-                                   data-no-words="true"
-                                   required
-                                   class="w-full h-10 pl-7 pr-3 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 font-mono transition shadow-2xs"
-                                   placeholder="Enter custom payout amount...">
-                        </div>
-                        {{-- Payout Amount in Words Badge (Theme Golden Color) --}}
-                        <div x-show="payoutAmountInWords" 
-                             class="mt-1 px-2.5 py-1 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[10px] capitalize tracking-wide shadow-2xs">
-                            <span x-text="payoutAmountInWords"></span>
-                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">REGISTERED BROKERS</span>
                     </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        {{ count($brokers) }} Brokers
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Active Broker Network</p>
+                </div>
+            </div>
 
-                    {{-- Pay From Account Select (Custom Searchable Dropdown) --}}
-                    <div class="space-y-1.5 relative" @click.outside="modalBankOpen = false">
-                        <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                            PAY FROM ACCOUNT / SOURCE BANK ACCOUNT <span class="text-rose-500">*</span>
-                        </label>
-                        
-                        {{-- Hidden Required Input for Form Submission --}}
-                        <input type="hidden" name="company_bank_account_id" :value="payoutModal.selectedBankId" required>
+            {{-- Card 2: Earned Commission Share --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">EARNED COMMISSION SHARE</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="formatCurrency(totalCredit)">
+                        Rs. {{ number_format($totalAccrued + $totalPayable + $totalPaid, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total broker commission allocated to date</p>
+                </div>
+            </div>
 
-                        {{-- Dropdown Trigger Button --}}
-                        <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
-                             class="w-full h-10 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
-                            <template x-if="selectedBankAccount">
-                                <div class="flex items-center gap-2 truncate">
-                                    <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedBankAccount.bank_name"></span>
-                                    <span class="font-bold text-slate-800 truncate text-[11px]" x-text="selectedBankAccount.account_name || selectedBankAccount.bank_name"></span>
-                                    <span class="text-slate-500 text-[9px] font-mono shrink-0" x-text="'(A/C: ' + (selectedBankAccount.account_number || '—') + ')'"></span>
-                                </div>
-                            </template>
-                            <template x-if="!selectedBankAccount">
-                                <span class="text-slate-400 font-medium">Select Bank Account...</span>
-                            </template>
-                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ml-1" :class="modalBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- Card 3: Total Payouts Released --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL PAYOUTS RELEASED</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="formatCurrency(totalDebit)">
+                        Rs. {{ number_format($totalPaid, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total commission payouts released to date</p>
+                </div>
+            </div>
+
+            {{-- Card 4: Current Net Balance Owed --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">CURRENT NET PAYABLE BALANCE</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-[#a38c29] font-mono tracking-tight block group-hover:text-[#8e7a23] transition-colors duration-300" x-text="formatCurrency(totalRunningBalance)">
+                        Rs. {{ number_format($totalAccrued + $totalPayable, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Earned Commission Share - Payouts Released</p>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- Search & Filter Panel --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-1">
+                    
+                    {{-- 1. Searchable Broker Filter (Golden Theme Styling) --}}
+                    <div class="relative" @click.outside="brokerFilterOpen = false">
+                        <div @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
+                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
+                             :class="brokerFilterOpen || filters.broker_id ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="brokerFilterOpen || filters.broker_id ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="truncate font-extrabold" :class="filters.broker_id ? 'text-[#8a7522]' : 'text-slate-900'" x-text="selectedFilterBrokerName"></span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="brokerFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </div>
 
-                        {{-- Selected Bank Balance in Words Badge (Theme Golden Color - Direct Words Only) --}}
-                        <div x-show="selectedBankBalanceInWords" 
-                             class="mt-1 px-2.5 py-1 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[10px] capitalize tracking-wide shadow-2xs">
-                            <span x-text="selectedBankBalanceInWords"></span>
+                        {{-- Search Popover (Theme Golden Style) --}}
+                        <div x-show="brokerFilterOpen" x-transition
+                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                             style="display: none;">
+                            
+                            {{-- Search Header --}}
+                            <div class="p-2 bg-[#a38c29]/10 border-b border-[#a38c29]/20 sticky top-0 z-10">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <input type="text"
+                                           x-model="brokerFilterSearch"
+                                           x-ref="brokerFilterSearchInput"
+                                           placeholder="Search broker name..."
+                                           class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#a38c29]/40 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/30 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all">
+                                </div>
+                            </div>
+
+                            {{-- Broker Options List --}}
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="filters.broker_id = ''; brokerFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
+                                     :class="!filters.broker_id ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                    <span class="flex items-center gap-2">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        <span>All Brokers</span>
+                                    </span>
+                                    <span class="text-[9.5px] font-medium" :class="!filters.broker_id ? 'text-white/80' : 'text-slate-400'">({{ count($brokers) }} registered)</span>
+                                </div>
+                                
+                                <template x-for="b in filteredSearchableBrokers" :key="b.id">
+                                    <div @click="filters.broker_id = String(b.id); brokerFilterOpen = false; currentPage = 1"
+                                         class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
+                                         :class="String(filters.broker_id) === String(b.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                        <span x-text="b.name"></span>
+                                        <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-black shrink-0 ml-2"
+                                              :class="String(filters.broker_id) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
+                                              x-text="formatCurrency(b.payable_commission || 0)">
+                                        </span>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="filteredSearchableBrokers.length === 0" class="px-3.5 py-4 text-center text-slate-400 text-xs italic">
+                                    No brokers found matching query
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. Project Filter (First Project Selected by Default) --}}
+                    <div class="relative">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </div>
+                            <select x-model="filters.project_id" @change="currentPage = 1"
+                                    class="w-full h-[38px] pl-9 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                <option value="">All Projects</option>
+                                @foreach($projects as $proj)
+                                    <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Transaction Status Filter --}}
+                    <div class="relative">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <select x-model="filters.status" @change="currentPage = 1"
+                                    class="w-full h-[38px] pl-9 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                <option value="">All Statuses (Pending, Partial, Fully Paid)</option>
+                                <option value="pending">Pending (Unpaid / Payable Share)</option>
+                                <option value="partial">Partially Paid</option>
+                                <option value="paid">Fully Paid / Disbursed</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Reset Filters Button --}}
+                <div class="shrink-0 flex items-center">
+                    <button type="button" @click="resetFilters()"
+                            class="h-[38px] px-5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group">
+                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Section A: Individual Broker Statement of Account (Running Ledger Table) --}}
+        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
+            <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">A. Individual Broker Statement of Account (Running Ledger)</h2>
+                </div>
+                <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Transaction Date</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Broker Name</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Reference / Voucher No.</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Description / Transaction Type</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Commission Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Payout Released<br><span class="text-[9px] font-normal text-white/80">(Debit - Rs.)</span></th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Running Payable Balance<br><span class="text-[9px] font-normal text-white/80">(Rs.)</span></th>
+                            <th class="px-4 py-3.5 text-center text-white font-extrabold w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-slate-800">
+                        <template x-for="(entry, index) in pagedLedger" :key="index">
+                            <tr class="hover:bg-slate-50 transition-colors font-medium">
+                                <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100" x-text="formatDate(entry.date)"></td>
+                                <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="entry.broker_name"></td>
+                                <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100" x-text="entry.ref_no"></td>
+                                <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span x-text="entry.description"></span>
+                                        <template x-if="entry.payment_mode">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase border shadow-2xs"
+                                                  :class="{
+                                                      'bg-emerald-50 text-emerald-700 border-emerald-200': entry.payment_mode === 'Bank Transfer',
+                                                      'bg-blue-50 text-blue-700 border-blue-200': entry.payment_mode === 'Cheque',
+                                                      'bg-amber-50 text-amber-700 border-amber-200': entry.payment_mode === 'Cash',
+                                                      'bg-purple-50 text-purple-700 border-purple-200': entry.payment_mode === 'UPI / Online' || entry.payment_mode === 'Online'
+                                                  }"
+                                                  x-text="entry.payment_mode">
+                                            </span>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.credit)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.debit)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.running_balance)"></td>
+                                <td class="px-4 py-3.5 text-center whitespace-nowrap" @click.stop>
+                                    <div class="inline-flex items-center justify-center gap-1.5">
+                                        {{-- PDF / Print Receipt Icon Button (Matching Partner Statements Receipt Column) --}}
+                                        <button type="button" 
+                                                @click="downloadReceiptPdf(entry)" 
+                                                title="Download Receipt"
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] border border-[#09876B]/20 hover:border-[#09876B]/40 transition inline-flex items-center justify-center shadow-sm cursor-pointer"
+                                                aria-label="Download Receipt">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="filteredLedger.length === 0">
+                            <td colspan="8" class="px-5 py-8 text-center text-slate-400 font-semibold text-xs">
+                                No transactions found matching the selected filter criteria.
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
+                            <td colspan="4" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">TOTALS</td>
+                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalCredit)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                    SHOWING <span class="text-slate-900 font-black" x-text="filteredLedger.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0"></span> TO <span class="text-slate-900 font-black" x-text="Math.min(currentPage * pageSize, filteredLedger.length)"></span> OF <span class="text-slate-900 font-black" x-text="filteredLedger.length"></span> ENTRIES
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" 
+                            @click="if(currentPage > 1) currentPage--" 
+                            :disabled="currentPage <= 1" 
+                            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs">
+                        PREV
+                    </button>
+                    
+                    <template x-for="p in totalPages" :key="p">
+                        <button type="button" 
+                                @click="currentPage = p" 
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white font-black' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="w-8 h-8 rounded-lg text-xs transition-colors cursor-pointer"
+                                x-text="p">
+                        </button>
+                    </template>
+
+                    <button type="button" 
+                            @click="if(currentPage < totalPages) currentPage++" 
+                            :disabled="currentPage >= totalPages" 
+                            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs">
+                        NEXT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Record Broker Payout Modal --}}
+    <div x-show="payoutModalOpen" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
+         style="display: none;" 
+         x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="payoutModalOpen = false">
+            {{-- Header --}}
+            <div class="bg-[#2a2415] px-5 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
+                <div>
+                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-0.5">BROKER DISBURSEMENT SETUP</span>
+                    <h3 class="font-black text-sm uppercase tracking-wider text-white">Record Broker Payout</h3>
+                </div>
+                <button type="button" @click="payoutModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('brokers.payout') }}" method="POST" class="p-5 space-y-3.5 text-xs font-sans bg-white" @submit="validatePayoutForm($event)">
+                @csrf
+                <input type="hidden" name="broker_id" :value="modalData.broker_id">
+
+                {{-- Summary Prompt Note --}}
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <p class="text-xs text-slate-700 leading-snug">
+                        Record a commission payout to <span class="font-extrabold text-slate-900" x-text="selectedBrokerName"></span>. Total available payable balance: <span class="font-mono font-black text-emerald-700" x-text="formatCurrency(modalSelectedBrokerBalance)"></span>.
+                    </p>
+                </div>
+
+                {{-- Row 1: Select Broker & Payout Amount --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Select Broker --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">SELECT BROKER <span class="text-rose-500">*</span></label>
+                        <select name="broker_id_select" x-model="modalData.broker_id" @change="onModalBrokerChange()"
+                                class="w-full pl-3.5 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                            <option value="">-- Choose Broker --</option>
+                            @foreach($brokers as $b)
+                                <option value="{{ $b->id }}">{{ $b->name }} (Available: ₹{{ number_format($b->payable_commission, 2) }})</option>
+                            @endforeach
+                        </select>
+                        <span x-show="modalErrors.broker_id" x-text="modalErrors.broker_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+                    </div>
+
+                    {{-- Payout Amount --}}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYOUT AMOUNT (₹) <span class="text-rose-500">*</span></label>
+                            <span class="text-[10px] text-slate-500 font-bold">
+                                Max: <span class="font-mono text-emerald-700" x-text="formatCurrency(modalSelectedBrokerBalance)"></span>
+                            </span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-xs font-black text-slate-400">₹</span>
+                            <input type="number" step="0.01" min="0.01" :max="modalSelectedBrokerBalance"
+                                   name="amount"
+                                   x-model.number="modalData.amount"
+                                   @input="delete modalErrors.amount"
+                                   data-no-words="true"
+                                   required
+                                   class="w-full h-9 pl-7 pr-3 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 font-mono transition shadow-2xs"
+                                   placeholder="Enter payout amount...">
+                        </div>
+                        <span x-show="modalErrors.amount" x-text="modalErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+                        
+                        {{-- Amount in Words Badge (Theme Golden Color) --}}
+                        <div x-show="modalPayoutAmountInWords" 
+                             class="mt-1 px-2 py-0.5 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[9.5px] capitalize tracking-wide shadow-2xs">
+                            <span x-text="modalPayoutAmountInWords"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Row 2: Payment Mode & Pay From Account --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Payment Mode --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT MODE <span class="text-rose-500">*</span></label>
+                        <select name="payment_mode" x-model="modalData.payment_mode" @change="delete modalErrors.payment_mode"
+                                class="w-full pl-3.5 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                            <option value="Bank Transfer">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="UPI / Online">UPI / Online Payment</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+
+                    {{-- Pay From Account --}}
+                    <div class="space-y-1.5 relative" @click.outside="modalBankOpen = false">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            PAY FROM ACCOUNT <span class="text-rose-500">*</span>
+                        </label>
+                        
+                        <input type="hidden" name="company_bank_account_id" :value="modalData.company_bank_account_id">
+
+                        <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
+                             class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                            <template x-if="modalSelectedBankAccount">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="modalSelectedBankAccount.bank_name"></span>
+                                    <span class="font-bold text-slate-800 truncate text-[11px]" x-text="modalSelectedBankAccount.account_name || modalSelectedBankAccount.bank_name"></span>
+                                    <span class="text-slate-500 text-[9px] font-mono shrink-0" x-text="'(A/C: ' + (modalSelectedBankAccount.account_number || '—') + ')'"></span>
+                                </div>
+                            </template>
+                            <template x-if="!modalSelectedBankAccount">
+                                <span class="text-slate-400 font-medium">Select Company Bank Account...</span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="modalBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <span x-show="modalErrors.company_bank_account_id" x-text="modalErrors.company_bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+
+                        {{-- Bank Balance in Words --}}
+                        <div x-show="modalSelectedBankBalanceInWords" 
+                             class="mt-1 px-2 py-0.5 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[9.5px] capitalize tracking-wide shadow-2xs">
+                            <span x-text="modalSelectedBankBalanceInWords"></span>
                         </div>
 
-                        {{-- Dropdown Popover List --}}
+                        {{-- Dropdown List --}}
                         <div x-show="modalBankOpen" 
                              x-transition
                              class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
                              style="display: none;">
-                            
-                            {{-- Search Input inside Popover --}}
                             <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
-                                <div class="relative">
-                                    <input type="text" 
-                                           x-model="modalBankSearch" 
-                                           x-ref="modalBankSearchInput"
-                                           placeholder="Search bank name, account no..." 
-                                           class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                                    <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                </div>
+                                <input type="text" 
+                                       x-model="modalBankSearch" 
+                                       x-ref="modalBankSearchInput"
+                                       placeholder="Search bank name, account no..." 
+                                       class="w-full pl-3 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29]">
                             </div>
 
-                            {{-- Results List --}}
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
                                 <template x-for="acc in filteredModalBankAccounts" :key="acc.id">
-                                    <div @click="payoutModal.selectedBankId = String(acc.id); modalBankOpen = false; modalBankSearch = ''"
+                                    <div @click="modalData.company_bank_account_id = String(acc.id); modalBankOpen = false; modalBankSearch = ''"
                                          class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                                         :class="String(payoutModal.selectedBankId) === String(acc.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                         :class="String(modalData.company_bank_account_id) === String(acc.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
                                         <div class="flex flex-col min-w-0 pr-2">
                                             <div class="flex items-center gap-1.5 truncate">
                                                 <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
                                                 <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
                                             </div>
-                                            <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                            <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—')"></div>
                                         </div>
                                         <div class="text-right font-mono shrink-0">
-                                            <div class="text-[8px] text-slate-400 uppercase font-sans font-bold tracking-wider">Current Balance</div>
+                                            <div class="text-[8px] text-slate-400 uppercase font-sans font-bold">Balance</div>
                                             <div class="font-bold text-slate-800 text-[11px]" x-text="formatCurrency(acc.current_balance !== null && acc.current_balance !== undefined ? acc.current_balance : (acc.opening_balance || 0))"></div>
                                         </div>
                                     </div>
-                                </template>
-                                <template x-if="filteredModalBankAccounts.length === 0">
-                                    <div class="p-3 text-center text-xs text-slate-400 italic">No matching bank accounts found.</div>
                                 </template>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Live Insufficient Funds Error Banner --}}
+                {{-- Row 3: Payment Date & Reference / Cheque No. --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT DATE <span class="text-rose-500">*</span></label>
+                        <input type="date" name="date" x-model="modalData.date" required
+                               class="w-full px-3 py-2 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">TRANSACTION / CHEQUE / UTR NO.</label>
+                        <input type="text" name="reference_no" x-model="modalData.reference_no"
+                               placeholder="e.g. UTR1087349137 or Cheque Ref"
+                               class="w-full px-3 py-2 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                    </div>
+                </div>
+
+                {{-- Live Error Banner --}}
                 <template x-if="modalErrorMessage">
                     <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-700 text-xs font-bold shadow-2xs">
                         <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -632,55 +534,53 @@
                     </div>
                 </template>
 
-                {{-- Compact 2-Column Live Dynamic Balance Summary Box --}}
+                {{-- Live Dynamic Balance Box --}}
                 <div class="bg-slate-50/90 border border-slate-200/90 rounded-xl p-3 shadow-2xs text-xs">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                        {{-- Left Column: Bank Account Details --}}
                         <div class="space-y-1.5 md:border-r md:border-slate-200/80 md:pr-4">
-                            <template x-if="selectedBankAccount">
+                            <template x-if="modalSelectedBankAccount">
                                 <div class="space-y-1.5">
                                     <div class="flex items-center justify-between gap-2">
-                                        <span class="font-bold text-slate-600 text-[11px]">Bank Balance (<span x-text="selectedBankAccount?.bank_name"></span>)</span>
-                                        <span class="font-mono font-black text-blue-600 text-xs shrink-0" x-text="formatCurrency(selectedBankBalance)">Rs. 0</span>
+                                        <span class="font-bold text-slate-600 text-[11px]">Bank Balance (<span x-text="modalSelectedBankAccount?.bank_name"></span>)</span>
+                                        <span class="font-mono font-black text-blue-600 text-xs shrink-0" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="font-bold text-slate-600 text-[11px]">Bank Balance After Payout</span>
-                                        <span class="font-mono font-black text-xs shrink-0" :class="bankBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-800'" x-text="formatCurrency(bankBalanceAfterPayout)">Rs. 0</span>
+                                        <span class="font-mono font-black text-xs shrink-0" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-800'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
                                     </div>
                                 </div>
                             </template>
-                            <template x-if="!selectedBankAccount">
-                                <div class="text-slate-400 italic text-[11px]">Select a source bank account to calculate bank balance.</div>
+                            <template x-if="!modalSelectedBankAccount">
+                                <div class="text-slate-400 italic text-[11px]">Select a bank account to view balance.</div>
                             </template>
                         </div>
 
-                        {{-- Right Column: Broker Payable & Payout Details --}}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="font-bold text-slate-600 text-[11px]">Available Broker Balance</span>
-                                <span class="font-mono font-extrabold text-emerald-600 text-xs shrink-0" x-text="formatCurrency(payoutModal.availablePayable)">Rs. 0</span>
+                                <span class="font-mono font-extrabold text-emerald-600 text-xs shrink-0" x-text="formatCurrency(modalSelectedBrokerBalance)">Rs. 0</span>
                             </div>
                             <div class="flex items-center justify-between gap-2">
                                 <span class="font-bold text-slate-600 text-[11px]">Payout Amount</span>
-                                <span class="font-mono font-extrabold text-rose-500 text-xs shrink-0" x-text="formatCurrency(payoutModal.payoutAmount)">Rs. 0</span>
+                                <span class="font-mono font-extrabold text-rose-500 text-xs shrink-0" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
                             </div>
                             <div class="pt-1.5 border-t border-slate-200/80 flex items-center justify-between gap-2">
                                 <span class="font-black text-slate-900 uppercase tracking-wider text-[11px]">Broker Bal After Payout</span>
-                                <span class="font-mono font-black text-slate-900 text-sm shrink-0" x-text="formatCurrency(brokerBalanceAfterPayout)">Rs. 0</span>
+                                <span class="font-mono font-black text-slate-900 text-sm shrink-0" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
+                {{-- Actions --}}
                 <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-3">
-                    <button type="button" @click="payoutModal.open = false" 
+                    <button type="button" @click="payoutModalOpen = false" 
                             class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">
                         CANCEL
                     </button>
                     <button type="submit" 
-                            :disabled="Boolean(modalErrorMessage) || !payoutModal.selectedBankId"
-                            :class="Boolean(modalErrorMessage) || !payoutModal.selectedBankId ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8a7522] cursor-pointer shadow-md'"
+                            :disabled="Boolean(modalErrorMessage) || !modalData.broker_id || !modalData.company_bank_account_id"
+                            :class="Boolean(modalErrorMessage) || !modalData.broker_id || !modalData.company_bank_account_id ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8a7522] cursor-pointer shadow-md'"
                             class="px-5 py-2 text-white text-xs font-black uppercase tracking-wider rounded-xl transition inline-flex items-center gap-2">
                         <span>CONFIRM & POST PAYOUT</span>
                     </button>
@@ -692,156 +592,560 @@
 </div>
 
 <script>
+function numberToWords(val) {
+    let num = Math.floor(parseFloat(val) || 0);
+    if (!num || num <= 0) return '';
+    const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    function toWords(n) {
+        if (n < 20) return a[n];
+        let digit = n % 10;
+        return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+    }
+    let str = '';
+    let crore = Math.floor(num / 10000000);
+    num %= 10000000;
+    let lakh = Math.floor(num / 100000);
+    num %= 100000;
+    let thousand = Math.floor(num / 1000);
+    num %= 1000;
+    let hundred = Math.floor(num / 100);
+    let rest = num % 100;
+    if (crore > 0) str += toWords(crore) + ' Crore ';
+    if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+    if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+    if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+    if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+    return str.trim() + ' Rupees Only';
+}
+
 function brokerPayoutApp() {
     return {
-        expanded: null,
+        rawLedger: @json($runningLedger) || [],
+        brokers: @json($brokers) || [],
+        projects: @json($projects) || [],
         companyBankAccounts: @json($companyBankAccounts) || [],
+
+        brokerFilterOpen: false,
+        brokerFilterSearch: '',
+
+        filters: {
+            broker_id: '',
+            project_id: '',
+            status: '',
+            date_range: 'inception',
+            from_date: '',
+            to_date: ''
+        },
+
+        currentPage: 1,
+        pageSize: 15,
+
+        payoutModalOpen: false,
         modalBankOpen: false,
         modalBankSearch: '',
+        modalErrors: {},
+        modalData: {
+            broker_id: '',
+            company_bank_account_id: '',
+            amount: 0,
+            payment_mode: 'Bank Transfer',
+            reference_no: '',
+            date: new Date().toISOString().split('T')[0],
+            remarks: ''
+        },
+
+        init() {
+            if (this.companyBankAccounts.length > 0) {
+                this.modalData.company_bank_account_id = String(this.companyBankAccounts[0].id);
+            }
+            if (this.brokers.length > 0) {
+                this.modalData.broker_id = String(this.brokers[0].id);
+            }
+            if (this.projects.length > 0) {
+                this.filters.project_id = String(this.projects[0].id);
+            }
+        },
+
+        openPayoutModal(brokerId = null) {
+            this.modalErrors = {};
+            this.modalBankOpen = false;
+            this.modalBankSearch = '';
+            const firstBankId = (this.companyBankAccounts.length > 0) ? String(this.companyBankAccounts[0].id) : '';
+            
+            let selectedBroker = null;
+            if (brokerId) {
+                selectedBroker = this.brokers.find(b => String(b.id) === String(brokerId)) || null;
+            }
+            if (!selectedBroker) {
+                selectedBroker = (this.brokers.length > 0) ? this.brokers[0] : null;
+            }
+
+            const avail = selectedBroker ? Number(selectedBroker.payable_commission ?? selectedBroker.available_balance ?? 0) : 0;
+
+            this.modalData = {
+                broker_id: selectedBroker ? String(selectedBroker.id) : '',
+                company_bank_account_id: firstBankId,
+                amount: avail,
+                payment_mode: 'Bank Transfer',
+                reference_no: '',
+                date: new Date().toISOString().split('T')[0],
+                remarks: ''
+            };
+            this.payoutModalOpen = true;
+        },
+
+        onModalBrokerChange() {
+            delete this.modalErrors.broker_id;
+            delete this.modalErrors.amount;
+            this.modalData.amount = this.modalSelectedBrokerBalance;
+        },
+
+        validatePayoutForm(event) {
+            this.modalErrors = {};
+            let hasError = false;
+            if (!this.modalData.broker_id) {
+                this.modalErrors.broker_id = 'Broker selection is required';
+                hasError = true;
+            }
+            if (!this.modalData.company_bank_account_id) {
+                this.modalErrors.company_bank_account_id = 'Company bank account selection is required';
+                hasError = true;
+            }
+            if (!this.modalData.amount || this.modalData.amount <= 0) {
+                this.modalErrors.amount = 'Valid payout amount is required';
+                hasError = true;
+            } else if (this.isBankInsufficient) {
+                this.modalErrors.amount = 'Payout amount exceeds available bank balance';
+                hasError = true;
+            } else if (this.isBrokerInsufficient) {
+                this.modalErrors.amount = 'Payout amount exceeds available broker balance';
+                hasError = true;
+            }
+
+            if (hasError) {
+                event.preventDefault();
+                return false;
+            }
+        },
+
+        get selectedFilterBrokerName() {
+            if (!this.filters.broker_id) return 'All Brokers';
+            const b = (this.brokers || []).find(m => String(m.id) === String(this.filters.broker_id));
+            return b ? b.name : 'All Brokers';
+        },
+
+        get filteredSearchableBrokers() {
+            const list = this.brokers || [];
+            if (!this.brokerFilterSearch || !this.brokerFilterSearch.trim()) return list;
+            const q = this.brokerFilterSearch.toLowerCase().trim();
+            return list.filter(b => b.name && b.name.toLowerCase().includes(q));
+        },
+
+        get selectedBrokerName() {
+            if (!this.modalData.broker_id) return 'Not Selected';
+            const b = this.brokers.find(m => String(m.id) === String(this.modalData.broker_id));
+            return b ? b.name : 'Broker';
+        },
+
+        get modalSelectedBrokerBalance() {
+            if (!this.modalData.broker_id) return 0;
+            const b = this.brokers.find(m => String(m.id) === String(this.modalData.broker_id));
+            return b ? Number(b.payable_commission ?? b.available_balance ?? 0) : 0;
+        },
+
+        get modalSelectedBankAccount() {
+            if (!this.modalData.company_bank_account_id) return null;
+            return this.companyBankAccounts.find(b => String(b.id) === String(this.modalData.company_bank_account_id)) || null;
+        },
+
+        get modalSelectedBankBalance() {
+            const b = this.modalSelectedBankAccount;
+            if (!b) return 0;
+            return Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0));
+        },
+
+        get modalSelectedBankBalanceInWords() {
+            if (!this.modalSelectedBankAccount) return '';
+            return numberToWords(this.modalSelectedBankBalance);
+        },
+
+        get modalPayoutAmountInWords() {
+            return numberToWords(this.modalData.amount);
+        },
+
+        get modalBankBalanceAfterPayout() {
+            return this.modalSelectedBankBalance - (Number(this.modalData.amount) || 0);
+        },
+
+        get modalPayoutAmount() {
+            return Number(this.modalData.amount || 0);
+        },
+
+        get modalBalanceAfterPayout() {
+            return this.modalSelectedBrokerBalance - this.modalPayoutAmount;
+        },
+
+        get isBankInsufficient() {
+            if (!this.modalSelectedBankAccount) return false;
+            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > this.modalSelectedBankBalance;
+        },
+
+        get isBrokerInsufficient() {
+            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > (this.modalSelectedBrokerBalance + 0.01);
+        },
+
+        get modalErrorMessage() {
+            if (this.isBankInsufficient) {
+                return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available balance in ${this.modalSelectedBankAccount?.bank_name || 'selected bank'} (${this.formatCurrency(this.modalSelectedBankBalance)}).`;
+            }
+            if (this.isBrokerInsufficient) {
+                return `Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available broker balance (${this.formatCurrency(this.modalSelectedBrokerBalance)}).`;
+            }
+            return '';
+        },
 
         get filteredModalBankAccounts() {
             const accounts = this.companyBankAccounts || [];
-            if (!this.modalBankSearch || !this.modalBankSearch.trim()) {
-                return accounts;
-            }
+            if (!this.modalBankSearch || !this.modalBankSearch.trim()) return accounts;
             const q = this.modalBankSearch.toLowerCase().trim();
             return accounts.filter(b => 
                 (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
                 (b.account_name && b.account_name.toLowerCase().includes(q)) ||
-                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
-                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+                (b.account_number && b.account_number.toLowerCase().includes(q))
             );
         },
 
-        payoutModal: {
-            open: false,
-            brokerId: null,
-            commissionEntryId: null,
-            brokerName: '',
-            saleNumber: '',
-            isBulk: false,
-            commAmount: 0,
-            paidAmount: 0,
-            availablePayable: 0,
-            payoutAmount: 0,
-            selectedBankId: '',
+        get filteredLedger() {
+            let list = [...this.rawLedger];
+
+            if (this.filters.broker_id) {
+                list = list.filter(r => String(r.broker_id) === String(this.filters.broker_id));
+            }
+
+            if (this.filters.project_id) {
+                list = list.filter(r => r.project_id && String(r.project_id) === String(this.filters.project_id));
+            }
+
+            if (this.filters.status) {
+                const st = this.filters.status;
+                if (st === 'pending') {
+                    list = list.filter(r => (r.status === 'pending' || r.status === 'payable') && Number(r.credit || 0) > 0);
+                } else if (st === 'partial') {
+                    list = list.filter(r => r.status === 'partial');
+                } else if (st === 'paid') {
+                    list = list.filter(r => r.status === 'paid' || Number(r.debit || 0) > 0);
+                }
+            }
+
+            if (this.filters.from_date) {
+                list = list.filter(r => r.date >= this.filters.from_date);
+            }
+
+            if (this.filters.to_date) {
+                list = list.filter(r => r.date <= this.filters.to_date);
+            }
+
+            // Chronological sort: Date Ascending, then Credits before Debits, then ID
+            list.sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                if (a.credit > 0 && b.debit > 0) return -1;
+                if (a.debit > 0 && b.credit > 0) return 1;
+                return String(a.id).localeCompare(String(b.id));
+            });
+
+            // Running balance per broker
+            const brokerBalances = {};
+            return list.map(item => {
+                const bId = item.broker_id || 'other';
+                if (!brokerBalances[bId]) brokerBalances[bId] = 0;
+                brokerBalances[bId] += (Number(item.credit || 0) - Number(item.debit || 0));
+                return {
+                    ...item,
+                    running_balance: brokerBalances[bId]
+                };
+            });
         },
-        openBulkPayout(brokerId, brokerName, payableAmount, totalPending) {
-            const firstBankId = (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? String(this.companyBankAccounts[0].id) : '';
-            const avail = Number(payableAmount > 0 ? payableAmount : (totalPending || 0));
-            this.modalBankOpen = false;
-            this.modalBankSearch = '';
-            this.payoutModal = {
-                open: true,
-                brokerId: brokerId,
-                commissionEntryId: null,
-                brokerName: brokerName,
-                saleNumber: '',
-                isBulk: true,
-                commAmount: avail,
-                paidAmount: 0,
-                availablePayable: avail,
-                payoutAmount: avail,
-                selectedBankId: firstBankId,
+
+        get pagedLedger() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            return this.filteredLedger.slice(start, start + this.pageSize);
+        },
+
+        get totalPages() {
+            return Math.ceil(this.filteredLedger.length / this.pageSize) || 1;
+        },
+
+        get totalCredit() {
+            return this.filteredLedger.reduce((sum, r) => sum + Number(r.credit || 0), 0);
+        },
+
+        get totalDebit() {
+            return this.filteredLedger.reduce((sum, r) => sum + Number(r.debit || 0), 0);
+        },
+
+        get totalRunningBalance() {
+            return this.totalCredit - this.totalDebit;
+        },
+
+        handleDateRangeChange() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+
+            if (this.filters.date_range === 'this_month') {
+                const start = new Date(y, m, 1);
+                const end = new Date(y, m + 1, 0);
+                this.filters.from_date = start.toISOString().split('T')[0];
+                this.filters.to_date = end.toISOString().split('T')[0];
+            } else if (this.filters.date_range === 'this_quarter') {
+                const q = Math.floor(m / 3);
+                const start = new Date(y, q * 3, 1);
+                const end = new Date(y, q * 3 + 3, 0);
+                this.filters.from_date = start.toISOString().split('T')[0];
+                this.filters.to_date = end.toISOString().split('T')[0];
+            } else if (this.filters.date_range === 'this_fy') {
+                const fyStartYear = m >= 3 ? y : y - 1;
+                this.filters.from_date = `${fyStartYear}-04-01`;
+                this.filters.to_date = `${fyStartYear + 1}-03-31`;
+            } else if (this.filters.date_range === 'inception') {
+                this.filters.from_date = '';
+                this.filters.to_date = '';
+            }
+            this.currentPage = 1;
+        },
+
+        resetFilters() {
+            this.filters.broker_id = '';
+            this.filters.project_id = (this.projects.length > 0) ? String(this.projects[0].id) : '';
+            this.filters.status = '';
+            this.filters.date_range = 'inception';
+            this.filters.from_date = '';
+            this.filters.to_date = '';
+            this.brokerFilterOpen = false;
+            this.brokerFilterSearch = '';
+            this.currentPage = 1;
+        },
+
+        formatCurrency(num) {
+            const val = Number(num || 0);
+            return 'Rs. ' + Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        formatDate(d) {
+            if (!d) return '-';
+            const dt = new Date(d);
+            if (isNaN(dt.getTime())) return d;
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const day = String(dt.getDate()).padStart(2, '0');
+            const month = months[dt.getMonth()];
+            const year = dt.getFullYear();
+            return `${day}-${month}-${year}`;
+        },
+
+        downloadReceiptPdf(receipt) {
+            if (!receipt) return;
+
+            const escapeHtml = (str) => {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             };
-        },
-        openDealPayout(entryId, brokerName, saleNumber, commAmount, paidAmount, remainingPayable) {
-            const firstBankId = (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? String(this.companyBankAccounts[0].id) : '';
-            const avail = Number(remainingPayable !== undefined ? remainingPayable : (commAmount - paidAmount));
-            this.modalBankOpen = false;
-            this.modalBankSearch = '';
-            this.payoutModal = {
-                open: true,
-                brokerId: null,
-                commissionEntryId: entryId,
-                brokerName: brokerName,
-                saleNumber: saleNumber,
-                isBulk: false,
-                commAmount: Number(commAmount || 0),
-                paidAmount: Number(paidAmount || 0),
-                availablePayable: avail,
-                payoutAmount: avail,
-                selectedBankId: firstBankId,
-            };
-        },
-        get selectedBankAccount() {
-            if (!this.payoutModal.selectedBankId) return null;
-            return this.companyBankAccounts.find(b => String(b.id) === String(this.payoutModal.selectedBankId)) || null;
-        },
-        get selectedBankBalance() {
-            const b = this.selectedBankAccount;
-            if (!b) return 0;
-            return Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0));
-        },
-        get bankBalanceAfterPayout() {
-            return this.selectedBankBalance - (this.payoutModal.payoutAmount || 0);
-        },
-        get brokerBalanceAfterPayout() {
-            return this.payoutModal.availablePayable - (this.payoutModal.payoutAmount || 0);
-        },
-        get isBankInsufficient() {
-            if (!this.selectedBankAccount) return false;
-            return (this.payoutModal.payoutAmount || 0) > 0 && (this.payoutModal.payoutAmount || 0) > this.selectedBankBalance;
-        },
-        get modalErrorMessage() {
-            if (!this.payoutModal.payoutAmount || this.payoutModal.payoutAmount <= 0) {
-                return 'Please enter a valid payout amount greater than ₹0.00';
+
+            const isCredit = Number(receipt.credit || 0) > 0;
+            const amountNum = isCredit ? Number(receipt.credit || 0) : Number(receipt.debit || 0);
+            const amountFormatted = '₹' + amountNum.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let amountWords = numberToWords(amountNum);
+
+            const bObj = (this.brokers || []).find(b => String(b.id) === String(receipt.broker_id || ''));
+            const brokerName = escapeHtml(receipt.broker_name || (bObj ? bObj.name : 'Broker'));
+            
+            const bankName = escapeHtml(receipt.company_bank_account_name || 'General Bank Account');
+            const refNo = escapeHtml(receipt.ref_no || 'VOUCHER');
+            const dateVal = this.formatDate(receipt.date);
+            const payMode = escapeHtml(receipt.payment_mode || (isCredit ? 'Commission Allocation' : 'Bank Transfer'));
+            const description = escapeHtml(receipt.description || (isCredit ? 'Broker Commission Share Allocation' : 'Broker Payout Release'));
+
+            const printWin = window.open('', '_blank', 'width=940,height=960,top=30,left=100');
+            if (!printWin) {
+                alert('Please allow popups to preview and download the receipt PDF.');
+                return;
             }
-            if (this.payoutModal.payoutAmount > this.payoutModal.availablePayable + 0.01) {
-                return `Payout amount (${this.formatCurrency(this.payoutModal.payoutAmount)}) cannot exceed available remaining commission (${this.formatCurrency(this.payoutModal.availablePayable)}).`;
-            }
-            if (this.isBankInsufficient) {
-                const bankName = this.selectedBankAccount ? this.selectedBankAccount.bank_name : 'selected bank';
-                return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.payoutModal.payoutAmount)}) exceeds available balance in ${bankName} (${this.formatCurrency(this.selectedBankBalance)}).`;
-            }
-            return '';
-        },
-        formatCurrency(val) {
-            const n = Number(val || 0);
-            return 'Rs. ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        },
-        numberToWords(val) {
-            let num = Math.floor(parseFloat(val) || 0);
-            if (!num || num <= 0) return '';
-            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-            function toWords(n) {
-                if (n < 20) return a[n];
-                let digit = n % 10;
-                return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
-            }
-            let str = '';
-            let crore = Math.floor(num / 10000000);
-            num %= 10000000;
-            let lakh = Math.floor(num / 100000);
-            num %= 100000;
-            let thousand = Math.floor(num / 1000);
-            num %= 1000;
-            let hundred = Math.floor(num / 100);
-            let rest = num % 100;
-            if (crore > 0) str += toWords(crore) + ' Crore ';
-            if (lakh > 0) str += toWords(lakh) + ' Lakh ';
-            if (thousand > 0) str += toWords(thousand) + ' Thousand ';
-            if (hundred > 0) str += toWords(hundred) + ' Hundred ';
-            if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
-            return str.trim() + ' Rupees Only';
-        },
-        get selectedBankBalanceInWords() {
-            return this.numberToWords(this.selectedBankBalance);
-        },
-        get payoutAmountInWords() {
-            return this.numberToWords(this.payoutModal.payoutAmount);
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broker Receipt — ${refNo}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 24px 16px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .receipt-card {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1.5px solid #e2dcd0;
+            overflow: hidden;
+            box-shadow: 0 6px 24px -4px rgba(15, 23, 42, 0.08);
+        }
+        .company-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 22px 28px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1.5px solid #334155;
+        }
+        .company-name {
+            font-size: 15.5px;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .receipt-pill-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #e2b855;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .receipt-body { padding: 22px 24px; }
+        .meta-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background: #fcfbf8;
+            border: 1.5px solid #ebe5d8;
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+        }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 10px; font-weight: 700; color: #8a7522; text-transform: uppercase; letter-spacing: 0.5px; }
+        .meta-value { font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+        .amount-box {
+            background: #fdfbf7;
+            border: 2px solid #a38c29;
+            border-radius: 14px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .amount-lbl { font-size: 11px; font-weight: 800; color: #8a7522; text-transform: uppercase; }
+        .amount-val { font-size: 24px; font-weight: 900; color: #a38c29; font-family: 'JetBrains Mono', monospace; }
+        .words-val { font-size: 12px; font-weight: 700; color: #475569; margin-top: 4px; font-style: italic; }
+        .table-section { margin-bottom: 24px; }
+        .det-table { width: 100%; border-collapse: collapse; }
+        .det-table th { background: #1e293b; color: #ffffff; font-size: 10.5px; font-weight: 800; text-transform: uppercase; padding: 10px 14px; text-align: left; }
+        .det-table td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-size: 12px; font-weight: 600; }
+        .footer-sig { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; margin-top: 40px; pt-6; border-top: 1.5px dashed #cbd5e1; }
+        .sig-box { text-align: center; }
+        .sig-line { border-top: 1.5px solid #94a3b8; margin-top: 40px; margin-bottom: 6px; }
+        .sig-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div style="max-width: 860px; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 18px; font-weight: 800; color: #0f172a;">Broker Payout Voucher</div>
+        <button onclick="window.print()" style="background: #a38c29; color: #fff; font-weight: 800; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;">PRINT / SAVE PDF</button>
+    </div>
+
+    <div class="receipt-card">
+        <div class="company-hero">
+            <div>
+                <div class="company-name">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</div>
+                <div style="font-size: 10px; color: #94a3b8; font-weight: 600; margin-top: 2px;">BROKERAGE & COMMISSION MANAGEMENT SYSTEM</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="receipt-pill-title">${isCredit ? 'COMMISSION ALLOCATION RECEIPT' : 'BROKER PAYOUT DISBURSEMENT VOUCHER'}</div>
+                <div style="font-size: 12px; color: #ffffff; font-weight: 800; margin-top: 4px;">REF: ${refNo}</div>
+            </div>
+        </div>
+
+        <div class="receipt-body">
+            <div class="meta-strip">
+                <div class="meta-item">
+                    <span class="meta-label">TRANSACTION DATE</span>
+                    <span class="meta-value">${dateVal}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">BROKER NAME</span>
+                    <span class="meta-value">${brokerName}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">PAYMENT METHOD / BANK</span>
+                    <span class="meta-value">${payMode} (${bankName})</span>
+                </div>
+            </div>
+
+            <div class="amount-box">
+                <div>
+                    <div class="amount-lbl">${isCredit ? 'COMMISSION AMOUNT ALLOCATED' : 'NET PAYOUT AMOUNT RELEASED'}</div>
+                    <div class="words-val">${amountWords}</div>
+                </div>
+                <div class="amount-val">${amountFormatted}</div>
+            </div>
+
+            <div class="table-section">
+                <table class="det-table">
+                    <thead>
+                        <tr>
+                            <th>Voucher Ref</th>
+                            <th>Description / Particulars</th>
+                            <th style="text-align: right;">Amount (Rs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family: monospace; font-weight: 700;">${refNo}</td>
+                            <td>${description}</td>
+                            <td style="text-align: right; font-family: monospace; font-weight: 800; color: ${isCredit ? '#059669' : '#e11d48'};">${amountFormatted}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="footer-sig">
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">AUTHORIZED SIGNATORY (ACCOUNTS)</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">RECEIVER / BROKER SIGNATURE</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+            printWin.document.open();
+            printWin.document.write(html);
+            printWin.document.close();
         }
     };
-}
-
-function printCleanPDF() {
-    const origTitle = document.title;
-    document.title = '';
-    window.print();
-    setTimeout(() => {
-        document.title = origTitle;
-    }, 1000);
 }
 </script>
 

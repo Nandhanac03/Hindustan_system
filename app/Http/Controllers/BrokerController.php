@@ -276,6 +276,12 @@ class BrokerController extends Controller
                 }
             }
 
+            $broker->accrued_commission = $accrued;
+            $broker->payable_commission = $accrued + $payable;
+            $broker->paid_commission = $paid;
+            $broker->total_commission = $accrued + $payable + $paid;
+            $broker->available_balance = max(0.0, $accrued + $payable);
+
             $totalAccrued += $accrued;
             $totalPayable += $payable;
             $totalPaid += $paid;
@@ -296,9 +302,107 @@ class BrokerController extends Controller
             ->orderBy('bank_name')
             ->get();
 
+        $projects = Project::where('is_active', true)->orderBy('name')->get();
+
+        // Build Chronological Running Ledger for Brokers (Credits = Allocated Commissions, Debits = Payouts Released)
+        $runningLedger = collect();
+
+        foreach ($brokers as $broker) {
+            foreach ($broker->brokerages as $entry) {
+                $sale = $entry->sale;
+                $date = $sale?->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d') : $entry->created_at->format('Y-m-d');
+                $saleNo = $sale?->sale_number ?? ('COMM-#' . $entry->id);
+                $unitDoor = $sale?->unit?->door_no ? ("Unit " . $sale->unit->door_no) : '';
+                $customerName = $sale?->customer?->name ?? 'Customer';
+                $projectName = $sale?->project?->name ?? '';
+
+                $desc = "Commission Allocated for Sale #{$saleNo}" . ($projectName ? " ({$projectName}" . ($unitDoor ? " {$unitDoor}" : "") . " - {$customerName})" : "");
+
+                $runningLedger->push((object)[
+                    'id' => 'comm_' . $entry->id,
+                    'date' => $date,
+                    'broker_id' => $broker->id,
+                    'broker_name' => $broker->name,
+                    'project_id' => $sale?->project_id,
+                    'ref_no' => $saleNo,
+                    'description' => $desc,
+                    'payment_mode' => null,
+                    'credit' => (float)$entry->commission_amount,
+                    'debit' => 0.0,
+                    'status' => $entry->status ?? 'payable',
+                    'company_bank_account_name' => null,
+                ]);
+            }
+        }
+
+        $vouchers = \App\Models\Voucher::where('system_id', $systemId)
+            ->where('type', 'Payment')
+            ->where('voucher_number', 'LIKE', 'PV-BROKER-%')
+            ->with(['companyBankAccount', 'lines'])
+            ->get();
+
+        foreach ($vouchers as $v) {
+            $parts = explode('-', $v->voucher_number);
+            $bId = isset($parts[2]) ? (int)$parts[2] : null;
+            $broker = $bId ? $brokers->firstWhere('id', $bId) : null;
+            $brokerName = $broker?->name ?? 'Broker';
+
+            $debitAmount = (float)$v->lines->where('debit', '>', 0)->sum('debit');
+
+            $paymentMode = 'Bank Transfer';
+            if (stripos($v->narration ?? '', 'cheque') !== false) {
+                $paymentMode = 'Cheque';
+            } elseif (stripos($v->narration ?? '', 'cash') !== false) {
+                $paymentMode = 'Cash';
+            } elseif (stripos($v->narration ?? '', 'upi') !== false || stripos($v->narration ?? '', 'online') !== false) {
+                $paymentMode = 'UPI / Online';
+            }
+
+            // Extract project_id if narration refers to a specific sale number (e.g. #HID-AP-11A-JHAN)
+            $voucherProjectId = null;
+            if ($v->narration && preg_match('/#([A-Z0-9\-]+)/i', $v->narration, $matches)) {
+                $saleNo = trim($matches[1]);
+                $saleObj = \App\Models\Sale::where('sale_number', $saleNo)->first();
+                if ($saleObj) {
+                    $voucherProjectId = $saleObj->project_id;
+                }
+            }
+
+            // If not matched via narration, check if broker's sales belong to a single project
+            if (!$voucherProjectId && $bId) {
+                $brokerProjectIds = \App\Models\Brokerage::where('brokerages.broker_id', $bId)
+                    ->join('sales', 'brokerages.sale_id', '=', 'sales.id')
+                    ->pluck('sales.project_id')
+                    ->filter()
+                    ->unique();
+                if ($brokerProjectIds->count() === 1) {
+                    $voucherProjectId = $brokerProjectIds->first();
+                }
+            }
+
+            $runningLedger->push((object)[
+                'id' => 'vouch_' . $v->id,
+                'date' => $v->date ? \Carbon\Carbon::parse($v->date)->format('Y-m-d') : $v->created_at->format('Y-m-d'),
+                'broker_id' => $bId,
+                'broker_name' => $brokerName,
+                'project_id' => $voucherProjectId,
+                'ref_no' => $v->reference_no ?: $v->voucher_number,
+                'description' => $v->narration ?: ("Commission Payout Released to " . $brokerName),
+                'payment_mode' => $paymentMode,
+                'credit' => 0.0,
+                'debit' => $debitAmount,
+                'status' => 'paid',
+                'company_bank_account_name' => $v->companyBankAccount?->bank_name ?? 'Source Bank Account',
+            ]);
+        }
+
+        $runningLedger = $runningLedger->sortBy('date')->values();
+
         return view('brokers.payable-report', compact(
             'brokerReports',
             'brokers',
+            'projects',
+            'runningLedger',
             'totalAccrued',
             'totalPayable',
             'totalPaid',
@@ -313,6 +417,10 @@ class BrokerController extends Controller
             'broker_id'               => ['nullable', 'exists:brokers,id'],
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
             'amount'                  => ['nullable', 'numeric', 'min:0.01'],
+            'payment_mode'            => ['nullable', 'string', 'max:100'],
+            'reference_no'            => ['nullable', 'string', 'max:100'],
+            'date'                    => ['nullable', 'date'],
+            'remarks'                 => ['nullable', 'string', 'max:500'],
         ]);
 
         $systemId = Auth::user()->system_id;
@@ -419,14 +527,21 @@ class BrokerController extends Controller
                     // Decrement bank balance
                     $bankAccount->decrement('current_balance', $totalPaid);
 
+                    $paymentMode = $request->input('payment_mode', 'Bank Transfer');
+                    $customRefNo = $request->input('reference_no') ?: ('PV-BROKER-' . $broker->id . '-' . time());
+                    $payoutDate = $request->input('date') ?: now()->toDateString();
+                    $customRemarks = $request->input('remarks');
+                    $fullNarration = ($customRemarks ?: ($narration ?: 'Broker commission payout')) . " [Mode: {$paymentMode}]";
+
                     // Post Payment Voucher to ledger
                     $voucher = \App\Models\Voucher::create([
                         'system_id' => $systemId,
                         'company_bank_account_id' => $bankAccount->id,
-                        'voucher_number' => 'PV-BROKER-' . $broker->id . '-' . time(),
+                        'voucher_number' => $customRefNo,
                         'type' => 'Payment',
-                        'date' => now()->toDateString(),
-                        'narration' => $narration ?: 'Broker commission payout',
+                        'date' => $payoutDate,
+                        'narration' => $fullNarration,
+                        'reference_no' => $customRefNo,
                         'created_by' => $user->id,
                         'status' => 'Posted',
                     ]);

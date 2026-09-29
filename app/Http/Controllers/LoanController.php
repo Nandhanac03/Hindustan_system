@@ -297,6 +297,22 @@ class LoanController extends Controller
                     }
                 }
             }
+
+            // Auto-heal schedule if unpaid installments' principal sum deviates from current outstanding balance
+            if ($loan->status === 'Active') {
+                $unpaidSchedules = EmiSchedule::where('loan_id', $loan->id)
+                    ->where('status', '!=', 'Paid')
+                    ->get();
+
+                if ($unpaidSchedules->isNotEmpty()) {
+                    $sumUnpaidPrincipal = $unpaidSchedules->sum('principal_component');
+                    $currOutstanding = (float)$loan->outstanding_balance;
+
+                    if (abs($sumUnpaidPrincipal - $currOutstanding) > 0.50) {
+                        $this->reamortizeUnpaidInstallments($loan);
+                    }
+                }
+            }
         });
 
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
@@ -305,57 +321,118 @@ class LoanController extends Controller
         return view('loans.schedule', compact('loan', 'assetAccounts', 'companyBankAccounts'));
     }
 
+    /**
+     * Re-amortize all unpaid installments smoothly to ensure sum of principal equals current loan outstanding balance.
+     */
+    public function reamortizeUnpaidInstallments(Loan $loan, ?float $customRate = null): void
+    {
+        $unpaidInstallments = $loan->emiSchedules()
+            ->where('status', '!=', 'Paid')
+            ->orderBy('installment_no', 'asc')
+            ->get();
+
+        if ($unpaidInstallments->isEmpty()) {
+            return;
+        }
+
+        $remainingPrincipal = (float)$loan->outstanding_balance;
+        $k = $unpaidInstallments->count();
+        $rate = $customRate !== null ? $customRate : (float)$loan->interest_rate;
+        $r = ($rate / 12) / 100;
+        $isReducing = $loan->schedule_type === 'reducing_balance';
+
+        if ($isReducing) {
+            if ($r > 0 && $k > 0) {
+                $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
+            } else {
+                $newEmi = $k > 0 ? $remainingPrincipal / $k : 0;
+            }
+
+            $tempPrincipal = $remainingPrincipal;
+            foreach ($unpaidInstallments as $idx => $inst) {
+                $interestComp = round($tempPrincipal * $r, 2);
+                $principalComp = round($newEmi - $interestComp, 2);
+
+                if ($idx === $k - 1 || $tempPrincipal <= $principalComp) {
+                    $principalComp = round($tempPrincipal, 2);
+                    $emi = round($principalComp + $interestComp, 2);
+                    $tempPrincipal = 0;
+                } else {
+                    $emi = round($newEmi, 2);
+                    $tempPrincipal = round($tempPrincipal - $principalComp, 2);
+                }
+
+                $inst->update([
+                    'emi_amount'          => $emi,
+                    'principal_component' => $principalComp,
+                    'interest_component'  => $interestComp,
+                ]);
+            }
+        } else {
+            // Flat / Fixed Monthly Principal rate
+            $tenure = (int)$loan->tenure_months;
+            $fixedPrincipalComp = $tenure > 0 ? round((float)$loan->principal_amount / $tenure, 2) : round($remainingPrincipal / max(1, $k), 2);
+            $interestComp = round((float)$loan->principal_amount * $r, 2);
+            $emi = round($fixedPrincipalComp + $interestComp, 2);
+
+            foreach ($unpaidInstallments as $idx => $inst) {
+                $inst->update([
+                    'emi_amount'          => $emi,
+                    'principal_component' => $fixedPrincipalComp,
+                    'interest_component'  => $interestComp,
+                ]);
+            }
+        }
+    }
+
+    public function recalculateSchedule(Request $request, Loan $loan): JsonResponse
+    {
+        DB::transaction(function () use ($loan) {
+            $this->reamortizeUnpaidInstallments($loan);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Loan repayment schedule has been recalculated and synchronized successfully.'
+        ]);
+    }
+
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
     {
         $validated = $request->validate([
-            'amount'           => ['required', 'numeric', 'min:0.01'],
-            'paid_date'        => ['required', 'date'],
-            'bank_account_id'  => ['required'],
-            'other_charges'    => ['nullable', 'numeric', 'min:0'],
-            'principal_amount' => ['nullable', 'numeric', 'min:0'],
-            'interest_rate'    => ['nullable', 'numeric', 'min:0'],
-            'interest_amount'  => ['nullable', 'numeric', 'min:0'],
-            'reference_no'     => ['nullable', 'string', 'max:100'],
-            'payment_mode'     => ['nullable', 'string', 'max:50'],
-            'remarks'          => ['nullable', 'string'],
+            'amount'              => ['nullable', 'numeric', 'min:0.01'],
+            'paid_date'           => ['required', 'date'],
+            'bank_account_id'     => ['required'],
+            'other_charges'       => ['nullable', 'numeric', 'min:0'],
+            'principal_amount'    => ['required', 'numeric', 'min:0'],
+            'interest_rate'       => ['nullable', 'numeric', 'min:0'],
+            'interest_amount'     => ['required', 'numeric', 'min:0'],
+            'update_future_rate'  => ['nullable', 'boolean'],
+            'reference_no'        => ['nullable', 'string', 'max:100'],
+            'payment_mode'        => ['nullable', 'string', 'max:50'],
+            'remarks'             => ['nullable', 'string'],
         ]);
 
-        $amount        = (float)$validated['amount'];
-        $paidDate      = $validated['paid_date'];
-        $bankAccountId = $validated['bank_account_id'];
-        $otherCharges  = (float)($validated['other_charges'] ?? 0);
+        $principalAmount  = (float)$validated['principal_amount'];
+        $interestAmount   = (float)$validated['interest_amount'];
+        $otherCharges     = (float)($validated['other_charges'] ?? 0);
+        $amount           = round($principalAmount + $interestAmount, 2);
+        $paidDate         = $validated['paid_date'];
+        $bankAccountId    = $validated['bank_account_id'];
+        $updateFutureRate = filter_var($request->input('update_future_rate', false), FILTER_VALIDATE_BOOLEAN);
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
-        }
-
-        $principalAmount = isset($validated['principal_amount']) && $validated['principal_amount'] !== ''
-            ? min((float)$validated['principal_amount'], $amount)
-            : (float)$installment->principal_component;
-
-        $interestAmount = isset($validated['interest_amount']) && $validated['interest_amount'] !== ''
-            ? min((float)$validated['interest_amount'], $amount)
-            : max(0, round($amount - $principalAmount, 2));
-
-        if (round($principalAmount + $interestAmount, 2) > $amount) {
-            $principalAmount = max(0, round($amount - $interestAmount, 2));
         }
 
         $newInterestRate = isset($validated['interest_rate']) && $validated['interest_rate'] !== ''
             ? (float)$validated['interest_rate']
             : null;
 
-        $expectedTotal = round($principalAmount + $interestAmount, 2);
-        if (abs($amount - $expectedTotal) > 0.05) {
-            $amount = $expectedTotal;
-        }
-
         $updatedBalance = null;
 
-        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges, $amount, $principalAmount, $interestAmount, $newInterestRate, &$updatedBalance) {
+        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges, $amount, $principalAmount, $interestAmount, $newInterestRate, $updateFutureRate, &$updatedBalance) {
             $systemId = Auth::user()->system_id ?? 1;
-
-            $originalScheduledPrincipal = (float)$installment->getOriginal('principal_component');
 
             $installment->principal_component = $principalAmount;
             $installment->interest_component  = $interestAmount;
@@ -371,10 +448,10 @@ class LoanController extends Controller
 
             $loan->refresh();
             if ((float)$loan->outstanding_balance <= 0.01) {
-                $loan->update(['status' => 'Closed']);
+                $loan->update(['status' => 'Closed', 'outstanding_balance' => 0]);
             }
 
-            // Check if interest rate has changed during payment
+            // Update loan interest rate and future installments' interest if rate was revised in latest EMI
             $oldRate = (float)$loan->interest_rate;
             $rateChanged = ($newInterestRate !== null && abs($newInterestRate - $oldRate) > 0.001);
 
@@ -388,67 +465,7 @@ class LoanController extends Controller
                 ]);
 
                 $loan->update(['interest_rate' => $newInterestRate]);
-            }
-
-            // Reschedule future unpaid installments if rate changed OR principal amount differed
-            $principalVariance = abs($principalAmount - $originalScheduledPrincipal) > 0.01;
-
-            if (($rateChanged || $principalVariance) && $loan->status !== 'Closed') {
-                $futureUnpaid = $loan->emiSchedules()
-                    ->where('status', '!=', 'Paid')
-                    ->where('id', '!=', $installment->id)
-                    ->orderBy('installment_no', 'asc')
-                    ->get();
-
-                if ($futureUnpaid->isNotEmpty()) {
-                    $remainingPrincipal = (float)$loan->outstanding_balance;
-                    $k = $futureUnpaid->count();
-                    $effectiveRate = $rateChanged ? $newInterestRate : (float)$loan->interest_rate;
-                    $r = ($effectiveRate / 12) / 100;
-                    $isReducing = $loan->schedule_type === 'reducing_balance';
-
-                    if ($isReducing) {
-                        if ($r > 0) {
-                            $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
-                        } else {
-                            $newEmi = $remainingPrincipal / $k;
-                        }
-
-                        $tempPrincipal = $remainingPrincipal;
-                        foreach ($futureUnpaid as $idx => $futureInst) {
-                            $futureInterestComp = $tempPrincipal * $r;
-                            $futurePrincipalComp = $newEmi - $futureInterestComp;
-
-                            if ($tempPrincipal <= $futurePrincipalComp || $idx === $k - 1) {
-                                $futurePrincipalComp = $tempPrincipal;
-                                $futureEmi = $futurePrincipalComp + $futureInterestComp;
-                                $tempPrincipal = 0;
-                            } else {
-                                $futureEmi = $newEmi;
-                                $tempPrincipal -= $futurePrincipalComp;
-                            }
-
-                            $futureInst->update([
-                                'emi_amount'          => round($futureEmi, 2),
-                                'principal_component' => round($futurePrincipalComp, 2),
-                                'interest_component'  => round($futureInterestComp, 2),
-                            ]);
-                        }
-                    } else {
-                        // Flat rate
-                        $futurePrincipalComp = $remainingPrincipal / $k;
-                        $futureInterestComp = $remainingPrincipal * $r;
-                        $futureEmi = $futurePrincipalComp + $futureInterestComp;
-
-                        foreach ($futureUnpaid as $futureInst) {
-                            $futureInst->update([
-                                'emi_amount'          => round($futureEmi, 2),
-                                'principal_component' => round($futurePrincipalComp, 2),
-                                'interest_component'  => round($futureInterestComp, 2),
-                            ]);
-                        }
-                    }
-                }
+                $this->reamortizeUnpaidInstallments($loan, $newInterestRate);
             }
 
             $totalCredit = $amount + $otherCharges;
@@ -1009,7 +1026,7 @@ class LoanController extends Controller
             $r = $rate / 12 / 100;
         }
 
-        DB::transaction(function () use ($loan, $annualRate, $r, $period) {
+        DB::transaction(function () use ($loan, $annualRate, $period) {
             $oldRate = (float)$loan->interest_rate;
 
             LoanInterestLog::create([
@@ -1021,57 +1038,7 @@ class LoanController extends Controller
             ]);
 
             $loan->update(['interest_rate' => $annualRate]);
-
-            $unpaidInstallments = $loan->emiSchedules()->where('status', '!=', 'Paid')->get();
-            if ($unpaidInstallments->isEmpty()) {
-                return;
-            }
-
-            $remainingPrincipal = (float)$loan->outstanding_balance;
-            $k = $unpaidInstallments->count();
-            $isReducing = $loan->schedule_type === 'reducing_balance';
-
-            if ($isReducing) {
-                if ($r > 0) {
-                    $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
-                } else {
-                    $newEmi = $remainingPrincipal / $k;
-                }
-
-                $tempPrincipal = $remainingPrincipal;
-                foreach ($unpaidInstallments as $idx => $inst) {
-                    $interestComp = $tempPrincipal * $r;
-                    $principalComp = $newEmi - $interestComp;
-
-                    if ($tempPrincipal <= $principalComp || $idx === $k - 1) {
-                        $principalComp = $tempPrincipal;
-                        $emi = $principalComp + $interestComp;
-                        $tempPrincipal = 0;
-                    } else {
-                        $emi = $newEmi;
-                        $tempPrincipal -= $principalComp;
-                    }
-
-                    $inst->update([
-                        'emi_amount' => $emi,
-                        'principal_component' => $principalComp,
-                        'interest_component' => $interestComp,
-                    ]);
-                }
-            } else {
-                // Flat rate
-                $principalComp = $remainingPrincipal / $k;
-                $interestComp = $remainingPrincipal * $r;
-                $emi = $principalComp + $interestComp;
-
-                foreach ($unpaidInstallments as $inst) {
-                    $inst->update([
-                        'emi_amount' => $emi,
-                        'principal_component' => $principalComp,
-                        'interest_component' => $interestComp,
-                    ]);
-                }
-            }
+            $this->reamortizeUnpaidInstallments($loan, $annualRate);
         });
 
         return response()->json(['success' => true]);
