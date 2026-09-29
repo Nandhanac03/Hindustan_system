@@ -96,8 +96,8 @@
         <!-- 🏗️ Projects & Configuration -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Projects & Configuration</p>
         
-        <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') || Request::routeIs('partner-contributions.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') || Request::routeIs('partner-contributions.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/>
@@ -122,9 +122,6 @@
                 </a>
                 <a href="{{ route('partners.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partners.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Management
-                </a>
-                <a href="{{ route('partner-contributions.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partner-contributions.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Partner Contribution
                 </a>
             </div>
         </div>
@@ -409,8 +406,8 @@
         <!-- 💰 Project Profitability & Costing -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Finance & Analytics</p>
         
-        <div x-data="{ openProfitability: {{ Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openProfitability: {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
@@ -423,6 +420,9 @@
                 </svg>
             </button>
             <div x-show="openProfitability" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('partner-contributions.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partner-contributions.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Partner Contribution
+                </a>
                 <a href="{{ route('reports.partner_outflow_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_outflow_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Outflow Ledger
                 </a>
