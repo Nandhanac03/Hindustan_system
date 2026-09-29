@@ -47,7 +47,9 @@
                     <span> New Expense</span>
                 </button>
             </div>
-                <!-- Executive KPI Metric Cards (Matching Standard Executive Reference Format) -->
+        </div>
+
+        <!-- Executive KPI Metric Cards (Matching Standard Executive Reference Format) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {{-- Card 1: Total Expenses --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-600 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.15)] cursor-default h-full">
@@ -130,8 +132,8 @@
                         {{ $expenses->total() }}
                     </span>
                     <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Recorded Vouchers</p>
+                </div>
             </div>
-        </div>
         </div>
 
         {{-- Ultra-Clean Modern Light Search & Filter Panel (Matching Units Design) --}}
