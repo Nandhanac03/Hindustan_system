@@ -11,6 +11,7 @@ use App\Models\Account;
 use App\Models\Booking;
 use App\Models\Project;
 use App\Models\CompanyBankAccount;
+use App\Models\PaymentMode;
 use App\Models\ActivityLog;
 use App\Models\JournalVoucher;
 use App\Models\JournalEntry;
@@ -398,6 +399,8 @@ class BrokerController extends Controller
 
         $runningLedger = $runningLedger->sortBy('date')->values();
 
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('id')->get();
+
         return view('brokers.payable-report', compact(
             'brokerReports',
             'brokers',
@@ -406,7 +409,8 @@ class BrokerController extends Controller
             'totalAccrued',
             'totalPayable',
             'totalPaid',
-            'companyBankAccounts'
+            'companyBankAccounts',
+            'paymentModes'
         ));
     }
 

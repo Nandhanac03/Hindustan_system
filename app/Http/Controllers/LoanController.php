@@ -105,6 +105,7 @@ class LoanController extends Controller
         $accounts = Account::orderBy('name')->get();
         $assetAccounts = Account::where('type', 'Asset')->where('is_active', true)->orderBy('name')->get();
         $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
         $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $interestLogs = LoanInterestLog::with('loan')->latest()->get();
 
@@ -115,6 +116,7 @@ class LoanController extends Controller
             'banks',
             'assetAccounts',
             'companyBankAccounts',
+            'paymentModes',
             'overdueCount',
             'overdueAmount',
             'dueThisMonthCount',
@@ -318,7 +320,8 @@ class LoanController extends Controller
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
         $assetAccounts = \App\Models\Account::where('type', 'Asset')->where('is_active', true)->get();
         $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
-        return view('loans.schedule', compact('loan', 'assetAccounts', 'companyBankAccounts'));
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
+        return view('loans.schedule', compact('loan', 'assetAccounts', 'companyBankAccounts', 'paymentModes'));
     }
 
     /**
