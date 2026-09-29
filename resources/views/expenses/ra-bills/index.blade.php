@@ -595,11 +595,14 @@
                                 <td class="px-3 py-2.5 text-right font-mono font-black text-blue-900 bg-blue-50/30" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
                                 <td class="px-3 py-2.5 text-right font-mono font-black text-emerald-800 bg-emerald-50/30" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
                                 <td class="px-3 py-2.5 text-right">
-                                    <template x-if="entry.voucher_id">
-                                        <a :href="'/vouchers/' + entry.voucher_id + '/payment-voucher-print'" target="_blank"
+                                    <template x-if="entry.type === 'DISBURSEMENT' && entry.voucher_id">
+                                        <a :href="'{{ url('vouchers') }}/' + entry.voucher_id + '/payment-voucher-print'" target="_blank"
                                            class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9.5px] font-bold inline-flex items-center gap-1">
                                             <span>Voucher</span>
                                         </a>
+                                    </template>
+                                    <template x-if="entry.type === 'CLAIM'">
+                                        <span class="text-[10px] font-mono text-slate-500" x-text="entry.ref_no || 'Claim'"></span>
                                     </template>
                                 </td>
                             </tr>
@@ -676,7 +679,7 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-lg sm:max-w-xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="addModalOpen = false">
+        <div class="bg-white rounded-xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" style="max-width: 920px;" @click.away="addModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-5 py-3 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -797,7 +800,7 @@
 
     <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
     <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-lg sm:max-w-xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="verifyModalOpen = false">
+        <div class="bg-white rounded-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[94vh]" style="max-width: 920px;" @click.away="verifyModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-5 py-3 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -919,12 +922,23 @@
                 <!-- Row 4: Net RA Payable & Due Date -->
                 <div class="grid grid-cols-2 gap-3 items-start">
                     <div>
-                        <label class="block text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-1">NET RA PAYABLE (FINAL CLAIM)</label>
-                        <div class="w-full px-3 py-1.5 bg-blue-50/80 border border-blue-200 rounded-lg text-xs font-mono font-bold text-blue-950 flex items-center justify-between min-h-[34px]">
-                            <span x-text="'₹ ' + numberFormat(calculatedNet)"></span>
-                            <span class="text-[8.5px] font-bold text-blue-700 uppercase tracking-wider">Approved</span>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 truncate" title="NET RA PAYABLE (FINAL CLAIM)">
+                            NET RA PAYABLE (FINAL CLAIM)
+                        </label>
+
+                        <div class="w-full h-[38px] pl-7 pr-2.5 bg-gradient-to-r from-amber-50/60 via-white to-amber-50/40 border-2 border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-900 flex items-center justify-between shadow-2xs relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29] text-xs font-extrabold">₹</span>
+                            <span class="text-sm sm:text-[15px] font-mono font-black text-slate-900" x-text="numberFormat(calculatedNet)"></span>
+                            <span class="px-2 py-0.5 rounded text-[8.5px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-2xs flex items-center gap-1">
+                                <svg class="w-2.5 h-2.5 text-emerald-600 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                Approved
+                            </span>
                         </div>
-                        <p class="mt-0.5 text-[9.5px] font-semibold text-blue-600/80" x-text="'After Corr. (₹' + numberFormat(calculatedAfterCorrection) + ') + Add. (₹' + numberFormat(parseFloat(verifyAdditionalAmount) || 0) + ')'"></p>
+
+                        <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center" x-text="'After Corr. (₹' + numberFormat(calculatedAfterCorrection) + ') + Add. (₹' + numberFormat(parseFloat(verifyAdditionalAmount) || 0) + ')'"></p>
+
+                        {{-- Matched Amber Words Chip (Identical to other columns & modal create) --}}
+                        <div x-show="calculatedNet > 0" class="text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="window.convertNumberToWords ? window.convertNumberToWords(calculatedNet) : ''"></div>
                     </div>
 
                     <div>
@@ -1012,18 +1026,63 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
+                    <div class="relative" @click.outside="bankOpen = false">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="company_bank_account_id" x-model="selectedBankId" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                            @foreach($companyBankAccounts as $bank)
-                                <option value="{{ $bank->id }}">
-                                    {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="mt-1 flex items-center justify-between text-[10px]">
-                            <span class="text-slate-500 font-bold">Bank Balance:</span>
-                            <span class="font-mono font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" x-text="'₹' + numberFormat(getBankBalance())"></span>
+                        <input type="hidden" name="company_bank_account_id" :value="selectedBankId" required>
+
+                        <!-- Trigger Button -->
+                        <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
+                             class="w-full min-h-[42px] px-3.5 py-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                            <template x-if="selectedAccount">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="selectedAccount.bank_name"></span>
+                                    <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
+                                    <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
+                                </div>
+                            </template>
+                            <template x-if="!selectedAccount">
+                                <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-1.5" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+
+                        {{-- Selected Bank Balance in Words Only --}}
+                        <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedAccount">
+                            <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                            <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                  x-text="numberToWords(selectedAccount?.current_balance || 0)"></span>
+                        </div>
+
+                        <!-- Dropdown Search Menu -->
+                        <div x-show="bankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                            <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                <div class="relative">
+                                    <input type="text" x-ref="payBankSearch" x-model="bankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                    <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100">
+                                <template x-for="acc in filteredBankAccounts" :key="acc.id">
+                                    <div @click="selectedBankId = acc.id; bankOpen = false; bankSearch = ''"
+                                         class="px-3 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                         :class="selectedBankId == acc.id ? 'bg-[#a38c29]/10 font-bold border-l-4 border-l-[#a38c29]' : ''">
+                                        <div class="flex flex-col min-w-0 pr-2">
+                                            <div class="flex items-center gap-1.5 truncate">
+                                                <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                        </div>
+                                        <div class="text-right font-mono shrink-0">
+                                            <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                            <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="filteredBankAccounts.length === 0">
+                                    <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
@@ -1225,6 +1284,28 @@ function raBillManagement() {
         companyBankAccounts: @json($companyBankAccounts ?? []),
         selectedBankId: '{{ $companyBankAccounts->first()?->id ?? "" }}',
         disbursePaidAmount: '',
+        bankOpen: false,
+        bankSearch: '',
+
+        get selectedAccount() {
+            if (!this.selectedBankId) return null;
+            return (this.companyBankAccounts || []).find(b => String(b.id) === String(this.selectedBankId)) || null;
+        },
+
+        get filteredBankAccounts() {
+            if (!this.bankSearch) return this.companyBankAccounts || [];
+            const q = this.bankSearch.toLowerCase().trim();
+            return (this.companyBankAccounts || []).filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+
+        numberToWords(val) {
+            return window.convertNumberToWords ? window.convertNumberToWords(val) : '';
+        },
 
         init() {
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {

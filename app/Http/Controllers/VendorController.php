@@ -18,7 +18,7 @@ class VendorController extends Controller
     /**
      * Display listing of all vendors with search and KPI metrics
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\JsonResponse
     {
         $systemId = Auth::user()->system_id ?? 1;
 
@@ -74,6 +74,16 @@ class VendorController extends Controller
         $activeVendors = Vendor::where('system_id', $systemId)->where('is_active', true)->count();
         $gstinCount = Vendor::where('system_id', $systemId)->whereNotNull('gstin')->where('gstin', '!=', '')->count();
         $totalBilledAmount = SiteExpense::where('system_id', $systemId)->whereNotNull('vendor_id')->sum('net_amount');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'vendors' => $vendors,
+                'totalVendors' => $totalVendors,
+                'activeVendors' => $activeVendors,
+                'gstinCount' => $gstinCount,
+                'totalBilledAmount' => (float)$totalBilledAmount,
+            ]);
+        }
 
         return view('vendors.index', compact(
             'vendors',

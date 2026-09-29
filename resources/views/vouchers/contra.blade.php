@@ -166,10 +166,8 @@
             <!-- <span class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 <span>{{ date('d-M-Y') }}</span>
-            </span> -->
-
-            <!-- + ADD CONTRA ENTRY BUTTON (OPENS FORM MODAL) -->
-            <button type="button" @click="showFormModal = true" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 border border-[#a38c29]/40 cursor-pointer">
+                  <!-- + ADD CONTRA ENTRY BUTTON (OPENS FORM MODAL) -->
+            <button type="button" @click="initBankDefaults(); showFormModal = true" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 border border-[#a38c29]/40 cursor-pointer">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
                 <span>ADD CONTRA ENTRY</span>
             </button>
@@ -189,46 +187,80 @@
             </div>
 
             <div class="flex flex-col lg:flex-row items-center gap-3">
-                <!-- SELECT BANK ACCOUNT FILTER WITH FLAT GOLD SVG BANK ICON -->
-                <div class="w-full lg:flex-1 relative flex items-center">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
-                        </svg>
-                    </div>
-                    <select x-model="selectedBankFilter" @change="currentPage = 1"
-                            class="w-full h-11 pl-10 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition shadow-2xs truncate cursor-pointer appearance-none">
-                        <option value="">— All Bank Accounts —</option>
-                        @php
-                            /* Internal Contra Transfers (Menu 14) = Bank-to-Bank digital transfers only.
-                               List ALL bank accounts in the system (from Company Bank Accounts & Asset Ledger Accounts)
-                               Excludes Cash-in-Hand and Petty Cash boxes. */
-                            $bankFilterOptions = collect();
-                            if(isset($companyBankAccounts)) {
-                                foreach($companyBankAccounts as $b) {
-                                    $displayName = $b->bank_name;
-                                    if (!empty($b->account_number)) {
-                                        $displayName .= ' (A/c ...'.substr($b->account_number, -4).')';
-                                    }
-                                    $bankFilterOptions->push(['display' => $displayName, 'key' => $b->bank_name]);
-                                }
-                            }
-                            if(isset($assetAccounts)) {
-                                foreach($assetAccounts as $acc) {
-                                    $lower = strtolower($acc->name);
-                                    if (!str_contains($lower, 'cash') && !str_contains($lower, 'petty')) {
-                                        $bankFilterOptions->push(['display' => $acc->name, 'key' => $acc->name]);
-                                    }
-                                }
-                            }
-                            $bankFilterOptions = $bankFilterOptions->unique('key')->sortBy('display');
-                        @endphp
-                        @foreach($bankFilterOptions as $bankOpt)
-                            <option value="{{ $bankOpt['key'] }}">{{ $bankOpt['display'] }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <!-- SELECT BANK ACCOUNT FILTER (SEARCH & SELECT WITH BALANCES) -->
+                <div class="w-full lg:flex-1 relative" @click.outside="filterBankOpen = false">
+                    <!-- Trigger Button -->
+                    <button type="button" @click="filterBankOpen = !filterBankOpen; if(filterBankOpen) $nextTick(() => $refs.filterBankSearchInput?.focus())"
+                            class="w-full h-11 px-3.5 bg-slate-50 hover:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs cursor-pointer flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                            </svg>
+                            <template x-if="selectedFilterAccount">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px] shrink-0" x-text="selectedFilterAccount.bank_name"></span>
+                                    <span class="font-bold text-slate-800 truncate" x-text="selectedFilterAccount.account_name || selectedFilterAccount.bank_name"></span>
+                                    <span class="text-slate-500 text-[10px] font-mono shrink-0" :class="selectedFilterAccount.current_balance < 0 ? 'text-rose-600' : ''" x-text="'(₹ ' + numberFormat(selectedFilterAccount.current_balance) + ')'"></span>
+                                </div>
+                            </template>
+                            <template x-if="!selectedFilterAccount">
+                                <span class="text-slate-600 font-bold">— All Bank Accounts —</span>
+                            </template>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span x-show="selectedBankFilter" @click.stop="selectFilterBank('')" title="Clear bank filter"
+                                  class="w-5 h-5 rounded-full bg-slate-200 hover:bg-rose-100 hover:text-rose-600 text-slate-500 flex items-center justify-center text-[10px] transition cursor-pointer">✕</span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="filterBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Filter Search Popover -->
+                    <div x-show="filterBankOpen" x-transition class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-72" style="display: none;">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                            <div class="relative flex items-center">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-ref="filterBankSearchInput" x-model="filterBankSearch" placeholder="Search bank name, A/C no, branch..."
+                                       class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100">
+                            <!-- All Bank Accounts Option -->
+                            <div @click="selectFilterBank('')"
+                                 class="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition border-l-4"
+                                 :class="!selectedBankFilter ? 'bg-amber-50/60 font-bold border-l-[#a38c29]' : 'border-l-transparent'">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full" :class="!selectedBankFilter ? 'bg-[#a38c29]' : 'bg-slate-300'"></span>
+                                    <span class="font-extrabold text-slate-800">— All Bank Accounts —</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Show All</span>
+                            </div>
+
+                            <!-- Bank Accounts List -->
+                            <template x-for="acc in filteredFilterAccounts" :key="acc.id">
+                                <div @click="selectFilterBank(acc)"
+                                     class="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition border-l-4"
+                                     :class="(selectedFilterAccount && selectedFilterAccount.id == acc.id) ? 'bg-amber-50/60 font-bold border-l-[#a38c29]' : 'border-l-transparent'">
+                                    <div class="flex flex-col min-w-0 pr-2">
+                                        <div class="flex items-center gap-1.5 truncate">
+                                            <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                            <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                    </div>
+                                    <div class="text-right font-mono shrink-0">
+                                        <div class="text-[9px] text-slate-400 uppercase font-sans font-bold">Balance</div>
+                                        <div class="font-extrabold text-xs sm:text-sm" :class="acc.current_balance < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="filteredFilterAccounts.length === 0">
+                                <div class="p-4 text-center text-xs text-slate-400 italic">No matching bank accounts found.</div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
@@ -366,7 +398,7 @@
          x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
         
-        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border-0 flex flex-col max-h-[92vh]"
+        <div class="bg-[#232018] rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border-0 flex flex-col max-h-[92vh]"
              @click.away="showFormModal = false">
             
             <!-- MODAL HEADER BAR (EXACT UNIT SETUP MODAL HEADER STYLE: #232018 DARK CHARCOAL + GOLD BADGE) -->
@@ -403,77 +435,145 @@
                     </div>
                 </div>
 
-                <!-- Row 2: From Account & To Account (2 COLS) -->
+                <!-- Row 2: From Account & To Account (2 COLS) - Company Bank Accounts Only -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <!-- FROM ACCOUNT -->
-                    <div class="relative" x-data="{ openFromDropdown: false, fromSearch: '' }" @click.outside="openFromDropdown = false">
-                        <label class="text-[10px] font-extrabold uppercase tracking-widest block mb-1.5" :class="errors.credit_account_id ? 'text-rose-500' : 'text-slate-600'">From Account (Credit / Source) <span class="text-rose-500">*</span></label>
+                    <!-- FROM ACCOUNT (COMPANY BANK ACCOUNT ONLY) -->
+                    <div class="relative" @click.outside="fromBankOpen = false">
+                        <label class="text-[10px] font-extrabold uppercase tracking-widest block mb-1.5" :class="errors.credit_account_id ? 'text-rose-500' : 'text-slate-600'">
+                            From Account (Credit / Source) <span class="text-rose-500">*</span>
+                        </label>
                         
-                        <input type="hidden" name="credit_account_id" :value="form.credit_account_id" required>
+                        <input type="hidden" name="credit_account_id" :value="selectedFromAccount?.chart_account_id || selectedFromBankId" required>
+                        <input type="hidden" name="credit_bank_id" :value="selectedFromBankId">
 
-                        <button type="button" @click="openFromDropdown = !openFromDropdown"
-                                :class="errors.credit_account_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29] bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] flex items-center justify-between transition shadow-2xs cursor-pointer">
-                            <span class="truncate text-left" x-text="selectedFromAccountName || 'Select From Account...'">Select From Account...</span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform" :class="openFromDropdown ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </button>
-
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-[10px] font-bold text-[#a38c29] block" x-text="'Available Balance: ₹ ' + formatCurrency(fromAccountBalance)">Available Balance: ₹ 0</span>
-                            <span x-show="errors.credit_account_id" x-cloak class="text-[10px] font-bold text-rose-500 block" x-text="errors.credit_account_id"></span>
+                        <!-- Trigger Button -->
+                        <div @click="fromBankOpen = !fromBankOpen; if(fromBankOpen) $nextTick(() => $refs.fromBankSearchInput?.focus())"
+                             :class="errors.credit_account_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29]/60 bg-slate-50 hover:bg-white'"
+                             class="w-full min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] flex items-center justify-between transition shadow-2xs cursor-pointer border">
+                            <template x-if="selectedFromAccount">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px] shrink-0" x-text="selectedFromAccount.bank_name"></span>
+                                    <span class="font-bold text-slate-800 truncate" x-text="selectedFromAccount.account_name || selectedFromAccount.bank_name"></span>
+                                    <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedFromAccount.account_number ? '...' + selectedFromAccount.account_number.slice(-4) : '—') + ')'"></span>
+                                </div>
+                            </template>
+                            <template x-if="!selectedFromAccount">
+                                <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5 transition-transform" :class="fromBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
 
-                        <!-- SEARCH DROPDOWN POPOVER -->
-                        <div x-show="openFromDropdown" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-1.5 min-w-[280px]">
-                            <div class="relative flex items-center">
-                                <input type="text" x-model="fromSearch" placeholder="Search Bank Account..." autofocus
-                                       class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29]">
-                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        {{-- Selected Bank Balance in Words & Live Balance Display --}}
+                        <div class="mt-1.5 flex flex-col gap-0.5 text-[11px]" x-show="selectedFromAccount">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Selected Bank Balance:</span>
+                                <span class="font-extrabold font-mono text-xs" :class="selectedFromAccount?.current_balance < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="'₹ ' + numberFormat(selectedFromAccount?.current_balance || 0)"></span>
                             </div>
-                            <div class="max-h-48 overflow-y-auto space-y-1">
-                                <template x-for="acc in filteredFromAccounts(fromSearch)" :key="acc.id">
-                                    <button type="button" @click="selectFromAccount(acc); openFromDropdown = false; fromSearch = ''"
-                                            class="w-full text-left px-2.5 py-1.5 hover:bg-amber-50 rounded-lg text-xs font-bold text-slate-800 flex items-center justify-between gap-2 whitespace-nowrap transition cursor-pointer group">
-                                        <span x-text="acc.name" class="truncate text-left shrink group-hover:text-[#a38c29] transition"></span>
-                                        <span class="shrink-0 text-[10px] font-mono font-bold text-[#a38c29] bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 whitespace-nowrap" x-text="'₹ ' + formatCurrency(acc.balance)"></span>
-                                    </button>
+                            <span class="text-[10px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                  x-text="numberToWords(selectedFromAccount?.current_balance || 0)"></span>
+                        </div>
+                        <span x-show="errors.credit_account_id" x-cloak class="text-[10px] font-bold text-rose-500 block mt-1" x-text="errors.credit_account_id"></span>
+
+                        <!-- SEARCH DROPDOWN POPOVER -->
+                        <div x-show="fromBankOpen" x-transition class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-60" style="display: none;">
+                            <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                <div class="relative flex items-center">
+                                    <input type="text" x-ref="fromBankSearchInput" x-model="fromBankSearch" placeholder="Search bank name, account no, branch..."
+                                           class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100">
+                                <template x-for="acc in filteredFromAccounts" :key="acc.id">
+                                    <div @click="selectFromBank(acc)"
+                                         class="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition border-l-4 border-transparent"
+                                         :class="selectedFromBankId == acc.id ? 'bg-amber-50/60 font-bold border-l-[#a38c29]' : ''">
+                                        <div class="flex flex-col min-w-0 pr-2">
+                                            <div class="flex items-center gap-1.5 truncate">
+                                                <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                        </div>
+                                        <div class="text-right font-mono shrink-0">
+                                            <div class="text-[9px] text-slate-400 uppercase font-sans font-bold">Current Balance</div>
+                                            <div class="font-extrabold text-slate-800 text-xs sm:text-sm" :class="acc.current_balance < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="filteredFromAccounts.length === 0">
+                                    <div class="p-4 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
                                 </template>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TO ACCOUNT -->
-                    <div class="relative" x-data="{ openToDropdown: false, toSearch: '' }" @click.outside="openToDropdown = false">
-                        <label class="text-[10px] font-extrabold uppercase tracking-widest block mb-1.5" :class="errors.destination_account_id ? 'text-rose-500' : 'text-slate-600'">To Account (Debit / Destination) <span class="text-rose-500">*</span></label>
+                    <!-- TO ACCOUNT (COMPANY BANK ACCOUNT ONLY) -->
+                    <div class="relative" @click.outside="toBankOpen = false">
+                        <label class="text-[10px] font-extrabold uppercase tracking-widest block mb-1.5" :class="errors.destination_account_id ? 'text-rose-500' : 'text-slate-600'">
+                            To Account (Debit / Destination) <span class="text-rose-500">*</span>
+                        </label>
                         
-                        <input type="hidden" name="destination_account_id" :value="form.destination_account_id" required>
+                        <input type="hidden" name="destination_account_id" :value="selectedToAccount?.chart_account_id || selectedToBankId" required>
+                        <input type="hidden" name="destination_bank_id" :value="selectedToBankId">
 
-                        <button type="button" @click="openToDropdown = !openToDropdown"
-                                :class="errors.destination_account_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29] bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] flex items-center justify-between transition shadow-2xs cursor-pointer">
-                            <span class="truncate text-left" x-text="selectedToAccountName || 'Select To Account...'">Select To Account...</span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform" :class="openToDropdown ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </button>
-
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-[10px] font-bold text-[#a38c29] block" x-text="'Available Balance: ₹ ' + formatCurrency(toAccountBalance)">Available Balance: ₹ 0</span>
-                            <span x-show="errors.destination_account_id" x-cloak class="text-[10px] font-bold text-rose-500 block" x-text="errors.destination_account_id"></span>
+                        <!-- Trigger Button -->
+                        <div @click="toBankOpen = !toBankOpen; if(toBankOpen) $nextTick(() => $refs.toBankSearchInput?.focus())"
+                             :class="errors.destination_account_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29]/60 bg-slate-50 hover:bg-white'"
+                             class="w-full min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] flex items-center justify-between transition shadow-2xs cursor-pointer border">
+                            <template x-if="selectedToAccount">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px] shrink-0" x-text="selectedToAccount.bank_name"></span>
+                                    <span class="font-bold text-slate-800 truncate" x-text="selectedToAccount.account_name || selectedToAccount.bank_name"></span>
+                                    <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedToAccount.account_number ? '...' + selectedToAccount.account_number.slice(-4) : '—') + ')'"></span>
+                                </div>
+                            </template>
+                            <template x-if="!selectedToAccount">
+                                <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1.5 transition-transform" :class="toBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
 
-                        <!-- SEARCH DROPDOWN POPOVER -->
-                        <div x-show="openToDropdown" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-1.5 min-w-[280px]">
-                            <div class="relative flex items-center">
-                                <input type="text" x-model="toSearch" placeholder="Search Destination Account..." autofocus
-                                       class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29]">
-                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        {{-- Selected Bank Balance in Words & Live Balance Display --}}
+                        <div class="mt-1.5 flex flex-col gap-0.5 text-[11px]" x-show="selectedToAccount">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Selected Bank Balance:</span>
+                                <span class="font-extrabold font-mono text-xs" :class="selectedToAccount?.current_balance < 0 ? 'text-rose-600' : 'text-slate-800'" x-text="'₹ ' + numberFormat(selectedToAccount?.current_balance || 0)"></span>
                             </div>
-                            <div class="max-h-48 overflow-y-auto space-y-1">
-                                <template x-for="acc in filteredToAccounts(toSearch)" :key="acc.id">
-                                    <button type="button" @click="selectToAccount(acc); openToDropdown = false; toSearch = ''"
-                                            class="w-full text-left px-2.5 py-1.5 hover:bg-amber-50 rounded-lg text-xs font-bold text-slate-800 flex items-center justify-between gap-2 whitespace-nowrap transition cursor-pointer group">
-                                        <span x-text="acc.name" class="truncate text-left shrink group-hover:text-[#a38c29] transition"></span>
-                                        <span class="shrink-0 text-[10px] font-mono font-bold text-[#a38c29] bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 whitespace-nowrap" x-text="'₹ ' + formatCurrency(acc.balance)"></span>
-                                    </button>
+                            <span class="text-[10px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                  x-text="numberToWords(selectedToAccount?.current_balance || 0)"></span>
+                        </div>
+                        <span x-show="errors.destination_account_id" x-cloak class="text-[10px] font-bold text-rose-500 block mt-1" x-text="errors.destination_account_id"></span>
+
+                        <!-- SEARCH DROPDOWN POPOVER -->
+                        <div x-show="toBankOpen" x-transition class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-60" style="display: none;">
+                            <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                <div class="relative flex items-center">
+                                    <input type="text" x-ref="toBankSearchInput" x-model="toBankSearch" placeholder="Search bank name, account no, branch..."
+                                           class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100">
+                                <template x-for="acc in filteredToAccounts" :key="acc.id">
+                                    <div @click="selectToBank(acc)"
+                                         class="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition border-l-4 border-transparent"
+                                         :class="selectedToBankId == acc.id ? 'bg-amber-50/60 font-bold border-l-[#a38c29]' : ''">
+                                        <div class="flex flex-col min-w-0 pr-2">
+                                            <div class="flex items-center gap-1.5 truncate">
+                                                <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                        </div>
+                                        <div class="text-right font-mono shrink-0">
+                                            <div class="text-[9px] text-slate-400 uppercase font-sans font-bold">Current Balance</div>
+                                            <div class="font-extrabold text-slate-800 text-xs sm:text-sm" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="filteredToAccounts.length === 0">
+                                    <div class="p-4 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
                                 </template>
                             </div>
                         </div>
@@ -654,37 +754,41 @@ function contraVoucherWorkspace() {
         // Search, Bank Filter & Pagination State
         searchQuery: '',
         selectedBankFilter: '',
+        filterBankOpen: false,
+        filterBankSearch: '',
         currentPage: 1,
         pageSize: 10,
 
-        rawRecentContras: [
-            @if(isset($recentContras) && count($recentContras) > 0)
-                @foreach($recentContras as $v)
-                    @php
-                        $creditLine = $v->lines->firstWhere('credit', '>', 0);
-                        $debitLine = $v->lines->firstWhere('debit', '>', 0);
-                        $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
-                        $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
-                        $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
-                    @endphp
-                    {
-                        id: {{ $v->id }},
-                        voucher_number: '{{ $v->voucher_number }}',
-                        date: '{{ \Carbon\Carbon::parse($v->date)->format("d-M-Y") }}',
-                        from_account: '{{ addslashes($fromName) }}',
-                        to_account: '{{ addslashes($toName) }}',
-                        reference_no: '{{ addslashes($v->reference_no ?? "RTGS / UTR8821") }}',
-                        amount: {{ (float) $transferAmt }},
-                        narration: '{{ addslashes($v->narration ?? "Fund transfer for site payroll release") }}',
-                        project_name: '{{ addslashes($v->project?->name ?? "Global Treasury") }}'
-                    },
-                @endforeach
-            @else
-                { id: 1, voucher_number: 'JV-CONTRA-045', date: '31-Aug-2026', from_account: 'Karnataka Bank Current A/c (1001)', to_account: 'Petty Cash Account - Site Box (1020)', reference_no: 'Cheque #40012', amount: 25000, narration: 'Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box', project_name: 'Global Treasury' },
-                { id: 2, voucher_number: 'JV-CONTRA-044', date: '20-Aug-2026', from_account: 'HDFC Escrow Account (1002)', to_account: 'Karnataka Bank Operational A/c (1001)', reference_no: 'RTGS / UTR8821', amount: 1000000, narration: 'Site payroll release', project_name: 'Global Treasury' },
-                { id: 3, voucher_number: 'JV-CONTRA-043', date: '10-Aug-2026', from_account: 'Petty Cash Account - Site Box', to_account: 'SBI Current - 2005', reference_no: 'Cash Deposit Slip', amount: 15000, narration: 'Cash deposit to SBI', project_name: 'Global Treasury' },
-            @endif
-        ],
+        @php
+            $formattedContras = [];
+            if(isset($recentContras) && count($recentContras) > 0) {
+                foreach($recentContras as $v) {
+                    $creditLine = $v->lines->firstWhere('credit', '>', 0);
+                    $debitLine = $v->lines->firstWhere('debit', '>', 0);
+                    $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
+                    $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
+                    $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
+                    $formattedContras[] = [
+                        'id' => $v->id,
+                        'voucher_number' => (string)$v->voucher_number,
+                        'date' => \Carbon\Carbon::parse($v->date)->format('d-M-Y'),
+                        'from_account' => (string)$fromName,
+                        'to_account' => (string)$toName,
+                        'reference_no' => (string)($v->reference_no ?? 'RTGS / UTR8821'),
+                        'amount' => (float)$transferAmt,
+                        'narration' => (string)($v->narration ?? 'Fund transfer for site payroll release'),
+                        'project_name' => (string)($v->project?->name ?? 'Global Treasury'),
+                    ];
+                }
+            } else {
+                $formattedContras = [
+                    ['id' => 1, 'voucher_number' => 'JV-CONTRA-045', 'date' => '31-Aug-2026', 'from_account' => 'Karnataka Bank Current A/c (1001)', 'to_account' => 'Petty Cash Account - Site Box (1020)', 'reference_no' => 'Cheque #40012', 'amount' => 25000, 'narration' => 'Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box', 'project_name' => 'Global Treasury'],
+                    ['id' => 2, 'voucher_number' => 'JV-CONTRA-044', 'date' => '20-Aug-2026', 'from_account' => 'HDFC Escrow Account (1002)', 'to_account' => 'Karnataka Bank Operational A/c (1001)', 'reference_no' => 'RTGS / UTR8821', 'amount' => 1000000, 'narration' => 'Site payroll release', 'project_name' => 'Global Treasury'],
+                    ['id' => 3, 'voucher_number' => 'JV-CONTRA-043', 'date' => '10-Aug-2026', 'from_account' => 'Petty Cash Account - Site Box', 'to_account' => 'SBI Current - 2005', 'reference_no' => 'Cash Deposit Slip', 'amount' => 15000, 'narration' => 'Cash deposit to SBI', 'project_name' => 'Global Treasury'],
+                ];
+            }
+        @endphp
+        rawRecentContras: {!! json_encode($formattedContras) !!},
 
         form: {
             date: '{{ date("Y-m-d") }}',
@@ -701,55 +805,190 @@ function contraVoucherWorkspace() {
         selectedFromAccountName: '',
         selectedToAccountName: '',
 
-        // Populate From & To Accounts with cash tagging
-        rawFromAccounts: [
-            @foreach($assetAccounts as $acc)
-                {
-                    id: {{ $acc->id }},
-                    name: '{{ addslashes($acc->name) }}',
-                    balance: {{ (float) ($acc->current_balance ?? 0) }},
-                    is_cash: {{ (str_contains(strtolower($acc->name), 'cash') || str_contains(strtolower($acc->name), 'petty')) ? 'true' : 'false' }}
-                },
-            @endforeach
-        ],
+        // Company Bank Accounts Master
+        @php
+            $formattedCompanyBanks = [];
+            foreach($companyBankAccounts as $b) {
+                $formattedCompanyBanks[] = [
+                    'id' => $b->id,
+                    'chart_account_id' => $b->chart_account_id ?? $b->id,
+                    'bank_name' => (string)$b->bank_name,
+                    'account_name' => (string)($b->account_name ?? $b->bank_name),
+                    'account_number' => (string)($b->account_number ?? ''),
+                    'branch_name' => (string)($b->branch_name ?? ''),
+                    'current_balance' => (float)($b->calculated_balance ?? $b->current_balance ?? 0),
+                ];
+            }
+        @endphp
+        companyBankAccounts: {!! json_encode($formattedCompanyBanks) !!},
 
-        rawToAccounts: [
-            @foreach($assetAccounts as $acc)
-                {
-                    id: {{ $acc->id }},
-                    name: '{{ addslashes($acc->name) }}',
-                    balance: {{ (float) ($acc->current_balance ?? 0) }},
-                    is_cash: {{ (str_contains(strtolower($acc->name), 'cash') || str_contains(strtolower($acc->name), 'petty')) ? 'true' : 'false' }}
-                },
-            @endforeach
-        ],
-
+        fromBankOpen: false,
+        fromBankSearch: '',
+        toBankOpen: false,
+        toBankSearch: '',
+        selectedFromBankId: '',
+        selectedToBankId: '',
         fromAccountBalance: 0,
         toAccountBalance: 0,
         projectName: '',
 
-        filteredFromAccounts(query) {
-            let list = this.rawFromAccounts;
-            if (this.transactionType === 'bank_to_bank' || this.transactionType === 'cash_withdrawal') {
-                list = list.filter(a => !a.is_cash);
-            } else if (this.transactionType === 'cash_deposit') {
-                list = list.filter(a => a.is_cash);
-            }
-            if (!query || query.trim() === '') return list;
-            const q = query.toLowerCase().trim();
-            return list.filter(a => a.name.toLowerCase().includes(q));
+        get selectedFilterAccount() {
+            if (!this.selectedBankFilter) return null;
+            const b = this.selectedBankFilter.toLowerCase().trim();
+            return this.companyBankAccounts.find(acc => 
+                acc.bank_name.toLowerCase() === b ||
+                (acc.account_name && acc.account_name.toLowerCase() === b)
+            ) || null;
         },
 
-        filteredToAccounts(query) {
-            let list = this.rawToAccounts;
-            if (this.transactionType === 'bank_to_bank' || this.transactionType === 'cash_deposit') {
-                list = list.filter(a => !a.is_cash);
-            } else if (this.transactionType === 'cash_withdrawal') {
-                list = list.filter(a => a.is_cash);
+        get filteredFilterAccounts() {
+            let list = this.companyBankAccounts;
+            if (!this.filterBankSearch) return list;
+            const q = this.filterBankSearch.toLowerCase().trim();
+            return list.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+
+        selectFilterBank(acc) {
+            if (!acc) {
+                this.selectedBankFilter = '';
+            } else {
+                this.selectedBankFilter = acc.bank_name;
             }
-            if (!query || query.trim() === '') return list;
-            const q = query.toLowerCase().trim();
-            return list.filter(a => a.name.toLowerCase().includes(q));
+            this.filterBankOpen = false;
+            this.filterBankSearch = '';
+            this.currentPage = 1;
+        },
+
+        initBankDefaults() {
+            if (this.companyBankAccounts && this.companyBankAccounts.length > 0) {
+                if (!this.selectedFromBankId) {
+                    this.selectFromBank(this.companyBankAccounts[0]);
+                }
+                if (!this.selectedToBankId) {
+                    if (this.companyBankAccounts.length > 1) {
+                        this.selectToBank(this.companyBankAccounts[1]);
+                    } else {
+                        this.selectToBank(this.companyBankAccounts[0]);
+                    }
+                }
+            }
+        },
+
+        get selectedFromAccount() {
+            return this.companyBankAccounts.find(b => b.id == this.selectedFromBankId) || null;
+        },
+
+        get selectedToAccount() {
+            return this.companyBankAccounts.find(b => b.id == this.selectedToBankId) || null;
+        },
+
+        get filteredFromAccounts() {
+            let list = this.companyBankAccounts;
+            if (!this.fromBankSearch) return list;
+            const q = this.fromBankSearch.toLowerCase().trim();
+            return list.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+
+        get filteredToAccounts() {
+            let list = this.companyBankAccounts;
+            if (!this.toBankSearch) return list;
+            const q = this.toBankSearch.toLowerCase().trim();
+            return list.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+
+        selectFromBank(acc) {
+            this.selectedFromBankId = acc.id;
+            this.form.credit_account_id = acc.chart_account_id || acc.id;
+            this.selectedFromAccountName = acc.bank_name;
+            this.fromAccountBalance = acc.current_balance;
+            this.fromBankOpen = false;
+            this.fromBankSearch = '';
+            delete this.errors.credit_account_id;
+            if (this.selectedToBankId && this.selectedToBankId == acc.id) {
+                this.errors.destination_account_id = 'Source and destination cannot be the same bank account.';
+            } else if (this.errors.destination_account_id === 'Source and destination cannot be the same bank account.') {
+                delete this.errors.destination_account_id;
+            }
+        },
+
+        selectToBank(acc) {
+            this.selectedToBankId = acc.id;
+            this.form.destination_account_id = acc.chart_account_id || acc.id;
+            this.selectedToAccountName = acc.bank_name;
+            this.toAccountBalance = acc.current_balance;
+            this.toBankOpen = false;
+            this.toBankSearch = '';
+            delete this.errors.destination_account_id;
+            if (this.selectedFromBankId && this.selectedFromBankId == acc.id) {
+                this.errors.destination_account_id = 'Source and destination cannot be the same bank account.';
+            }
+        },
+
+        numberFormat(val) {
+            let n = parseFloat(val) || 0;
+            return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        formatCurrency(val) {
+            return this.numberFormat(val);
+        },
+
+        numberToWords(val) {
+            let num = parseFloat(val) || 0;
+            if (num === 0) return 'Zero Rupees Only';
+            let prefix = '';
+            if (num < 0) {
+                prefix = '(Negative / Overdraft) ';
+                num = Math.abs(num);
+            }
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function toWords(n) {
+                if (n < 20) return a[n];
+                let digit = n % 10;
+                return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+            }
+
+            let str = '';
+            let crore = Math.floor(integerPart / 10000000);
+            integerPart %= 10000000;
+            let lakh = Math.floor(integerPart / 100000);
+            integerPart %= 100000;
+            let thousand = Math.floor(integerPart / 1000);
+            integerPart %= 1000;
+            let hundred = Math.floor(integerPart / 100);
+            let rest = integerPart % 100;
+
+            if (crore > 0) str += toWords(crore) + ' Crore ';
+            if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+            if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+            if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+            if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+
+            let res = str.trim() ? str.trim() + ' Rupees' : '';
+            if (decimalPart > 0) {
+                let paiseStr = toWords(decimalPart) + ' Paise';
+                res = res ? res + ' and ' + paiseStr : paiseStr;
+            }
+            return prefix + (res ? res + ' Only' : '');
         },
 
         submitted: false,
@@ -759,9 +998,15 @@ function contraVoucherWorkspace() {
             this.submitted = true;
             this.errors = {};
             if (!this.form.date) this.errors.date = 'The voucher date field is required.';
-            if (!this.form.credit_account_id) this.errors.credit_account_id = 'The from account field is required.';
-            if (!this.form.destination_account_id) this.errors.destination_account_id = 'The to account field is required.';
+            if (!this.selectedFromBankId) this.errors.credit_account_id = 'Please select a company source bank account.';
+            if (!this.selectedToBankId) this.errors.destination_account_id = 'Please select a company destination bank account.';
+            if (this.selectedFromBankId && this.selectedToBankId && this.selectedFromBankId === this.selectedToBankId) {
+                this.errors.destination_account_id = 'Source and destination cannot be the same bank account.';
+            }
             if (!this.form.amount || Number(this.form.amount) <= 0) this.errors.amount = 'The transfer amount field is required.';
+            if (this.selectedFromAccount && Number(this.form.amount) > Number(this.selectedFromAccount.current_balance)) {
+                this.errors.amount = 'Transfer amount exceeds available balance in source account.';
+            }
             
             return Object.keys(this.errors).length === 0;
         },
@@ -773,21 +1018,8 @@ function contraVoucherWorkspace() {
             }
         },
 
-        selectFromAccount(acc) {
-            this.form.credit_account_id = acc.id;
-            this.selectedFromAccountName = acc.name;
-            this.fromAccountBalance = acc.balance;
-            delete this.errors.credit_account_id;
-        },
-
-        selectToAccount(acc) {
-            this.form.destination_account_id = acc.id;
-            this.selectedToAccountName = acc.name;
-            this.toAccountBalance = acc.balance;
-            delete this.errors.destination_account_id;
-        },
-
         init() {
+            this.initBankDefaults();
             this.onTransactionTypeChange();
         },
 

@@ -2535,53 +2535,7 @@ class ReportController extends Controller
         $formattedTo   = Carbon::parse($toDate)->format('d-M-Y');
         $financialYearLabel = "{$formattedFrom} to {$formattedTo}";
 
-        // Ensure baseline Chart of Accounts structure exists
-        $standardAccounts = [
-            // 1000 - ASSETS
-            ['code' => '1001', 'name' => 'Karnataka Bank Account', 'type' => 'ASSET', 'ob' => 5000000.00, 'side' => 'DR'],
-            ['code' => '1002', 'name' => 'Cash in Hand', 'type' => 'ASSET', 'ob' => 500000.00, 'side' => 'DR'],
-            ['code' => '1003', 'name' => 'Petty Cash Box', 'type' => 'ASSET', 'ob' => 10000.00, 'side' => 'DR'],
-            ['code' => '1010', 'name' => 'Customer Receivables', 'type' => 'ASSET', 'ob' => 12000000.00, 'side' => 'DR'],
-            ['code' => '1020', 'name' => 'Advances & Deposits', 'type' => 'ASSET', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '1101', 'name' => 'Trade Receivables & Customer Dues', 'type' => 'ASSET', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '1201', 'name' => 'Material Inventory & Stock', 'type' => 'ASSET', 'ob' => 250000.00, 'side' => 'DR'],
-
-            // 2000 - LIABILITIES
-            ['code' => '2001', 'name' => 'Contractor Payables', 'type' => 'LIABILITY', 'ob' => 1500000.00, 'side' => 'CR'],
-            ['code' => '2002', 'name' => 'Supplier Payables', 'type' => 'LIABILITY', 'ob' => 1000000.00, 'side' => 'CR'],
-            ['code' => '2003', 'name' => 'Broker Commissions Payable', 'type' => 'LIABILITY', 'ob' => 0.00, 'side' => 'CR'],
-            ['code' => '2010', 'name' => 'Bank Loans', 'type' => 'LIABILITY', 'ob' => 15000000.00, 'side' => 'CR'],
-            ['code' => '2020', 'name' => 'Statutory Liabilities & GST', 'type' => 'LIABILITY', 'ob' => 2000000.00, 'side' => 'CR'],
-
-            // 3000 - EQUITY (Stored as LIABILITY in DB enum, categorized under Equity group)
-            ['code' => '3001', 'name' => 'Share Capital', 'type' => 'LIABILITY', 'ob' => 3000000.00, 'side' => 'CR'],
-            ['code' => '3090', 'name' => 'Opening Balance Equity', 'type' => 'LIABILITY', 'ob' => 2420000.00, 'side' => 'CR'],
-
-            // 4000 - DIRECT EXPENSES
-            ['code' => '4001', 'name' => 'Brokerage Expense', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '4002', 'name' => 'Contractor Work Expenses (RA Bills)', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '4010', 'name' => 'Construction Material Purchases', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '4020', 'name' => 'Site Expenses', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
-            ['code' => '4050', 'name' => 'Bank Loan Interest Expense', 'type' => 'EXPENSE', 'ob' => 0.00, 'side' => 'DR'],
-
-            // 5000 - REVENUE
-            ['code' => '5010', 'name' => 'Property Sales Income', 'type' => 'REVENUE', 'ob' => 0.00, 'side' => 'CR'],
-        ];
-
-        foreach ($standardAccounts as $sa) {
-            ChartOfAccount::firstOrCreate(
-                ['account_code' => $sa['code']],
-                [
-                    'account_name'         => $sa['name'],
-                    'account_type'         => $sa['type'],
-                    'opening_balance'      => $sa['ob'],
-                    'opening_balance_type' => $sa['side'],
-                    'is_active'            => true,
-                ]
-            );
-        }
-
-        // Fetch all active Chart of Accounts ordered by code
+        // Fetch all active Chart of Accounts directly from database (100% dynamic, no hardcoded values)
         $coas = ChartOfAccount::where('is_active', true)->orderBy('account_code')->get();
 
         // 1. Fetch Dynamic Movements from journal_entries
@@ -2638,30 +2592,41 @@ class ReportController extends Controller
         )->get();
 
         // Map Account Code to standard COA Code
-        $codeMapping = [
-            'BANK-KAR-213'     => '1001',
-            'BANK-FEDERAL-12'  => '1001',
-            'BANK-ICICIBAN-8'  => '1001',
-            'BANK-INDUSIND-9'  => '1001',
-            'BANK-IUB-15'      => '1001',
-            'BANK-SBI-11'      => '1001',
-            'BK-7365'          => '1001',
-            '1071'             => '1001',
-            'BANK-HDFC-13'     => '1002',
-            'CASH-HAND'        => '1002',
-            'CUST-REC-1'       => '1010',
-            'CUST-REC-7'       => '1010',
-            'CUST-REC-9'       => '1010',
-            'SUP-ACC-0003'     => '2002',
-            'SUP-ACC-0006'     => '2002',
-            'SUP-ACC-0007'     => '2001',
-            'BRK-ACC-01'       => '2003',
-            'PRT-ACC-01'       => '3001',
-            'PRT-ACC-02'       => '3001',
-            'EXP-ADV'          => '4010',
-            'EXP-SITE'         => '4020',
-            'INC-SALES'        => '5010',
-        ];
+        // Dynamic Resolver: Map database Account codes to standard Chart of Accounts (COA) codes
+        $resolveCoaCode = function(string $accCode) use ($coas): string {
+            if ($coas->contains('account_code', $accCode)) {
+                return $accCode;
+            }
+            $upper = strtoupper(trim($accCode));
+            if (str_starts_with($upper, 'BANK-') || str_starts_with($upper, 'BK-') || $upper === '1071') {
+                return '1001'; // Bank Accounts
+            }
+            if (str_starts_with($upper, 'CASH-') || str_contains($upper, 'PETTY')) {
+                return '1002'; // Cash in Hand / Petty Cash
+            }
+            if (str_starts_with($upper, 'CUST-')) {
+                return '1010'; // Customer Receivables
+            }
+            if (str_starts_with($upper, 'SUP-') || str_starts_with($upper, 'VND-') || str_starts_with($upper, 'CONT-')) {
+                return '2002'; // Contractor / Supplier Payables
+            }
+            if (str_starts_with($upper, 'BRK-')) {
+                return '2003'; // Broker Commissions Payable
+            }
+            if (str_starts_with($upper, 'LOAN-')) {
+                return '2010'; // Bank Loans
+            }
+            if (str_starts_with($upper, 'PRT-')) {
+                return '3001'; // Share / Partner Capital
+            }
+            if (str_starts_with($upper, 'EXP-SITE') || str_starts_with($upper, 'EXP-')) {
+                return '4020'; // Site / Operational Expenses
+            }
+            if (str_starts_with($upper, 'INC-')) {
+                return '5010'; // Sales Revenue
+            }
+            return $accCode;
+        };
 
         // Group definitions matching the reference design
         $groupsData = [
@@ -2765,7 +2730,7 @@ class ReportController extends Controller
 
             // 2. From Voucher Lines
             foreach ($allVl as $vl) {
-                $mappedCode = $codeMapping[$vl->acc_code] ?? $vl->acc_code;
+                $mappedCode = $resolveCoaCode($vl->acc_code);
                 if ($mappedCode === $code) {
                     $vDate = $vl->voucher_date ? Carbon::parse($vl->voucher_date)->format('Y-m-d') : null;
                     if ($vDate && $vDate < $fromDate) {

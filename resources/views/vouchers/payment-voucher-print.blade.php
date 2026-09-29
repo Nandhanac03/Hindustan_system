@@ -707,6 +707,28 @@
             </div>
 
             {{-- 2. Metadata Grid --}}
+            @php
+                $cleanRef = $voucher->reference_no ?? '';
+                if (!empty($cleanRef) && (str_starts_with(trim($cleanRef), '{') || str_starts_with(trim($cleanRef), '['))) {
+                    $decoded = json_decode($cleanRef, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        if (!empty($decoded['source_receipt_id'])) {
+                            $cleanRef = 'Receipt #' . $decoded['source_receipt_id'];
+                        } elseif (!empty($decoded['reference_no'])) {
+                            $cleanRef = $decoded['reference_no'];
+                        } else {
+                            $cleanRef = 'Split Allocation Reference';
+                        }
+                    } else {
+                        $cleanRef = '—';
+                    }
+                }
+
+                $cleanNarration = $voucher->narration ?? '';
+                if (!empty($cleanNarration) && (str_starts_with(trim($cleanNarration), '{') || str_starts_with(trim($cleanNarration), '['))) {
+                    $cleanNarration = 'Disbursement & Allocation Settlement';
+                }
+            @endphp
             <div class="meta-grid">
                 <div class="meta-cell">
                     <span class="meta-label">Voucher Date</span>
@@ -733,13 +755,13 @@
 
                 <div class="meta-cell">
                     <span class="meta-label">Ref No. / UTR</span>
-                    <span class="meta-value mono">{{ $voucher->reference_no ?: '—' }}</span>
+                    <span class="meta-value mono">{{ $cleanRef ?: '—' }}</span>
                 </div>
             </div>
 
             {{-- 3. Total Amount Box --}}
             @php
-                $totalAmount = $voucher->lines->sum('debit') ?: ($voucher->lines->sum('credit') ?: (float)($raBillPayment->paid_amount ?? ($siteExpensePayment->paid_amount ?? 0)));
+                $totalAmount = (float)($voucher->amount ?: ($voucher->lines->sum('debit') ?: ($voucher->lines->sum('credit') ?: (float)($raBillPayment->paid_amount ?? ($siteExpensePayment->paid_amount ?? 0)))));
                 
                 if (!function_exists('amountInWords')) {
                     function amountInWords(float $amount): string {
@@ -774,10 +796,10 @@
             </div>
 
             {{-- 4. Narration / Purpose --}}
-            @if($voucher->narration)
+            @if($cleanNarration)
                 <div class="narration-box">
                     <div class="narration-label">Disbursement Narration &amp; Purpose</div>
-                    <div class="narration-text">{{ $voucher->narration }}</div>
+                    <div class="narration-text">{{ $cleanNarration }}</div>
                 </div>
             @endif
 
@@ -812,12 +834,12 @@
                         </td>
                         <td>
                             <div class="accounting-head-name">
-                                {{ $categoryName ?: ($voucher->narration ?: 'Corporate Payment Outflow') }}
+                                {{ $categoryName ?: ($cleanNarration ?: 'Corporate Payment Outflow') }}
                             </div>
                             <div class="payment-mode-subtext">
                                 Mode: <strong>{{ $paymentMode ?? 'Direct Bank Transfer' }}</strong>
-                                @if($voucher->reference_no)
-                                    &nbsp;|&nbsp; Ref: <strong style="font-family: monospace;">{{ $voucher->reference_no }}</strong>
+                                @if(!empty($cleanRef) && $cleanRef !== '—')
+                                    &nbsp;|&nbsp; Ref: <strong style="font-family: monospace;">{{ $cleanRef }}</strong>
                                 @endif
                             </div>
                         </td>

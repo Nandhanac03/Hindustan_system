@@ -247,7 +247,7 @@ class RaBillController extends Controller
             $allLedgerEntries->push([
                 'type'              => 'CLAIM',
                 'date'              => $bill->verified_date ? $bill->verified_date->format('Y-m-d') : ($bill->submit_date ? $bill->submit_date->format('Y-m-d') : null),
-                'date_formatted'    => $bill->verified_date ? $bill->verified_date->format('d/m/Y') : ($bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—'),
+                'date_formatted'    => $bill->verified_date ? $bill->verified_date->format('d/m/Y') : ($bill->submit_date ? $bill->submit_date->format('d/m/Y') : ''),
                 'contractor_id'     => $bill->contractor_id,
                 'contractor_name'   => $cName,
                 'project_name'      => $pName,
@@ -261,6 +261,7 @@ class RaBillController extends Controller
                 'paid_amount'       => 0.00,
                 'status'            => $bill->verified_date ? 'Verified' : 'Submitted',
                 'voucher_id'        => $jv?->id,
+                'jv_id'             => $jv?->id,
                 'ref_no'            => $jv ? $jv->voucher_no : "RA-{$bill->ra_bill_number}",
             ]);
 
@@ -271,7 +272,7 @@ class RaBillController extends Controller
                 $allLedgerEntries->push([
                     'type'              => 'DISBURSEMENT',
                     'date'              => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : null,
-                    'date_formatted'    => $pay->payment_date ? $pay->payment_date->format('d/m/Y') : '—',
+                    'date_formatted'    => $pay->payment_date ? $pay->payment_date->format('d/m/Y') : '',
                     'contractor_id'     => $bill->contractor_id,
                     'contractor_name'   => $cName,
                     'project_name'      => $pName,
@@ -284,7 +285,9 @@ class RaBillController extends Controller
                     'net_approved'      => 0.00,
                     'paid_amount'       => (float) $pay->paid_amount,
                     'status'            => 'Disbursed',
+                    'payment_id'        => $pay->id,
                     'voucher_id'        => $pay->voucher_id,
+                    'jv_id'             => $payJv?->id,
                     'ref_no'            => $payJv ? $payJv->voucher_no : ($pay->reference_no ?: "PAY-{$pay->id}"),
                 ]);
             }

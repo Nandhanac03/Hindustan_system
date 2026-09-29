@@ -37,7 +37,7 @@
                 <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>{{ session('success') }}</span>
                 @if(session('print_voucher_id'))
-                    <a href="/vouchers/{{ session('print_voucher_id') }}/payment-voucher-print" target="_blank"
+                    <a href="{{ url('/vouchers/' . session('print_voucher_id') . '/payment-voucher-print') }}" target="_blank"
                        class="ml-3 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
                         <span>🖨 Open Printed Voucher</span>
                     </a>
@@ -319,7 +319,7 @@
                                                                 </td>
                                                                 <td class="px-3 py-2 text-right">
                                                                     @if($pay->voucher_id)
-                                                                        <a href="/vouchers/{{ $pay->voucher_id }}/payment-voucher-print" target="_blank"
+                                                                        <a href="{{ url('/vouchers/' . $pay->voucher_id . '/payment-voucher-print') }}" target="_blank"
                                                                            class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9px] font-bold inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                                                                            title="Print Voucher for Part {{ $index + 1 }}">
                                                                             <span>🖨 Print Voucher</span>
@@ -360,7 +360,7 @@
 
     <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (OPTIMIZED FOR LAPTOP & DESKTOP) ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="disburseModalOpen = false">
+        <div class="bg-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh] border-0 ring-0 outline-none" @click.away="disburseModalOpen = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-3.5 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -375,7 +375,7 @@
                 </div>
             </div>
 
-            <form :action="selectedExpense ? '{{ url('site-expenses') }}/' + selectedExpense.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="flex flex-col flex-1 overflow-hidden" data-no-words="true">
+            <form :action="selectedExpense ? '{{ url('site-expenses') }}/' + selectedExpense.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="flex flex-col flex-1 overflow-hidden bg-white">
                 @csrf
 
                 <div class="p-5 space-y-3 overflow-y-auto flex-1">
@@ -403,10 +403,23 @@
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                            <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
-                                   data-no-words="true"
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                                <button type="button" 
+                                        @click="disbursePaidAmount = selectedExpense ? selectedExpense.balance_amount : ''; $nextTick(() => { const el = $el.closest('form').querySelector('input[name=\'paid_amount\']'); if(el && window.updateAmountInWordsForInput) window.updateAmountInWordsForInput(el); })"
+                                        class="text-[10px] font-bold text-[#a38c29] hover:underline cursor-pointer">
+                                    Pay Full Balance
+                                </button>
+                            </div>
+                            <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
+                                   oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)"
                                    class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs">
+                            
+                            {{-- Amount in Words Under Input Box --}}
+                            <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs"
+                                 x-show="disbursePaidAmount && parseFloat(disbursePaidAmount) > 0"
+                                 x-text="numberToWords(disbursePaidAmount)">
+                            </div>
                         </div>
                     </div>
 
@@ -419,18 +432,63 @@
                             </select>
                         </div>
 
-                        <div x-show="sourceType === 'bank'">
+                        <div x-show="sourceType === 'bank'" class="relative" @click.outside="bankOpen = false">
                             <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
-                            <select name="company_bank_account_id" x-model="selectedBankId" :required="sourceType === 'bank'" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                                @foreach($companyBankAccounts as $bank)
-                                    <option value="{{ $bank->id }}">
-                                        {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="mt-1.5 flex items-center justify-between px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl">
-                                <span class="text-xs font-bold text-blue-900">Available Bank Balance:</span>
-                                <span class="font-mono font-black text-sm sm:text-base text-blue-950" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                            <input type="hidden" name="company_bank_account_id" :value="selectedBankId" :required="sourceType === 'bank'">
+
+                            <!-- Trigger Button -->
+                            <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
+                                 class="w-full min-h-[38px] px-3 py-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                <template x-if="selectedAccount">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="selectedAccount.bank_name"></span>
+                                        <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
+                                        <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!selectedAccount">
+                                    <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-1.5" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+
+                            {{-- Selected Bank Balance in Words Only --}}
+                            <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedAccount">
+                                <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                      x-text="numberToWords(selectedAccount?.current_balance || 0)"></span>
+                            </div>
+
+                            <!-- Dropdown Search Menu -->
+                            <div x-show="bankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                                <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                    <div class="relative">
+                                        <input type="text" x-ref="payBankSearch" x-model="bankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                        <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="overflow-y-auto divide-y divide-slate-100">
+                                    <template x-for="acc in filteredBankAccounts" :key="acc.id">
+                                        <div @click="selectedBankId = acc.id; bankOpen = false; bankSearch = ''"
+                                             class="px-3 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                             :class="selectedBankId == acc.id ? 'bg-[#a38c29]/10 font-bold border-l-4 border-l-[#a38c29]' : ''">
+                                            <div class="flex flex-col min-w-0 pr-2">
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                    <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                </div>
+                                                <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                            </div>
+                                            <div class="text-right font-mono shrink-0">
+                                                <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="filteredBankAccounts.length === 0">
+                                        <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
@@ -594,11 +652,31 @@ function siteExpensePaymentRelease() {
         disbursePaidAmount: '',
         companyBankAccounts: @json($companyBankAccounts ?? []),
         payeeBalances: @json($payeeBalances ?? []),
+        bankOpen: false,
+        bankSearch: '',
+
+        get selectedAccount() {
+            if (!this.selectedBankId) return null;
+            return this.companyBankAccounts.find(x => x.id == this.selectedBankId) || null;
+        },
+
+        get filteredBankAccounts() {
+            if (!this.bankSearch) return this.companyBankAccounts;
+            const q = this.bankSearch.toLowerCase().trim();
+            return this.companyBankAccounts.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
 
         openDisburseModal(expense) {
             this.selectedExpense = expense;
             this.sourceType = expense.payment_source_type || 'bank';
             this.disbursePaidAmount = expense.balance_amount || '';
+            this.bankOpen = false;
+            this.bankSearch = '';
             if (!this.selectedBankId && this.companyBankAccounts.length > 0) {
                 this.selectedBankId = this.companyBankAccounts[0].id;
             }
@@ -610,6 +688,44 @@ function siteExpensePaymentRelease() {
                     window.updateAmountInWordsForInput(inputEl);
                 }
             });
+        },
+
+        numberToWords(val) {
+            let num = parseFloat(val) || 0;
+            if (num <= 0) return '';
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function toWords(n) {
+                if (n < 20) return a[n];
+                let digit = n % 10;
+                return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+            }
+
+            let str = '';
+            let crore = Math.floor(integerPart / 10000000);
+            integerPart %= 10000000;
+            let lakh = Math.floor(integerPart / 100000);
+            integerPart %= 100000;
+            let thousand = Math.floor(integerPart / 1000);
+            integerPart %= 1000;
+            let hundred = Math.floor(integerPart / 100);
+            let rest = integerPart % 100;
+
+            if (crore > 0) str += toWords(crore) + ' Crore ';
+            if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+            if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+            if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+            if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+
+            let res = str.trim() ? str.trim() + ' Rupees' : '';
+            if (decimalPart > 0) {
+                let paiseStr = toWords(decimalPart) + ' Paise';
+                res = res ? res + ' and ' + paiseStr : paiseStr;
+            }
+            return res ? res + ' Only' : '';
         },
 
         getSelectedBankName() {

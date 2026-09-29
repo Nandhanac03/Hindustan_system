@@ -79,6 +79,29 @@
     formatCurrency(val) {
         let n = parseFloat(val) || 0;
         return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+    getBankBalance() {
+        if (!this.selectedBankAccount) return 0;
+        return parseFloat(this.selectedBankAccount.current_balance) || 0;
+    },
+    getPostBankBalance() {
+        const current = this.getBankBalance();
+        const paid = parseFloat(this.totalAmountPayable) || 0;
+        return current - paid;
+    },
+    isBankSufficient() {
+        return this.getPostBankBalance() >= 0;
+    },
+    getShortfall() {
+        const paid = parseFloat(this.totalAmountPayable) || 0;
+        const current = this.getBankBalance();
+        return Math.max(0, paid - current);
+    },
+    numberFormat(val) {
+        return (parseFloat(val) || 0).toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 }" x-init="init()" class="px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-slate-100 min-h-screen text-slate-800">
 
@@ -411,6 +434,71 @@
                                     <span class="font-mono font-black text-xs sm:text-sm text-blue-950" x-text="'₹ ' + Number(selectedBankAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
                                 </div>
                             </template>
+
+                            {{-- ── LIVE BANK BALANCE & EXPENSE SETTLEMENT INTELLIGENCE STRIP ── --}}
+                            <div x-show="selectedBankAccount" x-transition.opacity.duration.200ms class="mt-2">
+                                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs space-y-2">
+                                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Bill Settlement Analysis</span>
+                                        </div>
+                                        <div>
+                                            <span x-show="isBankSufficient()" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                                                <span>✓ Sufficient Bank Balance</span>
+                                            </span>
+                                            <span x-show="!isBankSufficient()" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                                                <span>⚠️ Insufficient Funds (Shortfall: ₹ <span x-text="numberFormat(getShortfall())"></span>)</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <!-- 1. Bank Account Balance -->
+                                        <div class="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                                            <span class="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">BANK ACCOUNT BALANCE</span>
+                                            
+                                            <div class="space-y-1.5">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-[11px] font-bold text-slate-500">Current:</span>
+                                                    <span class="font-mono font-black text-slate-900 text-sm sm:text-base" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                                    <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                                    <span class="font-mono font-black text-sm sm:text-base" :class="getPostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getPostBankBalance())"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. Site Expense Settlement -->
+                                        <div class="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                                            <div class="flex items-center justify-between mb-1.5">
+                                                <span class="block text-[11px] font-black text-slate-700 uppercase tracking-wider">SITE EXPENSE OUTSTANDING</span>
+                                                <span x-show="parseFloat(totalAmountPayable) > 0 && isBankSufficient()" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                    Fully Settled
+                                                </span>
+                                                <span x-show="parseFloat(totalAmountPayable) > 0 && !isBankSufficient()" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-200">
+                                                    Part Due
+                                                </span>
+                                                <span x-show="!parseFloat(totalAmountPayable)" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                                    Pending Entry
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="space-y-1.5">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-[11px] font-bold text-slate-500">Current Due:</span>
+                                                    <span class="font-mono font-black text-slate-900 text-sm sm:text-base" x-text="'₹ ' + numberFormat(totalAmountPayable)"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                                    <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                                    <span class="font-mono font-black text-sm sm:text-base text-emerald-700">₹ 0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div>

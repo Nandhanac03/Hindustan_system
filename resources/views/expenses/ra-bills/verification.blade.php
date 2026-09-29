@@ -361,7 +361,7 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col my-auto" style="max-height: calc(100vh - 40px);" @click.away="closeAddModal()">
+        <div class="bg-white rounded-2xl w-full shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]" style="max-width: 920px; max-height: 94vh;" @click.away="closeAddModal()">
             {{-- Dark Header with Gold Glow (Fixed at Top) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/30 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -495,7 +495,7 @@
 
     <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
     <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col my-auto" style="max-height: calc(100vh - 40px);" @click.away="verifyModalOpen = false">
+        <div class="bg-white rounded-2xl w-full shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]" style="max-width: 920px; max-height: 94vh;" @click.away="verifyModalOpen = false">
             {{-- Dark Header with Gold Glow (Fixed at Top) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/30 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -513,11 +513,11 @@
             <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
                 @csrf
 
-                <!-- Scrollable Body (Only scrolls if screen is very short, otherwise fits without scrollbar) -->
-                <div class="p-4 sm:p-5 space-y-2.5" style="overflow-y: auto; flex: 1 1 auto; min-height: 0;">
+                <!-- Scrollable Body (Spacious & Free Layout) -->
+                <div class="p-5 sm:p-6 space-y-3.5" style="overflow-y: auto; flex: 1 1 auto; min-height: 0;">
 
                     <!-- KPI Summary Bar (Polished 4-Col Card) -->
-                    <div class="px-3.5 py-2 bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs items-center shadow-2xs">
+                    <div class="px-4 py-2.5 bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs items-center shadow-2xs">
                         <div class="sm:border-r border-slate-200 sm:pr-3">
                             <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">RA BILL NO.</span>
                             <div class="mt-0.5">
@@ -558,7 +558,7 @@
                     </div>
 
                     <!-- Verification Already Done Banner (If verified) -->
-                    <div x-show="selectedBill && selectedBill.verified_date" class="py-1.5 px-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between shadow-2xs" style="display: none;">
+                    <div x-show="selectedBill && selectedBill.verified_date" class="py-2 px-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between shadow-2xs" style="display: none;">
                         <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-[11px]">
                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>VERIFICATION COMPLETED</span>
@@ -569,13 +569,13 @@
                     </div>
 
                     <!-- Row 1: Verified Date, Site Engineer & Due Date (3 cols) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-start">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Verified Date <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <input type="date" name="verified_date" x-model="verifyDateInput" required
-                                   class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                         </div>
 
                         <div>
@@ -583,7 +583,7 @@
                                 Site Engineer <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <select name="engineer_id" x-model="selectedEngineerId" required
-                                    class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
+                                    class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
                                 <option value="">Select Verifying Engineer</option>
                                 @foreach($engineers as $eng)
                                     <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
@@ -598,12 +598,12 @@
                                 RA Bill Due Date
                             </label>
                             <input type="date" name="due_date" x-model="verifyDueDateInput"
-                                   class="w-full h-[36px] px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                         </div>
                     </div>
 
                     <!-- Row 2: Correction of Bill & Amount After Correction (2 cols) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Correction of Bill (Deduction ₹) <span class="text-rose-500 font-bold">*</span>
@@ -611,7 +611,7 @@
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                                 <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
-                                       class="w-full h-[36px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
+                                       class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
                                        placeholder="0.00">
                             </div>
                             <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center" x-text="selectedBill ? 'Max Deduction: ₹ ' + numberFormat(selectedBill.gross_amount) : ''"></p>
@@ -621,51 +621,64 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Amount After Correction (₹)
                             </label>
-                            <div class="w-full h-[36px] pl-7 pr-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 flex items-center shadow-2xs relative">
+                            <div class="w-full h-[38px] pl-7 pr-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 flex items-center shadow-2xs relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                                 <span x-text="numberFormat(calculatedAfterCorrection)"></span>
                             </div>
                             <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center">Gross Claimed − Correction Deduction</p>
+                            <div x-show="calculatedAfterCorrection > 0" class="text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="window.convertNumberToWords ? window.convertNumberToWords(calculatedAfterCorrection) : ''"></div>
                         </div>
                     </div>
 
                     <!-- Row 3: Additional Work (%), Additional Work (₹) & Net RA Payable (3 cols) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-start">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                Additional Work (%)
+                                Additional Percentage (%)
                             </label>
                             <div class="relative">
                                 <input type="number" step="0.01" name="additional_percentage" x-model="verifyAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="0.00"
                                        data-no-words="true"
-                                       class="w-full h-[36px] pl-3 pr-7 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                       class="w-full h-[38px] pl-3 pr-7 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                                 <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">%</span>
                             </div>
                             <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center truncate" x-text="verifyAdditionalPercent ? verifyAdditionalPercent + '% of ₹ ' + numberFormat(calculatedAfterCorrection) : 'Applied on After-Correction base'"></p>
+                            <div class="text-[10px] text-slate-700 font-bold mt-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 border border-slate-250 tracking-wide transition-all leading-snug flex items-center justify-between shadow-xs">
+                                <span class="text-slate-500 font-medium text-[9px] uppercase tracking-wider">Markup Share:</span>
+                                <span class="font-mono font-extrabold text-[#8a7522]" x-text="verifyAdditionalPercent ? '+' + verifyAdditionalPercent + '%' : '0.00%'"></span>
+                            </div>
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                Additional Work (₹)
+                                Additional Amount (₹)
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                                 <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
-                                       class="w-full h-[36px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                       class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                             </div>
                             <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center">Added to After-Correction base</p>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider mb-1">
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Net RA Payable (Final Claim)
                             </label>
-                            <div class="w-full h-[36px] pl-7 pr-2.5 bg-gradient-to-r from-blue-50/90 to-indigo-50/60 border-2 border-blue-400/50 rounded-xl text-xs font-mono font-black text-blue-950 flex items-center justify-between shadow-2xs relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500 text-xs font-extrabold">₹</span>
-                                <span x-text="numberFormat(calculatedNet)"></span>
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-blue-600 text-white uppercase tracking-wider">Approved</span>
+
+                            <div class="w-full h-[38px] pl-7 pr-3 bg-gradient-to-r from-amber-50/60 via-white to-amber-50/40 border-2 border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-900 flex items-center justify-between shadow-2xs relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29] text-xs font-extrabold">₹</span>
+                                <span class="text-sm sm:text-[15px] font-mono font-black text-slate-900" x-text="numberFormat(calculatedNet)"></span>
+                                <span class="px-2 py-0.5 rounded text-[8.5px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-2xs flex items-center gap-1">
+                                    <svg class="w-2.5 h-2.5 text-emerald-600 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    Approved
+                                </span>
                             </div>
-                            <p class="mt-0.5 text-[9.5px] font-semibold text-blue-700/80 h-3.5 flex items-center truncate" x-text="'After Corr. + Add. Work'"></p>
+
+                            <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center">After Corr. + Add. Work</p>
+
+                            {{-- Matched Amber Words Chip (Identical to other columns & modal create) --}}
+                            <div x-show="calculatedNet > 0" class="text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="window.convertNumberToWords ? window.convertNumberToWords(calculatedNet) : ''"></div>
                         </div>
                     </div>
 

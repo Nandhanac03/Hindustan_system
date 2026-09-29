@@ -320,17 +320,17 @@
         <div class="flex items-center gap-2.5 shrink-0">
             <div class="px-3.5 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-left">
                 <span class="block text-[8px] font-black uppercase tracking-widest text-emerald-700">Total Cash Inflow</span>
-                <span class="text-xs font-black text-emerald-900 font-mono" x-text="'+₹' + formatMoney(totalInflow)"></span>
+                <span class="text-xs font-black text-emerald-900 font-mono" x-text="'₹' + formatMoney(totalInflow)"></span>
             </div>
             <div class="px-3.5 py-2 bg-rose-50 border border-rose-200 rounded-xl text-left">
                 <span class="block text-[8px] font-black uppercase tracking-widest text-rose-700">Total Cash Outflow</span>
-                <span class="text-xs font-black text-rose-900 font-mono" x-text="'-₹' + formatMoney(totalOutflow)"></span>
+                <span class="text-xs font-black text-rose-900 font-mono" x-text="'₹' + formatMoney(totalOutflow)"></span>
             </div>
             <div class="px-3.5 py-2 bg-[#a38c29]/10 border border-[#a38c29]/25 rounded-xl text-left">
                 <span class="block text-[8px] font-black uppercase tracking-widest text-[#8a7522]">Net Cash Delta</span>
                 <span class="text-xs font-black font-mono"
                       :class="netCashFlow >= 0 ? 'text-[#5c4a10]' : 'text-rose-700'"
-                      x-text="(netCashFlow >= 0 ? '+' : '-') + '₹' + formatMoney(Math.abs(netCashFlow))"></span>
+                      x-text="'₹' + formatMoney(netCashFlow)"></span>
             </div>
             <div class="px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-left">
                 <span class="block text-[8px] font-black uppercase tracking-widest text-slate-600">Company Bank Balance</span>
@@ -458,7 +458,7 @@
                 </div>
                 <div class="relative z-10 mt-1">
                     <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300 whitespace-nowrap"
-                          x-text="'+₹' + formatMoney(totalInflow)">
+                          x-text="'₹' + formatMoney(totalInflow)">
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium truncate">Customer collections & bank credits</p>
                 </div>
@@ -479,7 +479,7 @@
                 </div>
                 <div class="relative z-10 mt-1">
                     <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300 whitespace-nowrap"
-                          x-text="'-₹' + formatMoney(totalOutflow)">
+                          x-text="'₹' + formatMoney(totalOutflow)">
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium truncate">Contractor, site expense & contra payouts</p>
                 </div>
@@ -502,7 +502,7 @@
                 <div class="relative z-10 mt-1">
                     <span class="text-2xl font-black font-mono tracking-tight block transition-colors duration-300 whitespace-nowrap"
                           :class="netCashFlow >= 0 ? 'text-slate-900 group-hover:text-[#a38c29]' : 'text-rose-600 group-hover:text-rose-700'"
-                          x-text="(netCashFlow >= 0 ? '+' : '') + '₹' + formatMoney(netCashFlow)">
+                          x-text="'₹' + formatMoney(netCashFlow)">
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium truncate">Net inflow delta for selected period</p>
                 </div>
@@ -782,19 +782,19 @@
                             {{-- Inflow Amount --}}
                             <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
                                 :class="t.inflow_amount > 0 ? 'text-emerald-700' : 'text-slate-300'"
-                                x-text="t.inflow_amount > 0 ? ('+₹' + formatMoney(t.inflow_amount)) : '—'">
+                                x-text="t.inflow_amount > 0 ? ('₹' + formatMoney(t.inflow_amount)) : ''">
                             </td>
 
                             {{-- Outflow Amount --}}
                             <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
                                 :class="t.outflow_amount > 0 ? 'text-rose-700' : 'text-slate-300'"
-                                x-text="t.outflow_amount > 0 ? ('-₹' + formatMoney(t.outflow_amount)) : '—'">
+                                x-text="t.outflow_amount > 0 ? ('₹' + formatMoney(t.outflow_amount)) : ''">
                             </td>
 
                             {{-- Running Balance --}}
                             <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-extrabold text-xs amount-cell"
                                 :class="t.running_balance >= 0 ? 'text-slate-900' : 'text-rose-700'"
-                                x-text="t.running_balance < 0 ? ('-₹' + formatMoney(Math.abs(t.running_balance))) : ('₹' + formatMoney(t.running_balance))">
+                                x-text="'₹' + formatMoney(t.running_balance)">
                             </td>
                         </tr>
                     </template>
@@ -820,13 +820,13 @@
                     <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-[#a38c29]">
                         <td colspan="4" class="py-3.5 px-4 text-right uppercase tracking-wider text-[11px] text-slate-700 font-bold border-r border-slate-200/40">Grand Totals for Selected Range:</td>
                         <td class="py-3.5 px-3.5 text-right font-mono text-xs text-emerald-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
-                            x-text="'+₹' + formatMoney(totalInflow)">
+                            x-text="'₹' + formatMoney(totalInflow)">
                         </td>
                         <td class="py-3.5 px-3.5 text-right font-mono text-xs text-rose-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
-                            x-text="'-₹' + formatMoney(totalOutflow)">
+                            x-text="'₹' + formatMoney(totalOutflow)">
                         </td>
                         <td class="py-3.5 px-3.5 text-right font-mono text-xs text-slate-900 whitespace-nowrap font-black amount-cell"
-                            x-text="'Net: ' + (netCashFlow >= 0 ? '+' : '') + '₹' + formatMoney(netCashFlow)">
+                            x-text="'Net: ₹' + formatMoney(netCashFlow)">
                         </td>
                     </tr>
                 </tfoot>
@@ -1086,7 +1086,7 @@ function treasuryReportApp() {
         },
 
         formatMoney(num) {
-            return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
+            return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(num || 0));
         },
 
         exportTableToCSV(filename) {

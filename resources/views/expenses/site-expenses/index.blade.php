@@ -110,6 +110,20 @@
     paymentSourceType: 'bank',
     companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
     bankAccountsData: {{ json_encode($bankAccounts->keyBy('id')) }},
+    bankAccountsList: {{ json_encode($bankAccounts->values()) }},
+    bankOpen: false,
+    bankSearch: '',
+    get filteredBankAccounts() {
+        const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
+        if (!this.bankSearch) return list;
+        const q = this.bankSearch.toLowerCase().trim();
+        return list.filter(b => 
+            (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+            (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+            (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+            (b.branch_name && b.branch_name.toLowerCase().includes(q))
+        );
+    },
     payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
     payeesData: {{ json_encode($payees->keyBy('id')) }},
     vendorId: '{{ old('vendor_id', $vendors->first()?->id ?? '') }}',
@@ -209,15 +223,15 @@
     get netTotal() { 
         return (parseFloat(this.gross) || 0) + this.gstAmount; 
     },
-    get amountInWords() {
-        let num = Math.floor(parseFloat(this.gross) || 0);
-        if (!num || num <= 0) return '';
+    inWords(n) {
+        let num = Math.floor(parseFloat(n) || 0);
+        if (!num || num <= 0) return 'Rupees Zero Only';
         const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
         const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-        function inWords(n) {
-            if (n < 20) return a[n];
-            let digit = n % 10;
-            return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+        function convertChunk(num) {
+            if (num < 20) return a[num];
+            let digit = num % 10;
+            return b[Math.floor(num / 10)] + (digit ? ' ' + a[digit] : '');
         }
         let str = '';
         let crore = Math.floor(num / 10000000);
@@ -228,16 +242,55 @@
         num %= 1000;
         let hundred = Math.floor(num / 100);
         num %= 100;
-        if (crore) str += inWords(crore) + ' Crore ';
-        if (lakh) str += inWords(lakh) + ' Lakh ';
-        
-        if (thousand) str += inWords(thousand) + ' Thousand ';
-        if (hundred) str += inWords(hundred) + ' Hundred ';
+        if (crore) str += convertChunk(crore) + ' Crore ';
+        if (lakh) str += convertChunk(lakh) + ' Lakh ';
+        if (thousand) str += convertChunk(thousand) + ' Thousand ';
+        if (hundred) str += convertChunk(hundred) + ' Hundred ';
         if (num) {
             if (str !== '') str += 'and ';
-            str += inWords(num) + ' ';
+            str += convertChunk(num) + ' ';
         }
         return str.trim() + ' Rupees Only';
+    },
+    get amountInWords() {
+        return this.inWords(this.netTotal);
+    },
+    numberToWords(val) {
+        let num = parseFloat(val) || 0;
+        if (num <= 0) return '';
+        let integerPart = Math.floor(num);
+        let decimalPart = Math.round((num - integerPart) * 100);
+
+        const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        function toWords(n) {
+            if (n < 20) return a[n];
+            let digit = n % 10;
+            return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+        }
+
+        let str = '';
+        let crore = Math.floor(integerPart / 10000000);
+        integerPart %= 10000000;
+        let lakh = Math.floor(integerPart / 100000);
+        integerPart %= 100000;
+        let thousand = Math.floor(integerPart / 1000);
+        integerPart %= 1000;
+        let hundred = Math.floor(integerPart / 100);
+        let rest = integerPart % 100;
+
+        if (crore > 0) str += toWords(crore) + ' Crore ';
+        if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+        if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+        if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+        if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+
+        let res = str.trim() ? str.trim() + ' Rupees' : '';
+        if (decimalPart > 0) {
+            let paiseStr = toWords(decimalPart) + ' Paise';
+            res = res ? res + ' and ' + paiseStr : paiseStr;
+        }
+        return res ? res + ' Only' : '';
     },
     onPayeeChange() {
         if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
@@ -274,6 +327,29 @@
     formatCurrency(val) {
         let n = parseFloat(val) || 0;
         return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+    getBankBalance() {
+        if (!this.selectedBankAccount) return 0;
+        return parseFloat(this.selectedBankAccount.current_balance) || 0;
+    },
+    getPostBankBalance() {
+        const current = this.getBankBalance();
+        const paid = parseFloat(this.netTotal) || 0;
+        return current - paid;
+    },
+    isBankSufficient() {
+        return this.getPostBankBalance() >= 0;
+    },
+    getShortfall() {
+        const paid = parseFloat(this.netTotal) || 0;
+        const current = this.getBankBalance();
+        return Math.max(0, paid - current);
+    },
+    numberFormat(val) {
+        return (parseFloat(val) || 0).toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 }" x-init="
     onPayeeChange();
@@ -831,15 +907,14 @@
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
         
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
-        {{-- Modal Dialog Container (No bg-white on container to prevent white fringe) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
+        {{-- Modal Dialog Container (Flex col with max-height to pin header and footer - Zero White Border) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto bg-slate-900 border-0 ring-0 outline-none"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
@@ -858,95 +933,132 @@
                 </div>
             </div>
 
-            {{-- Spacious Executive Form Body --}}
+            {{-- Executive Form --}}
             <form id="site-expense-form" 
                   :action="selectedExpense ? ('{{ url('/site-expenses') }}/' + selectedExpense.id) : '{{ route('site-expenses.store') }}'" 
                   method="POST" 
                   enctype="multipart/form-data" 
-                  class="p-4 sm:p-6 space-y-4 text-xs bg-white overflow-y-auto flex-1">
+                  class="flex flex-col flex-1 min-h-0 overflow-hidden bg-white">
                 @csrf
                 <template x-if="selectedExpense">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
 
-                {{-- SECTION 1: PROJECT ASSOCIATION & EXPENSE CATEGORY --}}
-                <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                        <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                            <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200/50">
-                                <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
-                            </div>
-                            <span>1. Project Association & Expense Category</span>
-                        </div>
-                        <!-- <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">COA 4000s Series</span>
-                    </div> -->
-</div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-start">
-                        {{-- Project Name (Wide col-6) --}}
-                        <div class="lg:col-span-6">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Project Name <span class="text-rose-500">*</span></label>
-                            <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
-                                @if($projects->count() !== 1)
-                                    <option value="">-- Select Project --</option>
-                                @endif
-                                @foreach($projects as $proj)
-                                    <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || old('project_id', $selectedProjectId ?? '') == $proj->id) ? 'selected' : '' }}>
-                                        {{ $proj->name }}
-                                    </option>
-                                @endforeach
-                                @if($projects->isEmpty())
-                                    <option value="1" selected>Skyline Heights</option>
-                                @endif
-                            </select>
-                        </div>
+                {{-- Scrollable Form Content (Strictly bounds scrolling so footer stays pinned!) --}}
+                <div class="p-4 sm:p-6 space-y-5 text-xs bg-slate-50/40 overflow-y-auto flex-1 max-h-[75vh]" x-ref="expenseModalScroll">
 
-                        {{-- Site Expense Category (Wide col-6) --}}
-                        <div class="lg:col-span-6">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Site Expense Category <span class="text-rose-500">*</span></label>
-                            <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
-                                <option value="">-- Select Site Expense Category --</option>
-                                @foreach($expenseCategories as $code => $name)
-                                    <option value="{{ $code }}" {{ old('expense_category_code') == $code ? 'selected' : '' }}>
-                                        {{ $name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Voucher Date (col-4) --}}
-                        <div class="lg:col-span-4">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Voucher Date <span class="text-rose-500">*</span></label>
-                            <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
-                        </div>
-
-                        {{-- Payment Source Account (col-8) --}}
-                        <div class="lg:col-span-8">
-                            <input type="hidden" name="payment_source_type" value="bank">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Payment Source Account <span class="text-rose-500">*</span></label>
-                            <select name="company_bank_account_id" x-model="companyBankAccountId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
-                                @if($bankAccounts->count() !== 1)
-                                    <option value="">-- Select Payment Source Account --</option>
-                                @endif
-                                @foreach($bankAccounts as $bank)
-                                    <option value="{{ $bank->id }}" {{ ($bankAccounts->count() === 1 || old('company_bank_account_id') == $bank->id) ? 'selected' : '' }}>
-                                        {{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }} - A/c {{ $bank->account_number ? '...'.substr($bank->account_number, -4) : '' }}
-                                    </option>
-                                @endforeach
-                                @if($bankAccounts->isEmpty())
-                                    <option value="" disabled>No Company Bank Accounts found in Master</option>
-                                @endif
-                            </select>
-
-                            {{-- Available Balance pill exactly matching payment-release style --}}
-                            <template x-if="selectedBankAccount">
-                                <div class="mt-1 flex items-center justify-between px-2.5 py-1 bg-blue-50/80 border border-blue-200/80 rounded-xl">
-                                    <span class="text-[11px] font-bold text-blue-900">Available Balance:</span>
-                                    <span class="font-mono font-black text-xs sm:text-sm text-blue-950" x-text="'₹ ' + Number(selectedBankAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                    {{-- SECTION 1: PROJECT ASSOCIATION & EXPENSE CATEGORY --}}
+                    <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                                <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200/50">
+                                    <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
                                 </div>
-                            </template>
+                                <span>1. Project Association & Expense Category</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                            {{-- Project Name (col-6) --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5 text-xs">Project Name <span class="text-rose-500">*</span></label>
+                                <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                    @if($projects->count() !== 1)
+                                        <option value="">-- Select Project --</option>
+                                    @endif
+                                    @foreach($projects as $proj)
+                                        <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || old('project_id', $selectedProjectId ?? '') == $proj->id) ? 'selected' : '' }}>
+                                            {{ $proj->name }}
+                                        </option>
+                                    @endforeach
+                                    @if($projects->isEmpty())
+                                        <option value="1" selected>Skyline Heights</option>
+                                    @endif
+                                </select>
+                            </div>
+
+                            {{-- Site Expense Category (col-6) --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5 text-xs">Site Expense Category <span class="text-rose-500">*</span></label>
+                                <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                    <option value="">-- Select Site Expense Category --</option>
+                                    @foreach($expenseCategories as $code => $name)
+                                        <option value="{{ $code }}" {{ old('expense_category_code') == $code ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Voucher Date (col-6) --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5 text-xs">Voucher Date <span class="text-rose-500">*</span></label>
+                                <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                            </div>
+
+                            {{-- Payment Source Account (col-6) Search & Select Component --}}
+                            <div class="relative" @click.outside="bankOpen = false">
+                                <input type="hidden" name="payment_source_type" value="bank">
+                                <input type="hidden" name="company_bank_account_id" :value="companyBankAccountId" required>
+                                <label class="block font-bold text-slate-700 mb-1.5 text-xs">Payment Source Account <span class="text-rose-500">*</span></label>
+                                
+                                <!-- Trigger Button -->
+                                <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
+                                     class="w-full min-h-[38px] px-3.5 py-2 border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-white rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                     <template x-if="selectedBankAccount">
+                                         <div class="flex items-center gap-2 truncate">
+                                             <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="selectedBankAccount.bank_name"></span>
+                                             <span class="font-bold text-slate-800 truncate" x-text="selectedBankAccount.account_name || selectedBankAccount.bank_name"></span>
+                                             <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedBankAccount.account_number ? '...' + selectedBankAccount.account_number.slice(-4) : '—') + ')'"></span>
+                                         </div>
+                                     </template>
+                                     <template x-if="!selectedBankAccount">
+                                         <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                     </template>
+                                     <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-2" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+
+                                {{-- Selected Bank Balance in Words Only (matching Loan Payment design) --}}
+                                <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedBankAccount">
+                                    <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                    <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                          x-text="numberToWords(selectedBankAccount?.current_balance || 0)"></span>
+                                </div>
+
+                                <!-- Dropdown Search Menu with Account List and Current Balance -->
+                                <div x-show="bankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-60 flex flex-col" style="display: none;">
+                                    <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                        <div class="relative">
+                                            <input type="text" x-ref="payBankSearch" x-model="bankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="overflow-y-auto divide-y divide-slate-100">
+                                        <template x-for="acc in filteredBankAccounts" :key="acc.id">
+                                            <div @click="companyBankAccountId = acc.id; bankOpen = false; bankSearch = ''"
+                                                 class="px-3.5 py-2.5 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                 :class="companyBankAccountId == acc.id ? 'bg-amber-50/60 font-bold border-l-4 border-l-[#a38c29]' : ''">
+                                                <div class="flex flex-col min-w-0 pr-2">
+                                                    <div class="flex items-center gap-1.5 truncate">
+                                                        <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                        <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                                </div>
+                                                <div class="text-right font-mono shrink-0">
+                                                    <div class="text-[9px] text-slate-400 uppercase font-sans font-bold">Current Balance</div>
+                                                    <div class="font-extrabold text-slate-800 text-xs sm:text-sm" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="filteredBankAccounts.length === 0">
+                                            <div class="p-4 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 {{-- SECTION 2: PAYEE & INVOICE REFERENCE --}}
                 <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
@@ -1069,9 +1181,9 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                        {{-- Left Side: Base Amount & GST Selection (col-6) --}}
+                        {{-- Left Side: Base Amount & GST Inputs (col-6) --}}
                         <div class="lg:col-span-6 space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block font-bold text-slate-700 mb-1.5 text-xs">Base Amount (₹) <span class="text-rose-500">*</span></label>
                                     <div class="relative">
@@ -1082,25 +1194,36 @@
 
                                 <div>
                                     <label class="block font-bold text-slate-700 mb-1.5 text-xs">GST Rate (%)</label>
-                                    <select name="gst_rate" x-model.number="gstPct" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
-                                        <option value="0">0% (Nil / Exempted)</option>
-                                        <option value="5">5% GST</option>
-                                        <option value="12">12% GST</option>
-                                        <option value="18">18% Standard GST</option>
-                                        <option value="28">28% GST</option>
-                                    </select>
+                                    <div class="relative">
+                                        <input type="number" step="0.01" min="0" max="100" name="gst_rate" x-model.number="gstPct" placeholder="18" class="w-full pr-8 pl-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs">
+                                        <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 font-bold text-xs">%</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                                        <button type="button" @click="gstPct = 0" class="px-2 py-0.5 rounded-lg text-[10px] font-black border transition cursor-pointer" :class="gstPct === 0 ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'">0%</button>
+                                        <button type="button" @click="gstPct = 5" class="px-2 py-0.5 rounded-lg text-[10px] font-black border transition cursor-pointer" :class="gstPct === 5 ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'">5%</button>
+                                        <button type="button" @click="gstPct = 12" class="px-2 py-0.5 rounded-lg text-[10px] font-black border transition cursor-pointer" :class="gstPct === 12 ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'">12%</button>
+                                        <button type="button" @click="gstPct = 18" class="px-2 py-0.5 rounded-lg text-[10px] font-black border transition cursor-pointer" :class="gstPct === 18 ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'">18%</button>
+                                        <button type="button" @click="gstPct = 28" class="px-2 py-0.5 rounded-lg text-[10px] font-black border transition cursor-pointer" :class="gstPct === 28 ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'">28%</button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {{-- Tax Breakdown Pill Bar --}}
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs font-semibold text-slate-600">
-                                <span>Tax Breakdown:</span>
-                                <div class="flex items-center gap-3 font-mono font-bold">
-                                    <span>CGST: ₹ <span x-text="(gstAmount / 2).toFixed(2)">0.00</span></span>
-                                    <span class="text-slate-300">|</span>
-                                    <span>SGST: ₹ <span x-text="(gstAmount / 2).toFixed(2)">0.00</span></span>
-                                    <span class="text-slate-300">|</span>
-                                    <span class="text-[#a38c29]">Total GST: ₹ <span x-text="gstAmount.toFixed(2)">0.00</span></span>
+                            {{-- Tax Breakdown / GST Amount Text Box Display --}}
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+                                    <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Calculated GST Amount</span>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#a38c29] font-bold text-xs">₹</span>
+                                        <input type="text" readonly :value="numberFormat(gstAmount)" class="w-full pl-7 pr-3 py-1.5 text-xs font-mono font-black text-[#a38c29] rounded-lg border border-amber-200 bg-white shadow-2xs cursor-default">
+                                    </div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+                                    <span class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Split (CGST + SGST)</span>
+                                    <div class="flex items-center justify-between text-[11px] font-mono font-bold text-slate-700 py-1.5 px-2 bg-white rounded-lg border border-slate-200">
+                                        <span>C: ₹ <span x-text="numberFormat(gstAmount / 2)"></span></span>
+                                        <span class="text-slate-300">|</span>
+                                        <span>S: ₹ <span x-text="numberFormat(gstAmount / 2)"></span></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1145,32 +1268,27 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> {{-- End Section 3 --}}
 
-            </form>
+                </div> {{-- End Scrollable Form Content (Strictly bounds scrolling) --}}
 
-            {{-- Executive Pinned Footer --}}
-            <div class="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                <!-- <div class="text-xs text-slate-500 flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
-                    <span>Voucher will be auto-posted to Double-Entry General Ledger upon approval</span>
-                </div> -->
-
-                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">
+                {{-- Executive Pinned Footer - Defaulty displayed while scrolling, right-aligned buttons --}}
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showCreateModal = false" class="px-5 py-2.5 text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-300 hover:bg-slate-100 rounded-xl transition uppercase tracking-wider cursor-pointer shadow-2xs">
                         Cancel
                     </button>
                     <template x-if="!selectedExpense || selectedExpense.status === 'Draft'">
-                        <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 text-xs font-bold text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/40 hover:bg-[#a38c29]/10 rounded-lg transition uppercase tracking-wide cursor-pointer flex items-center gap-1.5">
+                        <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-5 py-2.5 text-xs font-bold text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/50 hover:bg-[#a38c29]/10 rounded-xl transition uppercase tracking-wider cursor-pointer inline-flex items-center gap-1.5 shadow-2xs">
                             <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#a38c29]"></i>
                             <span>Save as Draft</span>
                         </button>
                     </template>
-                    <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer border-0">
+                    <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-black rounded-xl transition-all shadow-md shadow-[#a38c29]/25 hover:shadow-lg hover:shadow-[#a38c29]/35 uppercase tracking-wider cursor-pointer border border-[#a38c29]/40">
                         <span x-text="selectedExpense ? 'Update Site Expense' : 'Add Site Expense'">Add Site Expense</span>
                     </button>
                 </div>
-            </div>
+
+            </form>
 
         </div>
     </div>

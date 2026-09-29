@@ -1548,6 +1548,7 @@ class VoucherController extends Controller
             $q->where('status', 'active')->orWhere('status', 'Active')->orWhereNull('status');
         })->orderByDesc('is_default')->orderBy('bank_name')->get();
 
+        $linkedChartAccountIds = [];
         foreach ($companyBankAccounts as $cBank) {
             $accName = $cBank->bank_name . ($cBank->account_number ? ' - A/c ' . substr($cBank->account_number, -4) : '');
             $existingAcc = Account::where('system_id', $systemId)
@@ -1566,9 +1567,49 @@ class VoucherController extends Controller
                 ]);
             }
             $cBank->chart_account_id = $existingAcc->id;
+            $linkedChartAccountIds[] = $existingAcc->id;
             $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('debit');
             $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('credit');
             $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0) + (float)$debits - (float)$credits, 2);
+        }
+
+        // Also include all other Bank accounts from Chart of Accounts (Asset accounts excluding cash/petty cash)
+        $otherBankAccounts = Account::where('system_id', $systemId)
+            ->where('type', 'Asset')
+            ->where(function($q) {
+                $q->where('name', 'LIKE', '%Bank%')
+                  ->orWhere('name', 'LIKE', '%Account%')
+                  ->orWhere('code', 'LIKE', 'BANK-%');
+            })
+            ->where('name', 'NOT LIKE', '%Cash%')
+            ->where('name', 'NOT LIKE', '%Petty%')
+            ->whereNotIn('id', $linkedChartAccountIds)
+            ->orderBy('name')
+            ->get();
+
+        foreach ($otherBankAccounts as $oAcc) {
+            $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $oAcc->id)->sum('debit');
+            $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $oAcc->id)->sum('credit');
+            $bal = round((float)$debits - (float)$credits, 2);
+
+            $accNum = '';
+            if (preg_match('/\d{3,}/', $oAcc->name . ' ' . $oAcc->code, $m)) {
+                $accNum = $m[0];
+            }
+
+            $virtualBank = new CompanyBankAccount([
+                'bank_name' => $oAcc->name,
+                'account_name' => $oAcc->name,
+                'account_number' => $accNum,
+                'branch_name' => 'Corporate Branch',
+                'current_balance' => $bal,
+                'status' => 'active',
+                'is_default' => 0,
+            ]);
+            $virtualBank->id = 1000 + $oAcc->id;
+            $virtualBank->chart_account_id = $oAcc->id;
+            $virtualBank->calculated_balance = $bal;
+            $companyBankAccounts->push($virtualBank);
         }
 
         // Load recent Contra vouchers
@@ -1590,20 +1631,54 @@ class VoucherController extends Controller
         $request->validate([
             'voucher_number' => 'required|string',
             'date' => 'required|date',
-            'destination_account_id' => 'required|exists:accounts,id',
-            'credit_account_id' => 'required|exists:accounts,id',
+            'destination_account_id' => 'required',
+            'credit_account_id' => 'required',
             'amount' => 'required|numeric|min:0.01',
             'narration' => 'nullable|string',
         ]);
 
-        $destAcc = Account::findOrFail($request->destination_account_id);
-        $creditAcc = Account::findOrFail($request->credit_account_id);
+        $creditBankId = $request->credit_bank_id;
+        $destBankId = $request->destination_bank_id;
+
+        $creditCompanyBank = $creditBankId ? CompanyBankAccount::find($creditBankId) : null;
+        $destCompanyBank = $destBankId ? CompanyBankAccount::find($destBankId) : null;
+
+        if (!$creditCompanyBank && $request->credit_account_id) {
+            $creditCompanyBank = CompanyBankAccount::find($request->credit_account_id);
+        }
+        if (!$destCompanyBank && $request->destination_account_id) {
+            $destCompanyBank = CompanyBankAccount::find($request->destination_account_id);
+        }
+
+        // Resolve credit chart account
+        $creditAcc = Account::find($request->credit_account_id);
+        if (!$creditAcc && $creditCompanyBank) {
+            $accName = $creditCompanyBank->bank_name . ($creditCompanyBank->account_number ? ' - A/c ' . substr($creditCompanyBank->account_number, -4) : '');
+            $creditAcc = Account::firstOrCreate(
+                ['system_id' => $systemId, 'name' => $accName],
+                ['type' => 'Asset', 'code' => '10' . rand(10, 99), 'is_active' => true]
+            );
+        }
+
+        // Resolve destination chart account
+        $destAcc = Account::find($request->destination_account_id);
+        if (!$destAcc && $destCompanyBank) {
+            $accName = $destCompanyBank->bank_name . ($destCompanyBank->account_number ? ' - A/c ' . substr($destCompanyBank->account_number, -4) : '');
+            $destAcc = Account::firstOrCreate(
+                ['system_id' => $systemId, 'name' => $accName],
+                ['type' => 'Asset', 'code' => '10' . rand(10, 99), 'is_active' => true]
+            );
+        }
+
+        if (!$destAcc || !$creditAcc) {
+            return back()->withErrors(['accounts' => 'Could not resolve source or destination bank accounts.']);
+        }
 
         if (strtolower($destAcc->type) !== 'asset' || strtolower($creditAcc->type) !== 'asset') {
             return back()->withErrors(['accounts' => 'Contra transactions must involve only cash or bank asset accounts.']);
         }
 
-        DB::transaction(function () use ($request, $systemId, $user) {
+        DB::transaction(function () use ($request, $systemId, $user, $destAcc, $creditAcc, $creditCompanyBank, $destCompanyBank) {
             $amount = (float)$request->amount;
 
             // Create Voucher
@@ -1621,24 +1696,24 @@ class VoucherController extends Controller
             // 1. Debit the Destination Account
             $debitLine = VoucherLine::create([
                 'voucher_id' => $voucher->id,
-                'account_id' => $request->destination_account_id,
+                'account_id' => $destAcc->id,
                 'debit' => $amount,
                 'credit' => 0.00,
-                'line_narration' => 'Debit to Destination Account',
+                'line_narration' => 'Debit to Destination Account (' . ($destCompanyBank ? $destCompanyBank->bank_name : $destAcc->name) . ')',
             ]);
 
             // 2. Credit the Source Account
             $creditLine = VoucherLine::create([
                 'voucher_id' => $voucher->id,
-                'account_id' => $request->credit_account_id,
+                'account_id' => $creditAcc->id,
                 'debit' => 0.00,
                 'credit' => $amount,
-                'line_narration' => 'Credit to Source Account',
+                'line_narration' => 'Credit to Source Account (' . ($creditCompanyBank ? $creditCompanyBank->bank_name : $creditAcc->name) . ')',
             ]);
 
             LedgerEntry::create([
                 'system_id' => $systemId,
-                'account_id' => $request->destination_account_id,
+                'account_id' => $destAcc->id,
                 'voucher_id' => $voucher->id,
                 'voucher_line_id' => $debitLine->id,
                 'date' => $request->date,
@@ -1649,7 +1724,7 @@ class VoucherController extends Controller
 
             LedgerEntry::create([
                 'system_id' => $systemId,
-                'account_id' => $request->credit_account_id,
+                'account_id' => $creditAcc->id,
                 'voucher_id' => $voucher->id,
                 'voucher_line_id' => $creditLine->id,
                 'date' => $request->date,
@@ -1657,6 +1732,14 @@ class VoucherController extends Controller
                 'credit' => $amount,
                 'running_balance' => 0.00,
             ]);
+
+            // Update real-world Company Bank Account balances
+            if ($creditCompanyBank) {
+                $creditCompanyBank->decrement('current_balance', $amount);
+            }
+            if ($destCompanyBank) {
+                $destCompanyBank->increment('current_balance', $amount);
+            }
 
             // Create Double Entry Accounting Postings in journal_vouchers & journal_entries
             try {
@@ -2584,12 +2667,216 @@ class VoucherController extends Controller
      */
     public function printPaymentVoucher(int $id): \Illuminate\View\View
     {
-        $voucher = Voucher::with(['lines.account', 'creator'])
-            ->findOrFail($id);
+        $type = request('type');
+        $voucher = null;
+        $raBillPayment = null;
+        $siteExpensePayment = null;
+        $billReference = null;
+        $payeeName = null;
+        $projectName = null;
+        $projectLocation = null;
+        $categoryName = null;
+        $bankName = null;
+        $bankAccountNo = null;
+        $paymentMode = null;
 
-        $raBillPayment = class_exists(\App\Models\RaBillPayment::class)
-            ? \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
-            : null;
+        // 1. Explicit Journal Voucher requested (e.g. from Contractor Ledger Claim Voucher)
+        if (($type === 'jv' || $type === 'journal_voucher') && class_exists(\App\Models\JournalVoucher::class)) {
+            $jv = \App\Models\JournalVoucher::with('entries.account')->find($id);
+            if ($jv) {
+                $bill = null;
+                if ($jv->reference_id && class_exists(\App\Models\RaBill::class)) {
+                    $bill = \App\Models\RaBill::with(['contractor', 'project'])->find($jv->reference_id);
+                }
+                $billReference = $bill ? '#' . $bill->ra_bill_number : $jv->voucher_no;
+                $payeeName = $bill?->contractor_name ?: ($bill?->contractor?->name ?? 'Contractor');
+                $projectName = $bill?->project?->name;
+                $projectLocation = $bill?->project?->location ?: ($bill?->project?->city ?? null);
+                $categoryName = 'Contractor RA Bill Verification & Claim';
+                $paymentMode = 'Liability Journal Accrual';
+                $amount = (float)($jv->total_debit ?: ($bill?->net_approved_amount ?: $bill?->gross_amount));
+
+                $voucher = new Voucher([
+                    'voucher_number' => $jv->voucher_no,
+                    'voucher_date'   => $jv->voucher_date ? \Carbon\Carbon::parse($jv->voucher_date) : now(),
+                    'narration'      => $jv->narration ?: "Verified RA Bill {$billReference} - {$payeeName}",
+                ]);
+                $voucher->id = $jv->id;
+                $voucher->amount = $amount;
+                $voucher->date = $voucher->voucher_date;
+                $voucher->reference_no = $jv->voucher_no;
+
+                $line = new \App\Models\VoucherLine();
+                $line->debit = $amount;
+                $line->credit = 0.00;
+                $line->particulars = $categoryName;
+                $voucher->setRelation('lines', collect([$line]));
+            }
+        }
+
+        // 2. Explicit RA Bill requested
+        if (!$voucher && ($type === 'ra_bill' || $type === 'claim') && class_exists(\App\Models\RaBill::class)) {
+            $bill = \App\Models\RaBill::with(['contractor', 'project'])->find($id);
+            if ($bill) {
+                $billReference = '#' . $bill->ra_bill_number;
+                $payeeName = $bill->contractor_name ?: ($bill->contractor?->name ?? 'Contractor');
+                $projectName = $bill->project?->name;
+                $projectLocation = $bill->project?->location ?: ($bill->project?->city ?? null);
+                $categoryName = 'Contractor RA Bill Claim';
+                $paymentMode = 'Progress Claim Inward';
+                $amount = (float)($bill->net_approved_amount > 0 ? $bill->net_approved_amount : $bill->gross_amount);
+
+                $voucher = new Voucher([
+                    'voucher_number' => "RA-{$bill->ra_bill_number}",
+                    'voucher_date'   => $bill->verified_date ?: ($bill->submit_date ?: now()),
+                    'narration'      => "RA Bill Claim #{$bill->ra_bill_number} ({$payeeName})",
+                ]);
+                $voucher->id = $bill->id;
+                $voucher->amount = $amount;
+                $voucher->date = $voucher->voucher_date;
+                $voucher->reference_no = "RA-{$bill->ra_bill_number}";
+
+                $line = new \App\Models\VoucherLine();
+                $line->debit = $amount;
+                $line->credit = 0.00;
+                $line->particulars = $categoryName;
+                $voucher->setRelation('lines', collect([$line]));
+            }
+        }
+
+        // 3. Explicit RA Payment requested
+        if (!$voucher && $type === 'ra_payment' && class_exists(\App\Models\RaBillPayment::class)) {
+            $raPayment = \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->find($id);
+            if ($raPayment) {
+                if ($raPayment->voucher_id) {
+                    $voucher = Voucher::with(['lines.account', 'creator'])->find($raPayment->voucher_id);
+                }
+                if (!$voucher) {
+                    $voucher = new Voucher([
+                        'voucher_number' => $raPayment->reference_no ?: "PAY-{$raPayment->id}",
+                        'voucher_date'   => $raPayment->payment_date ?: now(),
+                        'amount'         => $raPayment->paid_amount,
+                        'narration'      => "Payment Release for RA Bill #" . ($raPayment->raBill?->ra_bill_number ?? '') . " (" . ($raPayment->raBill?->contractor_name ?: ($raPayment->raBill?->contractor?->name ?? 'Contractor')) . ")",
+                    ]);
+                    $voucher->id = $raPayment->id;
+                    $voucher->date = $voucher->voucher_date;
+                    $voucher->reference_no = $raPayment->reference_no ?: "PAY-{$raPayment->id}";
+                    $voucher->setRelation('lines', collect());
+                }
+                $raBillPayment = $raPayment;
+            }
+        }
+
+        // 4. Standard Voucher lookup
+        if (!$voucher) {
+            $voucher = Voucher::with(['lines.account', 'creator'])->find($id);
+        }
+
+        // 5. Fallback 1: If not found by voucher_id, check if $id was passed as a RaBillPayment ID
+        if (!$voucher && class_exists(\App\Models\RaBillPayment::class)) {
+            $raPayment = \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->find($id);
+            if (!$raPayment) {
+                $raPayment = \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->where('voucher_id', $id)->first();
+            }
+            if ($raPayment) {
+                if ($raPayment->voucher_id) {
+                    $voucher = Voucher::with(['lines.account', 'creator'])->find($raPayment->voucher_id);
+                }
+                if (!$voucher) {
+                    $voucher = new Voucher([
+                        'voucher_number' => $raPayment->reference_no ?: "PAY-{$raPayment->id}",
+                        'voucher_date'   => $raPayment->payment_date ?: now(),
+                        'amount'         => $raPayment->paid_amount,
+                        'narration'      => "Payment Release for RA Bill #" . ($raPayment->raBill?->ra_bill_number ?? '') . " (" . ($raPayment->raBill?->contractor_name ?: ($raPayment->raBill?->contractor?->name ?? 'Contractor')) . ")",
+                    ]);
+                    $voucher->id = $raPayment->id;
+                    $voucher->date = $voucher->voucher_date;
+                    $voucher->reference_no = $raPayment->reference_no ?: "PAY-{$raPayment->id}";
+                    $voucher->setRelation('lines', collect());
+                }
+                $raBillPayment = $raPayment;
+            }
+        }
+
+        // Fallback 2: Check if $id was passed as a SiteExpensePayment ID
+        if (!$voucher && class_exists(\App\Models\SiteExpensePayment::class)) {
+            $sitePayment = \App\Models\SiteExpensePayment::find($id);
+            if ($sitePayment && $sitePayment->voucher_id) {
+                $voucher = Voucher::with(['lines.account', 'creator'])->find($sitePayment->voucher_id);
+            }
+        }
+
+        // Fallback 3: Check if $id is a JournalVoucher ID
+        if (!$voucher && class_exists(\App\Models\JournalVoucher::class)) {
+            $jv = \App\Models\JournalVoucher::with('entries.account')->find($id);
+            if ($jv) {
+                $bill = null;
+                if ($jv->reference_id && class_exists(\App\Models\RaBill::class)) {
+                    $bill = \App\Models\RaBill::with(['contractor', 'project'])->find($jv->reference_id);
+                }
+                $billReference = $bill ? '#' . $bill->ra_bill_number : $jv->voucher_no;
+                $payeeName = $bill?->contractor_name ?: ($bill?->contractor?->name ?? null);
+                $projectName = $bill?->project?->name;
+                $projectLocation = $bill?->project?->location ?: ($bill?->project?->city ?? null);
+                $categoryName = 'Contractor RA Bill Verification';
+                $paymentMode = 'Liability Journal Accrual';
+                $amount = (float)($jv->total_debit ?: ($bill?->net_approved_amount ?: $bill?->gross_amount));
+
+                $voucher = new Voucher([
+                    'voucher_number' => $jv->voucher_no,
+                    'voucher_date'   => $jv->voucher_date ? \Carbon\Carbon::parse($jv->voucher_date) : now(),
+                    'narration'      => $jv->narration ?: "Verified RA Bill {$billReference}",
+                ]);
+                $voucher->id = $jv->id;
+                $voucher->amount = $amount;
+                $voucher->date = $voucher->voucher_date;
+                $voucher->reference_no = $jv->voucher_no;
+
+                $line = new \App\Models\VoucherLine();
+                $line->debit = $amount;
+                $line->credit = 0.00;
+                $line->particulars = $categoryName;
+                $voucher->setRelation('lines', collect([$line]));
+            }
+        }
+
+        // Fallback 4: Check if $id is an RaBill ID
+        if (!$voucher && class_exists(\App\Models\RaBill::class)) {
+            $bill = \App\Models\RaBill::with(['contractor', 'project'])->find($id);
+            if ($bill) {
+                $billReference = '#' . $bill->ra_bill_number;
+                $payeeName = $bill->contractor_name ?: ($bill->contractor?->name ?? null);
+                $projectName = $bill->project?->name;
+                $projectLocation = $bill->project?->location ?: ($bill->project?->city ?? null);
+                $categoryName = 'Contractor RA Bill Claim';
+                $paymentMode = 'Progress Claim Inward';
+                $amount = (float)($bill->net_approved_amount > 0 ? $bill->net_approved_amount : $bill->gross_amount);
+
+                $voucher = new Voucher([
+                    'voucher_number' => "RA-{$bill->ra_bill_number}",
+                    'voucher_date'   => $bill->verified_date ?: ($bill->submit_date ?: now()),
+                    'narration'      => "RA Bill Claim #{$bill->ra_bill_number} (" . ($bill->contractor_name ?: ($bill->contractor?->name ?? 'Contractor')) . ")",
+                ]);
+                $voucher->id = $bill->id;
+                $voucher->amount = $amount;
+                $voucher->date = $voucher->voucher_date;
+                $voucher->reference_no = "RA-{$bill->ra_bill_number}";
+
+                $line = new \App\Models\VoucherLine();
+                $line->debit = $amount;
+                $line->credit = 0.00;
+                $line->particulars = $categoryName;
+                $voucher->setRelation('lines', collect([$line]));
+            }
+        }
+
+        if (!$voucher) {
+            abort(404, "Payment Voucher #{$id} was not found in the system.");
+        }
+
+        if (!$raBillPayment && class_exists(\App\Models\RaBillPayment::class)) {
+            $raBillPayment = \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first();
+        }
 
         $siteExpensePayment = (!$raBillPayment && class_exists(\App\Models\SiteExpensePayment::class))
             ? \App\Models\SiteExpensePayment::with(['siteExpense.vendor', 'siteExpense.project', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
@@ -2599,22 +2886,34 @@ class VoucherController extends Controller
             ? \App\Models\CommissionEntry::with('agent')->where('voucher_id', $voucher->id)->first()
             : null;
 
-        $payeeName = null;
-        $paymentMode = null;
-        $billReference = null;
+        if (!$payeeName) {
+            if ($raBillPayment) {
+                $payeeName = $raBillPayment->raBill?->contractor_name ?: ($raBillPayment->raBill?->contractor?->name ?? null);
+            } elseif ($siteExpensePayment) {
+                $expense = $siteExpensePayment->siteExpense;
+                $payeeName = $expense?->payee_display_name ?: ($expense?->casual_payee_name ?: ($expense?->expense_category_name ?? null));
+            } elseif ($commissionEntry) {
+                $payeeName = $commissionEntry->agent?->name ?? 'Agent Commission';
+            }
+        }
 
-        if ($raBillPayment) {
-            $payeeName = $raBillPayment->raBill?->contractor_name ?: ($raBillPayment->raBill?->contractor?->name ?? null);
-            $paymentMode = $raBillPayment->payment_mode ? ucwords(str_replace('_', ' ', $raBillPayment->payment_mode)) : null;
-            $billReference = $raBillPayment->raBill ? '#' . $raBillPayment->raBill->ra_bill_number : null;
-        } elseif ($siteExpensePayment) {
-            $expense = $siteExpensePayment->siteExpense;
-            $payeeName = $expense?->payee_display_name ?: ($expense?->casual_payee_name ?: ($expense?->expense_category_name ?? null));
-            $paymentMode = $siteExpensePayment->payment_mode ? ucwords(str_replace('_', ' ', $siteExpensePayment->payment_mode)) : null;
-            $billReference = $expense ? '#' . $expense->voucher_number : null;
-        } elseif ($commissionEntry) {
-            $payeeName = $commissionEntry->agent?->name ?? 'Agent Commission';
-            $paymentMode = 'Bank Transfer';
+        if (!$paymentMode) {
+            if ($raBillPayment) {
+                $paymentMode = $raBillPayment->payment_mode ? ucwords(str_replace('_', ' ', $raBillPayment->payment_mode)) : null;
+            } elseif ($siteExpensePayment) {
+                $paymentMode = $siteExpensePayment->payment_mode ? ucwords(str_replace('_', ' ', $siteExpensePayment->payment_mode)) : null;
+            } elseif ($commissionEntry) {
+                $paymentMode = 'Bank Transfer';
+            }
+        }
+
+        if (!$billReference) {
+            if ($raBillPayment) {
+                $billReference = $raBillPayment->raBill ? '#' . $raBillPayment->raBill->ra_bill_number : null;
+            } elseif ($siteExpensePayment) {
+                $expense = $siteExpensePayment->siteExpense;
+                $billReference = $expense ? '#' . $expense->voucher_number : null;
+            }
         }
 
         // If payeeName is still not found, try extracting from narration e.g. "for #RA-000001 (Luxstruct Builders PVT LTD)"
@@ -2632,19 +2931,23 @@ class VoucherController extends Controller
 
         $bankName = $raBillPayment?->companyBankAccount?->bank_name
             ?: ($siteExpensePayment?->companyBankAccount?->bank_name
-                ?: ($siteExpensePayment?->loan?->lender_name ?? null));
+                ?: ($siteExpensePayment?->loan?->lender_name ?? $bankName));
 
         $bankAccountNo = $raBillPayment?->companyBankAccount?->account_number
             ?: ($siteExpensePayment?->companyBankAccount?->account_number
-                ?: ($siteExpensePayment?->loan?->account_number ?? null));
+                ?: ($siteExpensePayment?->loan?->account_number ?? $bankAccountNo));
 
-        $project = $raBillPayment?->raBill?->project
-            ?: ($siteExpensePayment?->siteExpense?->project ?? null);
-        $projectName = $project?->name;
-        $projectLocation = $project?->location ?: ($project?->city ?? null);
+        if (!$projectName) {
+            $project = $raBillPayment?->raBill?->project
+                ?: ($siteExpensePayment?->siteExpense?->project ?? null);
+            $projectName = $project?->name;
+            $projectLocation = $project?->location ?: ($project?->city ?? null);
+        }
 
-        $categoryName = $siteExpensePayment?->siteExpense?->expense_category_name
-            ?: ($raBillPayment ? 'Contractor RA Bill Progress Settlement' : null);
+        if (!$categoryName) {
+            $categoryName = $siteExpensePayment?->siteExpense?->expense_category_name
+                ?: ($raBillPayment ? 'Contractor RA Bill Progress Settlement' : null);
+        }
 
         return view('vouchers.payment-voucher-print', compact(
             'voucher',
