@@ -373,7 +373,7 @@
                 <button type="button" @click="payoutModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('brokers.payout') }}" method="POST" class="p-5 space-y-3.5 text-xs font-sans bg-white" @submit="validatePayoutForm($event)">
+            <form action="{{ route('brokers.payout') }}" method="POST" class="p-5 space-y-3.5 text-xs font-sans bg-white" @submit="validatePayoutForm($event)" novalidate>
                 @csrf
                 <input type="hidden" name="broker_id" :value="modalData.broker_id">
 
@@ -414,8 +414,8 @@
                                    x-model.number="modalData.amount"
                                    @input="delete modalErrors.amount"
                                    data-no-words="true"
-                                   required
-                                   class="w-full h-9 pl-7 pr-3 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 font-mono transition shadow-2xs"
+                                   :class="modalErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
+                                   class="w-full h-9 pl-7 pr-3 rounded-xl text-xs font-bold text-slate-900 font-mono transition shadow-2xs"
                                    placeholder="Enter payout amount...">
                         </div>
                         <span x-show="modalErrors.amount" x-text="modalErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
@@ -520,15 +520,21 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT DATE <span class="text-rose-500">*</span></label>
-                        <input type="date" name="date" x-model="modalData.date" required
-                               class="w-full px-3 py-2 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                        <input type="date" name="date" x-model="modalData.date"
+                               @input="delete modalErrors.date"
+                               :class="modalErrors.date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                        <span x-show="modalErrors.date" x-text="modalErrors.date" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">TRANSACTION / CHEQUE / UTR NO.</label>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">TRANSACTION / CHEQUE / UTR NO. <span class="text-rose-500">*</span></label>
                         <input type="text" name="reference_no" x-model="modalData.reference_no"
+                               @input="delete modalErrors.reference_no"
                                placeholder="e.g. UTR1087349137 or Cheque Ref"
-                               class="w-full px-3 py-2 bg-slate-50 focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                               :class="modalErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                        <span x-show="modalErrors.reference_no" x-text="modalErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                     </div>
                 </div>
 
@@ -656,10 +662,19 @@ function brokerPayoutApp() {
             broker_id: '',
             company_bank_account_id: '',
             amount: 0,
-            payment_mode: (@json($paymentModes ?? [])[0]?.name) || 'Bank Transfer (NEFT / RTGS / IMPS)',
+            payment_mode: 'Bank Transfer (NEFT / RTGS / IMPS)',
             reference_no: '',
             date: new Date().toISOString().split('T')[0],
             remarks: ''
+        },
+
+        getDefaultPaymentMode() {
+            const list = this.paymentModes || [];
+            const found = list.find(pm => 
+                (pm.code && (pm.code.toUpperCase() === 'BANK_TRANSFER' || pm.code.toUpperCase() === 'BANK')) ||
+                (pm.name && pm.name.toLowerCase().includes('bank transfer'))
+            );
+            return found ? found.name : (list.length > 0 ? list[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)');
         },
 
         init() {
@@ -672,6 +687,7 @@ function brokerPayoutApp() {
             if (this.projects.length > 0) {
                 this.filters.project_id = String(this.projects[0].id);
             }
+            this.modalData.payment_mode = this.getDefaultPaymentMode();
         },
 
         openPayoutModal(brokerId = null) {
@@ -689,7 +705,7 @@ function brokerPayoutApp() {
             }
 
             const avail = selectedBroker ? Number(selectedBroker.payable_commission ?? selectedBroker.available_balance ?? 0) : 0;
-            const defaultPayMode = (this.paymentModes && this.paymentModes.length > 0) ? this.paymentModes[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)';
+            const defaultPayMode = this.getDefaultPaymentMode();
 
             this.modalData = {
                 broker_id: selectedBroker ? String(selectedBroker.id) : '',
@@ -720,7 +736,7 @@ function brokerPayoutApp() {
                 this.modalErrors.company_bank_account_id = 'Company bank account selection is required';
                 hasError = true;
             }
-            if (!this.modalData.amount || this.modalData.amount <= 0) {
+            if (this.modalData.amount === '' || this.modalData.amount === null || isNaN(Number(this.modalData.amount)) || Number(this.modalData.amount) <= 0) {
                 this.modalErrors.amount = 'Valid payout amount is required';
                 hasError = true;
             } else if (this.isBankInsufficient) {
@@ -728,6 +744,14 @@ function brokerPayoutApp() {
                 hasError = true;
             } else if (this.isBrokerInsufficient) {
                 this.modalErrors.amount = 'Payout amount exceeds available broker balance';
+                hasError = true;
+            }
+            if (!this.modalData.date) {
+                this.modalErrors.date = 'Payment date is required';
+                hasError = true;
+            }
+            if (!this.modalData.reference_no || !this.modalData.reference_no.trim()) {
+                this.modalErrors.reference_no = 'Transaction / Cheque / UTR number is required';
                 hasError = true;
             }
 

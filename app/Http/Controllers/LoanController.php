@@ -105,7 +105,9 @@ class LoanController extends Controller
         $accounts = Account::orderBy('name')->get();
         $assetAccounts = Account::where('type', 'Asset')->where('is_active', true)->orderBy('name')->get();
         $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
-        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')
+            ->orderByRaw("CASE WHEN code = 'BANK_TRANSFER' OR name LIKE '%Bank Transfer%' THEN 0 ELSE 1 END, id ASC")
+            ->get();
         $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $interestLogs = LoanInterestLog::with('loan')->latest()->get();
 
@@ -320,7 +322,9 @@ class LoanController extends Controller
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
         $assetAccounts = \App\Models\Account::where('type', 'Asset')->where('is_active', true)->get();
         $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
-        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')
+            ->orderByRaw("CASE WHEN code = 'BANK_TRANSFER' OR name LIKE '%Bank Transfer%' THEN 0 ELSE 1 END, id ASC")
+            ->get();
         return view('loans.schedule', compact('loan', 'assetAccounts', 'companyBankAccounts', 'paymentModes'));
     }
 

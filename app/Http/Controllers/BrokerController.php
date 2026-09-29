@@ -336,27 +336,63 @@ class BrokerController extends Controller
             }
         }
 
+        $brokerAccountIds = $brokers->pluck('linked_account_id')->filter()->unique()->toArray();
+
         $vouchers = \App\Models\Voucher::where('system_id', $systemId)
             ->where('type', 'Payment')
-            ->where('voucher_number', 'LIKE', 'PV-BROKER-%')
+            ->where(function ($q) use ($brokerAccountIds) {
+                $q->where('voucher_number', 'LIKE', 'PV-BROKER-%')
+                  ->orWhere('narration', 'LIKE', '%Commission payout%')
+                  ->orWhere('narration', 'LIKE', '%Broker%');
+                if (!empty($brokerAccountIds)) {
+                    $q->orWhereHas('lines', function ($lq) use ($brokerAccountIds) {
+                        $lq->whereIn('account_id', $brokerAccountIds);
+                    });
+                }
+            })
             ->with(['companyBankAccount', 'lines'])
             ->get();
 
         foreach ($vouchers as $v) {
-            $parts = explode('-', $v->voucher_number);
-            $bId = isset($parts[2]) ? (int)$parts[2] : null;
+            $bId = null;
+            if (preg_match('/PV-BROKER-(\d+)/i', $v->voucher_number, $m)) {
+                $bId = (int)$m[1];
+            }
+            if (!$bId) {
+                foreach ($v->lines as $line) {
+                    $matchedBroker = $brokers->firstWhere('linked_account_id', $line->account_id);
+                    if ($matchedBroker) {
+                        $bId = $matchedBroker->id;
+                        break;
+                    }
+                }
+            }
+            if (!$bId) {
+                foreach ($brokers as $brk) {
+                    if (stripos($v->narration ?? '', $brk->name) !== false) {
+                        $bId = $brk->id;
+                        break;
+                    }
+                }
+            }
+
             $broker = $bId ? $brokers->firstWhere('id', $bId) : null;
             $brokerName = $broker?->name ?? 'Broker';
 
             $debitAmount = (float)$v->lines->where('debit', '>', 0)->sum('debit');
+            if ($debitAmount <= 0 && preg_match('/₹\s*([\d,\.]+)/u', $v->narration ?? '', $amtMatch)) {
+                $debitAmount = (float)str_replace(',', '', $amtMatch[1]);
+            }
 
-            $paymentMode = 'Bank Transfer';
-            if (stripos($v->narration ?? '', 'cheque') !== false) {
+            $paymentMode = 'Bank Transfer (NEFT / RTGS / IMPS)';
+            if (preg_match('/\[Mode:\s*([^\]]+)\]/i', $v->narration ?? '', $pmMatch)) {
+                $paymentMode = trim($pmMatch[1]);
+            } elseif (stripos($v->narration ?? '', 'cheque') !== false) {
                 $paymentMode = 'Cheque';
             } elseif (stripos($v->narration ?? '', 'cash') !== false) {
                 $paymentMode = 'Cash';
             } elseif (stripos($v->narration ?? '', 'upi') !== false || stripos($v->narration ?? '', 'online') !== false) {
-                $paymentMode = 'UPI / Online';
+                $paymentMode = 'UPI / Online Payment';
             }
 
             // Extract project_id if narration refers to a specific sale number (e.g. #HID-AP-11A-JHAN)
@@ -399,7 +435,9 @@ class BrokerController extends Controller
 
         $runningLedger = $runningLedger->sortBy('date')->values();
 
-        $paymentModes = PaymentMode::where('status', 'active')->orderBy('id')->get();
+        $paymentModes = PaymentMode::where('status', 'active')
+            ->orderByRaw("CASE WHEN code = 'BANK_TRANSFER' OR name LIKE '%Bank Transfer%' THEN 0 ELSE 1 END, id ASC")
+            ->get();
 
         return view('brokers.payable-report', compact(
             'brokerReports',
@@ -422,7 +460,7 @@ class BrokerController extends Controller
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
             'amount'                  => ['nullable', 'numeric', 'min:0.01'],
             'payment_mode'            => ['nullable', 'string', 'max:100'],
-            'reference_no'            => ['nullable', 'string', 'max:100'],
+            'reference_no'            => ['required', 'string', 'max:100'],
             'date'                    => ['nullable', 'date'],
             'remarks'                 => ['nullable', 'string', 'max:500'],
         ]);
@@ -532,7 +570,8 @@ class BrokerController extends Controller
                     $bankAccount->decrement('current_balance', $totalPaid);
 
                     $paymentMode = $request->input('payment_mode', 'Bank Transfer');
-                    $customRefNo = $request->input('reference_no') ?: ('PV-BROKER-' . $broker->id . '-' . time());
+                    $customRefNo = $request->input('reference_no');
+                    $systemVoucherNo = 'PV-BROKER-' . $broker->id . '-' . time();
                     $payoutDate = $request->input('date') ?: now()->toDateString();
                     $customRemarks = $request->input('remarks');
                     $fullNarration = ($customRemarks ?: ($narration ?: 'Broker commission payout')) . " [Mode: {$paymentMode}]";
@@ -541,11 +580,11 @@ class BrokerController extends Controller
                     $voucher = \App\Models\Voucher::create([
                         'system_id' => $systemId,
                         'company_bank_account_id' => $bankAccount->id,
-                        'voucher_number' => $customRefNo,
+                        'voucher_number' => $systemVoucherNo,
                         'type' => 'Payment',
                         'date' => $payoutDate,
                         'narration' => $fullNarration,
-                        'reference_no' => $customRefNo,
+                        'reference_no' => $customRefNo ?: $systemVoucherNo,
                         'created_by' => $user->id,
                         'status' => 'Posted',
                     ]);
