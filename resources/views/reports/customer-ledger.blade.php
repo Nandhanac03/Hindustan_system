@@ -268,61 +268,89 @@
                 @else
                 {{-- DEFAULT FULL DISPLAY — ALL CUSTOMERS LEDGER SUMMARY --}}
                 <div class="space-y-6">
-                    {{-- Top 4 KPI Metric Cards (Top-Aligned Small Icons with Background Reflections) --}}
+                    {{-- Top 4 KPI Metric Cards (Matching Cheque Realization Format) --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {{-- Card 1: Total Sales Agreements --}}
-                        <div class="bg-gradient-to-br from-white via-white to-blue-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-blue-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Total Sales Agreements</span>
-                                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs border border-blue-100 group-hover:scale-105 transition-transform">
-                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-600 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.15)] cursor-default h-full">
+                            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Sales Agreements</span>
                                 </div>
+                                <span class="shrink-0 whitespace-nowrap text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-blue-300 group-hover:bg-blue-100/60">
+                                    Sales Value
+                                </span>
                             </div>
-                            <div>
-                                <div class="text-base lg:text-lg font-black text-slate-900 truncate font-mono">₹{{ number_format($totalDebits, 2) }}</div>
-                                <span class="text-[10px] text-slate-400 font-semibold block">Combined Sales Value</span>
+                            <div class="relative z-10 mt-1">
+                                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-blue-600 transition-colors duration-300">
+                                    ₹{{ number_format($totalDebits, 2) }}
+                                </span>
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Combined Sales Value</p>
                             </div>
                         </div>
 
                         {{-- Card 2: Total Collections --}}
-                        <div class="bg-gradient-to-br from-white via-white to-emerald-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-emerald-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Total Collections</span>
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs border border-emerald-100 group-hover:scale-105 transition-transform">
-                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
+                            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Collections</span>
                                 </div>
+                                <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                                    Realized
+                                </span>
                             </div>
-                            <div>
-                                <div class="text-base lg:text-lg font-black text-emerald-700 truncate font-mono">₹{{ number_format($totalCredits, 2) }}</div>
-                                <span class="text-[10px] text-emerald-600/80 font-semibold block">Total Receipts Received</span>
+                            <div class="relative z-10 mt-1">
+                                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                                    ₹{{ number_format($totalCredits, 2) }}
+                                </span>
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total Receipts Received</p>
                             </div>
                         </div>
 
                         {{-- Card 3: Net Outstanding Due --}}
-                        <div class="bg-gradient-to-br from-white via-white to-rose-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-rose-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Net Outstanding Due</span>
-                                <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs border border-rose-100 group-hover:scale-105 transition-transform">
-                                    <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
+                            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Net Outstanding Due</span>
                                 </div>
+                                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                                    Pending
+                                </span>
                             </div>
-                            <div>
-                                <div class="text-base lg:text-lg font-black text-rose-700 truncate font-mono">₹{{ number_format($closingBalance, 2) }}</div>
-                                <span class="text-[10px] text-rose-600/80 font-semibold block">Overall Pending Receivables</span>
+                            <div class="relative z-10 mt-1">
+                                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                                    ₹{{ number_format($closingBalance, 2) }}
+                                </span>
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Overall Pending Receivables</p>
                             </div>
                         </div>
 
                         {{-- Card 4: Active Customer Accounts --}}
-                        <div class="bg-gradient-to-br from-white via-white to-amber-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#a38c29] shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Active Customer Accounts</span>
-                                <div class="w-7 h-7 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0 shadow-2xs border border-amber-200/60 group-hover:scale-105 transition-transform">
-                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+                            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Customer Accounts</span>
                                 </div>
+                                <span class="shrink-0 whitespace-nowrap text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                                    Accounts
+                                </span>
                             </div>
-                            <div>
-                                <div class="text-base lg:text-lg font-black text-slate-900 truncate font-mono">{{ count($customerSummaryList) }}</div>
-                                <span class="text-[10px] text-slate-400 font-semibold block">Customers with Active Sales</span>
+                            <div class="relative z-10 mt-1">
+                                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                                    {{ count($customerSummaryList) }}
+                                </span>
+                                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Customers with Active Sales</p>
                             </div>
                         </div>
                     </div>
