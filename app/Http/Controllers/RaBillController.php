@@ -643,7 +643,7 @@ class RaBillController extends Controller
             // 1. Ensure required Chart of Accounts exist
             $requiredAccounts = [
                 '4002' => ['name' => 'Contractor Work Expenses', 'type' => 'EXPENSE'],
-                '2002' => ['name' => 'Contractor RA Work Bills Payable',      'type' => 'LIABILITY'],
+                '2002' => ['name' => 'Contractor Payable',      'type' => 'LIABILITY'],
             ];
 
             foreach ($requiredAccounts as $accCode => $accInfo) {
