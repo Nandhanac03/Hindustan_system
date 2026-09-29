@@ -59,34 +59,82 @@
             </div>
         @endif
 
-        <!-- KPI Summary Cards (Real-time Instant Updating) -->
+        <!-- Executive KPI Metric Cards (Matching Standard Executive Reference Format) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Total Vouchers -->
-            <div class="bg-white rounded-lg border border-slate-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Total Vouchers</p>
-                <h4 class="text-[22px] font-bold text-[#8a7522] m-0" x-text="stats().total_vouchers"></h4>
-                <p class="text-[10px] text-slate-500 mt-1">All Filtered Journal Entries</p>
+            {{-- Card 1: Total Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                        Vouchers
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="stats().total_vouchers"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">All Filtered Journal Entries</p>
+                </div>
             </div>
 
-            <!-- Posted Vouchers -->
-            <div class="bg-white rounded-lg border border-slate-200 border-l-4 border-l-emerald-500 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Posted Vouchers</p>
-                <h4 class="text-[22px] font-bold text-emerald-700 m-0" x-text="stats().posted_count"></h4>
-                <p class="text-[10px] text-slate-500 mt-1">Active Ledger Postings</p>
+            {{-- Card 2: Posted Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Posted Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                        Posted
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="stats().posted_count"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Active Ledger Postings</p>
+                </div>
             </div>
 
-            <!-- Draft Vouchers -->
-            <div class="bg-white rounded-lg border border-slate-200 border-l-4 border-l-amber-500 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                <p class="text-[11px] font-bold text-amber-600 uppercase tracking-wider mb-1">Draft Vouchers</p>
-                <h4 class="text-[22px] font-bold text-amber-700 m-0" x-text="stats().draft_count"></h4>
-                <p class="text-[10px] text-slate-500 mt-1">Pending Confirmation</p>
+            {{-- Card 3: Draft Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Draft Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                        Draft
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="stats().draft_count"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Pending Confirmation</p>
+                </div>
             </div>
 
-            <!-- Total Turnover -->
-            <div class="bg-white rounded-lg border border-slate-200 border-l-4 border-l-blue-600 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1">Total Turnover</p>
-                <h4 class="text-[20px] font-mono font-bold text-blue-800 m-0" x-text="'₹ ' + stats().total_turnover"></h4>
-                <p class="text-[10px] text-slate-500 mt-1">Total Debit Volume</p>
+            {{-- Card 4: Total Turnover --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-600 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Turnover</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-blue-300 group-hover:bg-blue-100/60">
+                        Turnover
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-blue-600 transition-colors duration-300" x-text="'₹ ' + stats().total_turnover"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total Debit Volume</p>
+                </div>
             </div>
         </div>
 
