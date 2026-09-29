@@ -567,7 +567,7 @@
                             </td>
                             <td class="px-3 py-2.5 border-r border-slate-200/40">
                                 <div class="flex items-center gap-2">
-                                    <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-blue-100 text-blue-900 uppercase">VERIFIED CLAIM</span>
+                                    <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-[#a38c29]/15 text-[#8a7522] uppercase">VERIFIED CLAIM</span>
                                     <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
                                     <span class="text-slate-900 font-bold text-xs" x-text="entry.particulars"></span>
                                 </div>
@@ -575,7 +575,7 @@
                             <td class="px-3 py-2.5 font-mono font-extrabold text-slate-800 border-r border-slate-200/40" x-text="entry.ref_no"></td>
                             <td class="px-3 py-2.5 text-left font-mono font-extrabold text-slate-900 border-r border-slate-200/40" x-text="entry.gross_amount > 0 ? '₹' + numberFormat(entry.gross_amount) : ''"></td>
                             <td class="px-3 py-2.5 text-left font-mono font-extrabold text-amber-700 border-r border-slate-200/40" x-text="entry.correction_amount > 0 ? '₹' + numberFormat(entry.correction_amount) : ''"></td>
-                            <td class="px-3 py-2.5 text-left font-mono font-black text-blue-900 bg-blue-50/30 border-r border-slate-200/40" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : ''"></td>
+                            <td class="px-3 py-2.5 text-left font-mono font-black text-[#8a7522] bg-[#a38c29]/5 border-r border-slate-200/40" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : ''"></td>
                             <td class="px-3 py-2.5 text-left font-mono font-black text-emerald-800 bg-emerald-50/30 border-r border-slate-200/40" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : ''"></td>
                             <td class="px-3 py-2.5 text-center whitespace-nowrap col-action print:hidden">
                                 <template x-if="entry.type === 'DISBURSEMENT'">
@@ -586,7 +586,7 @@
                                 </template>
                                 <template x-if="entry.type === 'CLAIM'">
                                     <a :href="'{{ url('vouchers') }}/' + (entry.jv_id || entry.voucher_id || entry.ra_bill_id) + '/payment-voucher-print?type=' + ((entry.jv_id || entry.voucher_id) ? 'jv' : 'ra_bill')" target="_blank"
-                                       class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg text-[10.5px] font-bold inline-flex items-center justify-center shadow-2xs transition whitespace-nowrap">
+                                       class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] active:scale-95 text-white rounded-lg text-[10.5px] font-bold inline-flex items-center justify-center shadow-2xs transition whitespace-nowrap">
                                         <span>Claim Voucher</span>
                                     </a>
                                 </template>
