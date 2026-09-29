@@ -435,10 +435,16 @@
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT MODE <span class="text-rose-500">*</span></label>
                         <select name="payment_mode" x-model="modalData.payment_mode" @change="delete modalErrors.payment_mode"
                                 class="w-full pl-3.5 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                            <option value="Bank Transfer">Bank Transfer (NEFT / RTGS / IMPS)</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="UPI / Online">UPI / Online Payment</option>
-                            <option value="Cash">Cash</option>
+                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                @foreach($paymentModes as $pm)
+                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="UPI / Online Payment">UPI / Online Payment</option>
+                                <option value="Cash">Cash</option>
+                            @endif
                         </select>
                     </div>
 
@@ -625,6 +631,7 @@ function brokerPayoutApp() {
         brokers: @json($brokers) || [],
         projects: @json($projects) || [],
         companyBankAccounts: @json($companyBankAccounts) || [],
+        paymentModes: @json($paymentModes) || [],
 
         brokerFilterOpen: false,
         brokerFilterSearch: '',
@@ -649,7 +656,7 @@ function brokerPayoutApp() {
             broker_id: '',
             company_bank_account_id: '',
             amount: 0,
-            payment_mode: 'Bank Transfer',
+            payment_mode: (@json($paymentModes ?? [])[0]?.name) || 'Bank Transfer (NEFT / RTGS / IMPS)',
             reference_no: '',
             date: new Date().toISOString().split('T')[0],
             remarks: ''
@@ -682,12 +689,13 @@ function brokerPayoutApp() {
             }
 
             const avail = selectedBroker ? Number(selectedBroker.payable_commission ?? selectedBroker.available_balance ?? 0) : 0;
+            const defaultPayMode = (this.paymentModes && this.paymentModes.length > 0) ? this.paymentModes[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)';
 
             this.modalData = {
                 broker_id: selectedBroker ? String(selectedBroker.id) : '',
                 company_bank_account_id: firstBankId,
                 amount: avail,
-                payment_mode: 'Bank Transfer',
+                payment_mode: defaultPayMode,
                 reference_no: '',
                 date: new Date().toISOString().split('T')[0],
                 remarks: ''

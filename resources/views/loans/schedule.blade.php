@@ -416,11 +416,16 @@
                                             @change="delete payErrors.payment_mode"
                                             :class="payErrors.payment_mode ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white'"
                                             class="w-full h-9 pl-3 pr-8 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
-                                        <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
-                                        <option value="Cheque">Cheque Payout</option>
-                                        <option value="Direct Debit">Direct Bank Debit (ECS / Auto-debit)</option>
-                                        <option value="Cash">Cash Payout</option>
-                                        <option value="Online">Online Gateway Payment</option>
+                                        @if(isset($paymentModes) && count($paymentModes) > 0)
+                                            @foreach($paymentModes as $pm)
+                                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Cash">Cash</option>
+                                            <option value="UPI / Online Payment">UPI / Online Payment</option>
+                                        @endif
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -995,6 +1000,7 @@ function scheduleApp() {
     return {
         loan: {!! json_encode($loan) !!},
         companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},
+        paymentModes: {!! json_encode($paymentModes ?? []) !!},
         payModalOpen: false,
         prepayModalOpen: false,
         bankOpen: false,
@@ -1101,7 +1107,7 @@ function scheduleApp() {
             amount: '',
             paid_date: new Date().toISOString().split('T')[0],
             bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
-            payment_mode: 'Bank Transfer',
+            payment_mode: ({!! json_encode($paymentModes ?? []) !!}[0]?.name) || 'Bank Transfer (NEFT / RTGS / IMPS)',
             reference_no: '',
             remarks: '',
             other_charges: 0

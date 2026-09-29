@@ -1121,11 +1121,16 @@
                                     <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Payment Mode <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <select x-model="payForm.payment_mode" required class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
-                                            <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
-                                            <option value="Cheque">Cheque Payout</option>
-                                            <option value="Direct Debit">Direct Bank Debit (ECS / Auto-debit)</option>
-                                            <option value="Cash">Cash Payout</option>
-                                            <option value="Online">Online Gateway Payment</option>
+                                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                                @foreach($paymentModes as $pm)
+                                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                                @endforeach
+                                            @else
+                                                <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                                                <option value="Cheque">Cheque</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="UPI / Online Payment">UPI / Online Payment</option>
+                                            @endif
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -1356,6 +1361,7 @@
 function loanApp() {
     return {
         companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},
+        paymentModes: {!! json_encode($paymentModes ?? []) !!},
         errors: {},
         addModalOpen: false,
         logsModalOpen: false,
@@ -1386,7 +1392,7 @@ function loanApp() {
             amount: '',
             paid_date: '',
             bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
-            payment_mode: 'Bank Transfer',
+            payment_mode: ({!! json_encode($paymentModes ?? []) !!}[0]?.name) || 'Bank Transfer (NEFT / RTGS / IMPS)',
             reference_no: '',
             remarks: '',
             other_charges: 0
@@ -1407,11 +1413,12 @@ function loanApp() {
         openPayModal(installment, loan) {
             this.activeInst = installment;
             this.activeLoan = loan;
+            const defaultPayMode = (this.paymentModes && this.paymentModes.length > 0) ? this.paymentModes[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)';
             this.payForm = {
                 amount: (parseFloat(installment.emi_amount) - parseFloat(installment.amount_paid)).toFixed(2),
                 paid_date: new Date().toISOString().split('T')[0],
                 bank_account_id: (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? this.companyBankAccounts[0].id : '',
-                payment_mode: 'Bank Transfer',
+                payment_mode: defaultPayMode,
                 reference_no: '',
                 remarks: '',
                 other_charges: 0
