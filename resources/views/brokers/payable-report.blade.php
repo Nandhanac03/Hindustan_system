@@ -363,59 +363,206 @@
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
          style="display: none;" 
          x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="payoutModalOpen = false">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="payoutModalOpen = false">
             {{-- Header --}}
-            <div class="bg-[#2a2415] px-5 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
+            <div class="bg-[#2a2415] px-6 py-4 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-0.5">BROKER DISBURSEMENT SETUP</span>
-                    <h3 class="font-black text-sm uppercase tracking-wider text-white">Record Broker Payout</h3>
+                    <h3 class="font-black text-sm sm:text-base uppercase tracking-wider text-white">Record Broker Payout</h3>
                 </div>
-                <button type="button" @click="payoutModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                <button type="button" @click="payoutModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('brokers.payout') }}" method="POST" class="p-5 space-y-3.5 text-xs font-sans bg-white" @submit="validatePayoutForm($event)" novalidate>
+            <form action="{{ route('brokers.payout') }}" method="POST" class="p-6 space-y-4 text-xs font-sans bg-white" @submit="validatePayoutForm($event)" novalidate>
                 @csrf
                 <input type="hidden" name="broker_id" :value="modalData.broker_id">
+                <input type="hidden" name="commission_entry_id" :value="modalData.commission_entry_id">
 
-                {{-- Summary Prompt Note --}}
-                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                    <p class="text-xs text-slate-700 leading-snug">
-                        Record a commission payout to <span class="font-extrabold text-slate-900" x-text="selectedBrokerName"></span>. Total available payable balance: <span class="font-mono font-black text-emerald-700" x-text="formatCurrency(modalSelectedBrokerBalance)"></span>.
-                    </p>
-                </div>
-
-                {{-- Row 1: Select Broker & Payout Amount --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {{-- Select Broker --}}
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">SELECT BROKER <span class="text-rose-500">*</span></label>
-                        <select name="broker_id_select" x-model="modalData.broker_id" @change="onModalBrokerChange()"
-                                class="w-full pl-3.5 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                            <option value="">-- Choose Broker --</option>
-                            @foreach($brokers as $b)
-                                <option value="{{ $b->id }}">{{ $b->name }} (Available: ₹{{ number_format($b->payable_commission, 2) }})</option>
-                            @endforeach
-                        </select>
+                {{-- Row 1: Select Broker & Associated Sale (Custom Golden Search & Select Dropdowns) --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- 1. Select Broker (Custom Golden Search & Select) --}}
+                    <div class="space-y-1.5 relative" @click.outside="modalBrokerOpen = false">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            SELECT BROKER <span class="text-rose-500">*</span>
+                        </label>
+                        
+                        <div @click="modalBrokerOpen = !modalBrokerOpen; if(modalBrokerOpen) { modalBrokerSearch = ''; $nextTick(() => $refs.modalBrokerSearchInput?.focus()); }"
+                             class="w-full h-9 px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition shadow-2xs"
+                             :class="modalErrors.broker_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : (modalBrokerOpen ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-white border-slate-300 hover:border-[#a38c29]/60 text-slate-800')">
+                            <div class="flex items-center gap-2 truncate">
+                                <template x-if="modalSelectedBroker">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="font-bold text-slate-900 truncate" x-text="modalSelectedBroker.name"></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-[#a38c29]/10 text-[#8a7522] font-mono font-bold text-[9.5px] shrink-0" x-text="'Avail: ' + formatCurrency(modalSelectedBroker.payable_commission || 0)"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!modalSelectedBroker">
+                                    <span class="text-slate-400 font-medium">Select Broker...</span>
+                                </template>
+                            </div>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="modalBrokerOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
                         <span x-show="modalErrors.broker_id" x-text="modalErrors.broker_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+
+                        {{-- Broker Search Dropdown Popover --}}
+                        <div x-show="modalBrokerOpen" 
+                             x-transition
+                             class="absolute left-0 right-0 z-50 mt-1 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-56 flex flex-col"
+                             style="display: none;">
+                            <div class="p-2 border-b border-[#a38c29]/20 bg-[#a38c29]/10 sticky top-0 z-10">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <input type="text" 
+                                           x-model="modalBrokerSearch" 
+                                           x-ref="modalBrokerSearchInput"
+                                           placeholder="Search broker name..." 
+                                           class="w-full pl-8 pr-3 py-1 bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                <template x-for="b in filteredModalBrokers" :key="b.id">
+                                    <div @click="selectModalBroker(b.id)"
+                                         class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                         :class="String(modalData.broker_id) === String(b.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800'">
+                                        <span class="font-bold text-slate-900 truncate" x-text="b.name"></span>
+                                        <span class="px-2 py-0.5 rounded font-mono font-black text-[9.5px] shrink-0 ml-2"
+                                              :class="String(modalData.broker_id) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
+                                              x-text="formatCurrency(b.payable_commission || 0)">
+                                        </span>
+                                    </div>
+                                </template>
+                                <div x-show="filteredModalBrokers.length === 0" class="px-3 py-4 text-center text-slate-400 text-xs italic">
+                                    No brokers found matching query
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
+                    {{-- 2. Associated Sale (Custom Golden Search & Select) --}}
+                    <div class="space-y-1.5 relative" @click.outside="modalSaleOpen = false">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                                ASSOCIATED SALE
+                            </label>
+                            <span class="text-[9.5px] text-slate-400 font-bold" x-show="modalBrokerSales.length > 0" x-text="modalBrokerSales.length + ' deal(s) available'"></span>
+                        </div>
+
+                        <div @click="modalSaleOpen = !modalSaleOpen; if(modalSaleOpen) { modalSaleSearch = ''; $nextTick(() => $refs.modalSaleSearchInput?.focus()); }"
+                             class="w-full h-9 px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition shadow-2xs"
+                             :class="modalSaleOpen ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-white border-slate-300 hover:border-[#a38c29]/60 text-slate-800'">
+                            <div class="flex items-center gap-2 truncate">
+                                <template x-if="modalSelectedSale">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="font-bold text-slate-900 truncate" x-text="modalSelectedSale.sale_number"></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-[#a38c29]/10 text-[#8a7522] font-mono font-bold text-[9.5px] shrink-0" x-text="'Unpaid: ' + formatCurrency(modalSelectedSale.remaining)"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!modalSelectedSale && modalData.broker_id">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="text-slate-800 font-bold truncate">All Deals (Auto-Distribute)</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-[#a38c29]/10 text-[#8a7522] font-mono font-bold text-[9.5px] shrink-0" x-text="'Avail: ' + formatCurrency(modalSelectedBrokerBalance)"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!modalSelectedSale && !modalData.broker_id">
+                                    <span class="text-slate-400 font-medium truncate">Select Associated Sale (or All Deals)...</span>
+                                </template>
+                            </div>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="modalSaleOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+
+                        {{-- Sale Search Dropdown Popover --}}
+                        <div x-show="modalSaleOpen" 
+                             x-transition
+                             class="absolute left-0 right-0 z-50 mt-1 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-56 flex flex-col"
+                             style="display: none;">
+                            <div class="p-2 border-b border-[#a38c29]/20 bg-[#a38c29]/10 sticky top-0 z-10">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <input type="text" 
+                                           x-model="modalSaleSearch" 
+                                           x-ref="modalSaleSearchInput"
+                                           placeholder="Search sale #, broker, unit, customer, project..." 
+                                           class="w-full pl-8 pr-3 py-1 bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                {{-- Option 1: All Associated Deals (Visible when broker is selected) --}}
+                                <template x-if="modalData.broker_id">
+                                    <div @click="selectModalSale('')"
+                                         class="px-3.5 py-2.5 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                         :class="!modalData.commission_entry_id ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 font-bold'">
+                                        <div>
+                                            <div class="font-extrabold text-slate-900">All Associated Deals</div>
+                                            <div class="text-[9.5px] text-slate-400 font-medium">Auto-distribute payout across pending deals</div>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded font-mono font-black text-[9.5px] shrink-0 ml-2"
+                                              :class="!modalData.commission_entry_id ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
+                                              x-text="formatCurrency(modalSelectedBrokerBalance)">
+                                        </span>
+                                    </div>
+                                </template>
+
+                                {{-- Specific Deals --}}
+                                <template x-for="sale in filteredModalSales" :key="sale.id">
+                                    <div @click="selectModalSale(sale.id)"
+                                         class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                         :class="String(modalData.commission_entry_id) === String(sale.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800'">
+                                        <div class="min-w-0 pr-2">
+                                            <div class="flex items-center gap-1.5 truncate">
+                                                <span class="font-bold text-slate-900 truncate" x-text="sale.sale_number"></span>
+                                                <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold text-[9px] shrink-0" x-text="sale.broker_name"></span>
+                                            </div>
+                                            <div class="text-[9.5px] text-slate-500 font-medium truncate mt-0.5" x-text="sale.subDetails || 'Deal'"></div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <span class="px-2 py-0.5 rounded font-mono font-black text-[9.5px] block"
+                                                  :class="String(modalData.commission_entry_id) === String(sale.id) ? 'bg-[#a38c29] text-white' : (sale.remaining > 0 ? 'bg-[#a38c29]/10 text-[#8a7522]' : 'bg-slate-100 text-slate-400')"
+                                                  x-text="'Unpaid: ' + formatCurrency(sale.remaining)">
+                                            </span>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="modalBrokerSales.length > 0 && filteredModalSales.length === 0" class="px-3 py-4 text-center text-slate-400 text-xs italic">
+                                    No sales found matching search
+                                </div>
+                                <div x-show="modalBrokerSales.length === 0" class="px-3 py-4 text-center text-slate-400 text-xs italic">
+                                    No commission sales available
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Row 2: Payout Amount & Pay From Account --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- Payout Amount --}}
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYOUT AMOUNT (₹) <span class="text-rose-500">*</span></label>
                             <span class="text-[10px] text-slate-500 font-bold">
-                                Max: <span class="font-mono text-emerald-700" x-text="formatCurrency(modalSelectedBrokerBalance)"></span>
+                                Max: <span class="font-mono text-emerald-700" x-text="formatCurrency(modalMaxPayable)"></span>
                             </span>
                         </div>
                         <div class="relative">
                             <span class="absolute left-3 top-2 text-xs font-black text-slate-400">₹</span>
-                            <input type="number" step="0.01" min="0.01" :max="modalSelectedBrokerBalance"
+                            <input type="number" step="0.01" min="0.01" :max="modalMaxPayable"
                                    name="amount"
                                    x-model.number="modalData.amount"
                                    @input="delete modalErrors.amount"
                                    data-no-words="true"
-                                   :class="modalErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
-                                   class="w-full h-9 pl-7 pr-3 rounded-xl text-xs font-bold text-slate-900 font-mono transition shadow-2xs"
+                                   :class="modalErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-300 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white focus:bg-white'"
+                                   class="w-full h-9 pl-7 pr-3 rounded-xl text-xs font-bold text-slate-900 font-mono focus:outline-none transition shadow-2xs border"
                                    placeholder="Enter payout amount...">
                         </div>
                         <span x-show="modalErrors.amount" x-text="modalErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
@@ -425,27 +572,6 @@
                              class="mt-1 px-2 py-0.5 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[9.5px] capitalize tracking-wide shadow-2xs">
                             <span x-text="modalPayoutAmountInWords"></span>
                         </div>
-                    </div>
-                </div>
-
-                {{-- Row 2: Payment Mode & Pay From Account --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {{-- Payment Mode --}}
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT MODE <span class="text-rose-500">*</span></label>
-                        <select name="payment_mode" x-model="modalData.payment_mode" @change="delete modalErrors.payment_mode"
-                                class="w-full pl-3.5 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                            @if(isset($paymentModes) && count($paymentModes) > 0)
-                                @foreach($paymentModes as $pm)
-                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
-                                @endforeach
-                            @else
-                                <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="UPI / Online Payment">UPI / Online Payment</option>
-                                <option value="Cash">Cash</option>
-                            @endif
-                        </select>
                     </div>
 
                     {{-- Pay From Account --}}
@@ -457,7 +583,8 @@
                         <input type="hidden" name="company_bank_account_id" :value="modalData.company_bank_account_id">
 
                         <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
-                             class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                             class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
+                             :class="modalErrors.company_bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : (modalBankOpen ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-white border-slate-300 hover:border-[#a38c29]/60 text-slate-800')">
                             <template x-if="modalSelectedBankAccount">
                                 <div class="flex items-center gap-2 truncate">
                                     <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="modalSelectedBankAccount.bank_name"></span>
@@ -483,21 +610,21 @@
                         {{-- Dropdown List --}}
                         <div x-show="modalBankOpen" 
                              x-transition
-                             class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
+                             class="absolute left-0 right-0 z-50 mt-1 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-56 flex flex-col"
                              style="display: none;">
-                            <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                            <div class="p-2 border-b border-[#a38c29]/20 bg-[#a38c29]/10 sticky top-0 z-10">
                                 <input type="text" 
                                        x-model="modalBankSearch" 
                                        x-ref="modalBankSearchInput"
                                        placeholder="Search bank name, account no..." 
-                                       class="w-full pl-3 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29]">
+                                       class="w-full pl-3 pr-3 py-1 bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-lg text-xs font-medium focus:outline-none">
                             </div>
 
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
                                 <template x-for="acc in filteredModalBankAccounts" :key="acc.id">
                                     <div @click="modalData.company_bank_account_id = String(acc.id); modalBankOpen = false; modalBankSearch = ''"
-                                         class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                                         :class="String(modalData.company_bank_account_id) === String(acc.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                         class="px-3 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                         :class="String(modalData.company_bank_account_id) === String(acc.id) ? 'bg-[#a38c29]/15 font-bold border-l-4 border-[#a38c29]' : ''">
                                         <div class="flex flex-col min-w-0 pr-2">
                                             <div class="flex items-center gap-1.5 truncate">
                                                 <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
@@ -516,25 +643,54 @@
                     </div>
                 </div>
 
-                {{-- Row 3: Payment Date & Reference / Cheque No. --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Row 3: Payment Mode & Payment Date --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Payment Mode --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT MODE <span class="text-rose-500">*</span></label>
+                        <select name="payment_mode" x-model="modalData.payment_mode" @change="delete modalErrors.payment_mode"
+                                class="w-full pl-3.5 pr-8 py-2 bg-white border border-slate-300 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                @foreach($paymentModes as $pm)
+                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="UPI / Online Payment">UPI / Online Payment</option>
+                                <option value="Cash">Cash</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    {{-- Payment Date --}}
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">PAYMENT DATE <span class="text-rose-500">*</span></label>
                         <input type="date" name="date" x-model="modalData.date"
                                @input="delete modalErrors.date"
-                               :class="modalErrors.date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
-                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                               :class="modalErrors.date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-300 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white focus:bg-white'"
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs border">
                         <span x-show="modalErrors.date" x-text="modalErrors.date" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                     </div>
+                </div>
 
+                {{-- Row 4: Transaction Ref & Remarks --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">TRANSACTION / CHEQUE / UTR NO. <span class="text-rose-500">*</span></label>
                         <input type="text" name="reference_no" x-model="modalData.reference_no"
                                @input="delete modalErrors.reference_no"
                                placeholder="e.g. UTR1087349137 or Cheque Ref"
-                               :class="modalErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-slate-50 focus:bg-white'"
-                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 transition shadow-2xs">
+                               :class="modalErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-300 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white focus:bg-white'"
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs border">
                         <span x-show="modalErrors.reference_no" x-text="modalErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-700">REMARKS / NOTES (OPTIONAL)</label>
+                        <input type="text" name="remarks" x-model="modalData.remarks"
+                               placeholder="e.g. Commission clearance for sale"
+                               class="w-full px-3 py-2 border border-slate-300 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white focus:bg-white rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs">
                     </div>
                 </div>
 
@@ -547,9 +703,9 @@
                 </template>
 
                 {{-- Live Dynamic Balance Box --}}
-                <div class="bg-slate-50/90 border border-slate-200/90 rounded-xl p-3 shadow-2xs text-xs">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                        <div class="space-y-1.5 md:border-r md:border-slate-200/80 md:pr-4">
+                <div class="bg-slate-50/90 border border-slate-200/90 rounded-xl p-3.5 shadow-2xs text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                        <div class="space-y-1.5 md:border-r md:border-slate-200/80 md:pr-6">
                             <template x-if="modalSelectedBankAccount">
                                 <div class="space-y-1.5">
                                     <div class="flex items-center justify-between gap-2">
@@ -569,15 +725,15 @@
 
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between gap-2">
-                                <span class="font-bold text-slate-600 text-[11px]">Available Broker Balance</span>
-                                <span class="font-mono font-extrabold text-emerald-600 text-xs shrink-0" x-text="formatCurrency(modalSelectedBrokerBalance)">Rs. 0</span>
+                                <span class="font-bold text-slate-600 text-[11px]" x-text="modalSelectedSale ? 'Available Sale Balance' : 'Available Broker Balance'"></span>
+                                <span class="font-mono font-extrabold text-emerald-600 text-xs shrink-0" x-text="formatCurrency(modalMaxPayable)">Rs. 0</span>
                             </div>
                             <div class="flex items-center justify-between gap-2">
                                 <span class="font-bold text-slate-600 text-[11px]">Payout Amount</span>
                                 <span class="font-mono font-extrabold text-rose-500 text-xs shrink-0" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
                             </div>
                             <div class="pt-1.5 border-t border-slate-200/80 flex items-center justify-between gap-2">
-                                <span class="font-black text-slate-900 uppercase tracking-wider text-[11px]">Broker Bal After Payout</span>
+                                <span class="font-black text-slate-900 uppercase tracking-wider text-[11px]" x-text="modalSelectedSale ? 'Sale Bal After Payout' : 'Broker Bal After Payout'"></span>
                                 <span class="font-mono font-black text-slate-900 text-sm shrink-0" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
                             </div>
                         </div>
@@ -657,9 +813,14 @@ function brokerPayoutApp() {
         payoutModalOpen: false,
         modalBankOpen: false,
         modalBankSearch: '',
+        modalBrokerOpen: false,
+        modalBrokerSearch: '',
+        modalSaleOpen: false,
+        modalSaleSearch: '',
         modalErrors: {},
         modalData: {
             broker_id: '',
+            commission_entry_id: '',
             company_bank_account_id: '',
             amount: 0,
             payment_mode: 'Bank Transfer (NEFT / RTGS / IMPS)',
@@ -681,48 +842,185 @@ function brokerPayoutApp() {
             if (this.companyBankAccounts.length > 0) {
                 this.modalData.company_bank_account_id = String(this.companyBankAccounts[0].id);
             }
-            if (this.brokers.length > 0) {
-                this.modalData.broker_id = String(this.brokers[0].id);
-            }
             if (this.projects.length > 0) {
                 this.filters.project_id = String(this.projects[0].id);
             }
             this.modalData.payment_mode = this.getDefaultPaymentMode();
         },
 
-        openPayoutModal(brokerId = null) {
+        formatBrokeragesList(brokerages, broker) {
+            if (!brokerages || !Array.isArray(brokerages)) return [];
+            return brokerages.map(entry => {
+                const commAmt = Number(entry.commission_amount || 0);
+                const paidAmt = Number(entry.paid_amount || 0);
+                const remaining = Math.max(0, commAmt - paidAmt);
+                const saleNo = entry.sale?.sale_number || ('Deal #' + entry.id);
+                const unitDoor = entry.sale?.unit?.door_no ? `Unit ${entry.sale.unit.door_no}` : '';
+                const customerName = entry.sale?.customer?.name || '';
+                const projectName = entry.sale?.project?.name || '';
+                
+                let details = [];
+                if (broker && broker.name) details.push(`Broker: ${broker.name}`);
+                if (projectName) details.push(projectName);
+                if (unitDoor) details.push(unitDoor);
+                if (customerName) details.push(customerName);
+                const subDetails = details.join(' • ');
+                
+                let label = `Sale #${saleNo}`;
+                if (details.length > 0) {
+                    label += ` (${details.join(' - ')})`;
+                }
+                label += ` — Unpaid: ${this.formatCurrency(remaining)}`;
+
+                return {
+                    id: String(entry.id),
+                    broker_id: broker ? String(broker.id) : '',
+                    broker_name: broker ? broker.name : 'Broker',
+                    sale_id: entry.sale_id,
+                    sale_number: saleNo,
+                    subDetails: subDetails,
+                    label: label,
+                    commission_amount: commAmt,
+                    paid_amount: paidAmt,
+                    remaining: remaining,
+                    status: entry.status || 'pending'
+                };
+            });
+        },
+
+        get modalBrokerSales() {
+            if (this.modalData.broker_id) {
+                const b = this.brokers.find(m => String(m.id) === String(this.modalData.broker_id));
+                if (!b || !b.brokerages) return [];
+                return this.formatBrokeragesList(b.brokerages, b);
+            }
+            let all = [];
+            (this.brokers || []).forEach(b => {
+                if (b && b.brokerages && b.brokerages.length > 0) {
+                    all = all.concat(this.formatBrokeragesList(b.brokerages, b));
+                }
+            });
+            return all;
+        },
+
+        get modalSelectedSale() {
+            if (!this.modalData.commission_entry_id) return null;
+            return this.modalBrokerSales.find(s => String(s.id) === String(this.modalData.commission_entry_id)) || null;
+        },
+
+        get modalSelectedBroker() {
+            if (!this.modalData.broker_id) return null;
+            return this.brokers.find(m => String(m.id) === String(this.modalData.broker_id)) || null;
+        },
+
+        get filteredModalBrokers() {
+            const list = this.brokers || [];
+            if (!this.modalBrokerSearch || !this.modalBrokerSearch.trim()) return list;
+            const q = this.modalBrokerSearch.toLowerCase().trim();
+            return list.filter(b => b.name && b.name.toLowerCase().includes(q));
+        },
+
+        get filteredModalSales() {
+            const list = this.modalBrokerSales || [];
+            if (!this.modalSaleSearch || !this.modalSaleSearch.trim()) return list;
+            const q = this.modalSaleSearch.toLowerCase().trim();
+            return list.filter(s => 
+                (s.sale_number && s.sale_number.toLowerCase().includes(q)) ||
+                (s.broker_name && s.broker_name.toLowerCase().includes(q)) ||
+                (s.label && s.label.toLowerCase().includes(q)) ||
+                (s.subDetails && s.subDetails.toLowerCase().includes(q))
+            );
+        },
+
+        get modalMaxPayable() {
+            if (this.modalSelectedSale) {
+                return this.modalSelectedSale.remaining;
+            }
+            return this.modalSelectedBrokerBalance;
+        },
+
+        openPayoutModal(brokerId = null, commissionEntryId = null) {
             this.modalErrors = {};
             this.modalBankOpen = false;
             this.modalBankSearch = '';
+            this.modalBrokerOpen = false;
+            this.modalBrokerSearch = '';
+            this.modalSaleOpen = false;
+            this.modalSaleSearch = '';
             const firstBankId = (this.companyBankAccounts.length > 0) ? String(this.companyBankAccounts[0].id) : '';
             
             let selectedBroker = null;
             if (brokerId) {
                 selectedBroker = this.brokers.find(b => String(b.id) === String(brokerId)) || null;
             }
-            if (!selectedBroker) {
-                selectedBroker = (this.brokers.length > 0) ? this.brokers[0] : null;
+            if (!selectedBroker && commissionEntryId) {
+                for (const b of this.brokers) {
+                    if (b.brokerages && b.brokerages.some(entry => String(entry.id) === String(commissionEntryId))) {
+                        selectedBroker = b;
+                        break;
+                    }
+                }
             }
 
-            const avail = selectedBroker ? Number(selectedBroker.payable_commission ?? selectedBroker.available_balance ?? 0) : 0;
             const defaultPayMode = this.getDefaultPaymentMode();
 
             this.modalData = {
                 broker_id: selectedBroker ? String(selectedBroker.id) : '',
+                commission_entry_id: commissionEntryId ? String(commissionEntryId) : '',
                 company_bank_account_id: firstBankId,
-                amount: avail,
+                amount: 0,
                 payment_mode: defaultPayMode,
                 reference_no: '',
                 date: new Date().toISOString().split('T')[0],
                 remarks: ''
             };
+
+            this.modalData.amount = selectedBroker ? this.modalMaxPayable : 0;
             this.payoutModalOpen = true;
+        },
+
+        selectModalBroker(brokerId) {
+            this.modalData.broker_id = String(brokerId);
+            this.modalBrokerOpen = false;
+            this.modalBrokerSearch = '';
+            this.onModalBrokerChange();
+        },
+
+        selectModalSale(saleId) {
+            if (!saleId) {
+                this.modalData.commission_entry_id = '';
+                this.modalSaleOpen = false;
+                this.modalSaleSearch = '';
+                this.onModalSaleChange();
+                return;
+            }
+
+            const sale = this.modalBrokerSales.find(s => String(s.id) === String(saleId));
+            if (sale) {
+                if (sale.broker_id) {
+                    this.modalData.broker_id = String(sale.broker_id);
+                    delete this.modalErrors.broker_id;
+                }
+                this.modalData.commission_entry_id = String(sale.id);
+                delete this.modalErrors.commission_entry_id;
+                this.modalSaleOpen = false;
+                this.modalSaleSearch = '';
+                this.onModalSaleChange();
+            }
         },
 
         onModalBrokerChange() {
             delete this.modalErrors.broker_id;
+            delete this.modalErrors.commission_entry_id;
             delete this.modalErrors.amount;
-            this.modalData.amount = this.modalSelectedBrokerBalance;
+            this.modalData.commission_entry_id = '';
+            this.modalData.amount = this.modalMaxPayable;
+        },
+
+        onModalSaleChange() {
+            delete this.modalErrors.commission_entry_id;
+            delete this.modalErrors.amount;
+            this.modalData.amount = this.modalMaxPayable;
         },
 
         validatePayoutForm(event) {
@@ -743,7 +1041,8 @@ function brokerPayoutApp() {
                 this.modalErrors.amount = 'Payout amount exceeds available bank balance';
                 hasError = true;
             } else if (this.isBrokerInsufficient) {
-                this.modalErrors.amount = 'Payout amount exceeds available broker balance';
+                const targetLabel = this.modalSelectedSale ? "selected sale's unpaid balance" : "available broker balance";
+                this.modalErrors.amount = `Payout amount exceeds ${targetLabel}`;
                 hasError = true;
             }
             if (!this.modalData.date) {
@@ -815,7 +1114,7 @@ function brokerPayoutApp() {
         },
 
         get modalBalanceAfterPayout() {
-            return this.modalSelectedBrokerBalance - this.modalPayoutAmount;
+            return this.modalMaxPayable - this.modalPayoutAmount;
         },
 
         get isBankInsufficient() {
@@ -824,7 +1123,7 @@ function brokerPayoutApp() {
         },
 
         get isBrokerInsufficient() {
-            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > (this.modalSelectedBrokerBalance + 0.01);
+            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > (this.modalMaxPayable + 0.01);
         },
 
         get modalErrorMessage() {
@@ -832,7 +1131,8 @@ function brokerPayoutApp() {
                 return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available balance in ${this.modalSelectedBankAccount?.bank_name || 'selected bank'} (${this.formatCurrency(this.modalSelectedBankBalance)}).`;
             }
             if (this.isBrokerInsufficient) {
-                return `Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available broker balance (${this.formatCurrency(this.modalSelectedBrokerBalance)}).`;
+                const targetLabel = this.modalSelectedSale ? `selected sale's unpaid balance` : `available broker balance`;
+                return `Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds ${targetLabel} (${this.formatCurrency(this.modalMaxPayable)}).`;
             }
             return '';
         },
