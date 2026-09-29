@@ -649,6 +649,7 @@ class BrokerController extends Controller
                     $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                     $requiredAccounts = [
                     '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
+                    '4001' => ['name' => 'Agent Payable Expense', 'type' => 'EXPENSE'],
                     '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET']
                     ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
@@ -692,6 +693,17 @@ class BrokerController extends Controller
                         'debit_amount'   => $totalPaid,
                         'credit_amount'  => 0.00,
                         'line_narration' => 'Agent Commission Payables (' . ($broker ? $broker->name : '') . ' Cleared)',
+                        'entity_type'    => 'AGENT',
+                        'entity_id'      => $broker ? $broker->id : null,
+                    ]);
+
+                    // credit Agent expense payables(4001)
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '4001',
+                        'debit_amount'   => 0.00,
+                        'credit_amount'  => $totalPaid,
+                        'line_narration' => 'Agent Expense Payables (' . ($broker ? $broker->name : '') . ' Cleared)',
                         'entity_type'    => 'AGENT',
                         'entity_id'      => $broker ? $broker->id : null,
                     ]);
