@@ -3215,33 +3215,28 @@ class ReportController extends Controller
 
         $netEquity = max(0.0, $totalAssets - $totalLiabilities);
 
-        // Fetch dynamic Partner Capital / Allocated Net Profit from Partner Statements matrix logic
+        // Fetch dynamic Partner Capital / Share Capital (Account 3001) balance:
+        // Partner (Total Allocated Net Profit + Capital Contributions) - Journal Entries (3001) Debits
         $allPartnerSharesForBS = PartnerShare::all();
         $allReceiptsForPartnersBS = Receipt::whereNull('partner_id')->get();
         $allPartnerContribsBS = \App\Models\PartnerContribution::all();
 
-        $partner1Capital = 0.0;
-        $partner2Capital = 0.0;
-
-        foreach ([1, 2] as $pId) {
-            $pAllocTotal = 0.0;
-            foreach ($allReceiptsForPartnersBS as $r) {
-                $tShare = $allPartnerSharesForBS->where('project_id', $r->project_id)->where('partner_id', $pId)->first();
-                if ($tShare) {
-                    $pAllocTotal += (float)$r->amount * ((float)$tShare->share_pct / 100);
-                }
-            }
-            $pContribTotal = (float)$allPartnerContribsBS->where('partner_id', $pId)->sum('amount');
-            $pAllocTotal += $pContribTotal;
-
-            if ($pId == 1) {
-                $partner1Capital = round($pAllocTotal, 2);
-            } else {
-                $partner2Capital = round($pAllocTotal, 2);
+        $totalAllocatedProfitBS = 0.0;
+        foreach ($allReceiptsForPartnersBS as $r) {
+            $tShares = $allPartnerSharesForBS->where('project_id', $r->project_id);
+            foreach ($tShares as $s) {
+                $totalAllocatedProfitBS += (float)$r->amount * ((float)$s->share_pct / 100);
             }
         }
+        $totalCapitalContribsBS = (float)$allPartnerContribsBS->sum('amount');
 
-        $totalPartnerCapital = $partner1Capital + $partner2Capital;
+        $je3001Debits = (float)\App\Models\JournalEntry::where('account_id', '3001')->sum('debit_amount');
+        if ($je3001Debits <= 0) {
+            $je3001Debits = (float)\App\Models\PartnerAllocation::sum('allocated_amount');
+        }
+
+        $shareCapital3001 = round(($totalAllocatedProfitBS + $totalCapitalContribsBS) - $je3001Debits, 2);
+        $totalPartnerCapital = $shareCapital3001;
         $retainedEarnings = max(0.0, $netEquity - $totalPartnerCapital);
         $totalEquity = $netEquity;
 
@@ -3261,8 +3256,7 @@ class ReportController extends Controller
             '2003' => $agentPayables,
             '2130' => $customerAdvances,
             '2201' => $bankLoans,
-            '3001' => $partner1Capital,
-            '3002' => $partner2Capital,
+            '3001' => $shareCapital3001,
             '5001' => $totalPartnerCapital,
             '3010' => $retainedEarnings,
         ];
