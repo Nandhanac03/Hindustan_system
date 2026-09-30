@@ -23,15 +23,18 @@
 
         <!-- Flash & Error Notifications -->
         @if(session('status') || session('success'))
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-250 text-emerald-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span>{{ session('status') ?? session('success') }}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-emerald-800 hover:opacity-75 font-black text-sm">✕</button>
-            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal(
+                            'Contractor Saved!',
+                            'Success',
+                            '{{ addslashes(session('status') ?? session('success')) }}',
+                            'The contractor record has been saved successfully.'
+                        );
+                    }
+                });
+            </script>
         @endif
 
         @if(session('error'))

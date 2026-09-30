@@ -4,6 +4,22 @@
 @endphp
 <x-erp-layout :title="$pageTitle" :headerTitle="$pageTitle">
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="salesApp()">
+    {{-- Server-side flash success modal trigger --}}
+    @if(session('status') || session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.showSuccessModal) {
+                    window.showSuccessModal(
+                        'Success!',
+                        'Done',
+                        '{{ addslashes(session('status') ?? session('success')) }}',
+                        'The action was completed successfully.'
+                    );
+                }
+            });
+        </script>
+    @endif
+
     {{-- Toast --}}
     <div x-show="toast.open"
          x-transition:enter="transition ease-out duration-300"
@@ -4265,7 +4281,14 @@ function salesApp() {
                 let data = await res.json();
                 if (res.status === 422) { this.errors = data.errors || {}; }
                 else if (!res.ok) { this.showToast(data.error || 'Server error.', 'error'); }
-                else { this.showToast('Sale updated successfully.'); this.fetchSales(); this.closeEditModal(); }
+                else { 
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal('Sale Updated!', 'Sale Saved', 'The sale details have been updated successfully.', 'Sale record updated successfully.');
+                    } else {
+                        this.showToast('Sale updated successfully.');
+                    }
+                    this.fetchSales(); this.closeEditModal(); 
+                }
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
         },
