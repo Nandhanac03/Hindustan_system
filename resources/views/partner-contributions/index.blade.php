@@ -133,6 +133,15 @@
         {{-- Contributions Table Card (Units Screen Header Theme & Striped Rows) --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
             <style>
+                #contributions-container::-webkit-scrollbar {
+                    display: none !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                }
+                #contributions-container {
+                    -ms-overflow-style: none !important;
+                    scrollbar-width: none !important;
+                }
                 #contributions-table thead th {
                     border-color: #8a7522 !important;
                     background-color: #a38c29 !important;
@@ -146,37 +155,37 @@
                 }
             </style>
             
-            <div class="overflow-x-auto">
+            <div id="contributions-container" class="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <table id="contributions-table" class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-center">
-                            <th class="py-3 px-4 border border-[#8a7522]">DATE</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">PARTNER</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">PROJECT</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">AMOUNT</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">BANK ACCOUNT</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">MODE</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">REFERENCE NO.</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">REMARKS</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">STATUS</th>
-                            <th class="py-3 px-4 border border-[#8a7522]">ACTIONS</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">DATE</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">PARTNER</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">PROJECT</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">AMOUNT</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">BANK ACCOUNT</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">MODE</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">REFERENCE NO.</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">REMARKS</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">STATUS</th>
+                            <th class="py-3 px-3 border border-[#8a7522]">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="contributions-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
                         <template x-for="item in paginatedContributions" :key="item.id">
                             <tr class="transition-colors border-b border-slate-200/60">
-                                <td class="py-3.5 px-4 whitespace-nowrap font-bold text-slate-800 text-center" x-text="item.formatted_date"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap font-bold text-slate-900" x-text="item.partner_name"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap text-slate-700" x-text="item.project_name"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap font-black text-slate-900 font-mono" x-text="'₹ ' + item.formatted_amount"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap text-slate-600 font-medium" x-text="item.bank_name_formatted"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap text-slate-600 font-semibold" x-text="item.payment_mode"></td>
-                                <td class="py-3.5 px-4 whitespace-nowrap font-mono text-slate-500" x-text="item.reference_no"></td>
-                                <td class="py-3.5 px-4 max-w-xs truncate text-slate-500" :title="item.remarks" x-text="item.remarks"></td>
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <td class="py-3 px-3 whitespace-nowrap font-bold text-slate-800 text-center" x-text="item.formatted_date"></td>
+                                <td class="py-3 px-3 whitespace-nowrap font-bold text-slate-900" x-text="item.partner_name"></td>
+                                <td class="py-3 px-3 whitespace-nowrap text-slate-700" x-text="item.project_name"></td>
+                                <td class="py-3 px-3 whitespace-nowrap font-black text-slate-900 font-mono" x-text="'₹ ' + item.formatted_amount"></td>
+                                <td class="py-3 px-3 whitespace-nowrap text-slate-600 font-medium" x-text="item.bank_name_formatted"></td>
+                                <td class="py-3 px-3 whitespace-nowrap text-slate-600 font-semibold" x-text="item.payment_mode"></td>
+                                <td class="py-3 px-3 whitespace-nowrap font-mono text-slate-500" x-text="item.reference_no"></td>
+                                <td class="py-3 px-3 max-w-xs truncate text-slate-500" :title="item.remarks" x-text="item.remarks"></td>
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider" x-text="item.status"></span>
                                 </td>
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button type="button" 
                                             @click="selectedContribution = item; openViewModal = true;"
