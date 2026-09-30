@@ -157,68 +157,68 @@
     </div>
 
     <!-- KPIs (Web Only) -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 print:hidden">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
         <!-- Total Outstanding -->
-        <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Outstanding</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Outstanding</span>
                 </div>
             </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-[#a38c29]" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-[#a38c29]" x-text="kpis.total_customers + ' Customers'"></span></p>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium"><span class="text-[#a38c29] font-bold" x-text="kpis.total_customers + ' Customers'"></span></p>
             </div>
         </div>
 
         <!-- Total Overdue -->
-        <div class="bg-white border-y border-r border-l-4 border-l-rose-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.2)] hover:border-r-rose-500/20 hover:border-y-rose-500/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Overdue</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Overdue</span>
                 </div>
             </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-rose-600" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-rose-500" x-text="kpis.overdue_customers + ' Customers'"></span></p>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-rose-600 transition-colors duration-300" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium"><span class="text-rose-500 font-bold" x-text="kpis.overdue_customers + ' Customers'"></span></p>
             </div>
         </div>
 
         <!-- Current / Not Due -->
-        <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Current / Not Due</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Current / Not Due</span>
                 </div>
             </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-emerald-600" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-emerald-500" x-text="(kpis.total_customers - kpis.overdue_customers) + ' Customers'"></span></p>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium"><span class="text-emerald-600 font-bold" x-text="(kpis.total_customers - kpis.overdue_customers) + ' Customers'"></span></p>
             </div>
         </div>
 
         <!-- Expected Collection -->
-        <div class="bg-white border-y border-r border-l-4 border-l-[#3b82f6] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.2)] hover:border-r-[#3b82f6]/20 hover:border-y-[#3b82f6]/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] cursor-pointer">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                     </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Expected Collection</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expected Collection</span>
                 </div>
             </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-blue-600" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></h3>
-                <span class="text-[10px] font-black uppercase tracking-widest text-[#3b82f6] mt-1 inline-block">Probability Weighted</span>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-blue-600 transition-colors duration-300" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></span>
+                <p class="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider mt-1.5">Probability Weighted</p>
             </div>
         </div>
     </div>
