@@ -398,7 +398,7 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="bg-white p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 overflow-y-auto flex-1 rounded-b-2xl">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" novalidate target="_blank" @submit="if(!validateDisburse()) { $event.preventDefault(); } else { disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200); }" class="bg-white p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 overflow-y-auto flex-1 rounded-b-2xl">
                 @csrf
 
                 <!-- Summary Card -->
@@ -420,8 +420,10 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
-                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
+                        <input type="date" name="payment_date" x-model="disbursePaymentDate" required
+                               class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs"
+                               :class="(hasAttemptedDisburseSubmit && !disbursePaymentDate) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                        <p x-show="hasAttemptedDisburseSubmit && !disbursePaymentDate" class="mt-1 text-[10px] font-bold text-rose-600">The disbursement date field is required.</p>
                     </div>
 
                     <div>
@@ -434,8 +436,10 @@
                             </button>
                         </div>
                         <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : null" placeholder="Enter amount to disburse..." required
-                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs sm:text-sm font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
+                               class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
+                               :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                 oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
+                        <p x-show="hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The amount field is required.</p>
                     </div>
                 </div>
 
@@ -446,7 +450,8 @@
 
                         <!-- Trigger Button -->
                         <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
-                             class="w-full min-h-[38px] px-3 py-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                             class="w-full min-h-[38px] px-3 py-2 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
+                             :class="(hasAttemptedDisburseSubmit && !selectedBankId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white border-slate-200 hover:border-[#a38c29]/60'">
                             <template x-if="selectedAccount">
                                 <div class="flex items-center gap-2 truncate">
                                     <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="selectedAccount.bank_name"></span>
@@ -459,6 +464,7 @@
                             </template>
                             <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-1.5" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
+                        <p x-show="hasAttemptedDisburseSubmit && !selectedBankId" class="mt-1 text-[10px] font-bold text-rose-600">The bank account field is required.</p>
 
                         {{-- Selected Bank Balance in Words Only --}}
                         <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedAccount">
@@ -502,7 +508,9 @@
 
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="payment_mode" required class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
+                        <select name="payment_mode" x-model="disbursePaymentMode" required 
+                                class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs"
+                                :class="(hasAttemptedDisburseSubmit && !disbursePaymentMode) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             @foreach(($paymentModes ?? []) as $pm)
                                 @php
                                     $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
@@ -511,6 +519,7 @@
                                 <option value="{{ $pmCode }}">{{ $pmName }}</option>
                             @endforeach
                         </select>
+                        <p x-show="hasAttemptedDisburseSubmit && !disbursePaymentMode" class="mt-1 text-[10px] font-bold text-rose-600">The payment mode field is required.</p>
                     </div>
                 </div>
 
@@ -579,8 +588,10 @@
 
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
-                    <input type="text" name="reference_no" placeholder="e.g. UTR123456789 or Chq #000123" required
-                           class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs">
+                    <input type="text" name="reference_no" x-model="disburseRefNo" placeholder="e.g. UTR123456789 or Chq #000123" required
+                           class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs"
+                           :class="(hasAttemptedDisburseSubmit && !disburseRefNo) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                    <p x-show="hasAttemptedDisburseSubmit && !disburseRefNo" class="mt-1 text-[10px] font-bold text-rose-600">The reference number field is required.</p>
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 shrink-0">
@@ -691,6 +702,19 @@ function raBillPaymentRelease() {
         contractorLedgerSummaries: @json($contractorLedgerSummaries ?? []),
         bankOpen: false,
         bankSearch: '',
+        
+        hasAttemptedDisburseSubmit: false,
+        disbursePaymentDate: '{{ date("Y-m-d") }}',
+        disbursePaymentMode: '{!! isset($paymentModes[0]) ? (is_object($paymentModes[0]) ? ($paymentModes[0]->code ?? $paymentModes[0]->name) : $paymentModes[0]) : "" !!}',
+        disburseRefNo: '',
+
+        validateDisburse() {
+            this.hasAttemptedDisburseSubmit = true;
+            if (!this.disbursePaymentDate || !this.disbursePaidAmount || parseFloat(this.disbursePaidAmount) <= 0 || !this.selectedBankId || !this.disbursePaymentMode || !this.disburseRefNo) {
+                return false;
+            }
+            return true;
+        },
 
         get selectedAccount() {
             if (!this.selectedBankId) return null;
@@ -713,6 +737,11 @@ function raBillPaymentRelease() {
             this.disbursePaidAmount = '';
             this.bankOpen = false;
             this.bankSearch = '';
+            this.hasAttemptedDisburseSubmit = false;
+            this.disbursePaymentDate = '{{ date("Y-m-d") }}';
+            this.disbursePaymentMode = '{!! isset($paymentModes[0]) ? (is_object($paymentModes[0]) ? ($paymentModes[0]->code ?? $paymentModes[0]->name) : $paymentModes[0]) : "" !!}';
+            this.disburseRefNo = '';
+            
             if (!this.selectedBankId && this.companyBankAccounts.length > 0) {
                 this.selectedBankId = this.companyBankAccounts[0].id;
             }

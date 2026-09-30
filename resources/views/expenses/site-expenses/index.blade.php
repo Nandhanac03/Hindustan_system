@@ -147,6 +147,19 @@
     confirmActionUrl: '',
     confirmMethod: 'POST',
 
+    hasAttemptedExpenseSubmit: false,
+
+    validateExpense() {
+        this.hasAttemptedExpenseSubmit = true;
+        if (!this.projectId || !this.expenseCategoryCode || !this.voucherDate || !this.companyBankAccountId || 
+            (this.payeeType === 'registered' && !this.vendorId) || 
+            (this.payeeType === 'one_time' && !this.casualPayeeName) || 
+            !this.gross || parseFloat(this.gross) <= 0) {
+            return false;
+        }
+        return true;
+    },
+
     openConfirmModal(type, id, voucherNumber) {
         this.confirmType = type;
         this.confirmExpenseId = id;
@@ -160,6 +173,7 @@
     },
 
     openCreateModal() {
+        this.hasAttemptedExpenseSubmit = false;
         this.selectedExpense = null;
         this.projectId = '{{ $projects->first()?->id ?? '' }}';
         this.voucherDate = '{{ date('Y-m-d') }}';
@@ -183,6 +197,7 @@
     },
 
     openEditModal(exp) {
+        this.hasAttemptedExpenseSubmit = false;
         this.selectedExpense = exp;
         if (exp.project_id) this.projectId = exp.project_id;
         if (exp.voucher_date || exp.raw_voucher_date) this.voucherDate = exp.voucher_date || exp.raw_voucher_date;
@@ -938,6 +953,8 @@
                   :action="selectedExpense ? ('{{ url('/site-expenses') }}/' + selectedExpense.id) : '{{ route('site-expenses.store') }}'" 
                   method="POST" 
                   enctype="multipart/form-data" 
+                  novalidate
+                  @submit="if(!validateExpense()) { $event.preventDefault(); }"
                   class="flex flex-col flex-1 min-h-0 overflow-hidden bg-white">
                 @csrf
                 <template x-if="selectedExpense">
@@ -962,7 +979,9 @@
                             {{-- Project Name (col-6) --}}
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1.5 text-xs">Project Name <span class="text-rose-500">*</span></label>
-                                <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                <select name="project_id" x-model="projectId" required
+                                        class="w-full text-xs font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                        :class="(hasAttemptedExpenseSubmit && !projectId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                                     @if($projects->count() !== 1)
                                         <option value="">-- Select Project --</option>
                                     @endif
@@ -975,12 +994,15 @@
                                         <option value="1" selected>Skyline Heights</option>
                                     @endif
                                 </select>
+                                <p x-show="hasAttemptedExpenseSubmit && !projectId" class="mt-1 text-[10px] font-bold text-rose-600">The project field is required.</p>
                             </div>
 
                             {{-- Site Expense Category (col-6) --}}
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1.5 text-xs">Site Expense Category <span class="text-rose-500">*</span></label>
-                                <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                <select name="expense_category_code" x-model="expenseCategoryCode" required
+                                        class="w-full text-xs font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                        :class="(hasAttemptedExpenseSubmit && !expenseCategoryCode) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                                     <option value="">-- Select Site Expense Category --</option>
                                     @foreach($expenseCategories as $code => $name)
                                         <option value="{{ $code }}" {{ old('expense_category_code') == $code ? 'selected' : '' }}>
@@ -988,12 +1010,16 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <p x-show="hasAttemptedExpenseSubmit && !expenseCategoryCode" class="mt-1 text-[10px] font-bold text-rose-600">The expense category field is required.</p>
                             </div>
 
                             {{-- Voucher Date (col-6) --}}
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1.5 text-xs">Voucher Date <span class="text-rose-500">*</span></label>
-                                <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" required
+                                       class="w-full text-xs font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                       :class="(hasAttemptedExpenseSubmit && !voucherDate) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                                <p x-show="hasAttemptedExpenseSubmit && !voucherDate" class="mt-1 text-[10px] font-bold text-rose-600">The voucher date field is required.</p>
                             </div>
 
                             {{-- Payment Source Account (col-6) Search & Select Component --}}
@@ -1004,7 +1030,8 @@
                                 
                                 <!-- Trigger Button -->
                                 <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
-                                     class="w-full min-h-[38px] px-3.5 py-2 border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] bg-white rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                     class="w-full min-h-[38px] px-3.5 py-2 border bg-white rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
+                                     :class="(hasAttemptedExpenseSubmit && !companyBankAccountId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29]'">
                                      <template x-if="selectedBankAccount">
                                          <div class="flex items-center gap-2 truncate">
                                              <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="selectedBankAccount.bank_name"></span>
@@ -1017,6 +1044,7 @@
                                      </template>
                                      <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-2" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </div>
+                                <p x-show="hasAttemptedExpenseSubmit && !companyBankAccountId" class="mt-1 text-[10px] font-bold text-rose-600">The bank account field is required.</p>
 
                                 {{-- Selected Bank Balance in Words Only (matching Loan Payment design) --}}
                                 <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedBankAccount">
@@ -1104,7 +1132,9 @@
                                             <span>Add New Vendor in Master</span>
                                         </a>
                                     </div>
-                                    <select name="vendor_id" x-model="vendorId" @change="onVendorChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                    <select name="vendor_id" x-model="vendorId" @change="onVendorChange()" :required="payeeType === 'registered'"
+                                            class="w-full text-xs font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                            :class="(hasAttemptedExpenseSubmit && payeeType === 'registered' && !vendorId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                                         <option value="">-- Select Vendor from Vendor Master --</option>
                                         @foreach($vendors as $vendor)
                                             <option value="{{ $vendor->id }}">
@@ -1115,13 +1145,17 @@
                                             <option value="" disabled>No Vendors registered in Vendor Master yet. Click "+ Add New Vendor in Master" above.</option>
                                         @endif
                                     </select>
+                                    <p x-show="hasAttemptedExpenseSubmit && payeeType === 'registered' && !vendorId" class="mt-1 text-[10px] font-bold text-rose-600">The vendor field is required.</p>
                                 </div>
                             </template>
 
                             <template x-if="payeeType === 'one_time'">
                                 <div>
                                     <label class="block font-bold text-slate-700 mb-1.5 text-xs">One-Time Payee Full Name <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="casual_payee_name" x-model="casualPayeeName" placeholder="Enter casual payee or recipient name..." class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                                    <input type="text" name="casual_payee_name" x-model="casualPayeeName" placeholder="Enter casual payee or recipient name..." :required="payeeType === 'one_time'"
+                                           class="w-full text-xs font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                           :class="(hasAttemptedExpenseSubmit && payeeType === 'one_time' && !casualPayeeName) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                                    <p x-show="hasAttemptedExpenseSubmit && payeeType === 'one_time' && !casualPayeeName" class="mt-1 text-[10px] font-bold text-rose-600">The casual payee name is required.</p>
                                 </div>
                             </template>
                         </div>
@@ -1188,8 +1222,11 @@
                                     <label class="block font-bold text-slate-700 mb-1.5 text-xs">Base Amount (₹) <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold text-xs">₹</span>
-                                        <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full pl-8 pr-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
+                                        <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" required
+                                               class="w-full pl-8 pr-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border bg-white focus:outline-none transition shadow-2xs"
+                                               :class="(hasAttemptedExpenseSubmit && (!gross || parseFloat(gross) <= 0)) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                                     </div>
+                                    <p x-show="hasAttemptedExpenseSubmit && (!gross || parseFloat(gross) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The base amount field is required.</p>
                                 </div>
 
                                 <div>

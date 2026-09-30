@@ -62,58 +62,74 @@
     <!-- Executive KPI Metrics Bar (Upgraded with Icons & Hover Effects) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: Total RA Claimed -->
-        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-slate-800 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">TOTAL RA CLAIMED</span>
-                <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-400 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(30,41,59,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-700 border border-slate-200 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL RA CLAIMED</span>
                 </div>
+                <span class="text-[9px] text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider">Inward</span>
             </div>
-            <div>
-                <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">₹{{ number_format((float) $totalGross, 2) }}</div>
-                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">{{ $raBills->count() }} Inward RA Progress Bills</div>
+            
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-slate-800 transition-colors duration-300">₹{{ number_format((float) $totalGross, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium">{{ $raBills->count() }} Inward RA Progress Bills</p>
             </div>
         </div>
 
         <!-- Card 2: Engineer Deductions -->
-        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">ENGINEER DEDUCTIONS</span>
-                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">ENGINEER DEDUCTIONS</span>
                 </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider">Applied</span>
             </div>
-            <div>
-                <div class="text-xl font-mono font-black text-amber-700 tracking-tight group-hover:text-amber-800 transition-colors">-₹{{ number_format((float) $totalCorrections, 2) }}</div>
-                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5 border-t border-amber-50">Total Corrections Applied</div>
+            
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">-₹{{ number_format((float) $totalCorrections, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total Corrections Applied</p>
             </div>
         </div>
 
         <!-- Card 3: Net Approved Liabilities -->
-        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">NET APPROVED LIABILITIES</span>
-                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">NET APPROVED</span>
                 </div>
+                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider">Payable</span>
             </div>
-            <div>
-                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
-                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Verified Payable Claimed</div>
+            
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-blue-600 font-mono tracking-tight block group-hover:text-blue-700 transition-colors duration-300">₹{{ number_format((float) $totalNetApproved, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Verified Payable Claimed</p>
             </div>
         </div>
 
         <!-- Card 4: Verification Sign-offs -->
-        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">VERIFICATION SIGN-OFFS</span>
-                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4m-10 12h8m-8 4h8m-16 0h.01M3 16h.01M3 12h.01M3 8h.01M3 4h.01"/></svg>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 11l3 3L22 4m-10 12h8m-8 4h8m-16 0h.01M3 16h.01M3 12h.01M3 8h.01M3 4h.01"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">SIGN-OFFS</span>
                 </div>
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider">Completed</span>
             </div>
-            <div>
-                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">{{ $raBills->whereNotNull('verified_date')->count() }} / {{ $raBills->count() }}</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">Completed Engineer Sign-Offs</div>
+            
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">{{ $raBills->whereNotNull('verified_date')->count() }} / {{ $raBills->count() }}</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Completed Engineer Sign-Offs</p>
             </div>
         </div>
     </div>
@@ -376,7 +392,7 @@
                 </div>
             </div>
 
-            <form id="addRaBillForm" action="{{ route('expenses.ra-bills.store') }}" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
+            <form id="addRaBillForm" action="{{ route('expenses.ra-bills.store') }}" method="POST" @submit.prevent="if(submitAdd($event)) $el.submit()" novalidate style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
                 @csrf
 
                 <!-- Scrollable Body (Only scrolls if screen is very short, otherwise fits without scrollbar) -->
@@ -387,8 +403,10 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">
                                 RA Bill No <span class="text-rose-500 font-bold">*</span>
                             </label>
-                            <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
-                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                            <input type="text" name="ra_bill_number" x-model="addRaBillNumber" placeholder="e.g. 1 or RA-001" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
+                                   :class="(hasAttemptedAddSubmit && !addRaBillNumber) || {{ $errors->has('ra_bill_number') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
+                            <p x-show="hasAttemptedAddSubmit && !addRaBillNumber" class="mt-1 text-[10px] font-bold text-rose-600">The RA bill number field is required.</p>
                             @error('ra_bill_number')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                             @enderror
@@ -398,8 +416,10 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">
                                 Submit Date <span class="text-rose-500 font-bold">*</span>
                             </label>
-                            <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
-                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                            <input type="date" name="submit_date" x-model="addSubmitDate" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
+                                   :class="(hasAttemptedAddSubmit && !addSubmitDate) || {{ $errors->has('submit_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
+                            <p x-show="hasAttemptedAddSubmit && !addSubmitDate" class="mt-1 text-[10px] font-bold text-rose-600">The submit date field is required.</p>
                             @error('submit_date')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                             @enderror
@@ -421,7 +441,8 @@
                                 Contractor Name <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <select name="contractor_id" x-model="selectedContractorId" required
-                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer text-slate-900 border"
+                                    :class="(hasAttemptedAddSubmit && !selectedContractorId) || {{ $errors->has('contractor_id') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                                 <option value="">Select Contractor</option>
                                 @foreach($contractors as $contractor)
                                     <option value="{{ $contractor->id }}" {{ (old('contractor_id') == $contractor->id || (empty(old('contractor_id')) && count($contractors) === 1)) ? 'selected' : '' }}>
@@ -429,6 +450,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p x-show="hasAttemptedAddSubmit && !selectedContractorId" class="mt-1 text-[10px] font-bold text-rose-600">The contractor name field is required.</p>
                             @error('contractor_id')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                             @enderror
@@ -439,7 +461,8 @@
                                 Site Project <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required
-                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer text-slate-900 border"
+                                    :class="(hasAttemptedAddSubmit && !selectedProjectId) || {{ $errors->has('project_id') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                                 <option value="">Select Project</option>
                                 @foreach($projects as $proj)
                                     <option value="{{ $proj->id }}" {{ (old('project_id') == $proj->id || (empty(old('project_id')) && count($projects) === 1)) ? 'selected' : '' }}>
@@ -447,6 +470,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p x-show="hasAttemptedAddSubmit && !selectedProjectId" class="mt-1 text-[10px] font-bold text-rose-600">The site project field is required.</p>
                             @error('project_id')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                             @enderror
@@ -461,9 +485,11 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
-                                <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
-                                       class="w-full h-[38px] pl-7 pr-3 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                                <input type="number" step="0.01" name="gross_amount" x-model="addGrossAmount" placeholder="5000000" required
+                                       class="w-full h-[38px] pl-7 pr-3 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
+                                       :class="(hasAttemptedAddSubmit && (addGrossAmount === '' || addGrossAmount === null)) || {{ $errors->has('gross_amount') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                             </div>
+                            <p x-show="hasAttemptedAddSubmit && (addGrossAmount === '' || addGrossAmount === null)" class="mt-1 text-[10px] font-bold text-rose-600">The RA bill gross amount field is required.</p>
                             @error('gross_amount')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                             @enderror
@@ -510,7 +536,7 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" @submit.prevent="if(submitVerify($event)) $el.submit()" novalidate style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin-bottom: 0; overflow: hidden;">
                 @csrf
 
                 <!-- Scrollable Body (Spacious & Free Layout) -->
@@ -571,19 +597,25 @@
                     <!-- Row 1: Verified Date, Site Engineer & Due Date (3 cols) -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-start">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('verified_date') ? 'text-rose-600' : 'text-slate-700' }}">
                                 Verified Date <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <input type="date" name="verified_date" x-model="verifyDateInput" required
-                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
+                                   :class="(hasAttemptedVerifySubmit && !verifyDateInput) || {{ $errors->has('verified_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
+                            <p x-show="hasAttemptedVerifySubmit && !verifyDateInput" class="mt-1 text-[10px] font-bold text-rose-600">The verified date field is required.</p>
+                            @error('verified_date')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('engineer_id') ? 'text-rose-600' : 'text-slate-700' }}">
                                 Site Engineer <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <select name="engineer_id" x-model="selectedEngineerId" required
-                                    class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
+                                    class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer text-slate-900 border"
+                                    :class="(hasAttemptedVerifySubmit && !selectedEngineerId) || {{ $errors->has('engineer_id') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                                 <option value="">Select Verifying Engineer</option>
                                 @foreach($engineers as $eng)
                                     <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
@@ -591,6 +623,10 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p x-show="hasAttemptedVerifySubmit && !selectedEngineerId" class="mt-1 text-[10px] font-bold text-rose-600">The engineer id field is required.</p>
+                            @error('engineer_id')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -605,15 +641,20 @@
                     <!-- Row 2: Correction of Bill & Amount After Correction (2 cols) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('correction_amount') ? 'text-rose-600' : 'text-slate-700' }}">
                                 Correction of Bill (Deduction ₹) <span class="text-rose-500 font-bold">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
                                 <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
-                                       class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
+                                       class="w-full h-[38px] pl-7 pr-3 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
+                                       :class="(hasAttemptedVerifySubmit && (correctionInput === '' || correctionInput === null)) || {{ $errors->has('correction_amount') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'"
                                        placeholder="0.00">
                             </div>
+                            <p x-show="hasAttemptedVerifySubmit && (correctionInput === '' || correctionInput === null)" class="mt-1 text-[10px] font-bold text-rose-600">The correction amount field is required.</p>
+                            @error('correction_amount')
+                                <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            @enderror
                             <p class="mt-0.5 text-[9.5px] font-medium text-slate-400 h-3.5 flex items-center" x-text="selectedBill ? 'Max Deduction: ₹ ' + numberFormat(selectedBill.gross_amount) : ''"></p>
                         </div>
 
@@ -763,6 +804,7 @@ function raBillVerification() {
         searchQuery: '',
         addModalOpen: {{ $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount') ? 'true' : 'false' }},
         verifyModalOpen: false,
+        hasAttemptedVerifySubmit: false,
         selectedBill: null,
         correctionInput: 0,
         calculatedAfterCorrection: 0,
@@ -778,17 +820,23 @@ function raBillVerification() {
         availableUnits: [],
         allEngineers: @json($engineers),
         selectedEngineerId: '',
+        addRaBillNumber: '{{ old('ra_bill_number') }}',
+        addSubmitDate: '{{ old('submit_date', date('Y-m-d')) }}',
+        addGrossAmount: '{{ old('gross_amount') }}',
+        hasAttemptedAddSubmit: false,
         verifyDateInput: '{{ date("Y-m-d") }}',
         verifyRemarksInput: '',
         verifyDueDateInput: '',
 
         openAddModal() {
+            this.hasAttemptedAddSubmit = false;
             this.resetAddModal();
             this.addModalOpen = true;
         },
 
         closeAddModal() {
             this.addModalOpen = false;
+            this.hasAttemptedAddSubmit = false;
             this.resetAddModal();
         },
 
@@ -857,8 +905,27 @@ function raBillVerification() {
             }
         },
 
+        submitVerify(e) {
+            this.hasAttemptedVerifySubmit = true;
+            if (!this.verifyDateInput || !this.selectedEngineerId || this.correctionInput === '' || this.correctionInput === null) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        },
+
+        submitAdd(e) {
+            this.hasAttemptedAddSubmit = true;
+            if (!this.addRaBillNumber || !this.addSubmitDate || !this.selectedContractorId || !this.selectedProjectId || this.addGrossAmount === '' || this.addGrossAmount === null) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        },
+
         openVerifyModal(bill) {
             this.selectedBill = bill;
+            this.hasAttemptedVerifySubmit = false;
             const gross = parseFloat(bill.gross_amount) || 0;
             const corr = parseFloat(bill.correction_amount) || 0;
             this.correctionInput = corr;

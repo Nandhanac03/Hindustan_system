@@ -386,13 +386,16 @@
                 </div>
 
                 {{-- Form --}}
-                <form action="{{ route('contractors.store') }}" method="POST" @submit="submitAdd($event)" class="flex flex-col flex-1">
+                <form action="{{ route('contractors.store') }}" method="POST" @submit.prevent="if(submitAdd($event)) $el.submit()" class="flex flex-col flex-1" novalidate>
                     @csrf
                     <div class="px-6 pt-3.5 pb-6 space-y-3.5 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1.5" :class="(!name || !name.trim()) ? 'text-rose-600' : 'text-slate-500'">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="name" required placeholder="e.g. BuildRight Constructions Pvt Ltd"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                   @input="delete errors.name"
+                                   :class="hasAttemptedAddSubmit && (!name || !name.trim()) ? 'border border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'"
+                                   class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-900 outline-none transition">
+                            <p x-show="hasAttemptedAddSubmit && (!name || !name.trim()) && !errors.name" class="text-[10px] text-rose-600 font-semibold mt-1">The contractor name field is required.</p>
                             <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.name"></p></template>
                         </div>
 
@@ -413,7 +416,9 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GSTIN Number</label>
                                 <input type="text" name="gstin" x-model="gstin" placeholder="33AABCB1234C1Z5" minlength="15" maxlength="15"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
+                                       @input="delete errors.gstin"
+                                       :class="errors.gstin ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50' : 'bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'"
+                                       class="w-full px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-slate-900 outline-none transition uppercase">
                                 <template x-if="errors.gstin"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.gstin"></p></template>
                             </div>
                             <div>
@@ -432,7 +437,8 @@
 
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
                         <button type="button" @click="openAddModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                        <button type="submit" 
+                                class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-extrabold rounded-xl uppercase transition hover:bg-[#8a741f] shadow-md cursor-pointer flex items-center gap-2">
                             <span>SAVE CONTRACTOR</span>
                         </button>
                     </div>
@@ -460,14 +466,18 @@
                 </div>
 
                 {{-- Form --}}
-                <form :action="'{{ url('/contractors') }}/' + editForm.id" method="POST" class="flex flex-col flex-1">
+                <form :action="'{{ url('/contractors') }}/' + editForm.id" method="POST" @submit.prevent="if(submitEdit($event)) $el.submit()" class="flex flex-col flex-1" novalidate>
                     @csrf
                     @method('PUT')
                     <div class="px-6 pt-3.5 pb-6 space-y-3.5 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider mb-1.5" :class="(!editForm.name || !editForm.name.trim()) ? 'text-rose-600' : 'text-slate-500'">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="editForm.name" required
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                   @input="delete errors.edit_name"
+                                   :class="hasAttemptedEditSubmit && (!editForm.name || !editForm.name.trim()) ? 'border border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'"
+                                   class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-900 outline-none transition">
+                            <p x-show="hasAttemptedEditSubmit && (!editForm.name || !editForm.name.trim()) && !errors.edit_name" class="text-[10px] text-rose-600 font-semibold mt-1">The contractor name field is required.</p>
+                            <template x-if="errors.edit_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.edit_name"></p></template>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -487,7 +497,10 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GSTIN Number</label>
                                 <input type="text" name="gstin" x-model="editForm.gstin" placeholder="33AABCB1234C1Z5" minlength="15" maxlength="15"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
+                                       @input="delete errors.edit_gstin"
+                                       :class="errors.edit_gstin ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50' : 'bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'"
+                                       class="w-full px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-slate-900 outline-none transition uppercase">
+                                <template x-if="errors.edit_gstin"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.edit_gstin"></p></template>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PAN Number</label>
@@ -505,7 +518,8 @@
 
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
                         <button type="button" @click="openEditModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                        <button type="submit" 
+                                class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-extrabold rounded-xl uppercase transition hover:bg-[#8a741f] shadow-md cursor-pointer flex items-center gap-2">
                             <span>UPDATE CONTRACTOR</span>
                         </button>
                     </div>
@@ -699,6 +713,8 @@
                 filterSearch: '{{ request("search", "") }}',
                 filterContractorId: '{{ request("contractor_id", "") }}',
                 filterStatus: '{{ request("status", "") }}',
+                hasAttemptedAddSubmit: false,
+                hasAttemptedEditSubmit: false,
                 openAddModal: false,
                 openEditModal: false,
                 openViewModal: false,
@@ -821,6 +837,7 @@
                 },
 
                 submitAdd(e) {
+                    this.hasAttemptedAddSubmit = true;
                     this.errors = {};
                     if (!this.name || !this.name.trim()) {
                         e.preventDefault();
@@ -830,6 +847,22 @@
                     if (this.gstin && this.gstin.trim().length !== 15) {
                         e.preventDefault();
                         this.errors.gstin = 'GSTIN must be exactly 15 alphanumeric characters.';
+                        return false;
+                    }
+                    return true;
+                },
+
+                submitEdit(e) {
+                    this.hasAttemptedEditSubmit = true;
+                    this.errors = {};
+                    if (!this.editForm.name || !this.editForm.name.trim()) {
+                        e.preventDefault();
+                        this.errors.edit_name = 'The contractor name field is required.';
+                        return false;
+                    }
+                    if (this.editForm.gstin && this.editForm.gstin.trim().length !== 15) {
+                        e.preventDefault();
+                        this.errors.edit_gstin = 'GSTIN must be exactly 15 alphanumeric characters.';
                         return false;
                     }
                     return true;

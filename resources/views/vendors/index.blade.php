@@ -436,6 +436,8 @@
                 {{-- Form Body --}}
                 <form :action="isEdit ? ('{{ url('/vendors') }}/' + currentVendor.id) : '{{ route('vendors.store') }}'" 
                       method="POST" 
+                      novalidate
+                      @submit="if(!validateVendor()) { $event.preventDefault(); }"
                       class="flex flex-col flex-1">
                     @csrf
                     <template x-if="isEdit">
@@ -446,7 +448,9 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Vendor / Business Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="form.name" required placeholder="e.g. Apex Hardware & Cement Supplies"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs font-bold text-slate-900 outline-none transition"
+                                   :class="(hasAttemptedSubmit && !form.name) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'">
+                            <p x-show="hasAttemptedSubmit && !form.name" class="mt-1 text-[10px] font-bold text-rose-600">The vendor name is required.</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -564,6 +568,14 @@
                     branch: '',
                     is_active: 1
                 },
+                
+                hasAttemptedSubmit: false,
+
+                validateVendor() {
+                    this.hasAttemptedSubmit = true;
+                    if (!this.form.name) return false;
+                    return true;
+                },
 
                 getSelectedVendorName() {
                     if (!this.selectedVendorId) return 'All Vendors';
@@ -671,6 +683,7 @@
                 },
 
                 openAddModalFunc() {
+                    this.hasAttemptedSubmit = false;
                     this.isEdit = false;
                     this.currentVendor = null;
                     this.form = {
@@ -691,6 +704,7 @@
                 },
 
                 openEditModalFunc(vendor) {
+                    this.hasAttemptedSubmit = false;
                     this.isEdit = true;
                     this.currentVendor = vendor;
                     this.form = {

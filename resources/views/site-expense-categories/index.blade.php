@@ -23,7 +23,20 @@ function siteExpenseCategoryComponent() {
                 return matchesSearch && matchesStatus;
             });
         },
+        hasAttemptedAdd: false,
+        hasAttemptedEdit: false,
+        
+        submitAdd() {
+            this.hasAttemptedAdd = true;
+            return !!(this.addCategory.category_name && this.addCategory.chart_of_account_id);
+        },
+        
+        submitEdit() {
+            this.hasAttemptedEdit = true;
+            return !!(this.editCategory.category_name && this.editCategory.chart_of_account_id);
+        },
         initAdd() {
+            this.hasAttemptedAdd = false;
             this.addCategory = { category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' };
             this.openAddModal = true;
         },
@@ -36,6 +49,7 @@ function siteExpenseCategoryComponent() {
             this.openViewModal = true;
         },
         initEdit(cat) {
+            this.hasAttemptedEdit = false;
             this.editCategory = { 
                 ...cat,
                 chart_of_account_id: cat.chart_of_account_id ? String(cat.chart_of_account_id) : ''
@@ -351,29 +365,33 @@ function siteExpenseCategoryComponent() {
                 </div>
             </div>
 
-            <form action="{{ route('site-expense-categories.store') }}" method="POST" class="p-6 space-y-4 text-xs overflow-y-auto">
+            <form action="{{ route('site-expense-categories.store') }}" method="POST" novalidate @submit="if(!submitAdd()) { $event.preventDefault(); }" class="p-6 space-y-4 text-xs overflow-y-auto">
                 @csrf
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
                     <input type="text" name="category_name" x-model="addCategory.category_name" required placeholder="e.g. Site Office & Administrative..." 
-                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs"
+                           :class="(hasAttemptedAdd && !addCategory.category_name) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                    <p x-show="hasAttemptedAdd && !addCategory.category_name" class="mt-1 text-[10px] font-bold text-rose-600">The category name is required.</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping) <span class="text-rose-500">*</span></label>
                     <div class="relative">
-                        <select name="chart_of_account_id" x-model="addCategory.chart_of_account_id"
-                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                        <select name="chart_of_account_id" x-model="addCategory.chart_of_account_id" required
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8"
+                                :class="(hasAttemptedAdd && !addCategory.chart_of_account_id) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             <option value="">-- Select Parent COA Account --</option>
                             @foreach($coaAccounts as $coa)
                                 <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
                             @endforeach
                         </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none transition-colors" :class="(hasAttemptedAdd && !addCategory.chart_of_account_id) ? 'text-rose-500' : 'text-slate-400'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </div>
+                    <p x-show="hasAttemptedAdd && !addCategory.chart_of_account_id" class="mt-1 text-[10px] font-bold text-rose-600">The parent COA account is required.</p>
                 </div>
 
                 <div>
@@ -423,7 +441,7 @@ function siteExpenseCategoryComponent() {
                 </div>
             </div>
 
-            <form :action="'{{ url('/site-expense-categories') }}/' + editCategory.id" method="POST" class="p-6 space-y-4 text-xs overflow-y-auto">
+            <form :action="'{{ url('/site-expense-categories') }}/' + editCategory.id" method="POST" novalidate @submit="if(!submitEdit()) { $event.preventDefault(); }" class="p-6 space-y-4 text-xs overflow-y-auto">
                 @csrf
                 <input type="hidden" name="_method" value="PUT">
                 <input type="hidden" name="category_code" :value="editCategory.category_code">
@@ -431,23 +449,27 @@ function siteExpenseCategoryComponent() {
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
                     <input type="text" name="category_name" x-model="editCategory.category_name" required
-                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs"
+                           :class="(hasAttemptedEdit && !editCategory.category_name) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                    <p x-show="hasAttemptedEdit && !editCategory.category_name" class="mt-1 text-[10px] font-bold text-rose-600">The category name is required.</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping) <span class="text-rose-500">*</span></label>
                     <div class="relative">
-                        <select name="chart_of_account_id" x-model="editCategory.chart_of_account_id"
-                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                        <select name="chart_of_account_id" x-model="editCategory.chart_of_account_id" required
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8"
+                                :class="(hasAttemptedEdit && !editCategory.chart_of_account_id) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             <option value="">-- Select Parent COA Account --</option>
                             @foreach($coaAccounts as $coa)
                                 <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
                             @endforeach
                         </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none transition-colors" :class="(hasAttemptedEdit && !editCategory.chart_of_account_id) ? 'text-rose-500' : 'text-slate-400'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </div>
+                    <p x-show="hasAttemptedEdit && !editCategory.chart_of_account_id" class="mt-1 text-[10px] font-bold text-rose-600">The parent COA account is required.</p>
                 </div>
 
                 <div>

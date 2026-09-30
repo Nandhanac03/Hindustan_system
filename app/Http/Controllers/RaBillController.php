@@ -83,20 +83,10 @@ class RaBillController extends Controller
             ->get();
 
         $contractors = Payee::where('system_id', $systemId)
-            ->where('type', 'Contractor')
-            ->where('is_active', true)
+            ->whereIn('type', ['Contractor', 'Supplier'])
             ->with('linkedAccount')
             ->orderBy('name')
             ->get();
-
-        if ($contractors->isEmpty()) {
-            $contractors = Payee::where('system_id', $systemId)
-                ->whereIn('type', ['Contractor', 'Supplier'])
-                ->where('is_active', true)
-                ->with('linkedAccount')
-                ->orderBy('name')
-                ->get();
-        }
 
         $projects = Project::where('system_id', $systemId)
             ->orderBy('name')
@@ -395,7 +385,7 @@ class RaBillController extends Controller
 
         $validated = $request->validate([
             'verified_date'          => ['required', 'date'],
-            'engineer_id'            => ['nullable', 'exists:engineers,id'],
+            'engineer_id'            => ['required', 'exists:engineers,id'],
             'engineer_name'          => ['nullable', 'string', 'max:255'],
             'correction_amount'      => ['required', 'numeric', 'min:0', 'max:' . $gross],
             'additional_percentage'  => ['nullable', 'numeric', 'min:0'],
