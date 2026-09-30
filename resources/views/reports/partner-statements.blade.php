@@ -404,8 +404,8 @@
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td colspan="2" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">PROJECT TOTALS</td>
                             <td class="px-5 py-3.5 text-center font-mono text-slate-900 border-r border-slate-200" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixPayouts)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs + totalMatrixAllocated - totalMatrixPayouts)"></td>
                             <td></td>
