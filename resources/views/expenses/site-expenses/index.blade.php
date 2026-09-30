@@ -134,7 +134,7 @@
     billDate: '{{ old('bill_date', date('Y-m-d')) }}',
     dueDate: '{{ old('due_date', '') }}',
     gross: '{{ old('gross_amount', '') }}',
-    gstPct: 18,
+    gstPct: '',
     narration: '{{ old('narration', '') }}',
     uploadedFile: null,
     fileName: '',
@@ -187,7 +187,7 @@
         this.billDate = '{{ date('Y-m-d') }}';
         this.dueDate = '';
         this.gross = '';
-        this.gstPct = 18;
+        this.gstPct = '';
         this.narration = '';
         this.uploadedFile = null;
         this.fileName = '';
@@ -421,7 +421,7 @@
             </a>
             <button type="button" @click="openCreateModal()"
                class="inline-flex items-center justify-center rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
-                <span>Add Site Expense</span>
+                <span>+ Add Site Expense</span>
             </button>
         </div>
     </div>
@@ -863,7 +863,7 @@
                                                 @click="openConfirmModal('delete', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
                                                 class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
                                                 title="Delete Expense">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                         </button>
                                     </div>
                                 </td>
@@ -1188,8 +1188,11 @@
                     {{-- Invoice / Reference Row --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Bill / Ref Voucher No.</label>
-                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. JCB/0525/0148" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Bill / Ref Voucher No. <span class="text-rose-500">*</span></label>
+                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. JCB/0525/0148" required
+                                   class="w-full text-xs font-mono font-bold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                   :class="(hasAttemptedExpenseSubmit && !transactionRef) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                            <p x-show="hasAttemptedExpenseSubmit && !transactionRef" class="mt-1 text-[10px] font-bold text-rose-600">The bill / ref voucher no is required.</p>
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1.5 text-xs">Bill Date</label>
@@ -1232,7 +1235,7 @@
                                 <div>
                                     <label class="block font-bold text-slate-700 mb-1.5 text-xs">GST Rate (%)</label>
                                     <div class="relative">
-                                        <input type="number" step="0.01" min="0" max="100" name="gst_rate" x-model.number="gstPct" placeholder="18" class="w-full pr-8 pl-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs">
+                                        <input type="number" step="0.01" min="0" max="100" name="gst_rate" x-model.number="gstPct" placeholder="e.g. 18" class="w-full pr-8 pl-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs">
                                         <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 font-bold text-xs">%</span>
                                     </div>
                                     <div class="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -1271,7 +1274,7 @@
                                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-2xl pointer-events-none"></div>
                                 <div class="relative z-10 flex items-center justify-between">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-[#d4af37]">NET TOTAL PAYABLE (GROSS + GST)</span>
-                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-[#a38c29]/30 text-amber-200 border border-[#a38c29]/50" x-text="gstPct + '% GST Included'"></span>
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-[#a38c29]/30 text-amber-200 border border-[#a38c29]/50" x-text="(gstPct !== '' && gstPct !== null ? gstPct : 0) + '% GST Included'"></span>
                                 </div>
                                 <div class="relative z-10 text-2xl sm:text-3xl font-black font-mono text-white tracking-tight" x-text="formatCurrency(netTotal)">
                                     ₹ 0.00
@@ -1290,8 +1293,11 @@
                     {{-- Remarks & Attach File Dropzone --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1 items-start">
                         <div class="lg:col-span-8">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Remarks / Particulars / Work Narration</label>
-                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work at Block A, site foundation..." class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Remarks / Particulars / Work Narration <span class="text-rose-500">*</span></label>
+                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work at Block A, site foundation..." required
+                                   class="w-full text-xs font-semibold rounded-xl border bg-white py-2.5 px-3.5 text-slate-900 transition shadow-2xs focus:outline-none"
+                                   :class="(hasAttemptedExpenseSubmit && !narration) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                            <p x-show="hasAttemptedExpenseSubmit && !narration" class="mt-1 text-[10px] font-bold text-rose-600">Narration / remarks are required.</p>
                         </div>
                         <div class="lg:col-span-4">
                             <label class="block font-bold text-slate-700 mb-1.5 text-xs">Attach Invoice / Bill / Document</label>
@@ -1593,9 +1599,6 @@
             <div class="p-6 bg-white text-center">
                 <template x-if="confirmType === 'approve'">
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-200 shadow-2xs">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </div>
                         <p class="text-sm text-slate-700 font-medium">
                             Are you sure you want to approve voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
                         </p>
@@ -1604,9 +1607,6 @@
 
                 <template x-if="confirmType === 'reject'">
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-200 shadow-2xs">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </div>
                         <p class="text-sm text-slate-700 font-medium">
                             Are you sure you want to reject voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
                         </p>
@@ -1615,9 +1615,6 @@
 
                 <template x-if="confirmType === 'delete'">
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center border border-rose-200 shadow-2xs">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </div>
                         <p class="text-sm text-slate-700 font-medium">
                             Are you sure you want to delete voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
                         </p>

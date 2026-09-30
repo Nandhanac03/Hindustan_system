@@ -64,66 +64,82 @@
         <!-- Executive KPI Summary Cards (Exact Match to Picture 2 Style & Matched Ash Color) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {{-- Card 1: Total Vendors --}}
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">TOTAL VENDORS</span>
-                    <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] border border-amber-200/60 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110 shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] border border-amber-200/60 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL VENDORS</span>
                     </div>
+                    <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider">All</span>
                 </div>
-                <div>
-                    <div class="text-2xl font-mono font-black text-slate-900 tracking-tight group-hover:text-[#8a7522] transition-colors" x-text="filteredVendors().length"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Registered Procurement Vendors</div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-slate-800 transition-colors duration-300" x-text="filteredVendors().length"></span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Registered Procurement Vendors</p>
                 </div>
             </div>
 
             {{-- Card 2: Active Vendors --}}
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">ACTIVE VENDORS</span>
-                    <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-200/60 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110 shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">ACTIVE VENDORS</span>
                     </div>
+                    <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider">Active</span>
                 </div>
-                <div>
-                    <div class="text-2xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors" x-text="getActiveVendorsCount()"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Ready for Site Expense Tagging</div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-blue-600 font-mono tracking-tight block group-hover:text-blue-700 transition-colors duration-300" x-text="getActiveVendorsCount()"></span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Ready for Site Expense Tagging</p>
                 </div>
             </div>
 
             {{-- Card 3: GST Registered --}}
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">GST REGISTERED</span>
-                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-200/60 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110 shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">GST REGISTERED</span>
                     </div>
+                    <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider">Verified</span>
                 </div>
-                <div>
-                    <div class="text-2xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors" x-text="getGstVendorsCount()"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100" x-text="getGstPercentage() + '% Tax Compliant'"></div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="getGstVendorsCount()"></span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium" x-text="getGstPercentage() + '% Tax Compliant'"></p>
                 </div>
             </div>
 
             {{-- Card 4: Total Expense Billed --}}
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">TOTAL EXPENSE BILLED</span>
-                    <div class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-200/60 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110 shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL BILLED</span>
                     </div>
+                    <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider">Amount</span>
                 </div>
-                <div>
-                    <div class="text-2xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors" x-text="'₹' + numberFormat(getTotalBilledAmount())"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Site Expenses Billed</div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="'₹' + numberFormat(getTotalBilledAmount())"></span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Site Expenses Billed</p>
                 </div>
             </div>
         </div>
@@ -390,14 +406,26 @@
                                 </td>
 
                                 <td class="px-5 py-4 text-center whitespace-nowrap">
-                                    <!-- Edit Modal Button (Icon Only) -->
-                                    <button type="button" @click="openEditModalFunc(vendor)" 
-                                            class="w-8 h-8 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all shadow-2xs inline-flex items-center justify-center cursor-pointer group active:scale-95" 
-                                            title="Edit Vendor">
-                                        <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                    </button>
+                                    <div class="inline-flex items-center justify-center gap-1.5">
+                                        <!-- View Modal Button (Icon Only) -->
+                                        <button type="button" @click="openViewModalFunc(vendor)"
+                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm cursor-pointer group active:scale-95" 
+                                                title="View Vendor Details">
+                                            <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- Edit Modal Button (Icon Only) -->
+                                        <button type="button" @click="openEditModalFunc(vendor)" 
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm cursor-pointer group active:scale-95" 
+                                                title="Edit Vendor">
+                                            <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </template>
@@ -538,12 +566,152 @@
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- 2. VIEW VENDOR DETAIL POPUP MODAL -->
+        <!-- ========================================== -->
+        <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            <div @click.away="showViewModal = false"
+                 class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
+                
+                {{-- Header --}}
+                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1">VENDOR PROFILE</p>
+                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="viewVendor?.name || 'Vendor Details'"></h2>
+                            <p class="text-slate-400 text-[10px] font-mono mt-0.5" x-text="viewVendor?.vendor_code || ''"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <template x-if="viewVendor?.is_active">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">Active</span>
+                            </template>
+                            <template x-if="!viewVendor?.is_active">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">Inactive</span>
+                            </template>
+                            <button type="button" @click="showViewModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Body --}}
+                <div class="px-6 pt-5 pb-6 space-y-4 max-h-[70vh] overflow-y-auto bg-white text-xs">
+
+                    {{-- Contact Info --}}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Contact Information</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Contact Person</p>
+                                <p class="font-semibold text-slate-800" x-text="viewVendor?.contact_person || '—'"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Phone</p>
+                                <p class="font-semibold text-slate-800 font-mono" x-text="viewVendor?.phone || '—'"></p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Email</p>
+                                <p class="font-semibold text-slate-800" x-text="viewVendor?.email || '—'"></p>
+                            </div>
+                            <div class="col-span-2" x-show="viewVendor?.address">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Address</p>
+                                <p class="font-semibold text-slate-800" x-text="viewVendor?.address"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tax Info --}}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Tax Identifiers</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">GSTIN</p>
+                                <template x-if="viewVendor?.gstin">
+                                    <p class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block" x-text="viewVendor?.gstin"></p>
+                                </template>
+                                <template x-if="!viewVendor?.gstin">
+                                    <p class="text-slate-400 italic">Unregistered</p>
+                                </template>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">PAN</p>
+                                <template x-if="viewVendor?.pan">
+                                    <p class="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block" x-text="viewVendor?.pan"></p>
+                                </template>
+                                <template x-if="!viewVendor?.pan">
+                                    <p class="text-slate-400 italic">N/A</p>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Banking Info --}}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Banking Details</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Bank Name</p>
+                                <p class="font-semibold text-slate-800" x-text="viewVendor?.bank_name || '—'"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Account Number</p>
+                                <p class="font-mono font-bold text-slate-800" x-text="viewVendor?.account_number || '—'"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">IFSC Code</p>
+                                <p class="font-mono font-bold text-slate-800 uppercase" x-text="viewVendor?.ifsc_code || '—'"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Branch</p>
+                                <p class="font-semibold text-slate-800" x-text="viewVendor?.branch || '—'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Billing Summary --}}
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-[#2c281b] to-[#1f1c13] border border-[#a38c29]/30 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-extrabold text-[#d4af37] uppercase tracking-wider mb-1">Total Expenses Billed</p>
+                            <p class="text-xl font-black text-white font-mono" x-text="'₹ ' + numberFormat(viewVendor?.total_billed || 0)"></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-extrabold text-[#d4af37] uppercase tracking-wider mb-1">Expense Count</p>
+                            <p class="text-xl font-black text-white font-mono" x-text="(viewVendor?.site_expenses_count || 0) + ' Bills'"></p>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                    <button type="button" @click="openEditModalFunc(viewVendor); showViewModal = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Edit Vendor</span>
+                    </button>
+                    <button type="button" @click="showViewModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CLOSE</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         function vendorMasterApp() {
             return {
                 showModal: false,
+                showViewModal: false,
+                viewVendor: null,
                 isEdit: false,
                 currentVendor: null,
                 selectedVendorId: '',
@@ -722,6 +890,11 @@
                         is_active: vendor.is_active ? 1 : 0
                     };
                     this.showModal = true;
+                },
+
+                openViewModalFunc(vendor) {
+                    this.viewVendor = vendor;
+                    this.showViewModal = true;
                 }
             };
         }
