@@ -14,6 +14,7 @@ use App\Models\EmiSchedule;
 use App\Models\EmiRescheduleLog;
 use App\Models\Payee;
 use App\Models\Bank;
+use App\Models\PaymentMode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -156,9 +157,10 @@ class EmiCollectionController extends Controller
             ];
         });
 
-        $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name', 'phone']);
-        $projects  = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $banks     = Bank::where('status', 'active')->orderBy('bank_name')->get();
+        $customers    = \App\Models\Customer::orderBy('name')->get(['id', 'name', 'phone']);
+        $projects     = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $banks        = Bank::where('status', 'active')->orderBy('bank_name')->get();
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
 
         return view('emi-collections.index', compact(
             'sales',
@@ -173,7 +175,8 @@ class EmiCollectionController extends Controller
             'allSalesFormatted',
             'customers',
             'projects',
-            'banks'
+            'banks',
+            'paymentModes'
         ));
     }
 

@@ -493,15 +493,18 @@
                             {{-- Payment Mode (8 cols = 66.7%) --}}
                             <div class="md:col-span-8 space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Payment Mode <span class="text-rose-500">*</span></label>
-                                <div class="grid grid-cols-4 gap-1.5">
-                                    <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                                        <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
-                                                :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm font-black' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40 font-bold'"
-                                                class="px-1.5 py-2.5 border rounded-xl text-[10px] uppercase tracking-tight transition-all cursor-pointer text-center whitespace-nowrap overflow-hidden"
-                                                x-text="mode">
-                                        </button>
-                                    </template>
-                                </div>
+                                @php
+                                    $modesList = $paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get();
+                                @endphp
+                                <select x-model="form.payment_mode"
+                                        @change="if(errors.payment_mode) delete errors.payment_mode;"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer"
+                                        :class="errors.payment_mode ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                    <option value="">-- Select Payment Mode --</option>
+                                    @foreach($modesList as $pm)
+                                        <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                    @endforeach
+                                </select>
                                 <template x-if="errors.payment_mode">
                                     <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
                                 </template>
@@ -855,7 +858,7 @@ function emiApp() {
             }
 
             this.form.amount = '';
-            this.form.payment_mode = 'Cash';
+            this.form.payment_mode = '{{ ($paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get())->first()?->name ?? 'Cash' }}';
             this.form.receipt_date = new Date().toISOString().split('T')[0];
             this.form.reference_no = '';
             this.form.bank_id = '';
