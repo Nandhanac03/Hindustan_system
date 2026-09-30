@@ -210,13 +210,13 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95">
-        <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80" @click.stop>
+        <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col" @click.stop>
             {{-- Dark Header matching screenshot --}}
-            <div class="bg-[#1c1716] px-6 py-5 text-white flex items-center justify-between relative overflow-hidden">
+            <div class="bg-[#1c1716] px-6 py-4 text-white flex items-center justify-between">
                 <div class="space-y-1">
                     <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
                 </div>
-                <button type="button" @click.stop="confirmDeleteUnitModal.open = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                <button type="button" @click.stop="confirmDeleteUnitModal.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
             </div>
             
             {{-- Body matching screenshot --}}
@@ -268,13 +268,13 @@
           x-transition:leave="transition ease-in duration-150"
           x-transition:leave-start="opacity-100 scale-100"
           x-transition:leave-end="opacity-0 scale-95">
-        <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80" @click.stop>
+        <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col" @click.stop>
             {{-- Dark Header matching screenshot --}}
-            <div class="bg-[#1c1716] px-6 py-5 text-white flex items-center justify-between relative overflow-hidden">
+            <div class="bg-[#1c1716] px-6 py-4 text-white flex items-center justify-between">
                 <div class="space-y-1">
                     <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
                 </div>
-                <button type="button" @click.stop="confirmDeactivateModal.open = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                <button type="button" @click.stop="confirmDeactivateModal.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
             </div>
             
             {{-- Body matching screenshot --}}
@@ -2329,7 +2329,16 @@ function salesApp() {
                 if (!res.ok) {
                     this.showToast(data.error || data.message || 'Failed to process.', 'error');
                 } else {
-                    this.showToast(this.targetReturnStatus === 'cancelled' ? 'Sale cancelled successfully.' : 'Sales return processed successfully.');
+                    const msgTitle = this.targetReturnStatus === 'cancelled' ? 'Sale Cancelled!' : 'Sale Returned!';
+                    const msgBadge = this.targetReturnStatus === 'cancelled' ? 'Sale Cancelled' : 'Sale Returned';
+                    const msgSub = this.targetReturnStatus === 'cancelled' ? 'The sale has been successfully cancelled.' : 'The sale return has been processed successfully.';
+                    const msgTxt = this.targetReturnStatus === 'cancelled' ? 'Sale cancelled successfully.' : 'Sales return processed successfully.';
+                    
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal(msgTitle, msgBadge, msgSub, msgTxt);
+                    } else {
+                        this.showToast(msgTxt);
+                    }
                     this.selectedReturnSale = null;
                     this.fetchSales();
                 }
@@ -2676,7 +2685,11 @@ function salesApp() {
                 if (!res.ok) {
                     this.showToast(data.error || data.message || 'Failed to process.', 'error');
                 } else {
-                    this.showToast('Sales return/cancellation processed successfully.');
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal('Sale Cancelled!', 'Sale Cancelled', 'The sale has been successfully cancelled.', 'Sales return/cancellation processed successfully.');
+                    } else {
+                        this.showToast('Sales return/cancellation processed successfully.');
+                    }
                     this.openNewReturnModal = false;
                     this.newReturnSaleId = '';
                     this.newReturnSale = null;
@@ -3123,7 +3136,11 @@ function salesApp() {
                 else if (!res.ok) {
                     this.showToast(data.error || data.message || 'Failed to process exchange.', 'error');
                 } else {
-                    this.showToast('Unit exchange processed successfully.');
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal('Exchange Processed!', 'Unit Exchanged', 'The unit exchange was completed successfully.', 'Unit exchange processed successfully.');
+                    } else {
+                        this.showToast('Unit exchange processed successfully.');
+                    }
                     this.selectedExchangeSale = null;
                     this.openNewExchangeModal = false;
                     this.fetchSales();
@@ -4056,7 +4073,15 @@ function salesApp() {
                     });
                 }
                 else if (!res.ok) { this.showToast(data.error || 'Server error.', 'error'); }
-                else { this.showToast('Sale recorded successfully.'); this.closeAddModal(); this.fetchSales(); }
+                else { 
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal('Sale Created!', 'New Sale Booked', 'The sale contract has been created successfully.', 'Sale recorded successfully.');
+                    } else {
+                        this.showToast('Sale recorded successfully.'); 
+                    }
+                    this.closeAddModal(); 
+                    this.fetchSales(); 
+                }
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
         },
@@ -4265,7 +4290,11 @@ function salesApp() {
                 let data = await res.json();
                 if (!res.ok) { this.showToast(data.error || 'Failed to update status.', 'error'); }
                 else {
-                    this.showToast(`Sale marked as ${this.statusChange.targetStatus}.`);
+                    if (window.showSuccessModal) {
+                        window.showSuccessModal('Sale Status Updated!', 'Status Modified', 'The sale status has been updated successfully.', `Sale marked as ${this.statusChange.targetStatus}.`);
+                    } else {
+                        this.showToast(`Sale marked as ${this.statusChange.targetStatus}.`);
+                    }
                     this.statusChange.pending = false;
                     this.fetchSales();
                     this.openEditModal(this.activeSale.id);
