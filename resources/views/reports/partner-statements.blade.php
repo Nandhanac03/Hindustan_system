@@ -454,25 +454,70 @@
                         
                         {{-- 1. Partner & Project Selection (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.partner_id ? 'text-rose-600' : 'text-slate-700'">SELECT PARTNER <span class="text-rose-500">*</span></label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" :class="modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400'">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    </div>
-                                    <select name="partner_id" x-model="modalData.partner_id" @change="delete modalErrors.partner_id"
-                                            :class="modalErrors.partner_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-800'"
-                                            class="w-full pl-10 pr-8 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
-                                        <option value="">-- Choose Partner --</option>
-                                        @foreach($partners as $partner)
-                                            <option value="{{ $partner->id }}">{{ $partner->name }} ({{ $partner->role ?? 'Partner' }})</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" :class="modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400'">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                    </div>
+                            <div class="space-y-1.5 relative" @click.outside="modalPartnerOpen = false">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.partner_id ? 'text-rose-600' : 'text-slate-700'">
+                                    SELECT PARTNER <span class="text-rose-500">*</span>
+                                </label>
+                                
+                                {{-- Hidden Input --}}
+                                <input type="hidden" name="partner_id" :value="modalData.partner_id">
+
+                                {{-- Dropdown Trigger Button --}}
+                                <div @click="modalPartnerOpen = !modalPartnerOpen; if(modalPartnerOpen) { modalPartnerSearch = ''; $nextTick(() => $refs.modalPartnerSearchInput?.focus()); }"
+                                     :class="modalErrors.partner_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29]/60 bg-slate-50 hover:bg-white'"
+                                     class="w-full h-10 px-3.5 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-xs">
+                                    <template x-if="modalSelectedPartner">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                            <span class="font-bold text-slate-900 truncate" x-text="modalSelectedPartner.name"></span>
+                                            <span class="text-slate-500 text-[10px] shrink-0 font-medium" x-text="'(' + (modalSelectedPartner.role || 'Partner') + ')'"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!modalSelectedPartner">
+                                        <div class="flex items-center gap-2 text-slate-400">
+                                            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                            <span :class="modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400'" class="font-medium text-xs">-- Choose Partner --</span>
+                                        </div>
+                                    </template>
+                                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="modalPartnerOpen ? 'rotate-180 text-[#a38c29]' : (modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400')" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
                                 </div>
                                 <span x-show="modalErrors.partner_id" x-text="modalErrors.partner_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+
+                                {{-- Searchable Popover List --}}
+                                <div x-show="modalPartnerOpen" 
+                                     x-transition
+                                     class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
+                                     style="display: none;">
+                                    
+                                    <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                        <div class="relative">
+                                            <input type="text" 
+                                                   x-model="modalPartnerSearch" 
+                                                   x-ref="modalPartnerSearchInput"
+                                                   placeholder="Search partner name..." 
+                                                   class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                            <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                        <template x-for="p in filteredModalPartners" :key="p.id">
+                                            <div @click="modalData.partner_id = String(p.id); delete modalErrors.partner_id; modalPartnerOpen = false; modalPartnerSearch = ''"
+                                                 class="px-3 py-2.5 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                 :class="String(modalData.partner_id) === String(p.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    <span class="font-bold text-slate-900" x-text="p.name"></span>
+                                                    <span class="text-slate-500 font-medium text-[10px]" x-text="'(' + (p.role || 'Partner') + ')'"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="filteredModalPartners.length === 0">
+                                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching partners found.</div>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="space-y-1.5">
@@ -729,6 +774,26 @@ function partnerStatementApp() {
         companyBankAccounts: @json($companyBankAccounts ?? []) || [],
         paymentModes: @json($paymentModes ?? []) || [],
 
+        modalPartnerOpen: false,
+        modalPartnerSearch: '',
+
+        get filteredModalPartners() {
+            const list = this.partners || [];
+            if (!this.modalPartnerSearch || !this.modalPartnerSearch.trim()) {
+                return list;
+            }
+            const q = this.modalPartnerSearch.toLowerCase().trim();
+            return list.filter(p => 
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.role && p.role.toLowerCase().includes(q))
+            );
+        },
+
+        get modalSelectedPartner() {
+            if (!this.modalData.partner_id) return null;
+            return this.partners.find(p => String(p.id) === String(this.modalData.partner_id)) || null;
+        },
+
         modalBankOpen: false,
         modalBankSearch: '',
 
@@ -760,14 +825,18 @@ function partnerStatementApp() {
 
         openPayoutModal(partnerId = null, projectId = null) {
             this.modalErrors = {};
-            this.modalData.partner_id = partnerId ? String(partnerId) : (this.filters.partner_id ? String(this.filters.partner_id) : (this.partners[0] ? String(this.partners[0].id) : ''));
+            this.modalPartnerOpen = false;
+            this.modalPartnerSearch = '';
+            this.modalBankOpen = false;
+            this.modalBankSearch = '';
+            this.modalData.partner_id = partnerId ? String(partnerId) : '';
             this.modalData.project_id = projectId ? String(projectId) : (this.filters.project_id ? String(this.filters.project_id) : (this.projects[0] ? String(this.projects[0].id) : ''));
             
             const bankTransferMode = (this.paymentModes || []).find(pm => pm.name && pm.name.toLowerCase().includes('bank transfer'))
                                  || (this.paymentModes || []).find(pm => pm.name && pm.name.toLowerCase().includes('transfer'));
             this.modalData.payment_mode = bankTransferMode ? bankTransferMode.name : ((this.paymentModes && this.paymentModes[0]) ? this.paymentModes[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)');
 
-            this.modalData.company_bank_account_id = (this.companyBankAccounts && this.companyBankAccounts[0]) ? String(this.companyBankAccounts[0].id) : ((this.bankAccounts && this.bankAccounts[0]) ? String(this.bankAccounts[0].id) : '');
+            this.modalData.company_bank_account_id = '';
             this.modalData.allocated_amount = '';
             this.modalData.date = new Date().toISOString().split('T')[0];
             this.modalData.remarks = '';
