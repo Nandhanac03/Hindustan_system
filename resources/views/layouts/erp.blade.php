@@ -810,6 +810,12 @@
         <!-- Main Body Content -->
         <main class="flex-1 p-6">
             @if (session('status') || session('success'))
+            @php
+                $modalBadge = session('modalBadge') ?? session('modal_badge') ?? 'SUCCESS';
+                $modalTitle = session('modalTitle') ?? session('modal_title') ?? 'ACTION SUCCESSFUL';
+                $modalSubtitle = session('modalSubtitle') ?? session('modal_subtitle') ?? 'Operation completed successfully.';
+                $statusText = session('status') ?? session('success');
+            @endphp
           
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
             <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none" style="background: transparent;">
