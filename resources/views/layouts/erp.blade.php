@@ -810,73 +810,7 @@
         <!-- Main Body Content -->
         <main class="flex-1 p-6">
             @if (session('status') || session('success'))
-            @php
-                $statusText = session('status') ?? session('success');
-                $modalTitle = 'Success!';
-                $modalBadge = 'Action Completed';
-                $modalSubtitle = 'Operation completed successfully.';
-
-                $lowerText = strtolower($statusText);
-
-                if (str_contains($lowerText, 'project')) {
-                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
-                        $modalTitle = 'Project Added!';
-                        $modalBadge = 'New Project Created';
-                        $modalSubtitle = 'The new project has been added successfully.';
-                    } elseif (str_contains($lowerText, 'delete')) {
-                        $modalTitle = 'Project Deleted!';
-                        $modalBadge = 'Project Removed';
-                        $modalSubtitle = 'The project has been deleted successfully.';
-                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
-                        $modalTitle = 'Project Updated!';
-                        $modalBadge = 'Project Modified';
-                        $modalSubtitle = 'Project specifications updated successfully.';
-                    }
-                } elseif (str_contains($lowerText, 'broker')) {
-                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'register') || str_contains($lowerText, 'add') || str_contains($lowerText, 'save')) {
-                        $modalTitle = 'Broker Registered!';
-                        $modalBadge = 'Broker Profile Created';
-                        $modalSubtitle = 'Broker profile registered successfully.';
-                    } elseif (str_contains($lowerText, 'delete')) {
-                        $modalTitle = 'Broker Deleted!';
-                        $modalBadge = 'Broker Profile Removed';
-                        $modalSubtitle = 'Broker profile deleted successfully.';
-                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
-                        $modalTitle = 'Broker Updated!';
-                        $modalBadge = 'Broker Profile Modified';
-                        $modalSubtitle = 'Broker profile updated successfully.';
-                    }
-                } elseif (str_contains($lowerText, 'bank')) {
-                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
-                        $modalTitle = 'Bank Account Added!';
-                        $modalBadge = 'Bank Configured';
-                        $modalSubtitle = 'Corporate bank account added successfully.';
-                    } elseif (str_contains($lowerText, 'delete')) {
-                        $modalTitle = 'Bank Account Deleted!';
-                        $modalBadge = 'Bank Account Removed';
-                        $modalSubtitle = 'Corporate bank account deleted successfully.';
-                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
-                        $modalTitle = 'Bank Account Updated!';
-                        $modalBadge = 'Bank Account Modified';
-                        $modalSubtitle = 'Corporate bank account updated successfully.';
-                    }
-                } elseif (str_contains($lowerText, 'payment mode')) {
-                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
-                        $modalTitle = 'Payment Mode Created!';
-                        $modalBadge = 'Payment Mode Added';
-                        $modalSubtitle = 'Payment mode registered successfully.';
-                    } elseif (str_contains($lowerText, 'delete')) {
-                        $modalTitle = 'Payment Mode Deleted!';
-                        $modalBadge = 'Payment Mode Removed';
-                        $modalSubtitle = 'Payment mode deleted successfully.';
-                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit') || str_contains($lowerText, 'status')) {
-                        $modalTitle = 'Payment Mode Updated!';
-                        $modalBadge = 'Payment Mode Modified';
-                        $modalSubtitle = 'Payment mode updated successfully.';
-                    }
-                }
-                
-            @endphp
+          
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
             <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none" style="background: transparent;">
                 <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
