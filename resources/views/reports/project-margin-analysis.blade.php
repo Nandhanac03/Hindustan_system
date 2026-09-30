@@ -76,71 +76,83 @@
                 </div>
             </div>
 
-            <!-- 4 KPI Metric Cards Row (Clean, User-Friendly Business Terminology) -->
-            <div class="bg-white pb-4 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- 4 KPI Metric Cards Grid (Matches Petty Cash Balance Register Design) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 
-                <!-- Column 1: Cash Collected (In Bank) -->
-                <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-emerald-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-emerald-800">Total Collections</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <!-- Card 1: Total Collections -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
+                            <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Collections</span>
                         </div>
-                        <h4 class="text-lg sm:text-xl font-mono font-extrabold text-emerald-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-emerald-700/90 font-bold pt-1">
-                        <span class="truncate">Received from buyers to date</span>
+                    <div class="relative z-10 mt-1">
+                        <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                            ₹ {{ number_format($projData->realized_collections, 2) }}
+                        </span>
+                        <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Received from buyers to date</p>
                     </div>
                 </div>
 
-                <!-- Column 2: Pending from Booked Units -->
-                <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-blue-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-blue-800">Pending Receivables</span>
-                            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <!-- Card 2: Pending Receivables -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-indigo-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] cursor-pointer">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 shrink-0 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100/60 transition-all duration-300 group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
+                            <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Receivables</span>
                         </div>
-                        <h4 class="text-lg sm:text-xl font-mono font-extrabold text-blue-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-blue-700/90 font-bold pt-1">
-                        <span class="truncate">Remaining balance due from buyers</span>
+                    <div class="relative z-10 mt-1">
+                        <span class="text-2xl font-black text-indigo-600 font-mono tracking-tight block group-hover:text-indigo-700 transition-colors duration-300">
+                            ₹ {{ number_format($projData->pending_receivables, 2) }}
+                        </span>
+                        <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Remaining balance due from buyers</p>
                     </div>
                 </div>
 
-                <!-- Column 3: Unsold Flats Expected Value -->
-                <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-amber-500 border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-800">Available Flats Market Value</span>
-                            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
+                <!-- Card 3: Available Flats Market Value -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
                             </div>
+                            <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Available Flats Market Value</span>
                         </div>
-                        <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-amber-700 font-bold pt-1">
-                        <span class="truncate">{{ number_format($projData->unsold_area, 0) }} Sq.Ft left @ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft</span>
+                    <div class="relative z-10 mt-1">
+                        <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-amber-600 transition-colors duration-300">
+                            ₹ {{ number_format($projData->projected_unsold_val, 2) }}
+                        </span>
+                        <p class="text-[10px] text-amber-700 font-bold mt-1.5">
+                            <span class="bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 inline-block">{{ number_format($projData->unsold_area, 0) }} Sq.Ft left @ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft</span>
+                        </p>
                     </div>
                 </div>
 
-                <!-- Column 4: Total Project Estimated Value -->
-                <div class="bg-white p-4 rounded-xl border border-l-[4px] border-l-[#a38c29] border-slate-200 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-[#a38c29]">Total Project Expected Value</span>
-                            <div class="w-7 h-7 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0 border border-amber-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                <!-- Card 4: Total Project Expected Value -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                             </div>
+                            <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Project Expected Value</span>
                         </div>
-                        <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->total_gross_revenue, 2) }}</h4>
                     </div>
-                    <div class="flex items-center justify-between text-[10.5px] font-bold pt-1">
-                        <span class="text-slate-500">Cost: ₹{{ number_format($projData->cost_per_sqft, 0) }}/Sq.Ft</span>
-                        <span class="text-emerald-700 font-extrabold">Net Profit: ₹{{ number_format($projData->net_profit / 10000000, 2) }} Cr</span>
+                    <div class="relative z-10 mt-1">
+                        <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                            ₹ {{ number_format($projData->total_gross_revenue, 2) }}
+                        </span>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1.5 font-medium">
+                            <span>Cost: ₹{{ number_format($projData->cost_per_sqft, 0) }}/Sq.Ft</span>
+                            <span class="text-emerald-600 font-extrabold">Net Profit: ₹{{ number_format($projData->net_profit / 10000000, 2) }} Cr</span>
+                        </div>
                     </div>
                 </div>
 
