@@ -78,18 +78,10 @@
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:border-slate-350 hover:shadow-md transition duration-300">
                     <!-- Project Cover Image -->
                     <div class="relative h-48 w-full overflow-hidden bg-slate-100">
-                        @if($proj->image_url)
-                            <img src="{{ asset('storage/' . $proj->image_url) }}" alt="{{ $proj->name }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                        @else
-                            <div class="w-full h-full bg-gradient-to-tr from-primary-900 via-primary-850 to-indigo-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                                <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-white/5 blur-xl"></div>
-                                <div class="absolute -left-10 -bottom-10 w-32 h-32 rounded-full bg-primary-500/10 blur-xl"></div>
-                                <svg class="w-12 h-12 text-primary-300/30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                                <span class="text-[9px] font-bold text-primary-300/40 tracking-widest uppercase">HINDUSTAN ERP</span>
-                            </div>
-                        @endif
+                        <img src="{{ $proj->display_image }}" 
+                             onerror="this.onerror=null;this.src='{{ asset('img/default-project.jpg') }}';" 
+                             alt="{{ $proj->name }}" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
 
                         <!-- Status Badge Overlay -->
                         @php

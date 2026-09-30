@@ -8,9 +8,7 @@
   {{-- ACTIVE PROJECT OVERVIEW BANNER (Replaces Welcome Box) --}}
 @if($activeProject)
     @php
-        $projectImage = $activeProject->image_url
-            ? asset('storage/' . $activeProject->image_url)
-            : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
+        $projectImage = $activeProject->display_image;
         $statusColors = [
             'planning' => 'bg-slate-50 text-slate-700 border-slate-200',
             'ongoing' => 'bg-primary-50 text-primary-800 border-primary-200',
@@ -25,7 +23,10 @@
 
         {{-- Project Image --}}
         <div class="w-full md:w-[500px] h-[300px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150 shadow-inner">
-            <img src="{{ $projectImage }}" alt="{{ $activeProject->name }}" class="w-full h-full object-cover">
+            <img src="{{ $projectImage }}" 
+                 onerror="this.onerror=null;this.src='{{ asset('img/default-project.jpg') }}';" 
+                 alt="{{ $activeProject->name }}" 
+                 class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
             <div class="absolute top-3 left-3">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-md">

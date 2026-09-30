@@ -83,4 +83,40 @@ class Project extends Model
     {
         return $this->floors()->count();
     }
+
+    /**
+     * Get the project display image URL with automatic multi-tier fallback.
+     */
+    public function getDisplayImageAttribute(): string
+    {
+        if (!empty($this->image_url)) {
+            // 1. Direct remote URL
+            if (str_starts_with($this->image_url, 'http://') || str_starts_with($this->image_url, 'https://')) {
+                return $this->image_url;
+            }
+
+            // 2. Physical storage link check
+            if (file_exists(public_path('storage/' . $this->image_url))) {
+                return asset('storage/' . $this->image_url);
+            }
+
+            // 3. Storage path check
+            if (file_exists(storage_path('app/public/' . $this->image_url))) {
+                return asset('storage/' . $this->image_url);
+            }
+
+            // 4. Public direct path
+            if (file_exists(public_path($this->image_url))) {
+                return asset($this->image_url);
+            }
+        }
+
+        // 5. Shipped default project asset fallback
+        if (file_exists(public_path('img/default-project.jpg'))) {
+            return asset('img/default-project.jpg');
+        }
+
+        // 6. Online architecture fallback
+        return 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80';
+    }
 }
