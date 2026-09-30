@@ -113,44 +113,44 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {{-- KPI 1: Total Allocated Outflow --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 border-l-[6px] border-l-[#a38c29] shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">TOTAL ALLOCATED OUTFLOW</span>
-                    <div class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1 group-hover:text-[#a38c29] transition-colors">
-                        ₹{{ number_format($totalAllocatedOutflow, 2) }}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Allocated Outflow</span>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/80 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-[#8a7522] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300">
+                    100% Realized
+                </span>
             </div>
-            <div class="pt-3 border-t border-slate-100 mt-3 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                <span>Capital & profit outflows mapped</span>
-                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-[#8a7522] font-black text-[10px]">100% Realized</span>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    ₹{{ number_format($totalAllocatedOutflow, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Capital & profit outflows mapped</p>
             </div>
         </div>
 
         {{-- KPI 2: Active Participating Partners --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 border-l-[6px] border-l-emerald-500 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">ACTIVE PARTNERS</span>
-                    <div class="text-2xl font-black text-slate-900 tracking-tight mt-1 group-hover:text-emerald-600 transition-colors">
-                        {{ $activePartnersCount }} <span class="text-xs font-extrabold text-slate-400 uppercase">Parties</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Partners</span>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                    Active Stake
+                </span>
             </div>
-            <div class="pt-3 border-t border-slate-100 mt-3 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                <span>Total Registered: <strong class="text-slate-800">{{ $allPartners->count() }}</strong></span>
-                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-black text-[10px]">Active Stake</span>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                    {{ $activePartnersCount }} <span class="text-xs font-extrabold text-slate-400 uppercase">Parties</span>
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total Registered: {{ $allPartners->count() }}</p>
             </div>
         </div>
 
@@ -161,52 +161,52 @@
         @endphp
 
         {{-- KPI 3: Secondary Partner Outflow Card (e.g. Pavoor) --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 border-l-[6px] border-l-teal-500 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block truncate">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-teal-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(20,184,166,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100/60 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">
                         {{ $partnerB ? strtoupper($partnerB->partner_name) . ' OUTFLOW' : 'PAVOOR OUTFLOW' }}
                     </span>
-                    <div class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1 group-hover:text-teal-600 transition-colors">
-                        ₹{{ number_format($partnerB?->amount ?? 0, 2) }}
-                    </div>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/80 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
-            </div>
-            <div class="pt-3 border-t border-slate-100 mt-3 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                <span>{{ $partnerB ? $partnerB->allocations_count . ' allocations recorded' : 'Realized share' }}</span>
-                <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 font-black text-[10px]">
-                    {{ $partnerB ? number_format($partnerB->percentage, 1) . '% Share' : '0%' }}
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-teal-300 group-hover:bg-teal-100/60">
+                    {{ $partnerB ? number_format($partnerB->percentage, 1) . '% Share' : '0% Share' }}
                 </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-teal-600 font-mono tracking-tight block group-hover:text-teal-700 transition-colors duration-300">
+                    ₹{{ number_format($partnerB?->amount ?? 0, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
+                    {{ $partnerB ? $partnerB->allocations_count . ' allocations recorded' : 'Realized share' }}
+                </p>
             </div>
         </div>
 
         {{-- KPI 4: Primary Partner Outflow Card (e.g. Basheer) --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 border-l-[6px] border-l-rose-500 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block truncate">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">
                         {{ $partnerA ? strtoupper($partnerA->partner_name) . ' OUTFLOW' : 'BASHEER OUTFLOW' }}
                     </span>
-                    <div class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1 group-hover:text-rose-600 transition-colors">
-                        ₹{{ number_format($partnerA?->amount ?? 0, 2) }}
-                    </div>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                </div>
-            </div>
-            <div class="pt-3 border-t border-slate-100 mt-3 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                <span>{{ $partnerA ? $partnerA->allocations_count . ' allocations recorded' : 'Primary share' }}</span>
-                <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-black text-[10px]">
-                    {{ $partnerA ? number_format($partnerA->percentage, 1) . '% Share' : '0%' }}
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    {{ $partnerA ? number_format($partnerA->percentage, 1) . '% Share' : '0% Share' }}
                 </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                    ₹{{ number_format($partnerA?->amount ?? 0, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
+                    {{ $partnerA ? $partnerA->allocations_count . ' allocations recorded' : 'Primary share' }}
+                </p>
             </div>
         </div>
 
