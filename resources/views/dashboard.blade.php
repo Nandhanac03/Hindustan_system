@@ -114,15 +114,20 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
         {{-- Units (Slate Theme) --}}
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-slate-600 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Total Units</span>
-                <span class="w-2 h-2 rounded-full bg-slate-600 shadow-xs"></span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-600 p-4 flex flex-col justify-between relative overflow-hidden group hover:border-slate-400 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(30,41,59,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-200 transition-all duration-300 group-hover:bg-slate-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Units</span>
+                </div>
+                <span class="text-[9px] text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider">Inventory</span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900">
-                {{ number_format($totalUnits) }}
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-slate-800 transition-colors duration-300">{{ number_format($totalUnits) }}</span>
+                <p class="text-[10px] text-emerald-600 font-bold mt-1.5 uppercase tracking-wide">{{ $availableUnits }} Available</p>
             </div>
-            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $availableUnits }} Available</div>
         </div>
 
         {{-- Total Sales (Emerald Theme) --}}
@@ -130,15 +135,20 @@
             $salesFormatted = $totalSales >= 10000000 ? $currencySymbol.number_format($totalSales/10000000,2).'Cr'
                 : ($totalSales >= 100000 ? $currencySymbol.number_format($totalSales/100000,2).'L' : $currencySymbol.number_format($totalSales));
         @endphp
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Total Sales</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-4 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Sales</span>
+                </div>
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider">Bookings</span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900">
-                {!! $salesFormatted !!}
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">{!! $salesFormatted !!}</span>
+                <p class="text-[10px] text-emerald-600 font-bold mt-1.5 uppercase tracking-wide">{{ $totalBookingsCount }} Bookings</p>
             </div>
-            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $totalBookingsCount }} Bookings </div>
         </div>
 
         {{-- Collections (Gold Theme) --}}
@@ -146,15 +156,20 @@
             $colFormatted = $totalCollections >= 10000000 ? $currencySymbol.number_format($totalCollections/10000000,2).'Cr'
                 : ($totalCollections >= 100000 ? $currencySymbol.number_format($totalCollections/100000,2).'L' : $currencySymbol.number_format($totalCollections));
         @endphp
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Collections</span>
-                <span class="w-2 h-2 rounded-full bg-[#a38c29] shadow-xs"></span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-4 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] border border-amber-200/60 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Collections</span>
+                </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider">Receipts</span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900">
-                {!! $colFormatted !!}
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#8a7522] transition-colors duration-300">{!! $colFormatted !!}</span>
+                <p class="text-[10px] text-[#a38c29] font-bold mt-1.5 uppercase tracking-wide">EMI Receipts</p>
             </div>
-            <div class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider">EMI Receipts</div>
         </div>
     </div>
 
@@ -220,46 +235,46 @@
         </div>
     </div>
 
-    {{-- MINI STAT PANELS (Outstanding + Customers + Health) --}}
+    {{-- MINI STAT PANELS (Outstanding + Customers + Sold Units) --}}
     <div class="anim-4 grid grid-cols-1 sm:grid-cols-3 gap-4 pb-6">
 
         {{-- Outstanding (Ash / Slate Theme) --}}
-        <div class="bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl p-5 text-white shadow-xl">
+        <div class="bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl p-5 text-white shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-slate-900/40 cursor-default group">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
                     <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 <span class="text-xs font-bold uppercase tracking-widest opacity-80">Outstanding</span>
             </div>
             @php $outFmt = $outstanding >= 10000000 ? $currencySymbol.number_format($outstanding/10000000,2).'Cr' : ($outstanding >= 100000 ? $currencySymbol.number_format($outstanding/100000,2).'L' : $currencySymbol.number_format($outstanding)); @endphp
-            <div class="text-3xl font-extrabold tracking-tight">{!! $outFmt !!}</div>
+            <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{!! $outFmt !!}</div>
             <div class="text-xs text-white/70 mt-1">Sales minus collections</div>
         </div>
 
         {{-- Total Customers (Gold Theme) --}}
-        <div class="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl p-5 text-white shadow-xl shadow-primary-600/10">
+        <div class="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl p-5 text-white shadow-xl shadow-primary-600/10 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary-600/30 cursor-default group">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
                     <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
                 <span class="text-xs font-bold uppercase tracking-widest opacity-80">Customers</span>
             </div>
-            <div class="text-3xl font-extrabold tracking-tight">{{ number_format($totalCustomers) }}</div>
+            <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{{ number_format($totalCustomers) }}</div>
             <div class="text-xs text-white/70 mt-1">Registered property buyers</div>
         </div>
 
         {{-- Sold Units Details (Replaces System Health) --}}
-        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/10 flex flex-col justify-between">
+        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/10 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-default group">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
                         <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <span class="text-xs font-bold uppercase tracking-widest opacity-80">Sold Units</span>
                 </div>
-                <a href="{{ route('units.index', ['status' => 'sold']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white text-white hover:text-emerald-800 px-3 py-1 rounded-full uppercase transition-all flex items-center gap-1 border border-white/30">
+                <a href="{{ route('units.index', ['status' => 'sold']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white text-white hover:text-emerald-800 px-3 py-1 rounded-full uppercase transition-all flex items-center gap-1 border border-white/30 shadow-xs hover:shadow">
                     <span>View Sold</span>
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </a>
@@ -270,7 +285,7 @@
                 $soldValFmt = $soldVal >= 10000000 ? $currencySymbol.number_format($soldVal/10000000,2).'Cr' : ($soldVal >= 100000 ? $currencySymbol.number_format($soldVal/100000,2).'L' : $currencySymbol.number_format($soldVal)); 
             @endphp
             <div>
-                <div class="text-3xl font-extrabold tracking-tight">{{ number_format($soldCount) }} <span class="text-base font-semibold text-white/80">Units</span></div>
+                <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{{ number_format($soldCount) }} <span class="text-base font-semibold text-white/80">Units</span></div>
                 <div class="text-xs text-white/80 font-medium mt-1.5 flex items-center gap-1.5">
                     <span>Est. Sale Value: <strong class="text-white font-extrabold">{!! $soldValFmt !!}</strong></span>
                 </div>

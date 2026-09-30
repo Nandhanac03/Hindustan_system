@@ -56,11 +56,11 @@
                           </div>
 
                           <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Assign to Project (optional)</label>
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Assign to Project</label>
                               <select name="project_id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none transition-all">
                                   <option value="">— No project assignment —</option>
                                   @foreach($projects as $proj)
-                                      <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                      <option value="{{ $proj->id }}" {{ $loop->first ? 'selected' : '' }}>{{ $proj->name }}</option>
                                   @endforeach
                               </select>
                           </div>
