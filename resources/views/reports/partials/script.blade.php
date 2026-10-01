@@ -174,6 +174,10 @@ function reportsApp() {
                     filename = 'Loan_Schedules_Report.xlsx';
                 }
             } else if (this.activeTab === 'supplier_contractor') {
+                if (typeof exportContractorExcel === 'function') {
+                    exportContractorExcel();
+                    return;
+                }
                 const excelTable = document.querySelector("#contractorExcelTable");
                 if (excelTable) {
                     table = excelTable;
@@ -1017,7 +1021,7 @@ function reportsApp() {
 
             // 8. SUPPLIER & CONTRACTOR
             @if($activeTab === 'supplier_contractor')
-            if (this.activeTab === 'supplier_contractor') {
+            if (this.activeTab === 'supplier_contractor' && document.querySelector("#supplierPayablesChart")) {
                 const supplierLabels = {!! json_encode($supplierChartData['labels'] ?? []) !!};
                 const supplierDues   = {!! json_encode($supplierChartData['dues'] ?? []) !!};
                 const supplierPaids  = {!! json_encode($supplierChartData['paids'] ?? []) !!};
@@ -1026,14 +1030,55 @@ function reportsApp() {
                         { name: 'Net Approved Dues', data: supplierDues },
                         { name: 'Paid Amount', data: supplierPaids }
                     ],
-                    chart: { type: 'bar', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    chart: { 
+                        type: 'bar', 
+                        height: 200, 
+                        toolbar: { show: false }, 
+                        fontFamily: 'Inter, sans-serif',
+                        animations: { enabled: true, easing: 'easeinout', speed: 600 }
+                    },
                     colors: ['#f97316', '#10b981'],
                     dataLabels: { enabled: false },
-                    plotOptions: { bar: { columnWidth: '30%', borderRadius: 4 } },
-                    xaxis: { categories: supplierLabels.length ? supplierLabels : ['No Contractors'] },
-                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
-                    grid: { borderColor: '#f1f5f9' },
-                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
+                    stroke: { show: true, width: 2, colors: ['transparent'] },
+                    plotOptions: { 
+                        bar: { 
+                            horizontal: false,
+                            columnWidth: supplierLabels.length <= 2 ? '22%' : (supplierLabels.length <= 5 ? '34%' : '50%'), 
+                            borderRadius: 6,
+                            borderRadiusApplication: 'end'
+                        } 
+                    },
+                    xaxis: { 
+                        categories: supplierLabels.length ? supplierLabels : ['No Contractors'],
+                        labels: {
+                            style: { colors: '#64748b', fontSize: '11px', fontWeight: 700 }
+                        },
+                        axisBorder: { show: true, color: '#e2e8f0' }
+                    },
+                    yaxis: { 
+                        labels: { 
+                            style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
+                            formatter: (v) => '₹' + (v >= 10000000 ? (v/10000000).toFixed(2)+'Cr' : (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K')) 
+                        } 
+                    },
+                    grid: { 
+                        borderColor: '#f1f5f9',
+                        strokeDashArray: 4,
+                        xaxis: { lines: { show: false } },
+                        yaxis: { lines: { show: true } }
+                    },
+                    tooltip: { 
+                        theme: 'dark',
+                        y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } 
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        labels: { colors: '#475569' },
+                        markers: { radius: 12 }
+                    }
                 }).render();
             }
             @endif

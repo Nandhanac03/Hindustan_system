@@ -2086,17 +2086,104 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'supplier_contractor';
 
-        // Contractors lookup list for filter dropdown
-        $suppliers = Payee::whereRaw("LOWER(type) = 'contractor'")->orderBy('name')->get();
-        if ($suppliers->isEmpty()) {
-            $suppliers = Payee::orderBy('name')->get();
+        // 1. Fetch all relevant payees (Contractor, Supplier, Vendor, or linked in bills)
+        $payees = Payee::where(function($q) {
+            $q->whereIn(\Illuminate\Support\Facades\DB::raw("LOWER(type)"), ['contractor', 'supplier', 'vendor'])
+              ->orWhereIn('id', RaBill::select('contractor_id')->whereNotNull('contractor_id'));
+        })->orderBy('name')->get();
+
+        // 2. Fetch distinct contractors from RA Bills to ensure every contractor from bills is displayed
+        $billContractors = RaBill::whereNotNull('contractor_name')
+            ->where('contractor_name', '!=', '')
+            ->select('contractor_id', 'contractor_name')
+            ->distinct()
+            ->get();
+
+        // 3. Merge into unified collection of ALL contractors
+        $allContractorsMap = collect();
+
+        foreach ($payees as $p) {
+            $allContractorsMap->put(strtolower(trim($p->name)), (object)[
+                'id' => (string)$p->id,
+                'filter_value' => (string)$p->id,
+                'name' => $p->name,
+                'phone' => $p->phone ?? '',
+                'gstin' => $p->gstin ?? '',
+                'type' => $p->type ?? 'Contractor',
+            ]);
         }
+
+        foreach ($billContractors as $bc) {
+            $name = trim($bc->contractor_name);
+            $key = strtolower($name);
+            if (!$allContractorsMap->has($key)) {
+                $linkedPayee = $bc->contractor_id ? Payee::find($bc->contractor_id) : null;
+                $allContractorsMap->put($key, (object)[
+                    'id' => $name,
+                    'filter_value' => $name,
+                    'name' => $name,
+                    'phone' => $linkedPayee?->phone ?? '',
+                    'gstin' => $linkedPayee?->gstin ?? '',
+                    'type' => 'Contractor',
+                ]);
+            }
+        }
+
+        $suppliers = $allContractorsMap->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values();
 
         // Query RA Bills for Contractor Statement
         $supplierQuery = RaBill::with(['contractor', 'project', 'unit']);
 
-        if ($request->filled('contractor_id')) {
-            $supplierQuery->where('contractor_id', $request->contractor_id);
+        if ($request->filled('project_id') && $request->project_id !== 'all') {
+            $supplierQuery->where('project_id', $request->project_id);
+        }
+
+        // Multi-select contractor filtering support
+        $contractorIds = [];
+        if ($request->has('contractor_id')) {
+            $rawC = $request->input('contractor_id');
+            if (is_array($rawC)) {
+                $contractorIds = array_values(array_filter(array_map('trim', $rawC)));
+            } elseif (is_string($rawC) && strlen(trim($rawC)) > 0) {
+                $contractorIds = array_values(array_filter(array_map('trim', explode(',', $rawC))));
+            }
+        }
+
+        $applyContractorFilter = function($query) use ($contractorIds) {
+            $query->where(function($sub) use ($contractorIds) {
+                foreach ($contractorIds as $idx => $cVal) {
+                    $subMethod = $idx === 0 ? 'where' : 'orWhere';
+                    $sub->$subMethod(function($subQ) use ($cVal) {
+                        if (is_numeric($cVal)) {
+                            $selectedPayee = Payee::find($cVal);
+                            if ($selectedPayee && $selectedPayee->name) {
+                                $payeeName = trim($selectedPayee->name);
+                                $subQ->where(function($pQ) use ($cVal, $payeeName) {
+                                    $pQ->where('contractor_name', $payeeName)
+                                       ->orWhere('contractor_name', 'like', "%{$payeeName}%")
+                                       ->orWhere(function($idQ) use ($cVal) {
+                                           $idQ->where('contractor_id', $cVal)
+                                               ->where(function($emptyQ) {
+                                                   $emptyQ->whereNull('contractor_name')
+                                                          ->orWhere('contractor_name', '');
+                                               });
+                                       });
+                                });
+                            } else {
+                                $subQ->where('contractor_id', $cVal);
+                            }
+                        } else {
+                            $subQ->where('contractor_name', $cVal)
+                                 ->orWhere('contractor_name', 'like', "%{$cVal}%")
+                                 ->orWhereHas('contractor', fn($c) => $c->where('name', 'like', "%{$cVal}%"));
+                        }
+                    });
+                }
+            });
+        };
+
+        if (!empty($contractorIds)) {
+            $applyContractorFilter($supplierQuery);
         }
 
         if ($request->filled('status')) {
@@ -2113,20 +2200,40 @@ class ReportController extends Controller
             });
         }
 
+        // Executive KPI summary calculations
+        $totalApprovedDues = (float) (clone $supplierQuery)->sum('net_approved_amount');
+        $totalPaidAmount   = (float) (clone $supplierQuery)->sum('paid_amount');
+        $totalBalanceDue   = (float) (clone $supplierQuery)->sum('balance_amount');
+        $totalBillsCount   = (clone $supplierQuery)->count();
+
         // Paginated for Web UI table
         $supplierContractorEntries = (clone $supplierQuery)->orderByDesc('created_at')->paginate(50);
 
-        // Full dataset for Excel export (displays ALL contractor data)
-        $allSupplierContractorEntries = (clone $supplierQuery)->orderByDesc('created_at')->get();
+        // Full dataset for Excel export & reactive live client-side filtering (all bills for active project)
+        $allSupplierContractorEntries = RaBill::with(['contractor', 'project', 'unit'])
+            ->when($request->filled('project_id') && $request->project_id !== 'all', fn($q) => $q->where('project_id', $request->project_id))
+            ->orderByDesc('created_at')
+            ->get();
 
         // Contractor payables chart summary
-        $contractorSummary = RaBill::selectRaw("contractor_id, contractor_name, SUM(net_approved_amount) as total_due, SUM(paid_amount) as total_paid")
-            ->when($request->filled('contractor_id'), fn($q) => $q->where('contractor_id', $request->contractor_id))
-            ->groupBy('contractor_id', 'contractor_name')
+        $contractorSummary = RaBill::selectRaw("COALESCE(NULLIF(contractor_name, ''), 'General Contractor') as c_name, SUM(net_approved_amount) as total_due, SUM(paid_amount) as total_paid")
+            ->when($request->filled('project_id') && $request->project_id !== 'all', fn($q) => $q->where('project_id', $request->project_id))
+            ->when(!empty($contractorIds), fn($q) => $applyContractorFilter($q))
+            ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
+            ->when($request->filled('search'), function($q) use ($request) {
+                $search = trim($request->search);
+                $q->where(function($sub) use ($search) {
+                    $sub->where('ra_bill_number', 'like', "%{$search}%")
+                        ->orWhere('contractor_name', 'like', "%{$search}%")
+                        ->orWhereHas('contractor', fn($c) => $c->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('project', fn($p) => $p->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->groupBy(DB::raw("COALESCE(NULLIF(contractor_name, ''), 'General Contractor')"))
             ->get();
 
         $supplierChartData = [
-            'labels' => $contractorSummary->map(fn($c) => $c->contractor_name ?: ($c->contractor?->name ?? 'Contractor #' . $c->contractor_id))->toArray(),
+            'labels' => $contractorSummary->pluck('c_name')->toArray(),
             'dues' => $contractorSummary->map(fn($c) => (float)$c->total_due)->toArray(),
             'paids' => $contractorSummary->map(fn($c) => (float)$c->total_paid)->toArray(),
             'total_due' => (float)$contractorSummary->sum('total_due'),
@@ -2136,9 +2243,14 @@ class ReportController extends Controller
         return view('reports.supplier-contractor', array_merge($lookups, compact(
             'activeTab',
             'suppliers',
+            'contractorIds',
             'supplierContractorEntries',
             'allSupplierContractorEntries',
-            'supplierChartData'
+            'supplierChartData',
+            'totalApprovedDues',
+            'totalPaidAmount',
+            'totalBalanceDue',
+            'totalBillsCount'
         )));
     }
 
