@@ -895,7 +895,7 @@ function collectionForecastApp() {
         },
 
         get isOverdueMode() {
-            return this.kpis.total_overdue > 0;
+            return false;
         },
 
         get upcomingScheduleData() {
