@@ -512,10 +512,10 @@ class LoanController extends Controller
                 ['account_code' => $loanAccCode],
                 ['account_name' => $loanAccName, 'account_type' => 'LIABILITY', 'is_active' => true]
             );
-            // \App\Models\ChartOfAccount::firstOrCreate(
-            //     ['account_code' => '5001'],
-            //     ['account_name' => 'Bank Loan Interest Expense & Charges', 'account_type' => 'EXPENSE', 'is_active' => true]
-            // );
+            \App\Models\ChartOfAccount::firstOrCreate(
+                ['account_code' => '2202'],
+                ['account_name' => 'Bank Loan Interest', 'account_type' => 'EXPENSE', 'is_active' => true]
+            );
 
             // 2. Ensure Account entries exist for integer foreign keys
             $accBank = \App\Models\Account::firstOrCreate(
@@ -578,18 +578,18 @@ class LoanController extends Controller
                 ]);
             }
 
-            // Journal Entry 2: Debit Interest Expense Account (Code 5001)
-            // if ($totalDebitInterest > 0) {
-            //     \App\Models\JournalEntry::create([
-            //         'voucher_id'     => $journalVoucher->id,
-            //         'account_id'     => '5001',
-            //         'debit_amount'   => $totalDebitInterest,
-            //         'credit_amount'  => 0.00,
-            //         'entity_type'    => 'EXPENSE',
-            //         'entity_id'      => $loan->id,
-            //         'line_narration' => 'Loan Interest Expense & Charges - Inst #' . $installment->installment_no,
-            //     ]);
-            // }
+            // Journal Entry 2: Debit Interest Expense Account (Code 2201)
+            if ($totalDebitInterest > 0) {
+                \App\Models\JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '2202',
+                    'debit_amount'   => $totalDebitInterest,
+                    'credit_amount'  => 0.00,
+                    'entity_type'    => 'LOAN',
+                    'entity_id'      => $loan->id,
+                    'line_narration' => 'Loan Interest Expense & Charges - Inst #' . $installment->installment_no,
+                ]);
+            }
 
             // Journal Entry 3: Credit Bank Account (Code 1001)
             \App\Models\JournalEntry::create([
