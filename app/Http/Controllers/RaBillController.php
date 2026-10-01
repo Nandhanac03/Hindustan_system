@@ -371,7 +371,7 @@ class RaBillController extends Controller
             'created_by'            => Auth::id(),
         ]);
 
-        return redirect()->back()
+        return redirect()->route('expenses.ra-bills.verification')
             ->with('success', "✅ Contractor RA Bill #{$validated['ra_bill_number']} logged successfully!");
     }
 

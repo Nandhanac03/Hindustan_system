@@ -3,7 +3,10 @@
 @section('title', 'RA Bill Verification & Sign-off')
 
 @section('content')
-<div x-data="raBillVerification()" class="space-y-6">
+<div x-data="raBillVerification()" 
+     @open-new-ra-bill.window="openAddModal()" 
+     @close-new-ra-bill.window="closeAddModal()" 
+     class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -376,7 +379,7 @@
     </div>
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
-    <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+    <div x-show="addModalOpen" x-cloak @keydown.escape.window="if(addModalOpen) closeAddModal()" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
         <div class="bg-white rounded-2xl w-full shadow-2xl overflow-hidden flex flex-col my-auto max-h-[94vh]" style="max-width: 920px; max-height: 94vh;" @click.away="closeAddModal()">
             {{-- Dark Header with Gold Glow (Fixed at Top) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/30 flex-shrink-0">
@@ -416,9 +419,9 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">
                                 Submit Date <span class="text-rose-500 font-bold">*</span>
                             </label>
-                            <input type="date" name="submit_date" x-model="addSubmitDate" required
-                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
-                                   :class="(hasAttemptedAddSubmit && !addSubmitDate) || {{ $errors->has('submit_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
+                            <input type="date" name="submit_date" x-model="addSubmitDate" @click="$el.showPicker && $el.showPicker()" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border cursor-pointer bg-slate-50 hover:bg-white focus:bg-white"
+                                   :class="(hasAttemptedAddSubmit && !addSubmitDate) || {{ $errors->has('submit_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                             <p x-show="hasAttemptedAddSubmit && !addSubmitDate" class="mt-1 text-[10px] font-bold text-rose-600">The submit date field is required.</p>
                             @error('submit_date')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
@@ -429,8 +432,8 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 RA Bill Due Date
                             </label>
-                            <input type="date" name="due_date" value="{{ old('due_date') }}"
-                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                            <input type="date" name="due_date" x-model="addDueDate" @click="$el.showPicker && $el.showPicker()"
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
                         </div>
                     </div>
 
@@ -600,9 +603,9 @@
                             <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('verified_date') ? 'text-rose-600' : 'text-slate-700' }}">
                                 Verified Date <span class="text-rose-500 font-bold">*</span>
                             </label>
-                            <input type="date" name="verified_date" x-model="verifyDateInput" required
-                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border"
-                                   :class="(hasAttemptedVerifySubmit && !verifyDateInput) || {{ $errors->has('verified_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
+                            <input type="date" name="verified_date" x-model="verifyDateInput" @click="$el.showPicker && $el.showPicker()" required
+                                   class="w-full h-[38px] px-3.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs text-slate-900 border cursor-pointer bg-slate-50 hover:bg-white focus:bg-white"
+                                   :class="(hasAttemptedVerifySubmit && !verifyDateInput) || {{ $errors->has('verified_date') ? 'true' : 'false' }} ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]'">
                             <p x-show="hasAttemptedVerifySubmit && !verifyDateInput" class="mt-1 text-[10px] font-bold text-rose-600">The verified date field is required.</p>
                             @error('verified_date')
                                 <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
@@ -633,8 +636,8 @@
                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 RA Bill Due Date
                             </label>
-                            <input type="date" name="due_date" x-model="verifyDueDateInput"
-                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                            <input type="date" name="due_date" x-model="verifyDueDateInput" @click="$el.showPicker && $el.showPicker()"
+                                   class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
                         </div>
                     </div>
 
@@ -748,6 +751,8 @@
         </div>
     </div>
 
+
+
 </div>
 
 <script>
@@ -802,7 +807,7 @@ function raBillVerification() {
         },
 
         searchQuery: '',
-        addModalOpen: {{ $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount') ? 'true' : 'false' }},
+        addModalOpen: {{ (!session('success') && (request('new') == '1' || request('create') == '1' || request('action') == 'new' || $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount'))) ? 'true' : 'false' }},
         verifyModalOpen: false,
         hasAttemptedVerifySubmit: false,
         selectedBill: null,
@@ -822,32 +827,207 @@ function raBillVerification() {
         selectedEngineerId: '',
         addRaBillNumber: '{{ old('ra_bill_number') }}',
         addSubmitDate: '{{ old('submit_date', date('Y-m-d')) }}',
+        addDueDate: '{{ old('due_date', '') }}',
         addGrossAmount: '{{ old('gross_amount') }}',
         hasAttemptedAddSubmit: false,
         verifyDateInput: '{{ date("Y-m-d") }}',
         verifyRemarksInput: '',
         verifyDueDateInput: '',
 
+        // Custom Datepicker state (Reference UI design)
+        datePickerOpen: false,
+        datePickerTarget: '',
+        datePickerTitle: 'Select Date',
+        datePickerSelectedDate: null,
+        datePickerViewYear: new Date().getFullYear(),
+        datePickerViewMonth: new Date().getMonth(),
+        datePickerActiveQuickSelect: '',
+        datePickerShowMonthYearDropdown: false,
+        datePickerMonthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        datePickerMonthShortNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datePickerDayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+
+        openCustomDatePicker(targetField, title = 'Select Date') {
+            this.datePickerTarget = targetField;
+            this.datePickerTitle = title;
+            this.datePickerShowMonthYearDropdown = false;
+            let currentVal = this[targetField];
+            if (currentVal && /^\d{4}-\d{2}-\d{2}$/.test(currentVal)) {
+                this.datePickerSelectedDate = currentVal;
+                const parts = currentVal.split('-').map(Number);
+                this.datePickerViewYear = parts[0];
+                this.datePickerViewMonth = parts[1] - 1;
+            } else {
+                const now = new Date();
+                const yr = now.getFullYear();
+                const mo = String(now.getMonth() + 1).padStart(2, '0');
+                const da = String(now.getDate()).padStart(2, '0');
+                this.datePickerSelectedDate = `${yr}-${mo}-${da}`;
+                this.datePickerViewYear = yr;
+                this.datePickerViewMonth = now.getMonth();
+            }
+            this.detectActiveQuickSelect();
+            this.datePickerOpen = true;
+        },
+
+        closeDatePicker() {
+            this.datePickerOpen = false;
+            this.datePickerShowMonthYearDropdown = false;
+        },
+
+        datePickerConfirm() {
+            if (this.datePickerTarget && this.datePickerSelectedDate) {
+                this[this.datePickerTarget] = this.datePickerSelectedDate;
+            }
+            this.closeDatePicker();
+        },
+
+        datePickerPrevMonth() {
+            if (this.datePickerViewMonth === 0) {
+                this.datePickerViewMonth = 11;
+                this.datePickerViewYear--;
+            } else {
+                this.datePickerViewMonth--;
+            }
+        },
+
+        datePickerNextMonth() {
+            if (this.datePickerViewMonth === 11) {
+                this.datePickerViewMonth = 0;
+                this.datePickerViewYear++;
+            } else {
+                this.datePickerViewMonth++;
+            }
+        },
+
+        datePickerGetDaysInMonth() {
+            const count = new Date(this.datePickerViewYear, this.datePickerViewMonth + 1, 0).getDate();
+            const arr = [];
+            for (let i = 1; i <= count; i++) arr.push(i);
+            return arr;
+        },
+
+        datePickerGetLeadingBlanks() {
+            const firstDay = new Date(this.datePickerViewYear, this.datePickerViewMonth, 1).getDay();
+            const arr = [];
+            for (let i = 0; i < firstDay; i++) arr.push(i);
+            return arr;
+        },
+
+        datePickerIsSelected(day) {
+            if (!this.datePickerSelectedDate) return false;
+            const parts = this.datePickerSelectedDate.split('-').map(Number);
+            return parts[0] === this.datePickerViewYear && (parts[1] - 1) === this.datePickerViewMonth && parts[2] === day;
+        },
+
+        datePickerIsToday(day) {
+            const now = new Date();
+            return now.getFullYear() === this.datePickerViewYear && now.getMonth() === this.datePickerViewMonth && now.getDate() === day;
+        },
+
+        datePickerSelectDay(day) {
+            const m = String(this.datePickerViewMonth + 1).padStart(2, '0');
+            const d = String(day).padStart(2, '0');
+            this.datePickerSelectedDate = `${this.datePickerViewYear}-${m}-${d}`;
+            this.detectActiveQuickSelect();
+        },
+
+        applyQuickSelect(type) {
+            this.datePickerActiveQuickSelect = type;
+            const now = new Date();
+            let targetDate = new Date();
+            if (type === 'today') {
+                targetDate = new Date();
+            } else if (type === 'yesterday') {
+                targetDate.setDate(targetDate.getDate() - 1);
+            } else if (type === 'this_month') {
+                targetDate.setDate(1);
+            } else if (type === 'last_month') {
+                targetDate.setMonth(targetDate.getMonth() - 1);
+                targetDate.setDate(1);
+            } else if (type === 'this_year') {
+                targetDate.setMonth(0);
+                targetDate.setDate(1);
+            } else if (type === 'last_year') {
+                targetDate.setFullYear(targetDate.getFullYear() - 1);
+                targetDate.setMonth(0);
+                targetDate.setDate(1);
+            }
+
+            const yr = targetDate.getFullYear();
+            const mo = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const da = String(targetDate.getDate()).padStart(2, '0');
+            this.datePickerSelectedDate = `${yr}-${mo}-${da}`;
+            this.datePickerViewYear = yr;
+            this.datePickerViewMonth = targetDate.getMonth();
+        },
+
+        detectActiveQuickSelect() {
+            if (!this.datePickerSelectedDate) {
+                this.datePickerActiveQuickSelect = '';
+                return;
+            }
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const yDate = new Date();
+            yDate.setDate(yDate.getDate() - 1);
+            const yesterdayStr = `${yDate.getFullYear()}-${String(yDate.getMonth()+1).padStart(2,'0')}-${String(yDate.getDate()).padStart(2,'0')}`;
+            const thisMonthFirstStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+            const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthFirstStr = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth()+1).padStart(2,'0')}-01`;
+            const thisYearFirstStr = `${now.getFullYear()}-01-01`;
+            const lastYearFirstStr = `${now.getFullYear()-1}-01-01`;
+
+            if (this.datePickerSelectedDate === todayStr) {
+                this.datePickerActiveQuickSelect = 'today';
+            } else if (this.datePickerSelectedDate === yesterdayStr) {
+                this.datePickerActiveQuickSelect = 'yesterday';
+            } else if (this.datePickerSelectedDate === thisMonthFirstStr) {
+                this.datePickerActiveQuickSelect = 'this_month';
+            } else if (this.datePickerSelectedDate === lastMonthFirstStr) {
+                this.datePickerActiveQuickSelect = 'last_month';
+            } else if (this.datePickerSelectedDate === thisYearFirstStr) {
+                this.datePickerActiveQuickSelect = 'this_year';
+            } else if (this.datePickerSelectedDate === lastYearFirstStr) {
+                this.datePickerActiveQuickSelect = 'last_year';
+            } else {
+                this.datePickerActiveQuickSelect = '';
+            }
+        },
+
+        get datePickerFormattedPreview() {
+            if (!this.datePickerSelectedDate) return 'No date selected';
+            const parts = this.datePickerSelectedDate.split('-').map(Number);
+            if (parts.length !== 3) return this.datePickerSelectedDate;
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayName = this.datePickerDayNames[dateObj.getDay()];
+            const dayNum = String(parts[2]).padStart(2, '0');
+            const monthName = this.datePickerMonthShortNames[parts[1] - 1];
+            return `${dayName}, ${dayNum} ${monthName} ${parts[0]}`;
+        },
+
         openAddModal() {
             this.hasAttemptedAddSubmit = false;
             this.resetAddModal();
             this.addModalOpen = true;
+            window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: true } }));
         },
 
         closeAddModal() {
             this.addModalOpen = false;
             this.hasAttemptedAddSubmit = false;
             this.resetAddModal();
+            window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: false } }));
         },
 
         resetAddModal() {
+            this.addRaBillNumber = '';
+            this.addSubmitDate = '{{ date("Y-m-d") }}';
+            this.addDueDate = '';
+            this.addGrossAmount = '';
+            this.hasAttemptedAddSubmit = false;
             const form = document.getElementById('addRaBillForm');
             if (form) {
-                form.reset();
-                const grossInput = form.querySelector('input[name="gross_amount"]');
-                if (grossInput) {
-                    grossInput.value = '';
-                }
                 const words = form.querySelector('.amount-in-words-label');
                 if (words) {
                     words.textContent = '';
@@ -870,9 +1050,34 @@ function raBillVerification() {
         },
 
         init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!{{ session('success') ? 'true' : 'false' }} && (urlParams.get('new') === '1' || urlParams.get('create') === '1' || urlParams.get('action') === 'new')) {
+                this.$nextTick(() => {
+                    this.openAddModal();
+                });
+            }
+
+            if (this.addModalOpen) {
+                window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: true } }));
+            }
+
             this.$watch('addModalOpen', (val) => {
+                window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: !!val } }));
                 if (!val) {
                     this.resetAddModal();
+                    const url = new URL(window.location);
+                    if (url.searchParams.has('new') || url.searchParams.has('create') || url.searchParams.has('action')) {
+                        url.searchParams.delete('new');
+                        url.searchParams.delete('create');
+                        url.searchParams.delete('action');
+                        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+                    }
+                } else {
+                    const url = new URL(window.location);
+                    if (!url.searchParams.has('new')) {
+                        url.searchParams.set('new', '1');
+                        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+                    }
                 }
             });
             this.$watch('verifyModalOpen', (val) => {

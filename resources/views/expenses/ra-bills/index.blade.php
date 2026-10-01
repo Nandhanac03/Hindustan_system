@@ -3,7 +3,10 @@
 @section('title', 'Contractor RA Progress Bills Directory & Ledger')
 
 @section('content')
-<div x-data="raBillManagement()" class="p-6 space-y-6 bg-slate-50 min-h-screen">
+<div x-data="raBillManagement()" 
+     @open-new-ra-bill.window="addModalOpen = true; window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: true } }))"
+     @close-new-ra-bill.window="addModalOpen = false; window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: false } }))"
+     class="p-6 space-y-6 bg-slate-50 min-h-screen">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -709,8 +712,8 @@
 
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">CONTRACTOR SUBMIT DATE <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
-                               class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                        <input type="date" name="submit_date" x-model="addSubmitDate" @click="$el.showPicker && $el.showPicker()" required
+                               class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all cursor-pointer {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                         @error('submit_date')
                             <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
@@ -779,8 +782,8 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-2">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">RA BILL DUE DATE</label>
-                        <input type="date" name="due_date" value="{{ old('due_date') }}"
-                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                        <input type="date" name="due_date" x-model="addDueDate" @click="$el.showPicker && $el.showPicker()"
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all cursor-pointer">
                     </div>
                 </div>
 
@@ -1248,6 +1251,8 @@
         </div>
     </div>
 
+
+
 </div>
 
 <script>
@@ -1268,6 +1273,181 @@ function raBillManagement() {
         verifyAdditionalAmount: '0.00',
         verifyDueDateInput: '',
         calculatedNet: 0,
+        addSubmitDate: '{{ old('submit_date', date('Y-m-d')) }}',
+        addDueDate: '{{ old('due_date', '') }}',
+
+        // Custom Datepicker state (Reference UI design)
+        datePickerOpen: false,
+        datePickerTarget: '',
+        datePickerTitle: 'Select Date',
+        datePickerSelectedDate: null,
+        datePickerViewYear: new Date().getFullYear(),
+        datePickerViewMonth: new Date().getMonth(),
+        datePickerActiveQuickSelect: '',
+        datePickerShowMonthYearDropdown: false,
+        datePickerMonthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        datePickerMonthShortNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datePickerDayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+
+        openCustomDatePicker(targetField, title = 'Select Date') {
+            this.datePickerTarget = targetField;
+            this.datePickerTitle = title;
+            this.datePickerShowMonthYearDropdown = false;
+            let currentVal = this[targetField];
+            if (currentVal && /^\d{4}-\d{2}-\d{2}$/.test(currentVal)) {
+                this.datePickerSelectedDate = currentVal;
+                const parts = currentVal.split('-').map(Number);
+                this.datePickerViewYear = parts[0];
+                this.datePickerViewMonth = parts[1] - 1;
+            } else {
+                const now = new Date();
+                const yr = now.getFullYear();
+                const mo = String(now.getMonth() + 1).padStart(2, '0');
+                const da = String(now.getDate()).padStart(2, '0');
+                this.datePickerSelectedDate = `${yr}-${mo}-${da}`;
+                this.datePickerViewYear = yr;
+                this.datePickerViewMonth = now.getMonth();
+            }
+            this.detectActiveQuickSelect();
+            this.datePickerOpen = true;
+        },
+
+        closeDatePicker() {
+            this.datePickerOpen = false;
+            this.datePickerShowMonthYearDropdown = false;
+        },
+
+        datePickerConfirm() {
+            if (this.datePickerTarget && this.datePickerSelectedDate) {
+                this[this.datePickerTarget] = this.datePickerSelectedDate;
+            }
+            this.closeDatePicker();
+        },
+
+        datePickerPrevMonth() {
+            if (this.datePickerViewMonth === 0) {
+                this.datePickerViewMonth = 11;
+                this.datePickerViewYear--;
+            } else {
+                this.datePickerViewMonth--;
+            }
+        },
+
+        datePickerNextMonth() {
+            if (this.datePickerViewMonth === 11) {
+                this.datePickerViewMonth = 0;
+                this.datePickerViewYear++;
+            } else {
+                this.datePickerViewMonth++;
+            }
+        },
+
+        datePickerGetDaysInMonth() {
+            const count = new Date(this.datePickerViewYear, this.datePickerViewMonth + 1, 0).getDate();
+            const arr = [];
+            for (let i = 1; i <= count; i++) arr.push(i);
+            return arr;
+        },
+
+        datePickerGetLeadingBlanks() {
+            const firstDay = new Date(this.datePickerViewYear, this.datePickerViewMonth, 1).getDay();
+            const arr = [];
+            for (let i = 0; i < firstDay; i++) arr.push(i);
+            return arr;
+        },
+
+        datePickerIsSelected(day) {
+            if (!this.datePickerSelectedDate) return false;
+            const parts = this.datePickerSelectedDate.split('-').map(Number);
+            return parts[0] === this.datePickerViewYear && (parts[1] - 1) === this.datePickerViewMonth && parts[2] === day;
+        },
+
+        datePickerIsToday(day) {
+            const now = new Date();
+            return now.getFullYear() === this.datePickerViewYear && now.getMonth() === this.datePickerViewMonth && now.getDate() === day;
+        },
+
+        datePickerSelectDay(day) {
+            const m = String(this.datePickerViewMonth + 1).padStart(2, '0');
+            const d = String(day).padStart(2, '0');
+            this.datePickerSelectedDate = `${this.datePickerViewYear}-${m}-${d}`;
+            this.detectActiveQuickSelect();
+        },
+
+        applyQuickSelect(type) {
+            this.datePickerActiveQuickSelect = type;
+            const now = new Date();
+            let targetDate = new Date();
+            if (type === 'today') {
+                targetDate = new Date();
+            } else if (type === 'yesterday') {
+                targetDate.setDate(targetDate.getDate() - 1);
+            } else if (type === 'this_month') {
+                targetDate.setDate(1);
+            } else if (type === 'last_month') {
+                targetDate.setMonth(targetDate.getMonth() - 1);
+                targetDate.setDate(1);
+            } else if (type === 'this_year') {
+                targetDate.setMonth(0);
+                targetDate.setDate(1);
+            } else if (type === 'last_year') {
+                targetDate.setFullYear(targetDate.getFullYear() - 1);
+                targetDate.setMonth(0);
+                targetDate.setDate(1);
+            }
+
+            const yr = targetDate.getFullYear();
+            const mo = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const da = String(targetDate.getDate()).padStart(2, '0');
+            this.datePickerSelectedDate = `${yr}-${mo}-${da}`;
+            this.datePickerViewYear = yr;
+            this.datePickerViewMonth = targetDate.getMonth();
+        },
+
+        detectActiveQuickSelect() {
+            if (!this.datePickerSelectedDate) {
+                this.datePickerActiveQuickSelect = '';
+                return;
+            }
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const yDate = new Date();
+            yDate.setDate(yDate.getDate() - 1);
+            const yesterdayStr = `${yDate.getFullYear()}-${String(yDate.getMonth()+1).padStart(2,'0')}-${String(yDate.getDate()).padStart(2,'0')}`;
+            const thisMonthFirstStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+            const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthFirstStr = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth()+1).padStart(2,'0')}-01`;
+            const thisYearFirstStr = `${now.getFullYear()}-01-01`;
+            const lastYearFirstStr = `${now.getFullYear()-1}-01-01`;
+
+            if (this.datePickerSelectedDate === todayStr) {
+                this.datePickerActiveQuickSelect = 'today';
+            } else if (this.datePickerSelectedDate === yesterdayStr) {
+                this.datePickerActiveQuickSelect = 'yesterday';
+            } else if (this.datePickerSelectedDate === thisMonthFirstStr) {
+                this.datePickerActiveQuickSelect = 'this_month';
+            } else if (this.datePickerSelectedDate === lastMonthFirstStr) {
+                this.datePickerActiveQuickSelect = 'last_month';
+            } else if (this.datePickerSelectedDate === thisYearFirstStr) {
+                this.datePickerActiveQuickSelect = 'this_year';
+            } else if (this.datePickerSelectedDate === lastYearFirstStr) {
+                this.datePickerActiveQuickSelect = 'last_year';
+            } else {
+                this.datePickerActiveQuickSelect = '';
+            }
+        },
+
+        get datePickerFormattedPreview() {
+            if (!this.datePickerSelectedDate) return 'No date selected';
+            const parts = this.datePickerSelectedDate.split('-').map(Number);
+            if (parts.length !== 3) return this.datePickerSelectedDate;
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayName = this.datePickerDayNames[dateObj.getDay()];
+            const dayNum = String(parts[2]).padStart(2, '0');
+            const monthName = this.datePickerMonthShortNames[parts[1] - 1];
+            return `${dayName}, ${dayNum} ${monthName} ${parts[0]}`;
+        },
+
         allContractors: @json($contractors),
         allProjects: @json($projects),
         selectedContractorId: '{{ old('contractor_id') }}',
@@ -1308,6 +1488,12 @@ function raBillManagement() {
         },
 
         init() {
+            if (this.addModalOpen) {
+                window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: true } }));
+            }
+            this.$watch('addModalOpen', (val) => {
+                window.dispatchEvent(new CustomEvent('ra-bill-modal-state', { detail: { isOpen: !!val } }));
+            });
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
                 this.selectedContractorId = String(this.allContractors[0].id);
             }
