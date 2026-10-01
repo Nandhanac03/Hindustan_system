@@ -3397,7 +3397,7 @@ class ReportController extends Controller
                 } else {
                     $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(debit_amount - credit_amount) as net')->value('net');
                 }
-                $amt = $net;
+                $amt = abs($net);
             } else {
                 $amt = 0.0;
             }
