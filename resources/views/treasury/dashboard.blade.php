@@ -68,7 +68,7 @@
             </a> -->
 
             {{-- Bank Statement Reports Button --}}
-            <a href="{{ route('reports.bank_reports') }}" 
+            <!-- <a href="{{ route('reports.bank_reports') }}" 
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white text-xs font-black rounded-xl shadow-xs hover:shadow-md transition-all duration-200 group border border-[#8a7522]/60">
                 <div class="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +79,7 @@
                 <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                 </svg>
-            </a>
+            </a> -->
         </div>
     </div>
 
