@@ -48,103 +48,141 @@
     @endif
 
     <!-- ── EXECUTIVE TREASURY KPI METRICS BAR (MATCHING CONTRACTOR PAYMENT RELEASE STYLING) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div id="dashboard-stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: Total Approved Site Expenses -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">TOTAL APPROVED SITE EXPENSES</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL APPROVED SITE EXPENSES</span>
                 <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalApproved, 2) }}</div>
-                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Total Approved Site Liability</div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 ">Total Approved Site Liability</div>
             </div>
         </div>
 
         <!-- Card 2: Total Disbursed (Paid) -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">TOTAL DISBURSED (PAID)</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSED (PAID)</span>
                 <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">₹{{ number_format((float) $totalPaid, 2) }}</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">Corporate Treasury Outflows</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 ">Corporate Treasury Outflows</div>
             </div>
         </div>
 
         <!-- Card 3: Pending Disbursement Balances -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">PENDING DISBURSEMENT BALANCES</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">PENDING DISBURSEMENT BALANCES</span>
                 <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors">₹{{ number_format((float) $totalBalance, 2) }}</div>
-                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5 border-t border-rose-50">Outstanding Balance Remaining</div>
+                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5 ">Outstanding Balance Remaining</div>
             </div>
         </div>
 
         <!-- Card 4: Ready For Payment -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-slate-800 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">READY FOR PAYMENT</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">READY FOR PAYMENT</span>
                 <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">{{ $readyCount }} Expenses</div>
-                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Approved & Unpaid Vouchers</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Approved & Unpaid Vouchers</div>
             </div>
         </div>
     </div>
 
-    <!-- ── PAYMENT DISBURSAL DESK TABLE (MATCHING CONTRACTOR RELEASE REGISTER) ── -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {{-- Table Filter Bar --}}
-        <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Site Expense Payment Release Register</span>
-                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">{{ $siteExpenses->total() }} Records</span>
-            </div>
-
-            <form method="GET" action="{{ route('site-expenses.payment-release') }}" class="flex flex-wrap items-center gap-2.5">
-                {{-- Project Filter --}}
-                <select name="project_id" onchange="this.form.submit()" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none shadow-2xs">
-                    <option value="">All Projects</option>
-                    @foreach($projects as $p)
-                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                    @endforeach
-                </select>
-
-                {{-- Status Filter --}}
-                <select name="payment_status" onchange="this.form.submit()" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none shadow-2xs">
-                    <option value="">All Payment Statuses</option>
-                    <option value="pending_disbursement" {{ request('payment_status') === 'pending_disbursement' ? 'selected' : '' }}>Pending Disbursement</option>
-                    <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
-                    <option value="partially_paid" {{ request('payment_status') === 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
-                    <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Cleared</option>
-                </select>
-
-                {{-- Search Box --}}
+    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm mb-6 transition-all relative" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+        <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                
+                {{-- 1. Project Filter (Defaults to First Project) --}}
                 <div class="relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Voucher #, Vendor..."
-                           class="px-3.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none w-64 sm:w-72 shadow-2xs">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    @php
+                        $defaultProjectId = $projects->first()->id ?? null;
+                        $selectedProject = request('project_id', $defaultProjectId);
+                    @endphp
+                    <select name="project_id" @change="submitSearch"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}" {{ $selectedProject == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
                 </div>
 
+                {{-- 2. Status Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    </div>
+                    <select name="payment_status" @change="submitSearch"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Payment Statuses</option>
+                        <option value="pending_disbursement" {{ request('payment_status') === 'pending_disbursement' ? 'selected' : '' }}>Pending Disbursement</option>
+                        <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+                        <option value="partially_paid" {{ request('payment_status') === 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
+                        <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Cleared</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                
+                {{-- 4. Search Box --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Voucher #, Vendor..."
+                           class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                </div>
+            </div>
+
+            <div class="flex gap-2">
                 @if(request()->hasAny(['project_id', 'payment_status', 'search']))
-                    <a href="{{ route('site-expenses.payment-release') }}" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
-                        ✕ Reset
+                    <a href="{{ route('site-expenses.payment-release') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
                     </a>
+                @else
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                        <svg class="h-3.5 w-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>SEARCH</span>
+                    </button>
                 @endif
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── PAYMENT DISBURSAL DESK TABLE ── -->
+    <div id="table-container" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Site Expense Payment Release Register</span>
+                <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $siteExpenses->total() }} Records</span>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -159,7 +197,7 @@
                         <th class="px-3 py-3 text-left text-emerald-100 w-[120px]">AMOUNT (₹)</th>
                         <th class="px-3 py-3 text-left text-rose-100 w-[120px]">BALANCE DUE (₹)</th>
                         <th class="px-3 py-3 text-left w-[110px]">STATUS</th>
-                        <th class="px-3 py-3 text-right w-[140px]">ACTION</th>
+                        <th class="px-3 py-3 text-center w-[140px]">ACTION</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs font-semibold">
@@ -210,20 +248,20 @@
                                 </td>
 
                                 <!-- Column 5: Net Approved (₹) -->
-                                <td class="px-3 py-3 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
+                                <td class="px-3 py-3 text-left font-mono font-black text-[14px] text-blue-900 bg-blue-50/30 align-middle">
                                     ₹{{ number_format($net, 2) }}
                                 </td>
 
                                 <!-- Column 6: Amount (₹) (Paid Amount) -->
-                                <td class="px-3 py-3 text-left font-mono font-bold text-emerald-700 align-middle">
+                                <td class="px-3 py-3 text-left font-mono font-bold text-[14px] text-emerald-700 align-middle">
                                     <div>₹{{ number_format($paid, 2) }}</div>
                                     @if($paymentsCount > 0)
-                                        <div class="text-[10px] text-[#7a681d] font-bold">{{ $paymentsCount }} Installment(s)</div>
+                                        <div class="text-[9px] text-[#7a681d] font-bold">{{ $paymentsCount }} Installment(s)</div>
                                     @endif
                                 </td>
 
                                 <!-- Column 7: Balance Due (₹) -->
-                                <td class="px-3 py-3 text-left font-mono font-black align-middle {{ $isCleared ? 'text-slate-400' : 'text-rose-700' }}">
+                                <td class="px-3 py-3 text-left font-mono font-black text-[14px] align-middle {{ $isCleared ? 'text-slate-400' : 'text-rose-700' }}">
                                     ₹{{ number_format($bal, 2) }}
                                 </td>
 
@@ -246,13 +284,12 @@
                                 </td>
 
                                 <!-- Column 9: Action -->
-                                <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
+                                <td class="px-3 py-3 text-center whitespace-nowrap align-middle">
                                     @if(!$isCleared)
                                         <button type="button" @click="openDisburseModal({{ json_encode($expense) }})"
-                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                title="Disburse Staggered Payment Release">
-                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            <span>Disburse Payment</span>
+                                                class="w-7 h-7 inline-flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer group"
+                                                title="Disburse Payment">
+                                            <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                         </button>
                                     @else
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
@@ -672,10 +709,57 @@ function siteExpensePaymentRelease() {
         bankOpen: false,
         bankSearch: '',
         
+        isLoading: false,
         hasAttemptedDisburseSubmit: false,
         disbursePaymentDate: '{{ date("Y-m-d") }}',
         disbursePaymentMode: '{!! isset($paymentModes[0]) ? (is_object($paymentModes[0]) ? ($paymentModes[0]->code ?? $paymentModes[0]->name) : $paymentModes[0]) : "" !!}',
         disburseRefNo: '',
+
+        async submitSearch(event) {
+            this.isLoading = true;
+            const form = event.target.closest('form') || document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]');
+            const url = new URL(form.action);
+            const formData = new FormData(form);
+            const searchParams = new URLSearchParams();
+            
+            formData.forEach((value, key) => {
+                if (value) searchParams.append(key, value);
+            });
+            url.search = searchParams.toString();
+            
+            // update URL silently without reloading
+            window.history.pushState({}, '', url);
+
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const html = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Replace table container
+                const newTable = doc.querySelector('#table-container'); 
+                const currentTable = document.querySelector('#table-container');
+                if (currentTable && newTable) {
+                    currentTable.innerHTML = newTable.innerHTML;
+                }
+                
+                // Replace dashboard stats
+                const newDashboard = doc.querySelector('#dashboard-stats');
+                const currentDashboard = document.querySelector('#dashboard-stats');
+                if (currentDashboard && newDashboard) {
+                    currentDashboard.innerHTML = newDashboard.innerHTML;
+                }
+            } catch (error) {
+                console.error('Filter error', error);
+                // Fallback to normal submit
+                window.location.href = url.toString();
+            } finally {
+                this.isLoading = false;
+            }
+        },
 
         validateDisburse() {
             this.hasAttemptedDisburseSubmit = true;

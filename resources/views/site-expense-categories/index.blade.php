@@ -60,7 +60,7 @@ function siteExpenseCategoryComponent() {
 }
 </script>
 
-<div class="space-y-6 p-6" x-data="siteExpenseCategoryComponent()">
+<div class="space-y-6 " x-data="siteExpenseCategoryComponent()">
     <!-- Header Section Card -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>

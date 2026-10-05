@@ -549,8 +549,12 @@ class SiteExpenseController extends Controller
         ->orderByDesc('voucher_date')
         ->orderByDesc('id');
 
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
+        $projects = Project::where('is_active', true)->orderBy('name')->get();
+        $defaultProjectId = $projects->first()->id ?? null;
+        $selectedProjectId = $request->has('project_id') ? $request->project_id : $defaultProjectId;
+
+        if ($selectedProjectId) {
+            $query->where('project_id', $selectedProjectId);
         }
 
         if ($request->filled('payment_status')) {
@@ -580,8 +584,8 @@ class SiteExpenseController extends Controller
 
         // Summary KPI Calculations
         $allApproved = SiteExpense::where('status', 'Approved');
-        if ($request->filled('project_id')) {
-            $allApproved->where('project_id', $request->project_id);
+        if ($selectedProjectId) {
+            $allApproved->where('project_id', $selectedProjectId);
         }
 
         $totalApproved = (float) (clone $allApproved)->sum('net_amount');
@@ -596,11 +600,11 @@ class SiteExpenseController extends Controller
             return 'c_' . ($item->casual_payee_name ?? 'other');
         })->map(fn($group) => (float) $group->sum('balance_amount'));
 
-        $projects = Project::where('is_active', true)->orderBy('name')->get();
         $companyBankAccounts = CompanyBankAccount::where('status', 'active')
             ->orderByDesc('is_default')
             ->orderBy('bank_name')
             ->get();
+        $payees = Payee::orderBy('name')->get();
         $loans = Loan::orderBy('lender_name')->get();
         $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
         if ($paymentModes->isEmpty()) {

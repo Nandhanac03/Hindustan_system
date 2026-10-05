@@ -399,137 +399,121 @@
         </div>
     @endif
 
-    <!-- Header Title Section (Tabasco ERP Gold Theme Aligned) -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
         <div>
-            <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2 mb-1">
-                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
-                <span class="text-slate-300">›</span>
-                <span>Site Expense Management</span>
-                <span class="text-slate-300">›</span>
-                <span class="text-[#a38c29] font-black">Site Expenses Dashboard</span>
-            </div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Site Expenses</h1>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Manage and track all non-contractor direct operational expenses</p>
+            <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wide">
+                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">HOME</a>
+                <span>›</span>
+                <span>SITE EXPENSE MANAGEMENT</span>
+                <span>›</span>
+                <span class="text-[#a38c29] font-bold">SITE EXPENSES DASHBOARD</span>
+            </nav>
+            <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                <span>Site Expenses</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold ml-1">Direct Operational Expenses</span>
+            </h1>
         </div>
 
-        <div class="flex items-center gap-2.5 self-start sm:self-auto">
+        <div class="flex items-center gap-2.5">
             <a href="{{ route('vendors.index') }}" 
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 transition flex-shrink-0 uppercase tracking-wider shadow-2xs">
+               class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs uppercase tracking-wider">
                 <i data-lucide="store" class="w-4 h-4 text-[#a38c29]"></i>
                 <span>Vendor Master</span>
             </a>
             <button type="button" @click="openCreateModal()"
-               class="inline-flex items-center justify-center rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
+               class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a741f] text-white rounded-xl text-xs font-black transition flex items-center gap-2 shadow-md shadow-[#a38c29]/20 uppercase tracking-wider cursor-pointer">
                 <span>+ Add Site Expense</span>
             </button>
         </div>
     </div>
 
     {{-- TOP 6 KEY METRIC CARDS ROW (Tabasco ERP Box Style - Icons Placed on Top Right) --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {{-- Card 1: Total Site Expenses --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-[#a38c29] border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">Total Site Expenses</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL SITE EXPENSES</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
                     <i data-lucide="wallet" class="w-4 h-4"></i>
                 </div>
             </div>
             <div>
-                <div class="text-lg font-black font-mono text-slate-900">₹ {{ number_format($totalAmount, 0) }}</div>
-            </div>
-            <div class="flex items-center justify-between pt-0.5">
-                <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-emerald-100">
-                    <i data-lucide="trending-up" class="w-3 h-3"></i> 12.6%
+                <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">₹ {{ number_format($totalAmount, 0) }}</div>
+                <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
+                    <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-emerald-100">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> 12.6%
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-400">vs Last Month</span>
                 </div>
-                <span class="text-[10px] font-semibold text-slate-400">vs Last Month</span>
             </div>
         </div>
 
         {{-- Card 2: Pending Approval --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-amber-500 border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">Pending Approval</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">PENDING APPROVAL</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white shrink-0">
                     <i data-lucide="clock" class="w-4 h-4"></i>
                 </div>
             </div>
             <div>
-                <div class="text-lg font-black font-mono text-amber-600">₹ {{ number_format($pendingAmount, 0) }}</div>
+                <div class="text-xl font-mono font-black text-amber-600 tracking-tight group-hover:text-amber-700 transition-colors">₹ {{ number_format($pendingAmount, 0) }}</div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5 border-t border-amber-50">9.4% of Total</div>
             </div>
-            <div class="text-[10px] font-extrabold text-amber-600 pt-0.5">9.4% of Total</div>
         </div>
 
         {{-- Card 3: Approved / Posted --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-emerald-500 border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">Approved / Posted</span>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">APPROVED / POSTED</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                 </div>
             </div>
             <div>
-                <div class="text-lg font-black font-mono text-emerald-600">₹ {{ number_format($approvedAmount, 0) }}</div>
-            </div>
-            <div class="text-[10px] font-extrabold text-emerald-600 pt-0.5">84.8% of Total</div>
-        </div>
-
-        {{-- Card 4: This Month --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-purple-500 border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">This Month</span>
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
-                    <i data-lucide="calendar" class="w-4 h-4"></i>
-                </div>
-            </div>
-            <div>
-                <div class="text-lg font-black font-mono text-purple-700">₹ {{ number_format($thisMonthExpenses, 0) }}</div>
-            </div>
-            <div class="flex items-center justify-between pt-0.5">
-                <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-emerald-100">
-                    <i data-lucide="trending-up" class="w-3 h-3"></i> 8.3%
-                </div>
-                <span class="text-[10px] font-semibold text-slate-400">vs Last Month</span>
+                <div class="text-xl font-mono font-black text-emerald-600 tracking-tight group-hover:text-emerald-700 transition-colors">₹ {{ number_format($approvedAmount, 0) }}</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">84.8% of Total</div>
             </div>
         </div>
 
-        {{-- Card 5: Budget Utilization --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-[#a38c29] border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">Budget Utilization</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+        {{-- Card 4: Budget Utilization --}}
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">BUDGET UTILIZATION</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
                     <i data-lucide="target" class="w-4 h-4"></i>
                 </div>
             </div>
             <div>
-                <div class="text-lg font-black font-mono text-[#a38c29]">{{ $budgetUtilizationPct }}%</div>
-            </div>
-            <div class="space-y-1">
-                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, $budgetUtilizationPct) }}%"></div>
+                <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight">{{ $budgetUtilizationPct }}%</div>
+                <div class="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1">
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, $budgetUtilizationPct) }}%"></div>
+                    </div>
+                    <div class="text-[10px] font-semibold text-slate-400">of ₹ 78,00,000</div>
                 </div>
-                <div class="text-[10px] font-semibold text-slate-400">of ₹ 78,00,000</div>
             </div>
         </div>
 
-        {{-- Card 6: Unposted / Accounting Pending --}}
-        <div class="p-4 rounded-2xl border border-l-4 border-l-rose-500 border-slate-200/80 bg-white transition-all duration-300 space-y-2 hover:-translate-y-1 hover:shadow-md cursor-default group">
-            <div class="flex items-start justify-between gap-2">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block leading-tight">Unposted / Pending</span>
-                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+        {{-- Card 5: Unposted / Pending --}}
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">UNPOSTED / PENDING</span>
+                <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
                     <i data-lucide="disc" class="w-4 h-4"></i>
                 </div>
             </div>
             <div>
-                <div class="text-lg font-black font-mono text-rose-600">₹ {{ number_format($unpostedAmount, 0) }}</div>
-            </div>
-            <div class="space-y-1">
-                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, $unpostedPct) }}%"></div>
+                <div class="text-xl font-mono font-black text-rose-600 tracking-tight group-hover:text-rose-700 transition-colors">₹ {{ number_format($unpostedAmount, 0) }}</div>
+                <div class="mt-1.5 pt-1.5 border-t border-rose-50 space-y-1">
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, $unpostedPct) }}%"></div>
+                    </div>
+                    <div class="text-[10px] font-semibold text-rose-500">{{ $unpostedPct }}% of Total</div>
                 </div>
-                <div class="text-[10px] font-semibold text-rose-500">{{ $unpostedPct }}% of Total</div>
             </div>
         </div>
 
