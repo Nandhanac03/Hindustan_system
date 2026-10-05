@@ -955,6 +955,11 @@ function partnerStatementApp() {
 
         init() {
             // Live reactive initialization
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open_payout_modal') === '1' || urlParams.get('open_payout') === '1' || urlParams.get('payout') === '1') {
+                const pId = urlParams.get('partner_id') || this.filters.partner_id || '';
+                this.openPayoutModal(pId);
+            }
         },
 
         get filteredLedger() {
