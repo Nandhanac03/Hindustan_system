@@ -215,13 +215,13 @@ class TreasuryController extends Controller
                 'customer_phone' => '',
                 'narration' => 'Site Expense Payment',
                 'payment_mode' => str_replace('_', ' ', $sep->payment_mode ?: 'Bank Transfer'),
-                'cheque_no' => $sep->reference_number ?: '—',
+                'cheque_no' => $sep->reference_no ?: '—',
                 'drawee_bank' => '—',
-                'bank_ref_no' => $sep->reference_number ?: '—',
+                'bank_ref_no' => $sep->reference_no ?: '—',
                 'bank_name' => $acc?->bank_name ?? 'Treasury',
                 'bank_account_id' => $sep->company_bank_account_id,
                 'type' => 'Debit',
-                'amount' => (float)$sep->amount,
+                'amount' => (float)$sep->paid_amount,
                 'balance' => (float)($acc?->current_balance ?? 0),
                 'remarks' => $sep->remarks ?: 'Site Expense Payment'
             ];
@@ -511,10 +511,10 @@ class TreasuryController extends Controller
                 'voucher_no'         => 'EXP/' . str_pad((string)$sep->id, 5, '0', STR_PAD_LEFT),
                 'counterparty'       => 'Site Expense Payee',
                 'payment_mode'       => str_replace('_', ' ', $sep->payment_mode ?: 'Bank Transfer'),
-                'reference_no'       => $sep->reference_number ?: '—',
+                'reference_no'       => $sep->reference_no ?: '—',
                 'narration'          => $sep->remarks ?: 'Site Expense Payment',
                 'inflow_amount'      => 0.00,
-                'outflow_amount'     => (float) $sep->amount,
+                'outflow_amount'     => (float) $sep->paid_amount,
             ];
         }
 
