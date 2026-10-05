@@ -10,14 +10,13 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
         <!-- Styles -->
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=27.0">
         <script src="https://unpkg.com/lucide@latest"></script>
 
         <style>
-            body { font-family: 'Inter', sans-serif; }
             @keyframes float {
                 0%, 100% { transform: translateY(0px); }
                 50% { transform: translateY(-6px); }
@@ -49,9 +48,9 @@
             <div class="flex justify-center mb-8 fade-in">
                 <div class="flex items-center gap-3">
                     <img
-                        src="{{ asset('img/logo1.jpg') }}"
-                        alt="HindustanERP Logo"
-                        class="h-40 w-50 object-contain rounded-lg"
+                        src="{{ asset('img/logo-tabasco.png') }}?v=1.0"
+                        alt="Tabasco Human Capital Logo"
+                        class="h-28 w-auto object-contain rounded-lg"
                     >
                 </div>
             </div>

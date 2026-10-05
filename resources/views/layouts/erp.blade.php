@@ -19,10 +19,10 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=30.0">
     
     {{-- CKEditor 5 — Rich Text Editor for description/narration fields --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
@@ -36,7 +36,6 @@
             margin: 0mm;
         }
     </style>
-    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
 </head>
 <body class="h-full bg-slate-50 text-slate-900" 
       x-data="{ 
@@ -62,101 +61,88 @@
           document.documentElement.style.fontSize = fontSize;
       ">
 
-    <!-- Mobile Sidebar Backdrop (Removed dark transparent overlay) -->
+    <!-- Mobile Sidebar Backdrop -->
 
     <!-- Sidebar Container -->
-    <aside class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gradient-to-b from-primary-900 to-slate-950 text-slate-200 border-r border-primary-800/30 transition-transform duration-300 transform lg:translate-x-0"
+    <aside class="fixed inset-y-0 left-0 z-50 flex w-44 flex-col bg-white text-slate-800 border-r border-slate-200/80 transition-transform duration-300 transform lg:translate-x-0"
            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         
         <!-- Brand Header -->
-        
-          
-   <div class="flex items-center justify-center h-24 bg-black border-b border-[#a38c29]/20 px-3">
+        <div class="flex items-center justify-center h-24 bg-white border-b border-slate-100 px-3 py-2">
+            <img
+                src="{{ asset('img/logo-tabasco.png') }}?v=2.0"
+                alt="Tabasco Human Capital"
+                class="h-16 w-auto max-w-full object-contain"
+            >
+        </div>
 
-    <img
-        src="{{ asset('img/logo.jpg') }}"
-        alt="HindustanERP Logo"
-        class="max-h-20 max-w-full object-contain"
-    >
-
-</div>
-
-        
         <!-- Navigation -->
-        <nav id="sidebar-nav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav id="sidebar-nav" class="flex-1 px-1.5 py-3 space-y-1 overflow-y-auto">
 
         <!-- 📊 Executive Dashboard -->
-        <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-white/90' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-white/90' }}">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
             </svg>
-            Dashboard
+            <span>Dashboard</span>
         </a>
 
         <!-- 🏗️ Projects & Configuration -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Projects & Configuration</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Projects & Configuration</p>
         
         <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/>
                     </svg>
-                    <span>Projects & Configuration</span>
+                    <span>Project Masters</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openProjects ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openProjects ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openProjects" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+            <div x-show="openProjects" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
                 @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
-                <a href="{{ route('projects.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('projects.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('projects.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('projects.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Projects
                 </a>
                 @endif
-                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
-                    Tower / Block Master
-                </a> -->
-                <a href="{{ route('units.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('units.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Units (Unit Master)
+                <a href="{{ route('units.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('units.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Unit Master
                 </a>
-                <a href="{{ route('partners.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partners.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('partners.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partners.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Management
                 </a>
             </div>
         </div>
 
         <!-- 🏠 Sales & Property Management -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Booking</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Sales & Booking</p>
         
         <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
-                    <span>Sales & Booking</span>
+                    <span>Sales Desk</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSalesProperty ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openSalesProperty ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openSalesProperty" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                
-                <a href="{{ route('sales.index', ['action' => 'add']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && request('action') === 'add' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openSalesProperty" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('sales.index', ['action' => 'add']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && request('action') === 'add' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     New Booking
                 </a>
-
-                <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('action') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('action') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Sales Register
                 </a>
-                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
-                    Agreement Register
-                </a> -->
-                <a href="{{ route('rate-revision.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('rate-revision.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('rate-revision.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('rate-revision.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Rate History
                 </a>
-                <a href="{{ route('unit-matrix.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-matrix.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('unit-matrix.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-matrix.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Availability Grid
                 </a>
             </div>
@@ -164,203 +150,211 @@
 
         <!-- 🔄 Property Transfer & Exchange -->
         <div x-data="{ openTransfer: {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
-                    <span>Property Transfer & Exchange</span>
+                    <span>Returns & Cancellations</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openTransfer ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openTransfer ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openTransfer" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('sales.index', ['tab'=>'sale-return']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Sale Return / Cancellation
+            <div x-show="openTransfer" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('sales.index', ['tab'=>'sale-return']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Sales Return
                 </a>
-                <a href="{{ route('sales.index', ['tab'=>'exchange']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('sales.index', ['tab'=>'exchange']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Exchange
                 </a>
-                <a href="{{ route('reports.sales_return') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.sales_return') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Sales Cancel Report
+                <a href="{{ route('reports.sales_return') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.sales_return') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cancel Report
                 </a>
-                <a href="{{ route('reports.exchange_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.exchange_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.exchange_report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.exchange_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Exchange Report
                 </a>
-                <a href="{{ route('cancellation-additional-work.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cancellation-additional-work.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Cancellation Charges & Additional Work
+                <a href="{{ route('cancellation-additional-work.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cancellation-additional-work.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Additional Billing
                 </a>
             </div>
         </div>
 
         <!-- 💳 Customer Management & Collections -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Customer Management & Collections</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Customer & Collections</p>
         
         <div x-data="{ openCustomerColls: {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') || Request::routeIs('cheque-realization.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openCustomerColls = !openCustomerColls" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') || Request::routeIs('cheque-realization.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openCustomerColls = !openCustomerColls" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') || Request::routeIs('cheque-realization.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <span>Customers & Collections</span>
+                    <span>Customer Portal</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openCustomerColls ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openCustomerColls ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openCustomerColls" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('customers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('customers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openCustomerColls" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('customers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('customers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Customer Directory
                 </a>
-                <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Customer Ledger & Statement
+                <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Customer Ledger
                 </a>
-                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Payment Milestone Schedules
+                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Payment Milestone
                 </a>
-                  <!-- <a href="{{ route('receipt-management.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('receipt-management.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Receipt Management
-                </a> -->
-                <a href="{{ route('cheque-receipt-entry.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-receipt-entry.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Payment Receipt Entry
+                <a href="{{ route('cheque-receipt-entry.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-receipt-entry.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Payment Receipts
                 </a>
-                <a href="{{ route('cheque-realization.queue') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Cheque Realization Console
+                <a href="{{ route('cheque-realization.queue') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cheque Realization
                 </a>
-
-                <!-- <a href="{{ route('receipts.allocated-to-others') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('receipts.allocated-to-others') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Allocate Payments
-                </a>
-                <a href="{{ route('emi-collections.cash-book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.cash-book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Collections (Cash Book)
-                </a> -->
-                <a href="{{ route('reports.collection_forecast') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.collection_forecast') || Request::routeIs('emi-collections.outstanding') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Collection Forecast & Overdue Reports
+                <a href="{{ route('reports.collection_forecast') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.collection_forecast') || Request::routeIs('emi-collections.outstanding') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Collection Insights
                 </a>
             </div>
         </div>
 
         <!-- 🛠️ Contractor Operations (RA Bills) -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Contractor Operations</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Contractor Operations</p>
 
-        <div x-data="{ openContractors: {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openContractors = !openContractors" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div x-data="{ 
+            openContractors: {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'true' : 'false' }},
+            isNewRaBillModalOpen: {{ (!session('success') && Request::routeIs('expenses.ra-bills.*') && (request('new') == '1' || request('create') == '1' || request('action') == 'new' || $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount'))) ? 'true' : 'false' }}
+        }" 
+        @ra-bill-modal-state.window="isNewRaBillModalOpen = !!$event.detail.isOpen"
+        @open-new-ra-bill.window="isNewRaBillModalOpen = true"
+        @close-new-ra-bill.window="isNewRaBillModalOpen = false"
+        class="space-y-1">
+            <button @click="openContractors = !openContractors" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    <span>Contractor Operations</span>
+                    <span>Contractor Desk</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openContractors ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openContractors ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openContractors" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('contractors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openContractors" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('contractors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Contractor
                 </a>
+                 <a href="{{ route('expenses.ra-bills.verification', ['new' => 1]) }}" 
+                    @if(Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index'))
+                        @click.prevent="isNewRaBillModalOpen = true; window.dispatchEvent(new CustomEvent('open-new-ra-bill'))"
+                    @endif
+                    :class="isNewRaBillModalOpen ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white'"
+                    class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200">
+                   New RA Bill 
+                </a>
 
-                <a href="{{ route('expenses.ra-bills.verification') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('expenses.ra-bills.verification') }}" 
+                    @if(Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index'))
+                        @click="if(isNewRaBillModalOpen) { $event.preventDefault(); window.dispatchEvent(new CustomEvent('close-new-ra-bill')); isNewRaBillModalOpen = false; }"
+                    @endif
+                    :class="(!isNewRaBillModalOpen && {{ Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index') ? 'true' : 'false' }}) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white'"
+                    class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200">
                     RA Bill Verification
                 </a>
 
-                <a href="{{ route('expenses.ra-bills.payment-release') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Contractor Payment Release
+                <a href="{{ route('expenses.ra-bills.payment-release') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Contractor Payout
                 </a>
 
-                <a href="{{ route('expenses.ra-bills.ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Contractor Ledger View
+                <a href="{{ route('expenses.ra-bills.ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Contractor Ledger 
                 </a>
             </div>
         </div>
 
         <!-- 🤝 Agents & Brokerage -->
         <div x-data="{ openBrokers: {{ Request::routeIs('brokers.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openBrokers = !openBrokers" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('brokers.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openBrokers = !openBrokers" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('brokers.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     <span>Brokerage</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openBrokers ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openBrokers ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openBrokers" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('brokers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Broker Master Directory
+            <div x-show="openBrokers" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('brokers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Broker Master
                 </a>
-                <a href="{{ route('brokers.commission-ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.commission-ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                   Broker Commission Ledger
+                <a href="{{ route('brokers.commission-ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.commission-ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                   Broker Ledger
                 </a>
-                <a href="{{ route('brokers.payable-report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.payable-report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Broker Payout Release
+                <a href="{{ route('brokers.payable-report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.payable-report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Broker Payout
                 </a>
             </div>
         </div>
 
         <!-- 💵 Petty Cash -->
         <div x-data="{ openPettyCash: {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openPettyCash = !openPettyCash" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openPettyCash = !openPettyCash" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span>Petty Cash & Expense</span>
+                    <span>Petty Cash</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openPettyCash ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openPettyCash ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openPettyCash" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-              <a href="{{ route('categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Category
+            <div x-show="openPettyCash" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Categories
                 </a>
-            
-            
-            <a href="{{ route('petty-cash.balance-register') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.balance-register') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Petty Cash Balance Register
+                <a href="{{ route('petty-cash.balance-register') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.balance-register') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Petty Cash Book
                 </a>
-                <a href="{{ route('petty-cash.contra-withdrawal') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.contra-withdrawal') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Cash Withdrawal (Contra)
+                <a href="{{ route('petty-cash.contra-withdrawal') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.contra-withdrawal') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cash Withdrawals
                 </a>
-                <a href="{{ route('petty-cash.daily-site-expenses') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.daily-site-expenses') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('petty-cash.daily-site-expenses') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.daily-site-expenses') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Daily Expense
                 </a>
-                <a href="{{ route('reports.petty_cash.reports') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Petty Cash Book (report)
+                <a href="{{ route('reports.petty_cash.reports') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Petty Cash Report
                 </a>
             </div>
         </div>
 
         <!-- 📂 Document Management (DMS) -->
         <div x-data="{ openDMS: {{ Request::routeIs('dms.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openDMS = !openDMS" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('dms.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openDMS = !openDMS" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('dms.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <span>Document Management</span>
                 </div>
-                <svg :class="openDMS ? 'rotate-90' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <svg :class="openDMS ? 'rotate-90' : ''" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
-            <div x-show="openDMS" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('dms.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && !request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openDMS" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('dms.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && !request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Repository
                 </a>
                 <a href="{{ route('dms.index', ['upload' => 1]) }}" 
                    @if(Request::routeIs('dms.index'))
                        @click.prevent="window.dispatchEvent(new CustomEvent('open-dms-upload'))"
                    @endif
-                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                   class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Upload Document
                 </a>
-                <a href="{{ route('dms.categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('dms.categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Categories
                 </a>
-                <a href="{{ route('dms.document-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.document-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('dms.document-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.document-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Types
                 </a>
             </div>
@@ -368,74 +362,58 @@
 
         <!-- 🏢 Site Expense Operations -->
         <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <span>Site Expense Management</span>
+                    <span>Site Expense</span>
                 </div>
-                <svg :class="openSiteExpensesMenu ? 'rotate-90' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <svg :class="openSiteExpensesMenu ? 'rotate-90' : ''" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
-            <div x-show="openSiteExpensesMenu" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                 <a href="{{ route('site-expense-categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expense-categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Site Expense Category
+            <div x-show="openSiteExpensesMenu" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                 <a href="{{ route('site-expense-categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expense-categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Expense Categories
                 </a>
-            
-            <a href="{{ route('site-expenses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Site Expense 
+                <a href="{{ route('site-expenses.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Site Expense
                 </a>
-                <a href="{{ route('site-expenses.payment-release') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Site Expense Payment Release
+                <a href="{{ route('site-expenses.payment-release') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Expense Payout
                 </a>
-                <a href="{{ route('vendors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Vendor 
+                <a href="{{ route('vendors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Vendor Master
                 </a>
-
             </div>
         </div>
 
-        <!-- 📑 Approvals Center -->
-        <!-- <a href="{{ route('reports.approvals') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 mt-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('reports.approvals') ? 'active text-white' : 'text-white/90' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Workflow Approvals
-        </a> -->
-
         <!-- 💰 Project Profitability & Costing -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Finance & Analytics</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Finance & Analytics</p>
         
         <div x-data="{ openProfitability: {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
                     </svg>
-                    <span>Project Profitability & Costing</span>
+                    <span>Project Profitability</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openProfitability ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openProfitability ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openProfitability" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('partner-contributions.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partner-contributions.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openProfitability" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('partner-contributions.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partner-contributions.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Contribution
                 </a>
-                <a href="{{ route('reports.partner_outflow_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_outflow_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Partner Outflow Ledger
+                <a href="{{ route('reports.partner_outflow_ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_outflow_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Partner Ledger
                 </a>
-                <a href="{{ route('reports.partner_statements') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_statements') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Partner Statements
+                <a href="{{ route('reports.partner_statements') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_statements') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Partner Payout
                 </a>
-                <!-- <a href="{{ route('reports.project_costing_summary') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_costing_summary') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Project Costing Summary
-                </a>
-                <a href="{{ route('reports.revenue_cost_breakdown') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.revenue_cost_breakdown') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Revenue vs. Cost Breakdown
-                </a> -->
-                <a href="{{ route('reports.project_margin_analysis') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_margin_analysis') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.project_margin_analysis') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_margin_analysis') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Project Margin Analysis
                 </a>
             </div>
@@ -443,242 +421,184 @@
 
         <!-- 🏦 Bank & Treasury Management -->
         <div x-data="{ openTreasury: {{ Request::routeIs('treasury.*') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') || Request::routeIs('vouchers.contra.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('treasury.*') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') || Request::routeIs('vouchers.contra.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('treasury.*') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') || Request::routeIs('vouchers.contra.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/>
                     </svg>
-                    <span>Bank & Treasury Management</span>
+                    <span>Bank & Treasury</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openTreasury ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openTreasury ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openTreasury" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('treasury.dashboard') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.dashboard') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openTreasury" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Company Bank
+                </a>    
+                <a href="{{ route('treasury.dashboard') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.dashboard') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Treasury Dashboard
                 </a>
-                <a href="{{ route('treasury.report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('treasury.report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Treasury Report
                 </a>
-                <a href="{{ route('reports.cash_book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.cash_book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.cash_book') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.cash_book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cash Book
                 </a>
-                <!-- <a href="{{ route('reports.bank_reports') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.bank_reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Reports
-                </a> -->
-                <a href="{{ route('vouchers.contra.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.contra.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Internal Contra Transfers
+                <a href="{{ route('vouchers.contra.create') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.contra.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Contra Transfers
                 </a>
-                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
-                    Bank Reconciliation (BRS)
-                </a> -->
             </div>
         </div>
 
         <!-- 📈 Accounting & Financial Reports (Restricted) -->
         <div x-data="{ openAccounting: {{ Request::routeIs('journal-vouchers.*') || Request::routeIs('opening-balances.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('journal-vouchers.*') || Request::routeIs('opening-balances.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('journal-vouchers.*') || Request::routeIs('opening-balances.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
                     </svg>
-                    <span>Accounting & Financial Reports</span>
+                    <span>Accounting Reports</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openAccounting ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openAccounting ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openAccounting" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openAccounting" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
                 </a>
-                <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Voucher Types
                 </a>
-                <a href="{{ route('opening-balances.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('opening-balances.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('opening-balances.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('opening-balances.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Opening Balance
                 </a>
-                <a href="{{ route('journal-vouchers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('journal-vouchers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('journal-vouchers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('journal-vouchers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Journal Vouchers
                 </a>
-                <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Trial Balance
                 </a>
-                <a href="{{ route('reports.profit_loss') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.profit_loss') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.profit_loss') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.profit_loss') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Profit & Loss
                 </a>
-                <a href="{{ route('reports.balance_sheet') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.balance_sheet') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Balance Sheet Summary
+                <a href="{{ route('reports.balance_sheet') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.balance_sheet') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Balance Sheet
                 </a>
-                <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    GST & Tax Report
+                <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    GST Report
                 </a>
-                <!-- <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Ledger & Accounts
-                </a> -->
-                <!-- <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Trial Balance
-                </a>
-                <a href="{{ route('reports.profit_loss') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.profit_loss') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Profit & Loss
-                </a>
-                <a href="{{ route('reports.balance_sheet') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.balance_sheet') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Balance Sheet Summary
-                </a>
-                <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    GST & Tax Report
-                </a>
-                <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Ledger & Accounts
-                </a> -->
-                <!-- <a href="{{ route('reports.audit_trail') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.audit_trail') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Audit Trail Log
-                </a> -->
             </div>
         </div>
 
         <!-- 💸 Loans & Debt Servicing -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Loans & Debt Servicing</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Loans & Debt Servicing</p>
         
         <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.index') || Request::routeIs('loans.schedule') || Request::routeIs('loans.reports') || Request::routeIs('loan-disbursals.*') || Request::routeIs('bank.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.index') || Request::routeIs('loans.schedule') || Request::routeIs('loans.reports') || Request::routeIs('loan-disbursals.*') || Request::routeIs('bank.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.index') || Request::routeIs('loans.schedule') || Request::routeIs('loans.reports') || Request::routeIs('loan-disbursals.*') || Request::routeIs('bank.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span>Loans & Debt Servicing</span>
+                    <span>Loans & Debts</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openLoansDebt ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openLoansDebt ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openLoansDebt" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Loan Master
+            <div x-show="openLoansDebt" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Bank Master
                 </a>
-                <!-- <a href="{{ route('loan-disbursals.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loan-disbursals.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Loan Disbursal Entry
-                </a> -->
-                <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    EMI & Interest Payment Release
+                <a href="{{ route('loans.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Company Loans
                 </a>
-                <a href="{{ route('loans.reports') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('loans.reports') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Loan Outstanding Summary
                 </a>
             </div>
         </div>
 
         <!-- 📊 Reports & Analytics -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Reports & Analytics</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Reports & Analytics</p>
         
         <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openReports = !openReports" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openReports = !openReports" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/>
                     </svg>
                     <span>Reports & Analytics</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <!-- @php
+            <div x-show="openReports" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @php
                     $reportLinks = [
                         'dashboard'           => 'Executive Dashboard',
-                        'availability'        => 'Availability Report',
                         'sales'               => 'Sales Report',
                         'emi_collections'     => 'EMI & Collection Reports',
-                        'gst_report'          => 'GST & Tax Report',
-                        'customer_ledger'     => 'Customer Ledger / Account Stmt',
-                        'cash_book'           => 'Cash Book',
-                        'bank_reports'        => 'Bank Reports',
-                        'partner_statements'  => 'Partner Statements',
-                        'supplier_contractor' => 'Supplier & Contractor Stmt',
-                        'sales_return'        => 'Sales Cancel Report',
-                        'exchange_report'     => 'Exchange Report',
-                        'petty_cash'          => 'Petty Cash Book',
-                        'loan_schedules'      => 'Bank Loan EMI Schedules',
-                        'trial_balance'       => 'Trial Balance',
-                        'profit_loss'         => 'Profit & Loss',
-                        'balance_sheet'       => 'Balance Sheet Summary',
-                        'audit_trail'         => 'Audit Trail Log',
-                        'approvals'           => 'Workflow Approvals',
+                        'supplier_contractor' => 'Contractor Statement',
                     ];
-                @endphp -->
-               @php
-    $reportLinks = [
-        'dashboard'           => 'Executive Dashboard',
-        'sales'               => 'Sales Report',
-        'emi_collections'     => 'EMI & Collection Reports',
-        'supplier_contractor' => 'Contractor Statement',
-    ];
-@endphp
+                @endphp
                 @foreach($reportLinks as $key => $label)
-                    <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                         {{ $label }}
                     </a>
                 @endforeach
-                <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Bank loan EMI schedules
                 </a>
-                <a href="{{ route('reports.availability') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.availability') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Availability Report
                 </a>
             </div>
         </div>
 
         <!-- ⚙️ System Settings & Administration -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Administration</p>
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Administration</p>
         
         <!-- Master Configuration -->
         <div x-data="{ openMaster: {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
-                <div class="flex items-center gap-3">
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                     </svg>
                     <span>Master</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openMaster ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openMaster ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <!-- <a href="{{ route('categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Category
-                </a> -->
-                <a href="{{ route('employees.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('employees.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+            <div x-show="openMaster" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('employees.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('employees.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Employee
                 </a>
-                <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('engineers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer
                 </a>
-                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Company Bank Accounts
                 </a>
-
-                <!-- <a href="{{ route('site-expense-categories.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expense-categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Site Expense Category
-                </a> -->
-                <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Status
                 </a>
-                
-                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('floors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Floor
                 </a>
-                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Type
                 </a>
             </div>
         </div>
 
         <div class="pt-1 mt-2 space-y-1">
-            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
                 <span>Users & Roles</span>
@@ -686,14 +606,10 @@
         </div>
 
     </nav>
-
-        
-        <!-- Workspace Footer Status -->
-       
     </aside>
 
     <!-- Main Content Area -->
-    <div class="lg:pl-72 flex flex-col min-h-screen">
+    <div class="lg:pl-44 flex flex-col min-h-screen">
         
         <!-- Top Header -->
         <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 shadow-sm">
@@ -703,9 +619,7 @@
                 </svg>
             </button>
 
-            <div>
-               
-            </div>
+            <div></div>
 
             <!-- Profile Info & Sign Out -->
             <div class="flex items-center gap-4">
@@ -767,8 +681,6 @@
                             </div>
                         </div>
 
-                   
-
                         <!-- Quick Administration Links -->
                         <div class="border-t border-slate-100 pt-2 space-y-1">
                             <span class="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Quick Configs</span>
@@ -811,12 +723,85 @@
         <main class="flex-1 p-6">
             @if (session('status') || session('success'))
             @php
-                $modalBadge = session('modalBadge') ?? session('modal_badge') ?? 'SUCCESS';
-                $modalTitle = session('modalTitle') ?? session('modal_title') ?? 'ACTION SUCCESSFUL';
-                $modalSubtitle = session('modalSubtitle') ?? session('modal_subtitle') ?? 'Operation completed successfully.';
                 $statusText = session('status') ?? session('success');
+                $modalTitle = 'Success!';
+                $modalBadge = 'Action Completed';
+                $modalSubtitle = 'Operation completed successfully.';
+
+                $lowerText = strtolower($statusText);
+
+                if (str_contains($lowerText, 'project')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Project Added!';
+                        $modalBadge = 'New Project Created';
+                        $modalSubtitle = 'The new project has been added successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Project Deleted!';
+                        $modalBadge = 'Project Removed';
+                        $modalSubtitle = 'The project has been deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Project Updated!';
+                        $modalBadge = 'Project Modified';
+                        $modalSubtitle = 'Project specifications updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'broker')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'register') || str_contains($lowerText, 'add') || str_contains($lowerText, 'save')) {
+                        $modalTitle = 'Broker Registered!';
+                        $modalBadge = 'Broker Profile Created';
+                        $modalSubtitle = 'Broker profile registered successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Broker Deleted!';
+                        $modalBadge = 'Broker Profile Removed';
+                        $modalSubtitle = 'Broker profile deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Broker Updated!';
+                        $modalBadge = 'Broker Profile Modified';
+                        $modalSubtitle = 'Broker profile updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'bank')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Bank Account Added!';
+                        $modalBadge = 'Bank Configured';
+                        $modalSubtitle = 'Corporate bank account added successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Bank Account Deleted!';
+                        $modalBadge = 'Bank Account Removed';
+                        $modalSubtitle = 'Corporate bank account deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Bank Account Updated!';
+                        $modalBadge = 'Bank Account Modified';
+                        $modalSubtitle = 'Corporate bank account updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'payment mode')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Payment Mode Created!';
+                        $modalBadge = 'Payment Mode Added';
+                        $modalSubtitle = 'Payment mode registered successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Payment Mode Deleted!';
+                        $modalBadge = 'Payment Mode Removed';
+                        $modalSubtitle = 'Payment mode deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit') || str_contains($lowerText, 'status')) {
+                        $modalTitle = 'Payment Mode Updated!';
+                        $modalBadge = 'Payment Mode Modified';
+                        $modalSubtitle = 'Payment mode updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'sale')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Sale Created!';
+                        $modalBadge = 'New Sale Booked';
+                        $modalSubtitle = 'The sale contract has been created successfully.';
+                    } elseif (str_contains($lowerText, 'cancel') || str_contains($lowerText, 'return') || str_contains($lowerText, 'status')) {
+                        $modalTitle = 'Sale Status Updated!';
+                        $modalBadge = 'Status Modified';
+                        $modalSubtitle = 'The sale status has been updated successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Sale Updated!';
+                        $modalBadge = 'Sale Modified';
+                        $modalSubtitle = 'The sale contract was updated successfully.';
+                    }
+                }
             @endphp
-          
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
             <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none" style="background: transparent;">
                 <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
@@ -894,8 +879,6 @@
                 </div>
             </div>
 
-            @endif
-
             <style>
                 @keyframes successModalIn {
                     from { opacity: 0; transform: scale(0.85) translateY(20px); }
@@ -922,7 +905,7 @@
                         setTimeout(function() { modal.remove(); }, 260);
                     }
                 }
-                // Auto close flash session modal if present on load
+                // Auto close after 4.5s
                 if (document.getElementById('statusSuccessModal')) {
                     setTimeout(closeStatusModal, 4500);
                 }
@@ -986,7 +969,7 @@
                             <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
                                 <button onclick="closeStatusModal()"
                                     class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/25 uppercase tracking-wider transition-all ring-1 ring-[#a38c29]/30 flex items-center gap-2">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3.5 h-3.5 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Got it
@@ -996,8 +979,9 @@
                     </div>`;
                     document.body.insertAdjacentHTML('beforeend', html);
                     setTimeout(closeStatusModal, 4500);
-                }
+                };
             </script>
+            @endif
 
             {!! $slot ?? '' !!}
             @yield('content')
@@ -1382,6 +1366,7 @@
             });
         });
     </script>
+
     <!-- System Settings Modal -->
     <div x-show="openSettingsModal" 
          x-transition.opacity 
@@ -1430,13 +1415,14 @@
                 </div>
             </div>
 
-           
-
             <div class="flex justify-end border-t border-slate-100 pt-4">
                 <button type="button" @click="openSettingsModal = false" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition">
                     Done
                 </button>
             </div>
+        </div>
+    </div>
+
     <!-- Persistent Sidebar Scroll & Active Menu Alignment Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

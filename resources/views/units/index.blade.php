@@ -362,8 +362,17 @@
     {{-- Units Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
         <style>
+            #units-table {
+                table-layout: fixed;
+                width: 100%;
+            }
             #units-table thead th {
-                border-color: #8a7522 !important;
+                border-color: #475569 !important;
+                vertical-align: middle;
+                text-align: center !important;
+            }
+            #units-table td {
+                vertical-align: middle;
             }
             #units-tbody tr:nth-child(even) {
                 background-color: #F6F3E9 !important;
@@ -372,30 +381,30 @@
                 background-color: #ebe5d0 !important;
             }
         </style>
-        <div class="overflow-auto max-h-[100vh]">
+        <div class="overflow-x-hidden overflow-y-auto max-h-[100vh] w-full">
             <table id="units-table" class="w-full text-xs text-left">
                 <thead class="sticky top-0 z-10">
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">FLOOR</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm whitespace-nowrap">FLOOR NO.</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">TYPE</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">DOOR NO</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">BUILT UP AREA (In Sq Ft)</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">CARPET AREA (In Sq Ft)</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ EXPECTED / SQ.FT</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ EXPECTED SALE</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ SALE PER SQ.FT</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ SALE AMOUNT</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">DIFFERENCE</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">STATUS</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
+                    <tr class="bg-slate-700 text-white border-b border-slate-600 text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 62px;">FLOOR</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm whitespace-nowrap text-center" style="width: 8.5%;">FLOOR NO.</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 5.5%;">TYPE</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm whitespace-nowrap text-center" style="width: 5.5%;">DOOR NO</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 8.5%;">BUILT UP AREA (In Sq Ft)</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 8.5%;">CARPET AREA (In Sq Ft)</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 8.5%;">₹ EXPECTED / SQ.FT</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 10.5%;">₹ EXPECTED SALE</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 8%;">₹ SALE PER SQ.FT</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 10.5%;">₹ SALE AMOUNT</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 7.5%;">DIFFERENCE</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 7.5%;">STATUS</th>
+                        <th class="px-1 py-3.5 border sticky top-0 bg-slate-700 shadow-sm text-center" style="width: 10%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="units-tbody" x-effect="renderUnitsTable()">
                 </tbody>
             </table>
         </div>
-        </div>
+    </div>
 
         <!-- FLOOR MATRIX GRID -->
         <div class="bg-gradient-to-br from-white to-slate-50/80 border border-slate-200/80 rounded-3xl p-6 shadow-md shadow-slate-200/30 space-y-6 relative"
@@ -2625,18 +2634,18 @@ function unitsApp() {
             const actionsBtns = (unit) => {
                 if (!canManage) return '';
                 const disabledDel = unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : '';
-                return `<div class="inline-flex items-center justify-end gap-1.5">
-                    <button data-action="view" data-id="${unit.id}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                return `<div class="inline-flex items-center justify-end gap-1">
+                    <button data-action="view" data-id="${unit.id}" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
-                    <button data-action="rate-history" data-id="${unit.id}" class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate History">
-                        <svg class="w-4 h-4" style="color:rgb(67 56 212)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <button data-action="rate-history" data-id="${unit.id}" class="p-1.5 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate History">
+                        <svg class="w-3.5 h-3.5" style="color:rgb(67 56 212)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </button>
-                    <button data-action="edit" data-id="${unit.id}" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
-                        <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <button data-action="edit" data-id="${unit.id}" class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
+                        <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
-                    <button data-action="delete" data-id="${unit.id}" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 transition inline-flex items-center justify-center shadow-sm ${disabledDel}" title="Delete Unit" ${unit.status !== 'available' ? 'disabled' : ''}>
-                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <button data-action="delete" data-id="${unit.id}" class="p-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 transition inline-flex items-center justify-center shadow-sm ${disabledDel}" title="Delete Unit" ${unit.status !== 'available' ? 'disabled' : ''}>
+                        <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>`;
             };
@@ -2647,37 +2656,37 @@ function unitsApp() {
                 group.units.forEach((unit, ui) => {
                     html += `<tr class="unit-table-row transition-colors cursor-pointer text-center text-xs font-semibold text-slate-700" data-unit-id="${unit.id}">`;
                     if (ui === 0) {
-                        html += `<td rowspan="${group.units.length}" class="border text-slate-900 font-extrabold text-[11px] uppercase bg-[#a38c29]/10 select-none" style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);min-width:38px;padding:14px 8px;text-align:center;vertical-align:middle;letter-spacing:0.13em;">${group.floor_name}</td>`;
+                        html += `<td rowspan="${group.units.length}" class="border text-slate-900 font-extrabold text-xs uppercase bg-[#a38c29]/10 select-none" style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);width:62px;min-width:62px;max-width:62px;padding:12px 6px;text-align:center;vertical-align:middle;letter-spacing:0.18em;">${group.floor_name}</td>`;
                     }
                     const isParkingUnit = unit.unit_type && (unit.unit_type.name.toLowerCase() === 'parking' || (unit.unit_type.category || '').toLowerCase() === 'parking');
                     const expRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
                     const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
 
                     let saleAmountDisp = fmtMoney(unit.sale_amount);
-                    let saleCellAttrs = 'class="px-3 py-3 border font-bold"';
+                    let saleCellAttrs = 'class="px-1.5 py-3.5 border font-bold"';
                     if (unit.status === 'sold') {
                         const activeSale = this.getUnitActiveSale(unit);
                         if (activeSale) {
-                            saleCellAttrs = `class="px-3 py-3 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
+                            saleCellAttrs = `class="px-1.5 py-3.5 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
                             if (activeSale.customer) {
-                                saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2.5 py-1 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap text-emerald-700">Sold To: ${activeSale.customer.name}</span></div>`;
+                                saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2 py-0.5 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-wider whitespace-nowrap text-emerald-700">Sold: ${activeSale.customer.name}</span></div>`;
                             }
                         }
                     }
 
                     html += `
-                        <td class="px-3 py-3 border font-extrabold text-slate-800 whitespace-nowrap">${unit.floor ? unit.floor.name : ''}</td>
-                        <td class="px-3 py-3 border text-slate-600">${unit.unit_type ? unit.unit_type.name : ''}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${unit.door_no}</td>
-                        <td class="px-3 py-3 border">${fmtArea(unit.built_up_area)}</td>
-                        <td class="px-3 py-3 border">${fmtArea(unit.carpet_area)}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${expRateDisp}</td>
-                        <td class="px-3 py-3 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${saleRateDisp}</td>
+                        <td class="px-1.5 py-3.5 border font-extrabold text-slate-800 whitespace-nowrap">${unit.floor ? unit.floor.name : ''}</td>
+                        <td class="px-1.5 py-3.5 border text-slate-600">${unit.unit_type ? unit.unit_type.name : ''}</td>
+                        <td class="px-1.5 py-3.5 border font-bold text-slate-900">${unit.door_no}</td>
+                        <td class="px-1.5 py-3.5 border">${fmtArea(unit.built_up_area)}</td>
+                        <td class="px-1.5 py-3.5 border">${fmtArea(unit.carpet_area)}</td>
+                        <td class="px-1.5 py-3.5 border font-bold text-slate-900">${expRateDisp}</td>
+                        <td class="px-1.5 py-3.5 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
+                        <td class="px-1.5 py-3.5 border font-bold text-slate-900">${saleRateDisp}</td>
                         <td ${saleCellAttrs}>${saleAmountDisp}</td>
-                        <td class="px-3 py-3 border font-bold">${fmtMoney(unit.difference)}</td>
-                        <td class="px-3 py-3 border">${statusBadge(unit.status)}</td>
-                        <td class="px-3 py-3 border text-right">${actionsBtns(unit)}</td>
+                        <td class="px-1.5 py-3.5 border font-bold">${fmtMoney(unit.difference)}</td>
+                        <td class="px-1.5 py-3.5 border">${statusBadge(unit.status)}</td>
+                        <td class="px-1.5 py-3.5 border text-right">${actionsBtns(unit)}</td>
                     </tr>`;
                 });
             }

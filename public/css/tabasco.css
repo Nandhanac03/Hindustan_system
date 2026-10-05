@@ -2,18 +2,23 @@
    Tabasco Stylesheet - Hindustan Real Estate ERP
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
 /* --------------------------------------------------------------------------
    Readability Overrides for Ultra-Small Tailwind Font Classes
    -------------------------------------------------------------------------- */
 .text-\[8px\] {
     font-size: 10px !important;
 }
+
 .text-\[9px\] {
     font-size: 11px !important;
 }
+
 .text-\[10px\] {
     font-size: 12px !important;
 }
+
 .text-\[11px\] {
     font-size: 13px !important;
 }
@@ -21,10 +26,19 @@
 /* --------------------------------------------------------------------------
    Body & Layout Structure
    -------------------------------------------------------------------------- */
-body {
-    font-family: 'Inter', sans-serif;
+html,
+body,
+*,
+button,
+input,
+select,
+textarea {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+body {
     letter-spacing: -0.01em;
 }
 
@@ -33,40 +47,54 @@ html.dark body {
     background-color: #0f0e0d !important;
     color: #f1f5f9 !important;
 }
+
 html.dark header {
     background-color: #191816 !important;
     border-color: #292724 !important;
 }
+
 html.dark .bg-white {
     background-color: #191816 !important;
     color: #f1f5f9 !important;
     border-color: #292724 !important;
 }
-html.dark .bg-slate-50, html.dark .bg-slate-100 {
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
     background-color: #292724 !important;
     color: #f8fafc !important;
 }
-html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 {
+
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
     color: #f1f5f9 !important;
 }
-html.dark .text-slate-600, html.dark .text-slate-500 {
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
     color: #94a3b8 !important;
 }
+
 html.dark table thead {
     background-color: #0f0e0d !important;
     color: #f8fafc !important;
 }
+
 html.dark table tbody tr:hover {
     background-color: #292724 !important;
 }
-html.dark .border-slate-200, html.dark .border-slate-100 {
+
+html.dark .border-slate-200,
+html.dark .border-slate-100 {
     border-color: #2e2810 !important;
 }
 
 /* Scrollbar Customization - Premium Tabasco Gold Styling */
 * {
     scrollbar-width: thin;
-    scrollbar-color: #a38c29 transparent;
+    /* scrollbar-color: #a38c29 transparent; */
+    scrollbar-color: #cbcac65c transparent !important
 }
 
 ::-webkit-scrollbar {
@@ -111,43 +139,246 @@ html.dark .border-slate-200, html.dark .border-slate-100 {
 }
 
 /* --------------------------------------------------------------------------
-   Navigation & Sidebar Menu
+   Navigation & Sidebar Menu - Luxury White Background Theme
    -------------------------------------------------------------------------- */
-.nav-item {
+aside.fixed {
+    width: 16.5rem !important;
+    background: #ffffff !important;
+    border-right: 1px solid #ededed !important;
+    box-shadow: 2px 0 16px 0 rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Ensure desktop main content area leaves exact clearance for sidebar */
+@media (min-width: 1024px) {
+
+    body>div.flex.flex-col.min-h-screen,
+    .lg\:pl-80,
+    .lg\:pl-72,
+    .lg\:pl-56,
+    .lg\:pl-44 {
+        padding-left: 16.5rem !important;
+    }
+}
+
+aside.fixed .h-28,
+aside.fixed .h-24,
+aside.fixed .bg-black {
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+#sidebar-nav {
+    background: #ffffff !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbcac65c transparent !important;
+}
+
+#sidebar-nav::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+#sidebar-nav::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+#sidebar-nav::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a38c29 0%, #c9b458 100%) !important;
+    border-radius: 999px !important;
+}
+
+/* Category Section Headers (Lighter Version of Black / Neutral Charcoal) */
+#sidebar-nav p,
+aside.fixed p {
+    color: #52525b !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding-top: 1.25rem !important;
+    padding-bottom: 0.35rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+}
+
+/* Top-level Menu Items & Parent Accordions */
+.nav-item,
+#sidebar-nav button,
+#sidebar-nav a.nav-item {
     position: relative;
+    transition: all 0.2s ease;
+    color: #000000 !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+}
+
+#sidebar-nav button>div:first-child,
+#sidebar-nav a.nav-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+}
+
+#sidebar-nav button span,
+#sidebar-nav a.nav-item span {
+    white-space: nowrap !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* Gold Theme Icons for All Side Navigation Items */
+#sidebar-nav a.nav-item svg,
+#sidebar-nav button div svg,
+#sidebar-nav button>div:first-child svg,
+#sidebar-nav button svg:first-child:not(:last-child) {
+    color: #AB8C2F !important;
+    stroke: #AB8C2F !important;
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 1.9 !important;
+    flex-shrink: 0 !important;
     transition: all 0.2s ease;
 }
 
-/* .nav-item:hover {
-    background:white;
-} */
-.nav-item.active {
-    background: rgb(163 140 41 / var(--tw-bg-opacity, 1));
-    box-shadow: inset 3px 0 0 #fff, 0 0 15px rgb(163 140 41 / var(--tw-bg-opacity, 1));
-    border-radius: 8px;
+/* Chevron Arrows strictly solid black & right aligned */
+#sidebar-nav button>svg:last-child,
+#sidebar-nav button svg.transition-transform {
+    width: 14px !important;
+    height: 14px !important;
+    color: #000000 !important;
+    stroke: #000000 !important;
+    stroke-width: 2 !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.flex-1.px-3.py-4.space-y-1 {
-    background: black;
+#sidebar-nav button:hover,
+#sidebar-nav a.nav-item:not(.active):hover {
+    background-color: #fdfaf0 !important;
+    color: #AB8C2F !important;
 }
 
-.nav-item.active svg {
-    color: white;
+#sidebar-nav button:hover span,
+#sidebar-nav a.nav-item:not(.active):hover span {
+    color: #AB8C2F !important;
 }
 
-.border-primary-800\/30 {
-    border-color: rgb(107 93 28 / 0.3);
-    background: black;
+#sidebar-nav button:hover>div svg,
+#sidebar-nav a.nav-item:not(.active):hover svg {
+    color: #AB8C2F !important;
+    stroke: #AB8C2F !important;
 }
 
-.nav-item.flex.items-center.gap-3.px-3.py-2\.5.text-xs.font-semibold.rounded-lg.hover\:text-primary-300.transition-colors.text-slate-300 {
-    color: white;
+#sidebar-nav button:hover>svg:last-child,
+#sidebar-nav button:hover svg.transition-transform {
+    color: #000000 !important;
+    stroke: #000000 !important;
 }
 
-.px-3.text-\[9px\].font-bold.text-primary-300\/50.uppercase.tracking-widest.block.pt-4.mb-2 {
-    color: #5d5d5d;
-    font-size: 13px;
-    text-transform: full-size-kana;
+/* Parent accordion opened state */
+#sidebar-nav button.text-white.bg-slate-800\/20,
+#sidebar-nav button[class*="bg-slate-800"] {
+    background-color: transparent !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+#sidebar-nav button.text-white.bg-slate-800\/20 span,
+#sidebar-nav button[class*="bg-slate-800"] span {
+    color: #000000 !important;
+}
+
+#sidebar-nav button.text-white.bg-slate-800\/20>div svg,
+#sidebar-nav button[class*="bg-slate-800"]>div svg {
+    color: #AB8C2F !important;
+    stroke: #AB8C2F !important;
+}
+
+#sidebar-nav button.text-white.bg-slate-800\/20>svg,
+#sidebar-nav button[class*="bg-slate-800"]>svg {
+    color: #000000 !important;
+    stroke: #000000 !important;
+}
+
+/* Active Dashboard & Active Menu Tabs (Gold Pill with White Text) */
+#sidebar-nav .nav-item.active,
+#sidebar-nav a.active,
+#sidebar-nav a.bg-\[\#a38c29\],
+#sidebar-nav div[x-show] a.active,
+#sidebar-nav div[x-show] a.bg-\[\#a38c29\] {
+    background: linear-gradient(90deg, #997c27 0%, #d4b143 55%, #c29e34 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(171, 140, 47, 0.28) !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    text-shadow: none !important;
+}
+
+#sidebar-nav .nav-item.active {
+    font-size: 14px !important;
+    padding: 0.65rem 0.85rem !important;
+}
+
+#sidebar-nav .nav-item.active span,
+#sidebar-nav a.active span,
+#sidebar-nav a.bg-\[\#a38c29\] span,
+#sidebar-nav div[x-show] a.active span,
+#sidebar-nav div[x-show] a.bg-\[\#a38c29\] span {
+    color: #ffffff !important;
+}
+
+#sidebar-nav .nav-item.active svg,
+#sidebar-nav a.active svg,
+#sidebar-nav a.bg-\[\#a38c29\] svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 2 !important;
+    filter: none !important;
+}
+
+/* Sub-menu Child Container & Links */
+#sidebar-nav div[x-show] {
+    padding-left: 1.5rem !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+#sidebar-nav div[x-show] a {
+    color: #000000 !important;
+    font-weight: 500 !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0.45rem 0.65rem !important;
+    display: block !important;
+    white-space: nowrap !important;
+    line-height: 1.35 !important;
+    transition: all 0.15s ease;
+}
+
+#sidebar-nav div[x-show] a:hover:not(.active):not(.bg-\[\#a38c29\]) {
+    background-color: #fdfaf0 !important;
+    color: #AB8C2F !important;
+}
+
+/* Active Sub-menu Links */
+#sidebar-nav div[x-show] a.bg-\[\#a38c29\],
+#sidebar-nav div[x-show] a.active {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    background: linear-gradient(90deg, #997c27 0%, #d4b143 55%, #c29e34 100%) !important;
+    box-shadow: 0 3px 10px rgba(171, 140, 47, 0.25) !important;
+    border-radius: 8px !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -287,7 +518,7 @@ html.dark .border-slate-200, html.dark .border-slate-100 {
     padding: 2px 10px;
     border-radius: 9999px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.02em;
 }
 
@@ -405,15 +636,17 @@ td.border.text-slate-900.font-extrabold.text-\[11px\].uppercase.bg-\[\#a38c29\]\
 }
 
 .w-full.max-w-4xl.bg-white.rounded-2xl.shadow-2xl.overflow-hidden.animate-fade-in-up.modal-widthincrease {
-  max-width: 75%;
-  position: relative;
-  left: 122px;
+    max-width: 75%;
+    position: relative;
+    left: 122px;
 }
+
 .w-full.max-w-2xl.bg-white.rounded-2xl.shadow-2xl.overflow-hidden.animate-fade-in-up.modal-widthcancel {
     max-width: 55%;
     position: relative;
     left: 122px;
 }
+
 .w-full.max-w-2xl.bg-white.rounded-2xl.shadow-2xl.overflow-hidden.animate-fade-in-up.modal-widthexchange {
     max-width: 55%;
     position: relative;
