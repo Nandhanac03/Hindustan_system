@@ -936,6 +936,8 @@ class ReportController extends Controller
                             'is_pending'         => $isPending,
                             'is_bounced'         => $isBounced,
                             'is_realized'        => $isRealized,
+                            'customer_id'        => $sale->customer_id,
+                            'receipt_id'         => $receipt->id,
                         ]);
                     }
                 }
@@ -1055,6 +1057,8 @@ class ReportController extends Controller
                         'is_pending'         => $isPending,
                         'is_bounced'         => $isBounced,
                         'is_realized'        => $isRealized,
+                        'customer_id'        => $sale->customer_id,
+                        'receipt_id'         => $receipt->id,
                     ]);
                 }
             }

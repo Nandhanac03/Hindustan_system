@@ -141,9 +141,17 @@
                                 <span class="font-extrabold text-amber-900 uppercase tracking-wider text-[10px]">Pending Realization / Under Clearance:</span>
                                 <span class="font-mono font-black text-amber-800 text-xs">₹{{ number_format($totalPendingCredits, 2) }}</span>
                             </div>
-                            <span class="text-[10px] text-amber-700 font-semibold">
-                                Balance after realization: <strong class="font-mono text-slate-900">₹{{ number_format($projectedBalance ?? ($closingBalance - $totalPendingCredits), 2) }}</strong>
-                            </span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] text-amber-700 font-semibold">
+                                    Balance after realization: <strong class="font-mono text-slate-900">₹{{ number_format($projectedBalance ?? ($closingBalance - $totalPendingCredits), 2) }}</strong>
+                                </span>
+                                <a href="{{ route('cheque-realization.queue', array_filter(['customer_id' => request('customer_id')])) }}" 
+                                   class="px-2.5 py-1 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs inline-flex items-center gap-1.5 shrink-0"
+                                   title="Go to Cheque Realization Console">
+                                    <span>Cheque Realization Console</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </a>
+                            </div>
                         </div>
                         @endif
                     </div>
@@ -239,15 +247,22 @@
                                     </div>
                                     @if(!empty($row['is_pending']))
                                         <div class="mt-1">
-                                            <span class="inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-300 text-[10px] font-sans font-bold whitespace-nowrap shadow-2xs">
-                                                Pending realization
-                                            </span>
+                                            <a href="{{ route('cheque-realization.queue', array_filter(['customer_id' => $row['customer_id'] ?? request('customer_id')])) }}" 
+                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[10px] font-sans font-extrabold whitespace-nowrap shadow-2xs transition-all group"
+                                               title="Click to view & process in Cheque Realization Queue">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                                                <span>Pending realization</span>
+                                                <svg class="w-3 h-3 text-amber-700 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                            </a>
                                         </div>
                                     @elseif(!empty($row['is_bounced']))
                                         <div class="mt-1">
-                                            <span class="inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-sans font-bold whitespace-nowrap shadow-2xs">
-                                                Bounced
-                                            </span>
+                                            <a href="{{ route('cheque-realization.queue', array_filter(['customer_id' => $row['customer_id'] ?? request('customer_id'), 'status' => 'bounced'])) }}" 
+                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300 text-[10px] font-sans font-extrabold whitespace-nowrap shadow-2xs transition-all group"
+                                               title="Click to view bounced cheque in Cheque Realization Queue">
+                                                <span>Bounced</span>
+                                                <svg class="w-3 h-3 text-rose-700 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                            </a>
                                         </div>
                                     @endif
                                 </td>
@@ -402,7 +417,12 @@
                                         <td class="px-5 py-4 text-right font-mono">
                                             <span class="font-bold text-emerald-700 block">₹{{ number_format($cs['paid_amount'], 2) }}</span>
                                             @if(!empty($cs['pending_amount']) && $cs['pending_amount'] > 0)
-                                                <span class="text-[9px] font-bold text-amber-600 block">⏳ ₹{{ number_format($cs['pending_amount'], 2) }} uncleared</span>
+                                                <a href="{{ route('cheque-realization.queue', ['customer_id' => $cs['customer_id']]) }}" 
+                                                   class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 hover:text-amber-900 hover:underline block mt-0.5"
+                                                   title="View Cheque Realization Queue for {{ $cs['customer_name'] }}">
+                                                    <span>⏳ ₹{{ number_format($cs['pending_amount'], 2) }} uncleared</span>
+                                                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </a>
                                             @endif
                                         </td>
                                         <td class="px-5 py-4 text-right font-mono font-black text-rose-600">
@@ -469,7 +489,25 @@
                                             <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-600 inline-block">{{ $row['payment_mode'] }}</span>
                                         </td>
                                         <td class="px-5 py-3.5 text-right text-rose-600 font-bold">{{ $row['debit'] > 0 ? '₹'.number_format($row['debit'], 2) : '—' }}</td>
-                                        <td class="px-5 py-3.5 text-right text-emerald-700 font-bold">{{ $row['credit'] > 0 ? '₹'.number_format($row['credit'], 2) : '—' }}</td>
+                                        <td class="px-5 py-3.5 text-right font-mono">
+                                            @if($row['credit'] > 0)
+                                                <span class="{{ (!empty($row['is_pending'])) ? 'text-amber-700 font-bold' : ((!empty($row['is_bounced'])) ? 'text-rose-400 line-through' : 'text-emerald-700 font-bold') }}">
+                                                    ₹{{ number_format($row['credit'], 2) }}
+                                                </span>
+                                                @if(!empty($row['is_pending']))
+                                                    <div class="mt-0.5">
+                                                        <a href="{{ route('cheque-realization.queue', array_filter(['customer_id' => $row['customer_id'] ?? null])) }}" 
+                                                           class="inline-flex items-center gap-1 text-[9px] font-sans font-bold text-amber-700 hover:underline"
+                                                           title="View in Cheque Realization Queue">
+                                                            <span>Pending realization</span>
+                                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                            @else
+                                                <span class="text-slate-400">—</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                     @empty
                                     <tr>
