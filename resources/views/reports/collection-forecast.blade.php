@@ -777,7 +777,7 @@ function collectionForecastApp() {
         allInstallments: @json($allInstallmentsFormatted ?? []),
         projects: @json($projects ?? []),
         filters: {
-            as_of_date: '{{ request('as_of_date', '') }}',
+            as_of_date: '{{ request('as_of_date', now()->addYear()->format('Y-m-d')) }}',
             project_id: '{{ request('project_id', '') }}',
             customer_id: '{{ request('customer_id', '') }}',
             ageing_bucket: '{{ request('ageing_bucket', '') }}',
@@ -899,28 +899,53 @@ function collectionForecastApp() {
         },
 
         get upcomingScheduleData() {
-            const baseDate = this.filters.as_of_date ? new Date(this.filters.as_of_date + 'T00:00:00') : new Date();
-            
-            // Generate next 12 monthly slots
-            const months = [];
-            for (let i = 0; i < 12; i++) {
-                const d = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 1);
-                const monthKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-                const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                months.push({
-                    key: monthKey,
-                    label: label,
-                    amount: 0
-                });
+            // Chart window: today (start) → as_of_date filter (end)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // End date = as_of_date filter, or today + 1 year if not set
+            let endDate;
+            if (this.filters.as_of_date) {
+                endDate = new Date(this.filters.as_of_date + 'T00:00:00');
+            } else {
+                endDate = new Date(today);
+                endDate.setFullYear(endDate.getFullYear() + 1);
             }
 
-            // 5 Timeline Horizon Buckets (Exact same color scheme as shown in the image)
+            // Total days in window
+            const totalDays = Math.max(1, Math.floor((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+
+            // Quarter thresholds (4 equal segments + beyond)
+            const q1 = totalDays * 0.25;
+            const q2 = totalDays * 0.50;
+            const q3 = totalDays * 0.75;
+
+            // Quarter labels based on months
+            const totalMonths = Math.max(1, Math.round(totalDays / 30));
+            const m1 = Math.round(totalMonths * 0.25);
+            const m2 = Math.round(totalMonths * 0.50);
+            const m3 = Math.round(totalMonths * 0.75);
+
+            // Generate monthly slots from today to endDate
+            const months = [];
+            let cursor = new Date(today.getFullYear(), today.getMonth(), 1);
+            const endMonthKey = endDate.getFullYear() + '-' + String(endDate.getMonth() + 1).padStart(2, '0');
+            while (true) {
+                const monthKey = cursor.getFullYear() + '-' + String(cursor.getMonth() + 1).padStart(2, '0');
+                const label = cursor.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                months.push({ key: monthKey, label: label, amount: 0 });
+                if (monthKey >= endMonthKey) break;
+                cursor.setMonth(cursor.getMonth() + 1);
+                if (months.length > 60) break; // safety cap
+            }
+
+            // Horizon buckets — proportional to the selected window
             const horizons = {
-                '0-3M': { label: '0 - 3 Months', amount: 0, color: '#4f46e5' },
-                '3-6M': { label: '3 - 6 Months', amount: 0, color: '#f59e0b' },
-                '6-9M': { label: '6 - 9 Months', amount: 0, color: '#22c55e' },
-                '9-12M': { label: '9 - 12 Months', amount: 0, color: '#f97316' },
-                '>12M': { label: '> 12 Months', amount: 0, color: '#ec4899' }
+                'Q1': { label: `0 - ${m1} Months`, amount: 0, color: '#4f46e5' },
+                'Q2': { label: `${m1} - ${m2} Months`, amount: 0, color: '#f59e0b' },
+                'Q3': { label: `${m2} - ${m3} Months`, amount: 0, color: '#22c55e' },
+                'Q4': { label: `${m3} - ${totalMonths} Months`, amount: 0, color: '#f97316' },
+                'Beyond': { label: `> ${totalMonths} Months`, amount: 0, color: '#ec4899' }
             };
 
             this.filteredInstallments.forEach(inst => {
@@ -929,27 +954,29 @@ function collectionForecastApp() {
 
                 if (inst.due_date_raw) {
                     const instDate = new Date(inst.due_date_raw + 'T00:00:00');
-                    const diffDays = Math.floor((instDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.floor((instDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                     const instMonthKey = instDate.getFullYear() + '-' + String(instDate.getMonth() + 1).padStart(2, '0');
 
+                    // Only plot months within the window
                     const mObj = months.find(m => m.key === instMonthKey);
                     if (mObj) {
                         mObj.amount += out;
                     }
 
-                    if (diffDays <= 90) {
-                        horizons['0-3M'].amount += out;
-                    } else if (diffDays <= 180) {
-                        horizons['3-6M'].amount += out;
-                    } else if (diffDays <= 270) {
-                        horizons['6-9M'].amount += out;
-                    } else if (diffDays <= 365) {
-                        horizons['9-12M'].amount += out;
+                    // Assign to proportional horizon bucket
+                    if (diffDays <= q1) {
+                        horizons['Q1'].amount += out;
+                    } else if (diffDays <= q2) {
+                        horizons['Q2'].amount += out;
+                    } else if (diffDays <= q3) {
+                        horizons['Q3'].amount += out;
+                    } else if (diffDays <= totalDays) {
+                        horizons['Q4'].amount += out;
                     } else {
-                        horizons['>12M'].amount += out;
+                        horizons['Beyond'].amount += out;
                     }
                 } else {
-                    horizons['0-3M'].amount += out;
+                    horizons['Q1'].amount += out;
                 }
             });
 
@@ -958,6 +985,7 @@ function collectionForecastApp() {
                 horizons: Object.values(horizons)
             };
         },
+
 
         get donutChartData() {
             if (this.isOverdueMode) {
@@ -1054,8 +1082,13 @@ function collectionForecastApp() {
         },
 
         resetFilters() {
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            const yyyy = nextYear.getFullYear();
+            const mm = String(nextYear.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextYear.getDate()).padStart(2, '0');
             this.filters = {
-                as_of_date: '',
+                as_of_date: `${yyyy}-${mm}-${dd}`,
                 project_id: '',
                 customer_id: '',
                 ageing_bucket: '',
