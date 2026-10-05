@@ -95,7 +95,7 @@
             </div>
             
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">-₹{{ number_format((float) $totalCorrections, 2) }}</span>
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format((float) $totalCorrections, 2) }}</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total Corrections Applied</p>
             </div>
         </div>
