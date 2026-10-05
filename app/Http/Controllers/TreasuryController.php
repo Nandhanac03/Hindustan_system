@@ -232,51 +232,114 @@ class TreasuryController extends Controller
             }
         }
 
-        // Outward Debits: Bank Cash Withdrawal & Internal Transfers (Contra Vouchers)
+        // Contra Vouchers: Bank Cash Withdrawals & Bank-to-Bank Transfers
         $allContraVouchers = \App\Models\Voucher::where('type', 'Contra')
-            ->whereNotNull('company_bank_account_id')
+            ->with(['lines.account'])
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
 
+        // Helper to match a chart of account or bank id to a CompanyBankAccount
+        $resolveBank = function ($bankId, $chartAcc) use ($bankAccounts) {
+            if ($bankId) {
+                $found = $bankAccounts->firstWhere('id', $bankId);
+                if ($found) return $found;
+            }
+            if ($chartAcc) {
+                $accName = strtolower($chartAcc->name ?? '');
+                foreach ($bankAccounts as $ba) {
+                    $bName = strtolower($ba->bank_name ?? '');
+                    if ($bName && (str_contains($accName, $bName) || str_contains($bName, $accName))) {
+                        return $ba;
+                    }
+                    if ($ba->account_number && str_contains($accName, (string)$ba->account_number)) {
+                        return $ba;
+                    }
+                }
+            }
+            return null;
+        };
+
         foreach ($allContraVouchers as $cv) {
-            $acc = $bankAccounts->firstWhere('id', $cv->company_bank_account_id);
             $cvDate = $cv->date ? Carbon::parse($cv->date) : Carbon::parse($cv->created_at);
-            
-            $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $cv->id)->where('credit', '>', 0)->value('credit')
-                     ?? \App\Models\VoucherLine::where('voucher_id', $cv->id)->sum('debit'));
+            $creditLine = $cv->lines->firstWhere('credit', '>', 0);
+            $debitLine = $cv->lines->firstWhere('debit', '>', 0);
+
+            $amount = (float)($creditLine?->credit ?? $debitLine?->debit ?? 0);
+            if ($amount <= 0) continue;
+
+            $sourceBank = $resolveBank($cv->company_bank_account_id, $creditLine?->account);
+            $destBank = $resolveBank(null, $debitLine?->account);
 
             $narrationLower = strtolower($cv->narration ?? '');
-            if (str_contains($narrationLower, 'bank transfer') || str_contains($narrationLower, 'inter-bank') || str_contains($narrationLower, 'internal transfer')) {
-                $contraTitle = 'Internal Contra Bank Transfer';
-            } else {
-                $contraTitle = 'Site Petty Cash Box (Bank Cash Withdrawal)';
+            $isBankTransfer = $destBank || str_contains($narrationLower, 'bank transfer') || str_contains($narrationLower, 'inter-bank') || str_contains($narrationLower, 'internal transfer');
+
+            // 1. Source Account Record (Debit / Outflow from Source Bank)
+            if ($sourceBank) {
+                $sourceTitle = $destBank 
+                    ? 'Transfer to ' . $destBank->bank_name . ' (Contra Transfer)' 
+                    : ($isBankTransfer ? 'Internal Contra Bank Transfer' : 'Site Petty Cash Box (Bank Cash Withdrawal)');
+
+                $sourceNarration = $cv->narration 
+                    ?: ($destBank ? 'Internal Bank Transfer to ' . $destBank->bank_name : 'Cash Withdrawal from Bank into Site Petty Cash Box');
+
+                $contraSourceTxn = [
+                    'id' => 'contra_out_' . $cv->id,
+                    'date' => $cvDate ? $cvDate->format('d/m/Y') : '—',
+                    'raw_date' => $cvDate ? $cvDate->timestamp : 0,
+                    'datetime_formatted' => $cvDate ? $cvDate->format('d M Y') : '—',
+                    'voucher_no' => $cv->voucher_number,
+                    'customer_name' => $sourceTitle,
+                    'customer_phone' => '',
+                    'narration' => $sourceNarration,
+                    'payment_mode' => 'CONTRA',
+                    'cheque_no' => $cv->reference_no ?: '—',
+                    'drawee_bank' => '—',
+                    'bank_ref_no' => $cv->reference_no ?: $cv->voucher_number,
+                    'bank_name' => $sourceBank->bank_name,
+                    'bank_account_id' => $sourceBank->id,
+                    'type' => 'Debit',
+                    'amount' => $amount,
+                    'balance' => (float)($sourceBank->current_balance ?? 0),
+                    'remarks' => $cv->narration ?: $sourceTitle
+                ];
+
+                $allRecentTxns[] = $contraSourceTxn;
+                $recentTransactions[$sourceBank->id][] = $contraSourceTxn;
             }
 
-            $contraTxn = [
-                'id' => 'contra_' . $cv->id,
-                'date' => $cvDate ? $cvDate->format('d/m/Y') : '—',
-                'raw_date' => $cvDate ? $cvDate->timestamp : 0,
-                'datetime_formatted' => $cvDate ? $cvDate->format('d M Y') : '—',
-                'voucher_no' => $cv->voucher_number,
-                'customer_name' => $contraTitle,
-                'customer_phone' => '',
-                'narration' => $cv->narration ?: 'Cash Withdrawal from Bank into Site Petty Cash Box',
-                'payment_mode' => 'CONTRA',
-                'cheque_no' => $cv->reference_no ?: '—',
-                'drawee_bank' => '—',
-                'bank_ref_no' => $cv->reference_no ?: $cv->voucher_number,
-                'bank_name' => $acc?->bank_name ?? 'Treasury',
-                'bank_account_id' => $cv->company_bank_account_id,
-                'type' => 'Debit',
-                'amount' => $amount,
-                'balance' => (float)($acc?->current_balance ?? 0),
-                'remarks' => $cv->narration ?: 'Bank Cash Withdrawal (Contra)'
-            ];
+            // 2. Destination Account Record (Credit / Inflow to Destination Bank for inter-bank transfers)
+            if ($destBank && (!$sourceBank || $destBank->id !== $sourceBank->id)) {
+                $destTitle = $sourceBank 
+                    ? 'Transfer from ' . $sourceBank->bank_name . ' (Contra Receipt)' 
+                    : 'Internal Contra Bank Receipt';
 
-            $allRecentTxns[] = $contraTxn;
-            if ($cv->company_bank_account_id) {
-                $recentTransactions[$cv->company_bank_account_id][] = $contraTxn;
+                $destNarration = $cv->narration 
+                    ?: ($sourceBank ? 'Internal Bank Transfer received from ' . $sourceBank->bank_name : 'Internal Contra Transfer Inflow');
+
+                $contraDestTxn = [
+                    'id' => 'contra_in_' . $cv->id,
+                    'date' => $cvDate ? $cvDate->format('d/m/Y') : '—',
+                    'raw_date' => $cvDate ? $cvDate->timestamp : 0,
+                    'datetime_formatted' => $cvDate ? $cvDate->format('d M Y') : '—',
+                    'voucher_no' => $cv->voucher_number,
+                    'customer_name' => $destTitle,
+                    'customer_phone' => '',
+                    'narration' => $destNarration,
+                    'payment_mode' => 'CONTRA',
+                    'cheque_no' => $cv->reference_no ?: '—',
+                    'drawee_bank' => '—',
+                    'bank_ref_no' => $cv->reference_no ?: $cv->voucher_number,
+                    'bank_name' => $destBank->bank_name,
+                    'bank_account_id' => $destBank->id,
+                    'type' => 'Credit',
+                    'amount' => $amount,
+                    'balance' => (float)($destBank->current_balance ?? 0),
+                    'remarks' => $cv->narration ?: $destTitle
+                ];
+
+                $allRecentTxns[] = $contraDestTxn;
+                $recentTransactions[$destBank->id][] = $contraDestTxn;
             }
         }
 
@@ -550,13 +613,93 @@ class TreasuryController extends Controller
             ];
         }
 
+        // Helper to match a chart of account or bank id to a CompanyBankAccount
+        $resolveBank = function ($bankId, $chartAcc) use ($bankAccounts) {
+            if ($bankId) {
+                $found = $bankAccounts->firstWhere('id', $bankId);
+                if ($found) return $found;
+            }
+            if ($chartAcc) {
+                $accName = strtolower($chartAcc->name ?? '');
+                foreach ($bankAccounts as $ba) {
+                    $bName = strtolower($ba->bank_name ?? '');
+                    if ($bName && (str_contains($accName, $bName) || str_contains($bName, $accName))) {
+                        return $ba;
+                    }
+                    if ($ba->account_number && str_contains($accName, (string)$ba->account_number)) {
+                        return $ba;
+                    }
+                }
+            }
+            return null;
+        };
+
         // 5. OUTFLOW / CONTRA: Payment and Contra Vouchers
-        $vouchers = \App\Models\Voucher::whereIn('type', ['Payment', 'Contra'])->get();
+        $vouchers = \App\Models\Voucher::whereIn('type', ['Payment', 'Contra'])->with(['lines.account'])->get();
         foreach ($vouchers as $v) {
             $date = $v->date ? Carbon::parse($v->date) : Carbon::parse($v->created_at);
-            $vLines = \App\Models\VoucherLine::where('voucher_id', $v->id)->get();
-            
-            // Resolve Bank Account
+            $creditLine = $v->lines->firstWhere('credit', '>', 0);
+            $debitLine = $v->lines->firstWhere('debit', '>', 0);
+            $amount = (float)($creditLine?->credit ?? $debitLine?->debit ?? 0);
+            if ($amount <= 0) continue;
+
+            if ($v->type === 'Contra') {
+                $sourceBank = $resolveBank($v->company_bank_account_id, $creditLine?->account);
+                $destBank = $resolveBank(null, $debitLine?->account);
+                $narrationLower = strtolower($v->narration ?? '');
+                $isBankTransfer = $destBank || str_contains($narrationLower, 'bank transfer') || str_contains($narrationLower, 'inter-bank') || str_contains($narrationLower, 'internal transfer');
+
+                // Source Bank Outflow
+                if ($sourceBank) {
+                    $category = $destBank ? 'Contra Bank Transfer' : 'Contra Cash Withdrawal';
+                    $counterparty = $destBank ? $destBank->bank_name : 'Site Petty Cash Box';
+                    $allTransactions[] = [
+                        'id'                 => 'vch_out_' . $v->id,
+                        'raw_timestamp'      => $date->timestamp,
+                        'date'               => $date->format('Y-m-d'),
+                        'date_formatted'     => $date->format('d M Y'),
+                        'datetime_formatted' => $date->format('d M Y'),
+                        'bank_account_id'    => $sourceBank->id,
+                        'bank_name'          => $sourceBank->bank_name,
+                        'account_number'     => $sourceBank->account_number ?? '',
+                        'flow_type'          => 'outflow',
+                        'category'           => $category,
+                        'voucher_no'         => $v->voucher_number,
+                        'counterparty'       => $counterparty,
+                        'payment_mode'       => 'Contra Transfer',
+                        'reference_no'       => $v->reference_no ?: $v->voucher_number,
+                        'narration'          => $v->narration ?: ($destBank ? 'Transfer to ' . $destBank->bank_name : 'Cash Withdrawal'),
+                        'inflow_amount'      => 0.00,
+                        'outflow_amount'     => $amount,
+                    ];
+                }
+
+                // Destination Bank Inflow (if inter-bank transfer)
+                if ($destBank && (!$sourceBank || $destBank->id !== $sourceBank->id)) {
+                    $allTransactions[] = [
+                        'id'                 => 'vch_in_' . $v->id,
+                        'raw_timestamp'      => $date->timestamp,
+                        'date'               => $date->format('Y-m-d'),
+                        'date_formatted'     => $date->format('d M Y'),
+                        'datetime_formatted' => $date->format('d M Y'),
+                        'bank_account_id'    => $destBank->id,
+                        'bank_name'          => $destBank->bank_name,
+                        'account_number'     => $destBank->account_number ?? '',
+                        'flow_type'          => 'inflow',
+                        'category'           => 'Contra Bank Receipt',
+                        'voucher_no'         => $v->voucher_number,
+                        'counterparty'       => $sourceBank ? $sourceBank->bank_name : 'Internal Contra Transfer',
+                        'payment_mode'       => 'Contra Transfer',
+                        'reference_no'       => $v->reference_no ?: $v->voucher_number,
+                        'narration'          => $v->narration ?: ($sourceBank ? 'Transfer received from ' . $sourceBank->bank_name : 'Contra Inflow'),
+                        'inflow_amount'      => $amount,
+                        'outflow_amount'     => 0.00,
+                    ];
+                }
+                continue;
+            }
+
+            // Payment Vouchers (Outflow)
             $bankId = $v->company_bank_account_id;
             if (!$bankId) {
                 $narr = $v->narration ?? '';
@@ -572,18 +715,12 @@ class TreasuryController extends Controller
             }
             $acc = $bankAccounts->firstWhere('id', $bankId);
 
-            $amount = (float)($vLines->where('credit', '>', 0)->value('credit') ?: $vLines->sum('debit'));
-            if ($amount <= 0) continue;
-
             $category = 'Bank Payment Voucher';
             $vNo = strtolower($v->voucher_number ?? '');
             $narr = strtolower($v->narration ?? '');
             $counterparty = 'Payment Recipient';
 
-            if ($v->type === 'Contra') {
-                $category = 'Contra Cash Withdrawal';
-                $counterparty = 'Site Petty Cash Box';
-            } elseif (str_starts_with($vNo, 'py-ref-') || str_contains($narr, 'refund') || str_contains($narr, 'cancellation')) {
+            if (str_starts_with($vNo, 'py-ref-') || str_contains($narr, 'refund') || str_contains($narr, 'cancellation')) {
                 $category = 'Customer Refund';
                 $counterparty = 'Customer';
             } elseif (str_starts_with($vNo, 'py-ptr-') || str_contains($narr, 'partner')) {

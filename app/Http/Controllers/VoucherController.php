@@ -1668,6 +1668,7 @@ class VoucherController extends Controller
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
+                'company_bank_account_id' => $creditCompanyBank ? $creditCompanyBank->id : null,
                 'voucher_number' => $request->voucher_number,
                 'type' => 'Contra',
                 'date' => $request->date,
