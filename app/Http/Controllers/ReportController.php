@@ -2224,7 +2224,7 @@ class ReportController extends Controller
             ->get();
 
         // Contractor payables chart summary
-        $contractorSummary = RaBill::selectRaw("COALESCE(NULLIF(contractor_name, ''), 'General Contractor') as c_name, SUM(net_approved_amount) as total_due, SUM(paid_amount) as total_paid")
+        $contractorSummary = RaBill::selectRaw("contractor_name, SUM(net_approved_amount) as total_due, SUM(paid_amount) as total_paid")
             ->when($request->filled('project_id') && $request->project_id !== 'all', fn($q) => $q->where('project_id', $request->project_id))
             ->when(!empty($contractorIds), fn($q) => $applyContractorFilter($q))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
@@ -2237,8 +2237,15 @@ class ReportController extends Controller
                         ->orWhereHas('project', fn($p) => $p->where('name', 'like', "%{$search}%"));
                 });
             })
-            ->groupBy(DB::raw("COALESCE(NULLIF(contractor_name, ''), 'General Contractor')"))
-            ->get();
+            ->groupBy('contractor_name')
+            ->get()
+            ->groupBy(fn($item) => empty($item->contractor_name) ? 'General Contractor' : $item->contractor_name)
+            ->map(fn($group, $key) => (object)[
+                'c_name' => $key,
+                'total_due' => $group->sum('total_due'),
+                'total_paid' => $group->sum('total_paid')
+            ])
+            ->values();
 
         $supplierChartData = [
             'labels' => $contractorSummary->pluck('c_name')->toArray(),
