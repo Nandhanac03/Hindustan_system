@@ -966,7 +966,8 @@ class ReportController extends Controller
             }
         } else {
             $salesQuery = Sale::with(['customer', 'project', 'unit', 'receipts'])
-                ->where('status', 'active');
+                ->where('status', 'active')
+                ->latest('id');
             if ($request->filled('project_id')) {
                 $salesQuery->where('project_id', $request->project_id);
             }
@@ -999,6 +1000,7 @@ class ReportController extends Controller
                 $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
 
                 $customerSummaryList->push([
+                    'sale_id'         => $sale->id,
                     'customer_id'     => $sale->customer_id,
                     'customer_name'   => $cName,
                     'phone'           => $sale->customer?->phone,
@@ -1068,6 +1070,8 @@ class ReportController extends Controller
             $totalCredits = $totalRealizedCredits;
             $closingBalance = max(0, $totalDebits - $totalCredits);
             $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
+
+            $customerSummaryList = $customerSummaryList->sortByDesc('sale_id')->values();
 
             $perPage = 50;
             $customerPage = LengthAwarePaginator::resolveCurrentPage('customer_page');
