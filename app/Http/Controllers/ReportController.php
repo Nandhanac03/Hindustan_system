@@ -1069,7 +1069,7 @@ class ReportController extends Controller
             $closingBalance = max(0, $totalDebits - $totalCredits);
             $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
 
-            $perPage = 10;
+            $perPage = 50;
             $customerPage = LengthAwarePaginator::resolveCurrentPage('customer_page');
             $customerSummaryList = new LengthAwarePaginator(
                 $customerSummaryList->forPage($customerPage, $perPage)->values(),
