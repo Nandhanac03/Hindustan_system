@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Voucher — {{ $voucher->voucher_number }}</title>
+    <title>{{ ($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Claim / Journal Voucher' : 'Payment Voucher' }} — {{ $voucher->voucher_number }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -673,7 +673,7 @@
                 </a>
                 <button onclick="window.print()" class="btn-print">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Print Voucher</span>
+                    <span>Print {{ ($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Claim Voucher' : 'Payment Voucher' }}</span>
                 </button>
             </div>
         </div>
@@ -696,7 +696,7 @@
                         </div>
                     @endif
                     <div>
-                        <h1 class="project-title">{{ $projectName ?: 'Project Disbursement' }}</h1>
+                        <h1 class="project-title">{{ $projectName ?: (($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Claim Accrual' : 'Project Disbursement') }}</h1>
                         @if(!empty($projectLocation))
                             <div class="project-meta">
                                 <span>{{ $projectLocation }}</span>
@@ -741,15 +741,25 @@
                 </div>
 
                 <div class="meta-cell">
-                    <span class="meta-label">Payment Mode</span>
-                    <span class="meta-value" style="color: #0369a1;">{{ $paymentMode ?? 'Bank Transfer' }}</span>
+                    @if($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward')
+                        <span class="meta-label">Claim Type</span>
+                        <span class="meta-value" style="color: #0369a1;">Progress Claim / RA Bill</span>
+                    @else
+                        <span class="meta-label">Payment Mode</span>
+                        <span class="meta-value" style="color: #0369a1;">{{ $paymentMode ?? 'Bank Transfer' }}</span>
+                    @endif
                 </div>
 
                 <div class="meta-cell" style="grid-column: span 1.3;">
-                    <span class="meta-label">Source Bank Account</span>
-                    <span class="meta-value">{{ $bankName ?? 'Corporate Bank Account' }}</span>
-                    @if(!empty($bankAccountNo))
-                        <span class="meta-value bank-acc">A/C: {{ $bankAccountNo }}</span>
+                    @if($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward')
+                        <span class="meta-label">Accrual Type</span>
+                        <span class="meta-value">Liability Accrual</span>
+                    @else
+                        <span class="meta-label">Source Bank Account</span>
+                        <span class="meta-value">{{ $bankName ?? 'Corporate Bank Account' }}</span>
+                        @if(!empty($bankAccountNo))
+                            <span class="meta-value bank-acc">A/C: {{ $bankAccountNo }}</span>
+                        @endif
                     @endif
                 </div>
 
@@ -788,7 +798,7 @@
             <div class="outflow-banner">
                 <div>
                     <div class="outflow-label">
-                        <span>Total Outflow Disbursed</span>
+                        <span>{{ ($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Total Accrued Liability' : 'Total Outflow Disbursed' }}</span>
                     </div>
                     <div class="outflow-amount">₹ {{ number_format($totalAmount, 2) }}</div>
                     <div class="outflow-words">INR <strong>{{ amountInWords((float)$totalAmount) }}</strong></div>
@@ -798,7 +808,7 @@
             {{-- 4. Narration / Purpose --}}
             @if($cleanNarration)
                 <div class="narration-box">
-                    <div class="narration-label">Disbursement Narration &amp; Purpose</div>
+                    <div class="narration-label">{{ ($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Claim Narration &amp; Purpose' : 'Disbursement Narration &amp; Purpose' }}</div>
                     <div class="narration-text">{{ $cleanNarration }}</div>
                 </div>
             @endif
@@ -809,7 +819,7 @@
                     <tr>
                         <th style="width: 6%; text-align: center;">#</th>
                         <th style="width: 42%;">Beneficiary / Payee Particulars</th>
-                        <th style="width: 32%;">Payment Details &amp; Accounting Head</th>
+                        <th style="width: 32%;">{{ ($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Claim Details &amp; Accounting Head' : 'Payment Details &amp; Accounting Head' }}</th>
                         <th style="width: 20%; text-align: right;">Amount (₹)</th>
                     </tr>
                 </thead>
@@ -834,11 +844,12 @@
                         </td>
                         <td>
                             <div class="accounting-head-name">
-                                {{ $categoryName ?: ($cleanNarration ?: 'Corporate Payment Outflow') }}
+                                {{ $categoryName ?: ($cleanNarration ?: (($paymentMode === 'Liability Journal Accrual' || $paymentMode === 'Progress Claim Inward') ? 'Corporate Claim Inward' : 'Corporate Payment Outflow')) }}
                             </div>
-                            <div class="payment-mode-subtext">
-                                Mode: <strong>{{ $paymentMode ?? 'Direct Bank Transfer' }}</strong>
-                                @if(!empty($cleanRef) && $cleanRef !== '—')
+                            @if($paymentMode !== 'Liability Journal Accrual' && $paymentMode !== 'Progress Claim Inward')
+                                <div class="payment-mode-subtext">
+                                    Mode: <strong>{{ $paymentMode ?? 'Direct Bank Transfer' }}</strong>
+                                    @if(!empty($cleanRef) && $cleanRef !== '—')
                                     &nbsp;|&nbsp; Ref: <strong style="font-family: monospace;">{{ $cleanRef }}</strong>
                                 @endif
                             </div>

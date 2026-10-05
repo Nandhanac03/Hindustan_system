@@ -28,56 +28,56 @@
         <!-- Card 1: Verified Payable Claims -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">VERIFIED PAYABLE CLAIMS</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">VERIFIED PAYABLE CLAIMS</span>
                 <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
-                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Total Net Approved Liability</div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 ">Total Net Approved Liability</div>
             </div>
         </div>
 
         <!-- Card 2: Total Disbursed (Paid) -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">TOTAL DISBURSED (PAID)</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSED (PAID)</span>
                 <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">₹{{ number_format((float) $totalPaid, 2) }}</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">Corporate Bank Account Outflows</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 ">Corporate Bank Account Outflows</div>
             </div>
         </div>
 
         <!-- Card 3: Pending Disbursement Balances -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">PENDING DISBURSEMENT BALANCES</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">PENDING DISBURSEMENT BALANCES</span>
                 <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors">₹{{ number_format((float) $totalBalance, 2) }}</div>
-                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5 border-t border-rose-50">Outstanding Balance Remaining</div>
+                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5">Outstanding Balance Remaining</div>
             </div>
         </div>
 
         <!-- Card 4: Ready For Payment -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-slate-800 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">READY FOR PAYMENT</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">READY FOR PAYMENT</span>
                 <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">{{ $raBills->whereNotNull('verified_date')->where('balance_amount', '>', 0)->count() }} Bills</div>
-                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Verified & Unpaid RA Bills</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Verified & Unpaid RA Bills</div>
             </div>
         </div>
     </div>
@@ -91,32 +91,92 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
 
-                {{-- 1. Contractor Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                {{-- 1. Contractor Filter (Searchable) --}}
+                @php
+                    $filterContractors = collect($contractors);
+                    foreach($raBills as $b) {
+                        if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
+                            $cName = $b->contractor->name ?? $b->contractor_name;
+                            if ($cName) {
+                                $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
+                            }
+                        }
+                    }
+                    $filterContractorsList = $filterContractors->unique('id')->sortBy('name')->values()->toJson();
+                @endphp
+                <div class="relative w-full" 
+                     x-data="{ 
+                        open: false, 
+                        search: '',
+                        contractorsList: {{ $filterContractorsList }},
+                        getSelectedContractorName() {
+                            if (!filterContractorId) return 'All Contractors';
+                            const c = this.contractorsList.find(x => x.id == filterContractorId);
+                            return c ? c.name : 'All Contractors';
+                        },
+                        getFilteredContractorsList() {
+                            if (!this.search) return this.contractorsList;
+                            const s = this.search.toLowerCase();
+                            return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                        }
+                     }" 
+                     @click.outside="open = false">
+                     
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
-                    <select x-model="filterContractorId"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Contractors</option>
-                        @php
-                            $filterContractors = collect($contractors);
-                            foreach($raBills as $b) {
-                                if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
-                                    $cName = $b->contractor->name ?? $b->contractor_name;
-                                    if ($cName) {
-                                        $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
-                                    }
-                                }
-                            }
-                            $filterContractors = $filterContractors->unique('id')->sortBy('name');
-                        @endphp
-                        @foreach($filterContractors as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    <button type="button" @click="open = !open" 
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs flex items-center justify-between transition hover:border-[#a38c29]/60 hover:bg-white text-left">
+                        <span class="truncate" x-text="getSelectedContractorName()"></span>
+                        <div class="flex items-center gap-1 shrink-0 absolute right-2.5 top-1/2 -translate-y-1/2">
+                            <template x-if="filterContractorId">
+                                <span @click.stop="filterContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Searchable Dropdown Menu -->
+                    <div x-show="open" x-transition.opacity.duration.150ms 
+                         class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                         style="display: none;">
+                        
+                        <div class="relative">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Search contractor..." 
+                                   class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                   @keydown.escape="open = false">
+                            <template x-if="search">
+                                <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                            </template>
+                        </div>
+
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
+                            <button type="button" @click="filterContractorId = ''; open = false; search = '';" 
+                                    class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !filterContractorId }">
+                                <span>All Contractors</span>
+                            </button>
+                            
+                            <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
+                                <button type="button" @click="filterContractorId = cont.id; open = false; search = '';" 
+                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': filterContractorId == cont.id }">
+                                    <span class="truncate" x-text="cont.name"></span>
+                                </button>
+                            </template>
+                            
+                            <div x-show="getFilteredContractorsList().length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
+                                No contractors found.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -166,6 +226,10 @@
     </div>
 
     <!-- Payment Disbursal Desk Table -->
+    @php
+        // Only show verified bills on the Payment Release page
+        $verifiedBills = $raBills->filter(fn($b) => !empty($b->verified_date));
+    @endphp
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
             <div class="flex items-center gap-2">
@@ -175,7 +239,7 @@
                 </span>
                 <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold"
                       x-text="getVisibleCount() + ' Records'">
-                    {{ $raBills->count() }} Records
+                    {{ $verifiedBills->count() }} Records
                 </span>
             </div>
         </div>
@@ -194,10 +258,10 @@
                         <th class="px-3 py-3 text-right w-[120px]">ACTION</th>
                     </tr>
                 </thead>
-                    @forelse($raBills as $bill)
+                    @forelse($verifiedBills as $bill)
                         @php
                             $isCleared = ((float)$bill->balance_amount <= 0.001);
-                            $isVerified = !empty($bill->verified_date);
+                            $isVerified = true; // Always true because of the filter
                             $isPartiallyPaid = ($isVerified && !$isCleared && (float)$bill->paid_amount > 0);
                             $paymentCount = $bill->payments->count();
                             $statusVal = $isCleared ? 'cleared' : ($isPartiallyPaid ? 'partially_paid' : ($isVerified ? 'pending' : 'unverified'));
@@ -270,18 +334,50 @@
                                 </td>
 
                                 <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
-                                    @if($isVerified && !$isCleared)
-                                        <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                title="Disburse Staggered Payment Release">
-                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            <span>Disburse Payment</span>
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        @if($isVerified && !$isCleared)
+                                            <!-- Disburse Payment Button -->
+                                            <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
+                                                    class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                    title="Disburse Payment">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            </button>
+                                        @elseif($isCleared)
+                                            <!-- Print Voucher directly if only 1 payment was made -->
+                                            @if($paymentCount === 1 && $bill->payments->first()->voucher_id)
+                                                <a href="{{ url('/vouchers/' . $bill->payments->first()->voucher_id . '/payment-voucher-print') }}" target="_blank"
+                                                   class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                   title="Print Payment Voucher">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                </a>
+                                            @else
+                                                <!-- If multiple part-payments, prompt them to expand -->
+                                                <span class="p-1.5 rounded-lg bg-slate-100 text-slate-400 border-0 inline-flex items-center justify-center shadow-2xs cursor-help" title="Multiple part-payments exist. Expand the history (▼) to print specific vouchers.">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                </span>
+                                            @endif
+                                        @else
+                                            <!-- Requires Verification Icon -->
+                                            <span class="p-1.5 rounded-lg bg-amber-50 text-amber-500 border-0 inline-flex items-center justify-center shadow-2xs cursor-not-allowed" title="Requires Verification">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            </span>
+                                        @endif
+                                        
+                                        <!-- View Details Button -->
+                                        <button type="button" @click="openViewModal({
+                                            ra_bill_number: '{{ $bill->ra_bill_number }}',
+                                            contractor_name: '{{ addslashes($bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor')) }}',
+                                            project_name: '{{ addslashes($bill->project->name ?? 'Site Project') }}',
+                                            verified_date: '{{ $bill->verified_date ? $bill->verified_date->format('d/m/Y') : '' }}',
+                                            gross_amount: {{ (float)$bill->gross_amount }},
+                                            net_approved: {{ (float)$bill->net_approved_amount }},
+                                            paid_amount: {{ (float)$bill->paid_amount }},
+                                            balance_amount: {{ (float)$bill->balance_amount }},
+                                            status: '{{ $isCleared ? 'Cleared' : ($isPartiallyPaid ? 'Partially Paid' : ($isVerified ? 'Pending Release' : 'Unverified')) }}'
+                                        })" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Contractor Details">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                    @elseif($isCleared)
-                                        <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
-                                    @else
-                                        <span class="text-[10px] text-amber-600 font-semibold italic">Requires Verification</span>
-                                    @endif
+                                    </div>
                                 </td>
                             </tr>
 
@@ -333,9 +429,9 @@
                                                                 <td class="px-3 py-2 text-right">
                                                                     @if($pay->voucher_id)
                                                                        <a href="{{ url('/vouchers/' . $pay->voucher_id . '/payment-voucher-print') }}" target="_blank"
-                                                                           class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9px] font-bold inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                                                           class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
                                                                            title="Print Voucher for Part {{ $index + 1 }}">
-                                                                            <span>🖨 Print Voucher</span>
+                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                                                         </a>
                                                                     @endif
                                                                 </td>
@@ -376,6 +472,110 @@
                         </tbody>
                     @endif
             </table>
+        </div>
+    </div>
+
+    <!-- ── MODAL: VIEW CONTRACTOR / BILL DETAILS ── -->
+    <div x-show="viewModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col max-h-[90vh] my-auto bg-white" @click.away="viewModalOpen = false">
+            {{-- Header (Matching All Other Modals) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-5 sm:px-6 py-3.5 sm:py-4 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-0.5">
+                            RA Bill Details
+                        </p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight" x-text="'RA Bill #' + (viewBillDetails?.ra_bill_number || '')"></h2>
+                    </div>
+                    <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-5 flex flex-col gap-3 overflow-y-auto">
+                <!-- General Information Card -->
+                <div class="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80">
+                        <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            General Information
+                        </span>
+                    </div>
+                    <div class="p-3.5 bg-white grid grid-cols-2 gap-y-4 gap-x-4">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Contractor Name</span>
+                            <span class="text-xs sm:text-sm font-black text-slate-900 block" x-text="viewBillDetails?.contractor_name"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Project Name</span>
+                            <span class="text-xs font-bold text-slate-700 block" x-text="viewBillDetails?.project_name"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Verified Date</span>
+                            <span class="text-xs font-mono font-bold" :class="viewBillDetails?.verified_date ? 'text-emerald-700' : 'text-amber-600 italic'" x-text="viewBillDetails?.verified_date || 'Verification Pending'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Status</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border"
+                                  :class="{
+                                      'bg-[#ECFDF3] text-[#065F46] border-[#A7F3D0]': viewBillDetails?.status === 'Cleared',
+                                      'bg-blue-50 text-blue-800 border-blue-200': viewBillDetails?.status === 'Partially Paid',
+                                      'bg-amber-50 text-amber-900 border-amber-300': viewBillDetails?.status === 'Pending Release',
+                                      'bg-slate-50 text-slate-600 border-slate-200': viewBillDetails?.status === 'Unverified'
+                                  }"
+                                  x-text="viewBillDetails?.status"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Breakdown Card (Matching Disburse Modal) -->
+                <div class="border border-[#a38c29]/30 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="bg-amber-50/50 px-3.5 py-2.5 flex items-center justify-between border-b border-[#a38c29]/20">
+                        <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            Financial Breakdown
+                        </span>
+                    </div>
+                    <div class="p-3 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        
+                        <!-- Box 1: Approved Amounts -->
+                        <div class="border border-slate-200/90 rounded-lg p-2.5 bg-slate-50/30">
+                            <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 border-b border-slate-100 pb-1.5">Approved Amounts</h4>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] font-semibold text-slate-500">Gross Amount:</span>
+                                <span class="text-xs font-mono font-black text-slate-800" x-text="'₹ ' + numberFormat(viewBillDetails?.gross_amount || 0)"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-semibold text-slate-500">Net Approved:</span>
+                                <span class="text-xs font-mono font-black text-blue-800" x-text="'₹ ' + numberFormat(viewBillDetails?.net_approved || 0)"></span>
+                            </div>
+                        </div>
+
+                        <!-- Box 2: Payment Status -->
+                        <div class="border border-[#a38c29]/20 rounded-lg p-2.5 bg-[#faf8f0]">
+                            <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider mb-2 border-b border-[#a38c29]/10 pb-1.5">Payment Status</h4>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] font-semibold text-slate-600">Paid Amount:</span>
+                                <span class="text-xs font-mono font-black text-emerald-700" x-text="'₹ ' + numberFormat(viewBillDetails?.paid_amount || 0)"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-semibold text-slate-600">Balance Due:</span>
+                                <span class="text-xs font-mono font-black text-rose-700" x-text="'₹ ' + numberFormat(viewBillDetails?.balance_amount || 0)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+                    <p class="text-[10px] text-slate-400">Clicking 'Go To Verification' will redirect you to the primary desk.</p>
+                    <a :href="'{{ route('expenses.ra-bills.verification') }}'" class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer shadow-md shadow-[#a38c29]/20">
+                        <span>Go To Verification Desk</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -694,6 +894,8 @@ function raBillPaymentRelease() {
         },
 
         disburseModalOpen: false,
+        viewModalOpen: false,
+        viewBillDetails: null,
         openErrorModal: {{ ($errors->any() || session('error')) ? 'true' : 'false' }},
         selectedBill: null,
         selectedBankId: '{{ $companyBankAccounts->first()?->id ?? "" }}',
@@ -730,6 +932,11 @@ function raBillPaymentRelease() {
                 (b.account_number && b.account_number.toLowerCase().includes(q)) ||
                 (b.branch_name && b.branch_name.toLowerCase().includes(q))
             );
+        },
+
+        openViewModal(details) {
+            this.viewBillDetails = details;
+            this.viewModalOpen = true;
         },
 
         openDisburseModal(bill) {

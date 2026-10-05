@@ -454,56 +454,56 @@
             <!-- Card 1: Total Net Claims Accrued -->
             <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">TOTAL NET CLAIMS ACCRUED</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL NET CLAIMS ACCRUED</span>
                     <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                 </div>
                 <div>
                     <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Verified RA Bill Liability</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Verified RA Bill Liability</div>
                 </div>
             </div>
 
             <!-- Card 2: Total Disbursements Released -->
             <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">TOTAL DISBURSEMENTS RELEASED</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSEMENTS RELEASED</span>
                     <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                 </div>
                 <div>
                     <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Paid Outflow via Treasury</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Paid Outflow via Treasury</div>
                 </div>
             </div>
 
             <!-- Card 3: Outstanding Ledger Balance -->
             <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">OUTSTANDING LEDGER BALANCE</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">OUTSTANDING LEDGER BALANCE</span>
                     <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5 5 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
                     </div>
                 </div>
                 <div>
                     <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Payable Remaining</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Payable Remaining</div>
                 </div>
             </div>
 
             <!-- Card 4: Registered Contractors -->
             <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">REGISTERED CONTRACTORS</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">REGISTERED CONTRACTORS</span>
                     <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                 </div>
                 <div>
                     <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors">{{ count($contractors) }} Payees</div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Master Accounts Linked</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Master Accounts Linked</div>
                 </div>
             </div>
         </div>
@@ -541,60 +541,129 @@
         <div class="overflow-x-auto">
             <table class="ledger-print-table w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-center">
-                        <th class="py-3 px-2 border border-[#8a7522] w-10 text-center">#</th>
-                        <th class="py-3 px-3 text-left w-[95px] border border-[#8a7522]">DATE</th>
-                        <th class="py-3 px-3 text-left w-[150px] border border-[#8a7522]">CONTRACTOR</th>
-                        <th class="py-3 px-3 text-left w-[130px] border border-[#8a7522]">PROJECT / UNIT</th>
-                        <th class="py-3 px-3 text-left border border-[#8a7522]">EVENT PARTICULARS</th>
-                        <th class="py-3 px-3 text-left w-[110px] border border-[#8a7522]">REF / VOUCHER #</th>
-                        <th class="py-3 px-3 text-left w-[95px] border border-[#8a7522]">GROSS (₹)</th>
-                        <th class="py-3 px-3 text-left w-[90px] border border-[#8a7522]">CORR. (₹)</th>
-                        <th class="py-3 px-3 text-left text-blue-100 w-[110px] border border-[#8a7522]">NET ACCRUED (₹)</th>
-                        <th class="py-3 px-3 text-left text-emerald-100 w-[110px] border border-[#8a7522]">RELEASED (₹)</th>
-                        <th class="py-3 px-3 text-center w-[135px] border border-[#8a7522] col-action print:hidden">ACTION</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-left">
+                        <th class="py-3 px-4 border-r border-[#8a7522]">Date</th>
+                        <th class="py-3 px-4 border-r border-[#8a7522]">Description</th>
+                        <th class="py-3 px-4 text-right text-blue-100 border-r border-[#8a7522]">Debit (Claimed)</th>
+                        <th class="py-3 px-4 text-right text-emerald-100 border-r border-[#8a7522]">Credit (Released)</th>
+                        <th class="py-3 px-4 text-right text-rose-100 border-r border-[#8a7522]">Running Balance</th>
+                        <th class="py-3 px-4 text-center border-r border-[#8a7522] col-action print:hidden">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs font-bold">
-                    <template x-for="(entry, index) in filteredLedgerEntries()" :key="index">
-                        <tr class="hover:bg-amber-50/20 transition font-bold" :class="entry.type === 'CLAIM' ? 'bg-white' : 'bg-emerald-50/20'">
-                            <td class="px-2 py-2.5 text-center text-slate-400 font-mono text-[11px] border-r border-slate-200/40" x-text="index + 1"></td>
-                            <td class="px-3 py-2.5 font-mono text-slate-800 font-bold border-r border-slate-200/40" x-text="entry.date_formatted"></td>
-                            <td class="px-3 py-2.5 font-black text-slate-900 border-r border-slate-200/40" x-text="entry.contractor_name"></td>
-                            <td class="px-3 py-2.5 border-r border-slate-200/40">
-                                <div class="text-slate-900 font-black text-xs" x-text="entry.project_name"></div>
-                                <div class="text-[10px] text-slate-600 font-bold" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
-                            </td>
-                            <td class="px-3 py-2.5 border-r border-slate-200/40">
-                                <div class="flex items-center gap-2">
-                                    <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-[#a38c29]/15 text-[#8a7522] uppercase">VERIFIED CLAIM</span>
-                                    <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
-                                    <span class="text-slate-900 font-bold text-xs" x-text="entry.particulars"></span>
+                <template x-for="group in groupedLedger()" :key="group.contractor_id">
+                    <tbody class="divide-y divide-slate-100 bg-white text-[11px] font-semibold text-slate-700">
+                        <!-- Group Header Row -->
+                        <tr class="transition-colors border-b border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 cursor-pointer" @click="expandedContractor === group.contractor_id ? expandedContractor = null : expandedContractor = group.contractor_id">
+                            <td class="px-4 py-3 border-r border-slate-200/40 align-middle" colspan="2">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-sm"
+                                         x-text="(group.contractor_name || 'XX').substring(0, 2).toUpperCase()"></div>
+                                    <div class="flex flex-col gap-1.5 items-start">
+                                        <div class="font-black text-slate-900 text-xs leading-tight" x-text="group.contractor_name"></div>
+                                        <button type="button" @click.stop="expandedContractor === group.contractor_id ? expandedContractor = null : expandedContractor = group.contractor_id"
+                                                class="px-2 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[10px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
+                                                title="Toggle Transactions">
+                                            <span x-text="expandedContractor === group.contractor_id ? '▲ Hide Log' : '▼ ' + group.entries.length + ' Transactions'"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-3 py-2.5 font-mono font-extrabold text-slate-800 border-r border-slate-200/40" x-text="entry.ref_no"></td>
-                            <td class="px-3 py-2.5 text-left font-mono font-extrabold text-slate-900 border-r border-slate-200/40" x-text="entry.gross_amount > 0 ? '₹' + numberFormat(entry.gross_amount) : ''"></td>
-                            <td class="px-3 py-2.5 text-left font-mono font-extrabold text-amber-700 border-r border-slate-200/40" x-text="entry.correction_amount > 0 ? '₹' + numberFormat(entry.correction_amount) : ''"></td>
-                            <td class="px-3 py-2.5 text-left font-mono font-black text-[#8a7522] bg-[#a38c29]/5 border-r border-slate-200/40" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : ''"></td>
-                            <td class="px-3 py-2.5 text-left font-mono font-black text-emerald-800 bg-emerald-50/30 border-r border-slate-200/40" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : ''"></td>
-                            <td class="px-3 py-2.5 text-center whitespace-nowrap col-action print:hidden">
-                                <template x-if="entry.type === 'DISBURSEMENT'">
-                                    <a :href="'{{ url('vouchers') }}/' + (entry.voucher_id ? entry.voucher_id : entry.payment_id) + '/payment-voucher-print' + (entry.voucher_id ? '' : '?type=ra_payment')" target="_blank"
-                                       class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg text-[10.5px] font-bold inline-flex items-center justify-center shadow-2xs transition whitespace-nowrap">
-                                        <span>Payment Voucher</span>
-                                    </a>
-                                </template>
-                                <template x-if="entry.type === 'CLAIM'">
-                                    <a :href="'{{ url('vouchers') }}/' + (entry.jv_id || entry.voucher_id || entry.ra_bill_id) + '/payment-voucher-print?type=' + ((entry.jv_id || entry.voucher_id) ? 'jv' : 'ra_bill')" target="_blank"
-                                       class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] active:scale-95 text-white rounded-lg text-[10.5px] font-bold inline-flex items-center justify-center shadow-2xs transition whitespace-nowrap">
-                                        <span>Claim Voucher</span>
-                                    </a>
-                                </template>
+                            <td class="px-4 py-3 text-right font-mono text-[12px] text-blue-800 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.netClaimed > 0 ? '₹' + numberFormat(group.netClaimed) : '—'"></td>
+                            <td class="px-4 py-3 text-right font-mono text-[12px] text-emerald-700 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.paid > 0 ? '₹' + numberFormat(group.paid) : '—'"></td>
+                            <td class="px-4 py-3 text-right font-mono text-[12px] font-black border-r border-slate-200/40 align-middle">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border bg-rose-50 text-rose-700 border-rose-200">
+                                    <span x-text="'₹' + numberFormat(Math.abs(group.balance))"></span>
+                                    <span class="text-[8px] font-extrabold uppercase text-rose-500">CR</span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center col-action print:hidden align-middle">
                             </td>
                         </tr>
-                    </template>
-                    <tr x-show="filteredLedgerEntries().length === 0">
-                        <td colspan="11" class="px-4 py-8 text-center text-slate-400 italic">
+                        
+                        <!-- Expanded Log Rows -->
+                        <template x-if="expandedContractor === group.contractor_id">
+                            <tr>
+                                <td colspan="6" class="p-0 border-b border-slate-200">
+                                    <div class="bg-slate-50/80 p-4 sm:p-5 shadow-[inset_0_4px_6px_-4px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 rounded-r-xl">
+                                        <h4 class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Detailed Transaction Log
+                                        </h4>
+                                        <div class="overflow-hidden rounded-lg border border-[#a38c29]/30 bg-white shadow-sm">
+                                            <table class="w-full text-left border-collapse">
+                                                <thead class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white border-b border-[#8a7522] text-[9px] font-black uppercase tracking-wider">
+                                                    <tr>
+                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-200/50">Date</th>
+                                                        <th class="px-4 py-2.5 border-r border-slate-200/50">Event Details</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Debit (Claim)</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Credit (Paid)</th>
+                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-200/50">Balance Due</th>
+                                                        <th class="px-2 py-2.5 text-center w-[85px] whitespace-nowrap">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                                    <template x-for="(entry, index) in group.entries" :key="index">
+                                                        <tr class="hover:bg-slate-50/70 transition-colors" :class="entry.type === 'CLAIM' ? '' : 'bg-emerald-50/20'">
+                                                            <td class="px-4 py-3 text-[10px] font-mono whitespace-nowrap border-r border-slate-200/50 align-top">
+                                                                <div class="font-bold text-slate-600" x-text="entry.date_formatted"></div>
+                                                            </td>
+                                                            <td class="px-4 py-3 border-r border-slate-200/50 align-top">
+                                                                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider" 
+                                                                          :class="entry.type === 'CLAIM' ? 'bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/20' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
+                                                                          x-text="entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released'"></span>
+                                                                    <span class="font-mono text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 rounded border border-slate-200" x-text="entry.ref_no"></span>
+                                                                </div>
+                                                                <div class="text-[11px] font-bold text-slate-800 leading-snug mb-1" x-text="entry.particulars"></div>
+                                                                <div class="text-[9px] text-slate-500 font-semibold" x-text="entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')"></div>
+                                                            </td>
+                                                            <td class="px-4 py-3 text-right font-mono text-[11px] text-blue-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
+                                                            <td class="px-4 py-3 text-right font-mono text-[11px] text-emerald-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
+                                                            <td class="px-4 py-3 text-right font-mono text-[11px] font-black border-r border-slate-200/50 align-top" :class="entry.running_balance > 0 ? 'text-rose-700' : 'text-emerald-700'">
+                                                                <div class="flex flex-col items-end">
+                                                                    <span x-text="'₹' + numberFormat(Math.abs(entry.running_balance))"></span>
+                                                                    <span class="text-[8px] font-bold uppercase text-slate-400 mt-0.5">CR</span>
+                                                                </div>
+                                                            </td>
+                                                            <td class="px-2 py-3 text-center col-action print:hidden align-middle">
+                                                                <div class="flex items-center justify-center gap-2 flex-nowrap">
+                                                                    <!-- View Modal (Eye Icon) - Gold Theme -->
+                                                                    <button type="button" @click="openViewModal(entry)" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Transaction Details">
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                    </button>
+
+                                                                    <!-- Print Voucher Icon - Green Theme for Disbursment -->
+                                                                    <template x-if="entry.type === 'DISBURSEMENT'">
+                                                                        <a :href="'{{ url('vouchers') }}/' + (entry.voucher_id ? entry.voucher_id : entry.payment_id) + '/payment-voucher-print' + (entry.voucher_id ? '' : '?type=ra_payment')" target="_blank"
+                                                                           class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Payment Voucher">
+                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                                        </a>
+                                                                    </template>
+                                                                    
+                                                                    <!-- Print Voucher Icon - Gold Theme for Claim -->
+                                                                    <template x-if="entry.type === 'CLAIM'">
+                                                                        <a :href="'{{ url('vouchers') }}/' + (entry.jv_id || entry.voucher_id || entry.ra_bill_id) + '/payment-voucher-print?type=' + ((entry.jv_id || entry.voucher_id) ? 'jv' : 'ra_bill')" target="_blank"
+                                                                           class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Claim Voucher">
+                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                                        </a>
+                                                                    </template>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </template>
+                
+                <tbody x-show="filteredLedgerEntries().length === 0">
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">
                             No ledger transactions found matching the filter criteria.
                         </td>
                     </tr>
@@ -603,25 +672,177 @@
                 {{-- Table Grand Totals Footer (Live Updates via Alpine) --}}
                 <tfoot x-show="filteredLedgerEntries().length > 0">
                     <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-[#a38c29]">
-                        <td colspan="6" class="py-3 px-3 text-right uppercase tracking-wider text-[10px] text-slate-700 font-bold border-r border-slate-200/40">
+                        <td colspan="2" class="py-3 px-4 text-right uppercase tracking-wider text-[10px] text-slate-700 font-bold border-r border-slate-200/40">
                             Grand Totals for Selected Range:
                         </td>
-                        <td class="py-3 px-3 text-left font-mono text-xs text-slate-900 whitespace-nowrap font-black border-r border-slate-200/40"
-                            x-text="getLedgerTotals().gross > 0 ? '₹' + numberFormat(getLedgerTotals().gross) : ''">
+                        <td class="py-3 px-4 text-right font-mono text-xs text-blue-900 whitespace-nowrap font-black border-r border-slate-200/40"
+                            x-text="getLedgerTotals().netClaimed > 0 ? '₹' + numberFormat(getLedgerTotals().netClaimed) : '—'">
                         </td>
-                        <td class="py-3 px-3 text-left font-mono text-xs text-amber-800 whitespace-nowrap font-black border-r border-slate-200/40"
-                            x-text="getLedgerTotals().corrections > 0 ? '₹' + numberFormat(getLedgerTotals().corrections) : ''">
+                        <td class="py-3 px-4 text-right font-mono text-xs text-emerald-800 whitespace-nowrap font-black border-r border-slate-200/40"
+                            x-text="getLedgerTotals().paid > 0 ? '₹' + numberFormat(getLedgerTotals().paid) : '—'">
                         </td>
-                        <td class="py-3 px-3 text-left font-mono text-xs text-blue-900 whitespace-nowrap font-black border-r border-slate-200/40"
-                            x-text="getLedgerTotals().netClaimed > 0 ? '₹' + numberFormat(getLedgerTotals().netClaimed) : ''">
-                        </td>
-                        <td class="py-3 px-3 text-left font-mono text-xs text-emerald-800 whitespace-nowrap font-black border-r border-slate-200/40"
-                            x-text="getLedgerTotals().paid > 0 ? '₹' + numberFormat(getLedgerTotals().paid) : ''">
+                        <td class="py-3 px-4 text-right font-mono text-xs text-rose-900 whitespace-nowrap font-black border-r border-slate-200/40"
+                            x-text="'₹' + numberFormat(Math.abs(getLedgerTotals().balance))">
                         </td>
                         <td class="col-action print:hidden"></td>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+    </div>
+
+    <!-- VIEW MODAL -->
+    <div x-cloak x-show="viewModalOpen" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 print:hidden"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 backdrop-blur-none"
+         x-transition:enter-end="opacity-100 backdrop-blur-xs"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 backdrop-blur-xs"
+         x-transition:leave-end="opacity-0 backdrop-blur-none">
+        
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col max-h-[90vh] my-auto bg-slate-50" 
+             @click.away="viewModalOpen = false"
+             x-show="viewModalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 scale-95">
+            
+            <!-- Header -->
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-5 sm:px-6 py-3.5 sm:py-4 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-0.5">
+                            Transaction Record
+                        </p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                            <span x-text="selectedLedgerEntry?.ref_no || 'N/A'"></span>
+                            <span x-show="selectedLedgerEntry?.type === 'CLAIM'" class="px-2 py-0.5 rounded-md text-[9px] font-black bg-[#a38c29]/20 text-[#a38c29] uppercase border border-[#a38c29]/30 tracking-wider">Claim</span>
+                            <span x-show="selectedLedgerEntry?.type === 'DISBURSEMENT'" class="px-2 py-0.5 rounded-md text-[9px] font-black bg-emerald-500/20 text-emerald-400 uppercase border border-emerald-500/30 tracking-wider">Release</span>
+                        </h2>
+                    </div>
+                    <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-4 sm:p-5 flex flex-col gap-3 overflow-y-auto custom-scrollbar flex-1 bg-white">
+                
+                <!-- General Information Card -->
+                <div class="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80">
+                        <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-1-4h.01M9 16h.01M9 12h.01M13 12h.01M13 16h.01M17 12h.01M17 16h.01"/></svg>
+                            Contract & Project Entity
+                        </span>
+                    </div>
+                    <div class="p-3.5 bg-white grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Contractor Name</span>
+                            <span class="text-xs sm:text-sm font-black text-slate-900 block" x-text="selectedLedgerEntry?.contractor_name"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Project & Unit</span>
+                            <span class="text-xs font-bold text-slate-700 block">
+                                <span x-text="selectedLedgerEntry?.project_name"></span>
+                                <span x-show="selectedLedgerEntry?.unit_name" class="inline-block ml-1.5 px-2 py-0.5 bg-white text-slate-600 rounded text-[9px] font-black border border-slate-200" x-text="'Unit: ' + selectedLedgerEntry?.unit_name"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Transaction Date</span>
+                            <span class="text-xs font-mono font-bold text-slate-800" x-text="selectedLedgerEntry?.date_formatted"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Narration / Description</span>
+                            <span class="text-xs font-medium text-slate-700 leading-relaxed block" x-text="selectedLedgerEntry?.particulars"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Breakdown Card -->
+                <div class="border border-[#a38c29]/30 rounded-xl overflow-hidden shadow-2xs mt-2">
+                    <div class="bg-amber-50/50 px-3.5 py-2.5 flex items-center justify-between border-b border-[#a38c29]/20">
+                        <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            Financial Breakdown
+                        </span>
+                    </div>
+                    <div class="p-3 bg-white grid grid-cols-1 gap-3" :class="selectedLedgerEntry?.type === 'CLAIM' ? 'sm:grid-cols-2' : ''">
+                        
+                        <!-- Box 1: Claim Details (Only show if CLAIM) -->
+                        <template x-if="selectedLedgerEntry?.type === 'CLAIM'">
+                            <div class="border border-slate-200/90 rounded-lg p-2.5 bg-slate-50/30">
+                                <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 border-b border-slate-100 pb-1.5">Claim Details</h4>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[10px] font-semibold text-slate-500">Gross Claim Amount:</span>
+                                    <span class="text-xs font-mono font-black text-slate-800" x-text="'₹ ' + numberFormat(selectedLedgerEntry?.gross_amount || 0)"></span>
+                                </div>
+                                <div class="flex justify-between items-center" x-show="selectedLedgerEntry?.correction_amount > 0">
+                                    <span class="text-[10px] font-semibold text-slate-500">Deductions:</span>
+                                    <span class="text-xs font-mono font-black text-rose-700" x-text="'-₹ ' + numberFormat(selectedLedgerEntry?.correction_amount || 0)"></span>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Box 2/1: Final Action (Net Accrued or Payment Released) -->
+                        <div class="border border-[#a38c29]/20 rounded-lg p-2.5 bg-[#faf8f0]">
+                            <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider mb-2 border-b border-[#a38c29]/10 pb-1.5" x-text="selectedLedgerEntry?.type === 'CLAIM' ? 'Net Approved' : 'Payment Released'"></h4>
+                            
+                            <!-- If it's a claim -->
+                            <template x-if="selectedLedgerEntry?.type === 'CLAIM'">
+                                <div class="flex justify-between items-center h-[26px]">
+                                    <span class="text-[10px] font-semibold text-slate-600">Net Claim Accrued:</span>
+                                    <span class="text-sm font-mono font-black text-blue-800" x-text="'₹ ' + numberFormat(selectedLedgerEntry?.net_approved || 0)"></span>
+                                </div>
+                            </template>
+
+                            <!-- If it's a payment -->
+                            <template x-if="selectedLedgerEntry?.type === 'DISBURSEMENT'">
+                                <div class="flex justify-between items-center h-[26px]">
+                                    <span class="text-[10px] font-semibold text-slate-600">Amount Released:</span>
+                                    <span class="text-sm font-mono font-black text-emerald-700" x-text="'₹ ' + numberFormat(selectedLedgerEntry?.paid_amount || 0)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Running Balance (Always Show at the bottom of Financial Breakdown) -->
+                    <div class="bg-slate-50 px-3.5 py-3 border-t border-slate-200 flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest shrink-0">Resulting Balance</span>
+                        <div class="flex items-center justify-end gap-2 shrink-0">
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border shrink-0 bg-white" :class="(selectedLedgerEntry?.running_balance || 0) > 0 ? 'text-rose-700 border-rose-200' : 'text-emerald-700 border-emerald-200'" x-text="(selectedLedgerEntry?.running_balance || 0) > 0 ? 'Payable (CR)' : 'Settled'"></span>
+                            <div class="text-sm sm:text-base font-mono font-black whitespace-nowrap" :class="(selectedLedgerEntry?.running_balance || 0) > 0 ? 'text-rose-700' : 'text-emerald-700'" x-text="'₹ ' + numberFormat(Math.abs(selectedLedgerEntry?.running_balance || 0))"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/80 flex items-center justify-between shrink-0">
+                <template x-if="selectedLedgerEntry?.type === 'DISBURSEMENT'">
+                    <a :href="'{{ url('vouchers') }}/' + (selectedLedgerEntry?.voucher_id ? selectedLedgerEntry?.voucher_id : selectedLedgerEntry?.payment_id) + '/payment-voucher-print' + (selectedLedgerEntry?.voucher_id ? '' : '?type=ra_payment')" target="_blank"
+                       class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#a38c29] transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Payment Voucher
+                    </a>
+                </template>
+                <template x-if="selectedLedgerEntry?.type === 'CLAIM'">
+                    <a :href="'{{ url('vouchers') }}/' + (selectedLedgerEntry?.jv_id || selectedLedgerEntry?.voucher_id || selectedLedgerEntry?.ra_bill_id) + '/payment-voucher-print?type=' + ((selectedLedgerEntry?.jv_id || selectedLedgerEntry?.voucher_id) ? 'jv' : 'ra_bill')" target="_blank"
+                       class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#a38c29] transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Claim Voucher
+                    </a>
+                </template>
+                <button type="button" @click="viewModalOpen = false" class="ml-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold tracking-wider uppercase rounded-xl transition shadow-lg shadow-slate-900/20 active:scale-95">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 
@@ -634,6 +855,14 @@ function raBillLedger() {
         selectedLedgerContractorId: '',
         allLedgerEntries: @json($allLedgerEntries ?? []),
         contractorsList: @json($contractors ?? []),
+        viewModalOpen: false,
+        selectedLedgerEntry: null,
+        expandedContractor: null,
+
+        openViewModal(entry) {
+            this.selectedLedgerEntry = entry;
+            this.viewModalOpen = true;
+        },
 
         printLedger() {
             window.print();
@@ -642,6 +871,7 @@ function raBillLedger() {
         resetFilters() {
             this.selectedLedgerContractorId = '';
             this.ledgerSearchQuery = '';
+            this.expandedContractor = null;
         },
 
         getSelectedContractorName() {
@@ -673,6 +903,41 @@ function raBillLedger() {
                 );
             }
             return entries;
+        },
+
+        groupedLedger() {
+            const entries = this.filteredLedgerEntries();
+            const groupsMap = {};
+            
+            entries.forEach(entry => {
+                if (!groupsMap[entry.contractor_id]) {
+                    groupsMap[entry.contractor_id] = {
+                        contractor_id: entry.contractor_id,
+                        contractor_name: entry.contractor_name,
+                        entries: [],
+                        netClaimed: 0,
+                        paid: 0,
+                        balance: 0
+                    };
+                }
+                groupsMap[entry.contractor_id].entries.push(entry);
+                groupsMap[entry.contractor_id].netClaimed += parseFloat(entry.net_approved) || 0;
+                groupsMap[entry.contractor_id].paid += parseFloat(entry.paid_amount) || 0;
+            });
+
+            // Calculate balance per contractor and running balance inside entries
+            return Object.values(groupsMap).map(group => {
+                group.balance = group.netClaimed - group.paid;
+                let running_balance = 0;
+                group.entries = group.entries.map(e => {
+                    running_balance += (parseFloat(e.net_approved) || 0) - (parseFloat(e.paid_amount) || 0);
+                    return {
+                        ...e,
+                        running_balance: running_balance
+                    };
+                });
+                return group;
+            });
         },
 
         getLedgerTotals() {

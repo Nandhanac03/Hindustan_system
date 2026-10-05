@@ -228,16 +228,18 @@ class RaBillController extends Controller
         // Detailed Ledger Statement Entries (Claims & Payment Releases)
         $allLedgerEntries = collect();
         foreach ($raBills as $bill) {
-            $cName = $bill->contractor_name ?: ($bill->contractor?->name ?? 'Contractor');
+            $cName = $bill->contractor?->name ?: ($bill->contractor_name ?? 'Contractor');
             $pName = $bill->project?->name ?? 'Site Project';
             $uName = $bill->unit_name ?: ($bill->unit?->door_no ?? '');
 
             // 1. Verified RA Bill Claim (Accrued Credit)
             $jv = $journalVouchersByRaId->get($bill->id);
+            $claimDate = $bill->verified_date ?: ($bill->submit_date ?: $bill->created_at);
+            
             $allLedgerEntries->push([
                 'type'              => 'CLAIM',
-                'date'              => $bill->verified_date ? $bill->verified_date->format('Y-m-d') : ($bill->submit_date ? $bill->submit_date->format('Y-m-d') : null),
-                'date_formatted'    => $bill->verified_date ? $bill->verified_date->format('d/m/Y') : ($bill->submit_date ? $bill->submit_date->format('d/m/Y') : ''),
+                'date'              => $claimDate ? $claimDate->format('Y-m-d') : null,
+                'date_formatted'    => $claimDate ? $claimDate->format('d/m/Y') : '',
                 'contractor_id'     => $bill->contractor_id,
                 'contractor_name'   => $cName,
                 'project_name'      => $pName,
@@ -283,8 +285,11 @@ class RaBillController extends Controller
             }
         }
 
-        // Sort ledger entries chronologically
-        $allLedgerEntries = $allLedgerEntries->sortBy('date')->values();
+        // Sort ledger entries chronologically (Claims before Disbursements on the same day)
+        $allLedgerEntries = $allLedgerEntries->sortBy(function ($entry) {
+            $typeSort = $entry['type'] === 'CLAIM' ? 1 : 2;
+            return $entry['date'] . '-' . $typeSort . '-' . str_pad((string)($entry['ra_bill_id'] ?? 0), 10, '0', STR_PAD_LEFT) . '-' . str_pad((string)($entry['payment_id'] ?? 0), 10, '0', STR_PAD_LEFT);
+        })->values();
 
         return compact(
             'raBills',

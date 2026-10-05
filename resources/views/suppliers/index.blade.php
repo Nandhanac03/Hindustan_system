@@ -59,76 +59,82 @@
             </div>
         @endif
 
-        <!-- Executive KPI Summary Cards (Matched with Unit Exchange Box Style) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {{-- Card 1: Total Registered Contractors --}}
-            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Total Contractors</span>
-                    <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Total Registered Contractors -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-400 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(30,41,59,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-700 border border-slate-200 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL CONTRACTORS</span>
                     </div>
+                    <span class="text-[9px] text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider">Active</span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900 flex items-baseline gap-1.5">
-                    <span>{{ $activeContractorsCount ?? $totalContractors ?? count($suppliers) }}</span>
-                    <span class="text-[10px] text-emerald-700 font-extrabold uppercase tracking-wide">Active</span>
-                    @if(($inactiveContractorsCount ?? 0) > 0)
-                        <span class="text-[10px] text-slate-400 font-semibold">({{ $inactiveContractorsCount }} Inactive)</span>
-                    @endif
-                </div>
-                <div class="text-[10px] font-medium text-slate-400">{{ $totalContractors ?? count($suppliers) }} Registered Master Payees</div>
-            </div>
-
-            {{-- Card 2: Ledger Integration --}}
-            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Ledger Integration</span>
-                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+                
+                <div class="relative z-10 mt-1">
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-slate-800 transition-colors duration-300">{{ $activeContractorsCount ?? $totalContractors ?? count($suppliers) }}</span>
+                        @if(($inactiveContractorsCount ?? 0) > 0)
+                            <span class="text-[10px] text-slate-400 font-semibold">({{ $inactiveContractorsCount }} Inactive)</span>
+                        @endif
                     </div>
-                </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    {{ $totalContractors ?? count($suppliers) }}
-                </div>
-                <div class="text-[10px] font-medium text-slate-400">SUP-ACC Payables Linked</div>
-            </div>
-
-            {{-- Card 3: GST Compliance --}}
-            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>GST Compliance</span>
-                    <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    {{ $gstinCount ?? 0 }}
-                </div>
-                <div class="text-[10px] font-medium text-slate-400">
-                    {{ ($totalContractors ?? count($suppliers)) > 0 ? round((($gstinCount ?? 0) / ($totalContractors ?? count($suppliers))) * 100) : 0 }}% GST Registered
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">{{ $totalContractors ?? count($suppliers) }} Registered Master Payees</p>
                 </div>
             </div>
 
-            {{-- Card 4: RA Billing Total Work --}}
-            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Total Work Billed</span>
-                    <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+            <!-- Card 2: Ledger Integration -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">LEDGER INTEGRATION</span>
                     </div>
+                    <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider">Linked</span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    ₹{{ number_format($totalBillsAmount ?? 0, 2) }}
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-blue-600 font-mono tracking-tight block group-hover:text-blue-700 transition-colors duration-300">{{ $totalContractors ?? count($suppliers) }}</span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">SUP-ACC Payables Linked</p>
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">RA Bills Approved</div>
+            </div>
+
+            <!-- Card 3: GST Compliance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">GST COMPLIANCE</span>
+                    </div>
+                    <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider">Verified</span>
+                </div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">{{ $gstinCount ?? 0 }}</span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">{{ ($totalContractors ?? count($suppliers)) > 0 ? round((($gstinCount ?? 0) / ($totalContractors ?? count($suppliers))) * 100) : 0 }}% GST Registered</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Total Work Billed -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default">
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL WORK BILLED</span>
+                    </div>
+                    <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider">Approved</span>
+                </div>
+                
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format($totalBillsAmount ?? 0, 2) }}</span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">RA Bills Approved</p>
+                </div>
             </div>
         </div>
 
@@ -152,24 +158,85 @@
                         </div>
                     </div>
 
-                    {{-- 2. Contractor / Firm Name Dropdown (Instant Live Filter) --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    {{-- 2. Contractor / Firm Name Searchable Dropdown (Instant Live Filter) --}}
+                    @php
+                        $contractorsJson = collect($allContractorsList ?? [])->map(fn($c) => (object)['id' => $c->id, 'name' => $c->name])->toJson();
+                    @endphp
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            search: '',
+                            contractorsList: {{ $contractorsJson }},
+                            getSelectedContractorName() {
+                                if (!filterContractorId) return 'All Contractors / Firms';
+                                const c = this.contractorsList.find(x => x.id == filterContractorId);
+                                return c ? c.name : 'All Contractors / Firms';
+                            },
+                            getFilteredContractorsList() {
+                                if (!this.search) return this.contractorsList;
+                                const s = this.search.toLowerCase();
+                                return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                            }
+                         }" 
+                         @click.outside="open = false">
+                         
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
                             <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
                         </div>
-                        <select x-model="filterContractorId" @change="applyFilter()"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Contractors / Firms</option>
-                            @foreach(($allContractorsList ?? []) as $c)
-                                <option value="{{ $c->id }}">
-                                    {{ $c->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                        <button type="button" @click="open = !open" 
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs flex items-center justify-between transition hover:border-[#a38c29]/60 hover:bg-white text-left">
+                            <span class="truncate" x-text="getSelectedContractorName()"></span>
+                            <div class="flex items-center gap-1 shrink-0 absolute right-2.5 top-1/2 -translate-y-1/2">
+                                <template x-if="filterContractorId">
+                                    <span @click.stop="filterContractorId = ''; search = ''; applyFilter();" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Searchable Dropdown Menu -->
+                        <div x-show="open" x-transition.opacity.duration.150ms 
+                             class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                             style="display: none;">
+                            
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="search" placeholder="Search contractor..." 
+                                       class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                       @keydown.escape="open = false">
+                                <template x-if="search">
+                                    <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                                </template>
+                            </div>
+
+                            <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
+                                <button type="button" @click="filterContractorId = ''; open = false; search = ''; applyFilter();" 
+                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !filterContractorId }">
+                                    <span>All Contractors / Firms</span>
+                                </button>
+                                
+                                <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
+                                    <button type="button" @click="filterContractorId = cont.id; open = false; search = ''; applyFilter();" 
+                                            class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                            :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': filterContractorId == cont.id }">
+                                        <span class="truncate" x-text="cont.name"></span>
+                                    </button>
+                                </template>
+                                
+                                <div x-show="getFilteredContractorsList().length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
+                                    No contractors found.
+                                </div>
+                            </div>
                         </div>
                     </div>
 

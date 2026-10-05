@@ -146,32 +146,92 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
 
-                {{-- 1. Contractor Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                {{-- 1. Contractor Filter (Searchable) --}}
+                @php
+                    $filterContractors = collect($contractors);
+                    foreach($raBills as $b) {
+                        if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
+                            $cName = $b->contractor->name ?? $b->contractor_name;
+                            if ($cName) {
+                                $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
+                            }
+                        }
+                    }
+                    $filterContractorsList = $filterContractors->unique('id')->sortBy('name')->values()->toJson();
+                @endphp
+                <div class="relative w-full" 
+                     x-data="{ 
+                        open: false, 
+                        search: '',
+                        contractorsList: {{ $filterContractorsList }},
+                        getSelectedContractorName() {
+                            if (!filterContractorId) return 'All Contractors';
+                            const c = this.contractorsList.find(x => x.id == filterContractorId);
+                            return c ? c.name : 'All Contractors';
+                        },
+                        getFilteredContractorsList() {
+                            if (!this.search) return this.contractorsList;
+                            const s = this.search.toLowerCase();
+                            return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                        }
+                     }" 
+                     @click.outside="open = false">
+                     
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
-                    <select x-model="filterContractorId"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Contractors</option>
-                        @php
-                            $filterContractors = collect($contractors);
-                            foreach($raBills as $b) {
-                                if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
-                                    $cName = $b->contractor->name ?? $b->contractor_name;
-                                    if ($cName) {
-                                        $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
-                                    }
-                                }
-                            }
-                            $filterContractors = $filterContractors->unique('id')->sortBy('name');
-                        @endphp
-                        @foreach($filterContractors as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    <button type="button" @click="open = !open" 
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs flex items-center justify-between transition hover:border-[#a38c29]/60 hover:bg-white text-left">
+                        <span class="truncate" x-text="getSelectedContractorName()"></span>
+                        <div class="flex items-center gap-1 shrink-0 absolute right-2.5 top-1/2 -translate-y-1/2">
+                            <template x-if="filterContractorId">
+                                <span @click.stop="filterContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Searchable Dropdown Menu -->
+                    <div x-show="open" x-transition.opacity.duration.150ms 
+                         class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                         style="display: none;">
+                        
+                        <div class="relative">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Search contractor..." 
+                                   class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                   @keydown.escape="open = false">
+                            <template x-if="search">
+                                <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                            </template>
+                        </div>
+
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
+                            <button type="button" @click="filterContractorId = ''; open = false; search = '';" 
+                                    class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !filterContractorId }">
+                                <span>All Contractors</span>
+                            </button>
+                            
+                            <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
+                                <button type="button" @click="filterContractorId = cont.id; open = false; search = '';" 
+                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': filterContractorId == cont.id }">
+                                    <span class="truncate" x-text="cont.name"></span>
+                                </button>
+                            </template>
+                            
+                            <div x-show="getFilteredContractorsList().length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
+                                No contractors found.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -334,21 +394,25 @@
                             </td>
 
                             <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
-                                @if($bill->verified_date)
-                                    <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                            class="px-3 py-1 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-[10.5px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-[#a38c29]/40"
-                                            title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        <span>Edit Sign-off</span>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    @if($bill->verified_date)
+                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        </button>
+                                    @else
+                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                title="Engineer Sign-off & Apply Correction">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
+                                    @endif
+
+                                    <button type="button" @click="openViewModal({{ json_encode($bill) }})" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Bill Details">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                @else
-                                    <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                            class="px-3 py-1 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-[10.5px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                            title="Engineer Sign-off & Apply Correction">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span>Verify Sign-off</span>
-                                    </button>
-                                @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -375,6 +439,108 @@
                     @endif
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- ── MODAL 0: VIEW CONTRACTOR / BILL DETAILS (READ-ONLY) ── -->
+    <div x-show="viewModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col max-h-[90vh] my-auto bg-white" @click.away="viewModalOpen = false">
+            {{-- Header (Matching All Other Modals) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-5 sm:px-6 py-3.5 sm:py-4 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-0.5">
+                            RA Bill Details
+                        </p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight" x-text="'RA Bill #' + (viewBillDetails?.ra_bill_number || '')"></h2>
+                    </div>
+                    <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-5 flex flex-col gap-3 overflow-y-auto">
+                <!-- General Information Card -->
+                <div class="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80">
+                        <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            General Information
+                        </span>
+                    </div>
+                    <div class="p-3.5 bg-white grid grid-cols-2 gap-y-4 gap-x-4">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Contractor Name</span>
+                            <span class="text-xs sm:text-sm font-black text-slate-900 block" x-text="viewBillDetails?.contractor_name || viewBillDetails?.contractor?.name"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Project Name</span>
+                            <span class="text-xs font-bold text-slate-700 block" x-text="viewBillDetails?.project_name || viewBillDetails?.project?.name"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Verified Date</span>
+                            <span class="text-xs font-mono font-bold" :class="viewBillDetails?.verified_date ? 'text-emerald-700' : 'text-amber-600 italic'" x-text="viewBillDetails?.verified_date ? (new Date(viewBillDetails.verified_date).toLocaleDateString('en-GB')) : 'Verification Pending'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Status</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border"
+                                  :class="{
+                                      'bg-emerald-50 text-emerald-700 border-emerald-200': viewBillDetails?.verified_date,
+                                      'bg-amber-50 text-amber-800 border-amber-200': !viewBillDetails?.verified_date
+                                  }"
+                                  x-text="viewBillDetails?.verified_date ? 'Verified' : 'Submitted'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Breakdown Card -->
+                <div class="border border-[#a38c29]/30 rounded-xl overflow-hidden shadow-2xs">
+                    <div class="bg-amber-50/50 px-3.5 py-2.5 flex items-center justify-between border-b border-[#a38c29]/20">
+                        <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            Financial Breakdown
+                        </span>
+                    </div>
+                    <div class="p-3 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        
+                        <!-- Box 1: Approvals -->
+                        <div class="border border-slate-200/90 rounded-lg p-2.5 bg-slate-50/30">
+                            <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 border-b border-slate-100 pb-1.5">Claim Details</h4>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] font-semibold text-slate-500">Gross Claimed:</span>
+                                <span class="text-xs font-mono font-black text-slate-800" x-text="'₹ ' + numberFormat(viewBillDetails?.gross_amount || 0)"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-semibold text-slate-500">Corrections:</span>
+                                <span class="text-xs font-mono font-black text-rose-700" x-text="'-₹ ' + numberFormat(viewBillDetails?.correction_amount || 0)"></span>
+                            </div>
+                        </div>
+
+                        <!-- Box 2: Payment -->
+                        <div class="border border-[#a38c29]/20 rounded-lg p-2.5 bg-[#faf8f0]">
+                            <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider mb-2 border-b border-[#a38c29]/10 pb-1.5">Final Payable</h4>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] font-semibold text-slate-600">Additional Work:</span>
+                                <span class="text-xs font-mono font-black text-slate-700" x-text="'+₹ ' + numberFormat(viewBillDetails?.additional_amount || 0)"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-semibold text-slate-600">Net Payable:</span>
+                                <span class="text-xs font-mono font-black text-blue-800" x-text="'₹ ' + numberFormat(viewBillDetails?.net_approved_amount || 0)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+                    <p class="text-[10px] text-slate-400">Clicking 'Go To Payment Desk' will redirect you.</p>
+                    <a :href="'{{ route('expenses.ra-bills.payment-release') }}'" class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer shadow-md shadow-[#a38c29]/20">
+                        <span>Go To Payment Desk</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -809,6 +975,12 @@ function raBillVerification() {
         searchQuery: '',
         addModalOpen: {{ (!session('success') && (request('new') == '1' || request('create') == '1' || request('action') == 'new' || $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount'))) ? 'true' : 'false' }},
         verifyModalOpen: false,
+        viewModalOpen: false,
+        viewBillDetails: null,
+        openViewModal(bill) {
+            this.viewBillDetails = bill;
+            this.viewModalOpen = true;
+        },
         hasAttemptedVerifySubmit: false,
         selectedBill: null,
         correctionInput: 0,
