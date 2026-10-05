@@ -260,8 +260,19 @@ class SiteExpenseController extends Controller
         try {
             $voucherNumber = $this->generateVoucherNumber();
 
-            // Find linked chart of account if available
-            $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->first();
+            // Find linked chart of account via SiteExpenseCategory master or sensible default
+            $chartOfAccount = null;
+            if (class_exists(SiteExpenseCategory::class)) {
+                $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                $chartOfAccount = $sec?->chartOfAccount;
+            }
+            if (!$chartOfAccount && $categoryCode !== '4001') {
+                $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->where('account_type', 'like', '%EXPENSE%')->first();
+            }
+            if (!$chartOfAccount || (string)$chartOfAccount->account_code === '4001') {
+                // Land Acquisition & Legal Cost / Admin belongs to Site Office & Administrative (4003)
+                $chartOfAccount = ChartOfAccount::where('account_code', '4003')->first();
+            }
 
             $siteExpense = SiteExpense::create([
                 'system_id'                => Auth::user()->system_id ?? 1,
@@ -399,7 +410,19 @@ class SiteExpenseController extends Controller
 
         DB::beginTransaction();
         try {
-            $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->first();
+            // Find linked chart of account via SiteExpenseCategory master or sensible default
+            $chartOfAccount = null;
+            if (class_exists(SiteExpenseCategory::class)) {
+                $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                $chartOfAccount = $sec?->chartOfAccount;
+            }
+            if (!$chartOfAccount && $categoryCode !== '4001') {
+                $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->where('account_type', 'like', '%EXPENSE%')->first();
+            }
+            if (!$chartOfAccount || (string)$chartOfAccount->account_code === '4001') {
+                // Land Acquisition & Legal Cost / Admin belongs to Site Office & Administrative (4003)
+                $chartOfAccount = ChartOfAccount::where('account_code', '4003')->first();
+            }
 
             $siteExpense->update([
                 'project_id'               => $validated['project_id'],

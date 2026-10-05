@@ -850,9 +850,10 @@
                                 <div class="payment-mode-subtext">
                                     Mode: <strong>{{ $paymentMode ?? 'Direct Bank Transfer' }}</strong>
                                     @if(!empty($cleanRef) && $cleanRef !== '—')
-                                    &nbsp;|&nbsp; Ref: <strong style="font-family: monospace;">{{ $cleanRef }}</strong>
-                                @endif
-                            </div>
+                                        &nbsp;|&nbsp; Ref: <strong style="font-family: monospace;">{{ $cleanRef }}</strong>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
                         <td class="amount-col">
                             ₹ {{ number_format($totalAmount, 2) }}
