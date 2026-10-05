@@ -206,7 +206,9 @@ aside.fixed p {
 /* Top-level Menu Items & Parent Accordions */
 .nav-item,
 #sidebar-nav button,
-#sidebar-nav a.nav-item {
+#sidebar-nav a.nav-item,
+#sidebar-nav>div>a.nav-item,
+#sidebar-nav>a {
     position: relative;
     transition: all 0.2s ease;
     color: #000000 !important;
@@ -218,7 +220,9 @@ aside.fixed p {
 }
 
 #sidebar-nav button>div:first-child,
-#sidebar-nav a.nav-item {
+#sidebar-nav a.nav-item,
+#sidebar-nav>div>a.nav-item,
+#sidebar-nav>a {
     display: flex !important;
     align-items: center !important;
     gap: 0.65rem !important;
@@ -227,13 +231,17 @@ aside.fixed p {
 }
 
 #sidebar-nav button span,
-#sidebar-nav a.nav-item span {
+#sidebar-nav a.nav-item span,
+#sidebar-nav>div>a.nav-item span,
+#sidebar-nav>a span {
     white-space: nowrap !important;
     letter-spacing: -0.01em !important;
 }
 
 /* Gold Theme Icons for All Side Navigation Items */
 #sidebar-nav a.nav-item svg,
+#sidebar-nav>div>a.nav-item svg,
+#sidebar-nav>a svg,
 #sidebar-nav button div svg,
 #sidebar-nav button>div:first-child svg,
 #sidebar-nav button svg:first-child:not(:last-child) {
@@ -259,18 +267,24 @@ aside.fixed p {
 }
 
 #sidebar-nav button:hover,
-#sidebar-nav a.nav-item:not(.active):hover {
+#sidebar-nav a.nav-item:not(.active):hover,
+#sidebar-nav>div>a.nav-item:not(.active):hover,
+#sidebar-nav>a:not(.active):hover {
     background-color: #fdfaf0 !important;
     color: #AB8C2F !important;
 }
 
 #sidebar-nav button:hover span,
-#sidebar-nav a.nav-item:not(.active):hover span {
+#sidebar-nav a.nav-item:not(.active):hover span,
+#sidebar-nav>div>a.nav-item:not(.active):hover span,
+#sidebar-nav>a:not(.active):hover span {
     color: #AB8C2F !important;
 }
 
 #sidebar-nav button:hover>div svg,
-#sidebar-nav a.nav-item:not(.active):hover svg {
+#sidebar-nav a.nav-item:not(.active):hover svg,
+#sidebar-nav>div>a.nav-item:not(.active):hover svg,
+#sidebar-nav>a:not(.active):hover svg {
     color: #AB8C2F !important;
     stroke: #AB8C2F !important;
 }

@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=30.0">
+    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=31.0">
     
     {{-- CKEditor 5 — Rich Text Editor for description/narration fields --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
@@ -596,8 +596,8 @@
             </div>
         </div>
 
-        <div class="pt-1 mt-2 space-y-1">
-            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div class="space-y-1 mt-2">
+            <a href="{{ route('admin.users.index') }}" class="nav-item flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('admin.users.*') ? 'active text-white' : 'text-white/90' }}">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
