@@ -4153,10 +4153,32 @@ class ReportController extends Controller
                 ->get();
 
             // Fetch approved site expenses for this project to accurately allocate by account
+            // Also join site_expense_categories to resolve COA account linkage
             $approvedSiteExpenses = DB::table('site_expenses')
                 ->where('project_id', $proj->id)
                 ->whereIn('status', ['Approved', 'approved', 'Paid', 'paid'])
                 ->get();
+
+            // Build a map: category_code → COA account_code via site_expense_categories safely
+            $categoryCoaMap = [];
+            try {
+                if (Schema::hasTable('site_expense_categories')) {
+                    $catCol = Schema::hasColumn('site_expense_categories', 'chart_of_account_id')
+                        ? 'chart_of_account_id'
+                        : (Schema::hasColumn('site_expense_categories', 'coa_account_id') ? 'coa_account_id' : null);
+
+                    if ($catCol) {
+                        $categoryCoaMap = DB::table('site_expense_categories')
+                            ->join('chart_of_accounts', "site_expense_categories.{$catCol}", '=', 'chart_of_accounts.id')
+                            ->whereNotNull("site_expense_categories.{$catCol}")
+                            ->pluck('chart_of_accounts.account_code', 'site_expense_categories.category_code')
+                            ->mapWithKeys(fn($coaCode, $catCode) => [(string)$catCode => (string)$coaCode])
+                            ->toArray();
+                    }
+                }
+            } catch (\Throwable $e) {
+                $categoryCoaMap = [];
+            }
 
             // Map site expenses to their respective COA account code
             $siteExpenseAllocations = [];
@@ -4167,36 +4189,65 @@ class ReportController extends Controller
                 }
 
                 $assignedCode = null;
-                $seName = strtolower((string)($se->expense_category_name ?? ''));
+                $seName = strtolower(trim((string)($se->expense_category_name ?? '')));
+                $seCatCode = (string)($se->expense_category_code ?? '');
 
-                if ($se->chart_of_account_id) {
+                // Priority 1: resolve via site_expense_categories → chart_of_accounts mapping
+                if ($seCatCode && isset($categoryCoaMap[$seCatCode])) {
+                    $assignedCode = $categoryCoaMap[$seCatCode];
+                }
+
+                // Priority 2: direct chart_of_account_id on site_expenses (if column exists)
+                if (!$assignedCode && !empty($se->chart_of_account_id)) {
                     $matched = $coaExpenseAccounts->firstWhere('id', $se->chart_of_account_id);
                     if ($matched) {
                         $assignedCode = (string)$matched->account_code;
                     }
                 }
 
+                // Priority 3: Match dynamically against $coaExpenseAccounts by keywords
                 if (!$assignedCode) {
-                    if (str_contains($seName, 'machinery') || str_contains($seName, 'equipment')) {
-                        $assignedCode = '4005';
-                    } elseif (str_contains($seName, 'material')) {
-                        $assignedCode = '4003';
-                    } elseif (str_contains($seName, 'office') || str_contains($seName, 'admin') || str_contains($seName, 'diesel') || str_contains($seName, 'power')) {
-                        $assignedCode = '4004';
-                    } elseif (str_contains($seName, 'contractor') || str_contains($seName, 'labour') || str_contains($seName, 'labor')) {
-                        $assignedCode = '4002';
-                    } elseif (str_contains($seName, 'brokerage')) {
-                        $assignedCode = '4001';
+                    $matchedCoa = null;
+                    if (str_contains($seName, 'machin') || str_contains($seName, 'equipment') || str_contains($seName, 'crane') || str_contains($seName, 'jcb') || str_contains($seName, 'rental')) {
+                        $matchedCoa = $coaExpenseAccounts->first(fn($a) => 
+                            str_contains(strtolower($a->account_name), 'machin') || 
+                            str_contains(strtolower($a->account_name), 'equipment')
+                        );
+                    } elseif (str_contains($seName, 'material') || str_contains($seName, 'cement') || str_contains($seName, 'steel') || str_contains($seName, 'sand') || str_contains($seName, 'brick')) {
+                        $matchedCoa = $coaExpenseAccounts->first(fn($a) => 
+                            str_contains(strtolower($a->account_name), 'material')
+                        );
+                    } elseif (str_contains($seName, 'contract') || str_contains($seName, 'labour') || str_contains($seName, 'labor') || str_contains($seName, 'work')) {
+                        $matchedCoa = $coaExpenseAccounts->first(fn($a) => 
+                            str_contains(strtolower($a->account_name), 'contract') || 
+                            str_contains(strtolower($a->account_name), 'labour')
+                        );
+                    } elseif (str_contains($seName, 'agent') || str_contains($seName, 'broker') || str_contains($seName, 'commission')) {
+                        $matchedCoa = $coaExpenseAccounts->first(fn($a) => 
+                            str_contains(strtolower($a->account_name), 'agent') || 
+                            str_contains(strtolower($a->account_name), 'broker')
+                        );
+                    } elseif (str_contains($seName, 'office') || str_contains($seName, 'admin') || str_contains($seName, 'diesel') || str_contains($seName, 'power') || str_contains($seName, 'land') || str_contains($seName, 'legal') || str_contains($seName, 'fee')) {
+                        $matchedCoa = $coaExpenseAccounts->first(fn($a) => 
+                            str_contains(strtolower($a->account_name), 'office') || 
+                            str_contains(strtolower($a->account_name), 'admin')
+                        );
+                    }
+
+                    if ($matchedCoa) {
+                        $assignedCode = (string)$matchedCoa->account_code;
                     }
                 }
 
-                if (!$assignedCode && $se->expense_category_code) {
-                    $matched = $coaExpenseAccounts->firstWhere('account_code', $se->expense_category_code);
+                // Priority 4: try matching expense_category_code directly to a COA account_code
+                if (!$assignedCode && $seCatCode) {
+                    $matched = $coaExpenseAccounts->firstWhere('account_code', $seCatCode);
                     if ($matched) {
                         $assignedCode = (string)$matched->account_code;
                     }
                 }
 
+                // Final fallback: general site expense bucket
                 if (!$assignedCode) {
                     $assignedCode = '4020';
                 }
@@ -4207,6 +4258,21 @@ class ReportController extends Controller
                 $siteExpenseAllocations[$assignedCode]['incurred'] += (float)$se->net_amount;
                 $siteExpenseAllocations[$assignedCode]['spent']    += (float)$se->paid_amount;
             }
+
+            // Friendly label map for codes that may not exist in COA but are used in allocations
+            $coaCodeLabelMap = [
+                '4001' => 'Agent Payable Expense',
+                '4002' => 'Contractor Work Expenses',
+                '4003' => 'Site Office & Administrative',
+                '4004' => 'Machinery & Heavy Equipment Rental',
+                '4005' => 'Construction Material Expenses',
+                '4010' => 'Construction Material Purchases',
+                '4020' => 'Site Expenses (General)',
+                '4050' => 'Bank Loan Interest Expense',
+            ];
+
+            // Pre-build a set of codes already covered by COA accounts
+            $coaCodes = $coaExpenseAccounts->pluck('account_code')->map(fn($c) => (string)$c)->toArray();
 
             $costMatrix = [];
             $directConstructionIncurred = 0.0;
@@ -4219,8 +4285,8 @@ class ReportController extends Controller
                 $incurred = 0.0;
                 $spent    = 0.0;
 
-                // 1. Account 4001: Brokerage Expense
-                if ($code === '4001' || str_contains($lowerName, 'brokerage')) {
+                // 1. Account 4001: Brokerage / Agent Expense
+                if ($code === '4001' || str_contains($lowerName, 'brokerage') || str_contains($lowerName, 'agent')) {
                     $incurred += (float) Brokerage::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))->sum('commission_amount');
                     $spent    += (float) Brokerage::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))->sum('paid_amount');
                 }
@@ -4245,8 +4311,8 @@ class ReportController extends Controller
                         ->sum('bill_payments.amount');
                 }
 
-                // 3. Account 4010: Construction Material Purchases
-                if ($code === '4010' || str_contains($lowerName, 'material purchase')) {
+                // 3. Account 4005 / 4010: Construction Material Purchases / Expenses
+                if ($code === '4005' || $code === '4010' || str_contains($lowerName, 'material')) {
                     $incurred += (float) DB::table('bills')
                         ->join('payees', 'bills.payee_id', '=', 'payees.id')
                         ->where('bills.project_id', $proj->id)
@@ -4261,7 +4327,7 @@ class ReportController extends Controller
                 }
 
                 // 4. Account 4050: Bank Loan Interest Expense
-                if ($code === '4050' || str_contains($lowerName, 'loan interest')) {
+                if ($code === '4050' || str_contains($lowerName, 'loan interest') || str_contains($lowerName, 'interest')) {
                     $projLoanIds = Loan::where('project_id', $proj->id)->pluck('id');
                     if ($projLoanIds->isNotEmpty()) {
                         $finAccrued = (float) EmiSchedule::whereIn('loan_id', $projLoanIds)->where('status', 'Paid')->sum('interest_component');
@@ -4296,7 +4362,7 @@ class ReportController extends Controller
                 $payable = max(0.00, $incurred - $spent);
                 $costPerSqFt = $totalArea > 0 ? ($incurred / $totalArea) : 0.0;
 
-                if (in_array($code, ['4002', '4003', '4010'])) {
+                if (in_array($code, ['4002', '4003', '4004', '4005', '4010'])) {
                     $directConstructionIncurred += $incurred;
                 }
 
@@ -4310,10 +4376,34 @@ class ReportController extends Controller
                 ];
             }
 
+            // Inject any site expense allocation codes NOT covered by any COA row
+            // This prevents Machinery (4005) and other categories from being invisible
+            // when their COA account doesn't exist in the chart_of_accounts table.
+            $coveredCodes = array_column($costMatrix, 'code');
+            foreach ($siteExpenseAllocations as $allocCode => $alloc) {
+                if (!in_array((string)$allocCode, $coveredCodes)) {
+                    $allocIncurred    = (float)$alloc['incurred'];
+                    $allocSpent       = (float)$alloc['spent'];
+                    $allocPayable     = max(0.0, $allocIncurred - $allocSpent);
+                    $allocCostPerSqFt = $totalArea > 0 ? ($allocIncurred / $totalArea) : 0.0;
+                    $allocLabel       = $coaCodeLabelMap[$allocCode] ?? 'Site Expense (' . $allocCode . ')';
+
+                    $costMatrix[] = [
+                        'category'      => $allocLabel,
+                        'code'          => $allocCode,
+                        'incurred'      => $allocIncurred,
+                        'spent'         => $allocSpent,
+                        'payable'       => $allocPayable,
+                        'cost_per_sqft' => $allocCostPerSqFt,
+                    ];
+                }
+            }
+
             $totalIncurredCost   = array_sum(array_column($costMatrix, 'incurred'));
             $totalCashPaid       = array_sum(array_column($costMatrix, 'spent'));
             $totalPendingPayable = array_sum(array_column($costMatrix, 'payable'));
             $costPerSqFt         = $totalArea > 0 ? ($totalIncurredCost / $totalArea) : 0.0;
+
 
             // D. MARGIN METRICS
             $grossProfit = $totalGrossRevenue - $directConstructionIncurred;
