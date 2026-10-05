@@ -2335,7 +2335,7 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'exchange_report';
 
-        $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs'])->where('status', 'exchanged');
+        $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts'])->where('status', 'exchanged');
         if ($request->filled('project_id')) {
             $exQuery->where('project_id', $request->project_id);
         }
@@ -2345,13 +2345,20 @@ class ReportController extends Controller
         }
         $exchangeEntries = $exQuery->orderByDesc('sale_date')->paginate(50);
 
-        $allExSales = Sale::with('statusLogs')
+        $exchangeEntries->getCollection()->transform(function ($sale) {
+            return $this->enrichExchangeSale($sale);
+        });
+
+        $allExSales = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts'])
             ->where('status', 'exchanged')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
             ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
-            ->get();
+            ->get()
+            ->map(function ($sale) {
+                return $this->enrichExchangeSale($sale);
+            });
 
-        $monthlyGrouped = $allExSales->groupBy(fn($s) => $s->sale_date ? $s->sale_date->format('M Y') : 'Unknown');
+        $monthlyGrouped = $allExSales->groupBy(fn($s) => $s->exchange_date ? \Carbon\Carbon::parse($s->exchange_date)->format('M Y') : 'Unknown');
 
         $exMonths = [];
         $exCounts = [];
@@ -2360,7 +2367,7 @@ class ReportController extends Controller
             foreach ($monthlyGrouped as $mLabel => $salesInMonth) {
                 $exMonths[] = $mLabel;
                 $exCounts[] = $salesInMonth->count();
-                $exEquities[] = (float)$salesInMonth->sum('transferred_equity');
+                $exEquities[] = (float)$salesInMonth->sum('equity_paid');
             }
         } else {
             for ($i = 5; $i >= 0; $i--) {
@@ -2374,12 +2381,83 @@ class ReportController extends Controller
             'months' => $exMonths,
             'counts' => $exCounts,
             'equities' => $exEquities,
-            'total_equity' => (float)$allExSales->sum('transferred_equity'),
-            'total_contract' => (float)$allExSales->sum('total_amount'),
+            'total_equity' => (float)$allExSales->sum('equity_paid'),
+            'total_contract' => (float)$allExSales->sum('new_unit_value'),
             'total_count' => $allExSales->count(),
         ];
 
         return view('reports.exchange', array_merge($lookups, compact('activeTab', 'exchangeEntries', 'exchangeChartData')));
+    }
+
+    private function enrichExchangeSale(Sale $sale): Sale
+    {
+        $exLog = $sale->statusLogs->firstWhere('event_type', 'exchanged');
+
+        // 1. Exchange No
+        $logId = $exLog?->id ?? $sale->id;
+        $sale->exchange_no = 'EXCH-' . str_pad((string)$logId, 5, '0', STR_PAD_LEFT);
+
+        // 2. Exchange Date
+        $exDate = $exLog?->snapshot_data['exchange_meta']['exchanged_at']
+            ?? $exLog?->created_at
+            ?? $sale->cancelled_at
+            ?? $sale->updated_at
+            ?? $sale->sale_date;
+        $sale->exchange_date = $exDate;
+
+        // 3. Old Unit Details
+        $oldUnitDoor = $exLog?->snapshot_data['old_unit']['door_no'] ?? $sale->unit?->door_no;
+        $oldUnitType = $exLog?->snapshot_data['old_unit']['unit_type_name'] ?? $sale->unit?->unitType?->name;
+        $oldUnitFloor = $exLog?->snapshot_data['old_unit']['floor_name'] ?? $sale->unit?->floor?->name;
+
+        $oldUnitStr = $oldUnitDoor ? ('Door ' . $oldUnitDoor) : '—';
+        $oldMeta = array_filter([$oldUnitFloor, $oldUnitType]);
+        if ($oldMeta && $oldUnitDoor) {
+            $oldUnitStr .= ' (' . implode(', ', $oldMeta) . ')';
+        }
+        $sale->old_unit_details = $oldUnitStr;
+
+        // 4. Old Customer Name
+        $sale->old_customer_name = $sale->customer?->name ?? $exLog?->snapshot_data['customer']['name'] ?? '—';
+
+        // 5. Find Replacement (New) Sale
+        $newSale = Sale::where('notes', 'like', '%Exchanged from sale ' . $sale->sale_number . '%')
+            ->with(['unit.unitType', 'unit.floor', 'customer'])
+            ->first();
+
+        if (!$newSale && $exLog && !empty($exLog->snapshot_data['exchange_meta']['target_unit_id'])) {
+            $targetUnitId = $exLog->snapshot_data['exchange_meta']['target_unit_id'];
+            $newSale = Sale::where('unit_id', $targetUnitId)
+                ->where('customer_id', $sale->customer_id)
+                ->with(['unit.unitType', 'unit.floor', 'customer'])
+                ->first();
+        }
+
+        // 6. New Unit Details & Customer Name & Contract Value
+        if ($newSale && $newSale->unit) {
+            $newUnitStr = 'Door ' . $newSale->unit->door_no;
+            $newMeta = array_filter([$newSale->unit->floor?->name, $newSale->unit->unitType?->name]);
+            if ($newMeta) {
+                $newUnitStr .= ' (' . implode(', ', $newMeta) . ')';
+            }
+            $sale->new_unit_details = $newUnitStr;
+            $sale->new_customer_name = $newSale->customer?->name ?? $sale->old_customer_name;
+            $sale->new_unit_value = (float)$newSale->total_amount;
+        } else {
+            $targetDoor = $exLog?->snapshot_data['exchange_meta']['target_door_no'] ?? null;
+            $sale->new_unit_details = $targetDoor ? ('Door ' . $targetDoor) : '—';
+            $sale->new_customer_name = $sale->old_customer_name;
+            $sale->new_unit_value = (float)($sale->total_amount ?? 0);
+        }
+
+        // 7. Equity Paid
+        $equity = (float)($sale->transferred_equity ?? 0);
+        if ($equity <= 0 && $sale->relationLoaded('receipts')) {
+            $equity = (float)$sale->receipts->sum('amount');
+        }
+        $sale->equity_paid = $equity;
+
+        return $sale;
     }
 
     public function pettyCash(Request $request): View
