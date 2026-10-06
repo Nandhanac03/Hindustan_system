@@ -96,7 +96,10 @@ class SiteExpenseController extends Controller
      */
     public function index(Request $request): View
     {
-        $siteExpenses = SiteExpense::with(['project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator'])
+        $siteExpenses = SiteExpense::with([
+            'project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator',
+            'payments' => fn($q) => $q->orderByDesc('id')
+        ])
             ->orderByDesc('voucher_date')
             ->orderByDesc('id')
             ->get();
@@ -122,12 +125,12 @@ class SiteExpenseController extends Controller
         $totalAmount           = (float) (clone $allQuery)->sum('net_amount');
 
         $approvedAmount        = (float) (clone $allQuery)->where('status', 'Approved')->sum('net_amount');
+        $readyCount            = (clone $allQuery)->where('status', 'Approved')->where('balance_amount', '>', 0)->count();
 
         $pendingAmount         = (float) (clone $allQuery)->where('status', 'Pending')->sum('net_amount');
 
         $thisMonthExpenses     = (float) (clone $allQuery)->whereMonth('voucher_date', now()->month)->whereYear('voucher_date', now()->year)->sum('net_amount');
 
-        
         $budgetTotal = 7800000;
         $budgetUtilizationPct = $totalAmount > 0 ? round(($totalAmount / $budgetTotal) * 100, 1) : 0;
 
@@ -148,6 +151,7 @@ class SiteExpenseController extends Controller
         $loans             = Loan::orderBy('lender_name')->get();
         $expenseCategories = $this->getExpenseCategories();
         $autoVoucherNumber = $this->generateVoucherNumber();
+        $paymentModes      = ['Cheque', 'RTGS', 'NEFT', 'IMPS', 'UPI', 'Cash', 'Net Banking'];
 
         return view('expenses.site-expenses.index', compact(
             'siteExpenses',
@@ -159,6 +163,8 @@ class SiteExpenseController extends Controller
             'loans',
             'expenseCategories',
             'autoVoucherNumber',
+            'paymentModes',
+            'readyCount',
             'totalCount',
             'totalAmount',
             'approvedAmount',
@@ -735,7 +741,11 @@ class SiteExpenseController extends Controller
             DB::commit();
 
             $formattedPaid = number_format($paidAmount, 2);
-            return redirect()->route('site-expenses.payment-release')
+            if ($voucher) {
+                return redirect()->route('vouchers.payment-voucher-print', $voucher->id)
+                    ->with('success', "Disbursement of ₹{$formattedPaid} released successfully for Site Expense #{$siteExpense->voucher_number}!");
+            }
+            return redirect()->back()
                 ->with('success', "Disbursement of ₹{$formattedPaid} released successfully for Site Expense #{$siteExpense->voucher_number}!");
         } catch (\Exception $e) {
             DB::rollBack();

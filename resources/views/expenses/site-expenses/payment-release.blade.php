@@ -451,11 +451,12 @@
                                     Pay Full Balance
                                 </button>
                             </div>
-                            <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
+                            <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : null" placeholder="Enter amount to pay (e.g. 50000)..." required
                                    oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)"
                                    class="w-full px-3 py-2 border rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
-                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (selectedExpense && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense.balance_amount)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             <p x-show="hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The amount field is required.</p>
+                            <p x-show="selectedExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense.balance_amount)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(selectedExpense.balance_amount)"></span>.</p>
                             
                             {{-- Amount in Words Under Input Box --}}
                             <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs"
@@ -769,6 +770,9 @@ function siteExpensePaymentRelease() {
                 !this.disbursePaymentMode || !this.disburseRefNo) {
                 return false;
             }
+            if (this.selectedExpense && parseFloat(this.disbursePaidAmount) > parseFloat(this.selectedExpense.balance_amount)) {
+                return false;
+            }
             return true;
         },
 
@@ -791,7 +795,7 @@ function siteExpensePaymentRelease() {
         openDisburseModal(expense) {
             this.selectedExpense = expense;
             this.sourceType = expense.payment_source_type || 'bank';
-            this.disbursePaidAmount = expense.balance_amount || '';
+            this.disbursePaidAmount = '';
             this.bankOpen = false;
             this.bankSearch = '';
             
