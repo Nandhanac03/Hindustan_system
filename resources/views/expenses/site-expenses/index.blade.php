@@ -145,9 +145,92 @@
     confirmExpenseId: null,
     confirmVoucherNumber: '',
     confirmActionUrl: '',
-    confirmMethod: 'POST',
-
     hasAttemptedExpenseSubmit: false,
+
+    disburseModalOpen: false,
+    disburseExpense: null,
+    disbursePaymentDate: '{{ date("Y-m-d") }}',
+    disbursePaidAmount: '',
+    disbursePaymentMode: 'Cheque',
+    disburseRefNo: '',
+    disburseSourceType: 'bank',
+    disburseBankId: '{{ $bankAccounts->first()?->id ?? "" }}',
+    disburseLoanId: '',
+    disburseBankOpen: false,
+    disburseBankSearch: '',
+    hasAttemptedDisburseSubmit: false,
+
+    get disburseSelectedAccount() {
+        if (!this.disburseBankId) return null;
+        return (this.bankAccountsData && this.bankAccountsData[this.disburseBankId]) ? this.bankAccountsData[this.disburseBankId] : null;
+    },
+    get filteredDisburseBankAccounts() {
+        const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
+        if (!this.disburseBankSearch) return list;
+        const q = this.disburseBankSearch.toLowerCase().trim();
+        return list.filter(b => 
+            (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+            (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+            (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+            (b.branch_name && b.branch_name.toLowerCase().includes(q))
+        );
+    },
+    openDisburseModal(exp) {
+        this.disburseExpense = exp;
+        this.disbursePaidAmount = '';
+        this.disbursePaymentDate = '{{ date("Y-m-d") }}';
+        this.disbursePaymentMode = 'Cheque';
+        this.disburseRefNo = '';
+        this.disburseSourceType = (exp && exp.payment_source_type) ? exp.payment_source_type : 'bank';
+        this.disburseBankId = (exp && exp.company_bank_account_id) ? exp.company_bank_account_id : '{{ $bankAccounts->first()?->id ?? "" }}';
+        this.disburseLoanId = (exp && exp.loan_id) ? exp.loan_id : '';
+        this.hasAttemptedDisburseSubmit = false;
+        this.disburseModalOpen = true;
+        this.$nextTick(() => {
+            if (this.$refs.disbursePaidAmountRef) {
+                this.$refs.disbursePaidAmountRef.focus();
+            }
+        });
+    },
+    validateDisburse() {
+        this.hasAttemptedDisburseSubmit = true;
+        if (!this.disbursePaymentDate || !this.disbursePaidAmount || parseFloat(this.disbursePaidAmount) <= 0 || !this.disbursePaymentMode || !this.disburseRefNo) {
+            return false;
+        }
+        if (this.disburseExpense && parseFloat(this.disbursePaidAmount) > parseFloat(this.disburseExpense.balance_amount)) {
+            return false;
+        }
+        if (this.disburseSourceType === 'bank' && !this.disburseBankId) {
+            return false;
+        }
+        if (this.disburseSourceType === 'loan' && !this.disburseLoanId) {
+            return false;
+        }
+        return true;
+    },
+    getDisburseBankBalance() {
+        if (!this.disburseBankId || !this.bankAccountsData || !this.bankAccountsData[this.disburseBankId]) return 0;
+        return parseFloat(this.bankAccountsData[this.disburseBankId].current_balance) || 0;
+    },
+    getDisbursePostBankBalance() {
+        const current = this.getDisburseBankBalance();
+        const paid = parseFloat(this.disbursePaidAmount) || 0;
+        return current - paid;
+    },
+    isDisburseBankSufficient() {
+        if (this.disburseSourceType !== 'bank') return true;
+        return this.getDisbursePostBankBalance() >= 0;
+    },
+    getDisburseRemaining() {
+        const bal = parseFloat(this.disburseExpense?.balance_amount || this.disburseExpense?.raw_balance_amount) || 0;
+        const paid = parseFloat(this.disbursePaidAmount) || 0;
+        return Math.max(0, bal - paid);
+    },
+    getDisburseShortfall() {
+        const paid = parseFloat(this.disbursePaidAmount) || 0;
+        const current = this.getDisburseBankBalance();
+        return Math.max(0, paid - current);
+    },
 
     validateExpense() {
         this.hasAttemptedExpenseSubmit = true;
@@ -384,6 +467,12 @@
             <div class="flex items-center gap-3">
                 <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
                 <span class="font-bold text-xs sm:text-sm">{{ session('success') }}</span>
+                @if(session('print_voucher_id'))
+                    <a href="{{ url('/vouchers/' . session('print_voucher_id') . '/payment-voucher-print') }}" target="_blank"
+                       class="ml-3 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                        <span>🖨 Open Printed Voucher</span>
+                    </a>
+                @endif
             </div>
             <button onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
@@ -417,6 +506,14 @@
         </div>
 
         <div class="flex items-center gap-2.5">
+            <a href="{{ route('site-expenses.payment-release') }}" 
+               class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300/80 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs uppercase tracking-wider">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>Payment Release Desk</span>
+                @if(isset($readyCount) && $readyCount > 0)
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-2xs">{{ $readyCount }}</span>
+                @endif
+            </a>
             <a href="{{ route('vendors.index') }}" 
                class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs uppercase tracking-wider">
                 <i data-lucide="store" class="w-4 h-4 text-[#a38c29]"></i>
@@ -442,7 +539,7 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">₹ {{ number_format($totalAmount, 0) }}</div>
-                <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100">
+                <div class="flex items-center justify-between mt-1.5 pt-1.5 ">
                     <div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-emerald-100">
                         <i data-lucide="trending-up" class="w-3 h-3"></i> 12.6%
                     </div>
@@ -461,7 +558,7 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-amber-600 tracking-tight group-hover:text-amber-700 transition-colors">₹ {{ number_format($pendingAmount, 0) }}</div>
-                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5 border-t border-amber-50">9.4% of Total</div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5 ">9.4% of Total</div>
             </div>
         </div>
 
@@ -475,7 +572,7 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-emerald-600 tracking-tight group-hover:text-emerald-700 transition-colors">₹ {{ number_format($approvedAmount, 0) }}</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">84.8% of Total</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 ">84.8% of Total</div>
             </div>
         </div>
 
@@ -489,7 +586,7 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight">{{ $budgetUtilizationPct }}%</div>
-                <div class="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1">
+                <div class="mt-1.5 pt-1.5  space-y-1">
                     <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, $budgetUtilizationPct) }}%"></div>
                     </div>
@@ -508,7 +605,7 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-rose-600 tracking-tight group-hover:text-rose-700 transition-colors">₹ {{ number_format($unpostedAmount, 0) }}</div>
-                <div class="mt-1.5 pt-1.5 border-t border-rose-50 space-y-1">
+                <div class="mt-1.5 pt-1.5  space-y-1">
                     <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, $unpostedPct) }}%"></div>
                     </div>
@@ -738,6 +835,10 @@
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <div class="inline-flex items-center justify-center gap-1.5">
+                                        @php
+                                            $latestPaymentVoucherId = $expense->payments->whereNotNull('voucher_id')->first()?->voucher_id;
+                                        @endphp
+
                                         {{-- View Details --}}
                                         <button type="button" 
                                                 @click="openViewModal({
@@ -766,6 +867,10 @@
                                                     gross_amount: '{{ number_format($expense->gross_amount ?? $expense->net_amount, 2) }}',
                                                     gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
                                                     net_raw: '{{ $expense->net_amount }}',
+                                                    paid_amount: '{{ number_format($expense->paid_amount, 2) }}',
+                                                    balance_amount: '{{ number_format($expense->balance_amount, 2) }}',
+                                                    raw_balance_amount: {{ (float) $expense->balance_amount }},
+                                                    voucher_id: '{{ $latestPaymentVoucherId ?? '' }}',
                                                     gst_rate: {{ (float)($expense->gst_rate ?? 0) }},
                                                     gst_amount: '{{ number_format($expense->gst_amount ?? 0, 2) }}',
                                                     net_amount: '{{ number_format($expense->net_amount, 2) }}',
@@ -805,13 +910,38 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
 
-                                        @if($expense->status === 'Approved')
-                                            {{-- Release Payment --}}
-                                            <a href="{{ route('site-expenses.payment-release', ['search' => $expense->voucher_number]) }}" 
-                                               class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
-                                               title="Release Payment">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        {{-- Print Payment Voucher (if payment exists) --}}
+                                        @if($latestPaymentVoucherId)
+                                            <a href="{{ url('/vouchers/' . $latestPaymentVoucherId . '/payment-voucher-print') }}" 
+                                               target="_blank" 
+                                               class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-amber-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                               title="Print Payment Voucher (Opens in new tab)">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                             </a>
+                                        @endif
+
+                                        @if($expense->status === 'Approved')
+                                            @if((float)$expense->balance_amount > 0)
+                                                {{-- Quick Release Payment (Opens voucher in new tab & refreshes status) --}}
+                                                <button type="button" 
+                                                        @click="openDisburseModal({
+                                                            id: {{ $expense->id }},
+                                                            voucher_number: '{{ $expense->voucher_number }}',
+                                                            payee_name: '{{ addslashes($expense->payee_display_name) }}',
+                                                            project_name: '{{ addslashes($expense->project?->name ?? '-') }}',
+                                                            category_name: '{{ addslashes($expense->expense_category_name) }}',
+                                                            net_amount: {{ (float) $expense->net_amount }},
+                                                            paid_amount: {{ (float) $expense->paid_amount }},
+                                                            balance_amount: {{ (float) $expense->balance_amount }},
+                                                            payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
+                                                            company_bank_account_id: '{{ $expense->company_bank_account_id ?? ($bankAccounts->first()?->id ?? '') }}',
+                                                            loan_id: '{{ $expense->loan_id ?? '' }}'
+                                                        })"
+                                                        class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                        title="Release Payment (Opens Voucher in new tab & updates status)">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                </button>
+                                            @endif
                                         @else
                                             {{-- Approve Voucher --}}
                                             <form id="approve-form-{{ $expense->id }}" action="{{ route('site-expenses.approve', $expense->id) }}" method="POST" style="display:none">
@@ -1526,6 +1656,24 @@
             <div class="px-6 py-3.5 bg-white flex items-center justify-between shrink-0">
                 <span class="text-xs text-slate-400 font-semibold">HindustanERP • Site Expense Management</span>
                 <div class="flex items-center gap-2.5">
+                    <template x-if="selectedExpense?.voucher_id">
+                        <a :href="'{{ url('vouchers') }}/' + selectedExpense.voucher_id + '/payment-voucher-print'" 
+                           target="_blank" 
+                           class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-[#a38c29] text-white font-bold text-xs uppercase tracking-wide transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>Print Voucher</span>
+                        </a>
+                    </template>
+
+                    <template x-if="selectedExpense?.status === 'Approved' && parseFloat(selectedExpense?.raw_balance_amount || 0) > 0">
+                        <button type="button" 
+                                @click="showViewModal = false; openDisburseModal(selectedExpense)" 
+                                class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wide transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Release Payment</span>
+                        </button>
+                    </template>
+
                     <button type="button" 
                             @click="showViewModal = false; openConfirmModal('reject', selectedExpense?.id, selectedExpense?.voucher_number)" 
                             class="px-3.5 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs uppercase tracking-wide transition cursor-pointer flex items-center gap-1.5 border border-rose-200">
@@ -1552,6 +1700,282 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    {{-- ── PAYMENT DISBURSEMENT MODAL (OPENS VOUCHER IN NEW TAB & AUTO-REFRESHES STATUS) ── --}}
+    <div x-show="disburseModalOpen" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+        
+        <div class="bg-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh] border-0 ring-0 outline-none" @click.away="disburseModalOpen = false">
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-3.5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-0.5">Payment Disbursement</p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white">Disburse Site Expense &amp; Print Voucher</h2>
+                    </div>
+                    <button type="button" @click="disburseModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <form :action="disburseExpense ? ('{{ url('site-expenses') }}/' + disburseExpense.id + '/disburse') : '#'" 
+                  method="POST" 
+                  target="_blank" 
+                  novalidate 
+                  @submit="if(!validateDisburse()) { $event.preventDefault(); } else { disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200); }" 
+                  class="flex flex-col flex-1 overflow-hidden bg-white">
+                @csrf
+
+                <div class="p-5 space-y-3 overflow-y-auto flex-1">
+                    <!-- Summary Card -->
+                    <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
+                        <div class="border-r border-slate-200/80 pr-2">
+                            <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">VOUCHER NO.</span>
+                            <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="disburseExpense ? disburseExpense.voucher_number : ''"></span>
+                        </div>
+                        <div class="border-r border-slate-200/80 pr-2">
+                            <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
+                            <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense.net_amount) : ''"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[9.5px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
+                            <span class="text-xs font-mono font-extrabold text-rose-700 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense.balance_amount) : ''"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="date" name="payment_date" x-model="disbursePaymentDate" required
+                                   class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all"
+                                   :class="(hasAttemptedDisburseSubmit && !disbursePaymentDate) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-emerald-500'">
+                            <p x-show="hasAttemptedDisburseSubmit && !disbursePaymentDate" class="mt-1 text-[10px] font-bold text-rose-600">The disbursement date field is required.</p>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                                <button type="button" 
+                                        @click="disbursePaidAmount = disburseExpense ? disburseExpense.balance_amount : '';"
+                                        class="text-[10px] font-bold text-[#a38c29] hover:underline cursor-pointer">
+                                    Pay Full Balance
+                                </button>
+                            </div>
+                            <input type="number" step="0.01" min="0.01" name="paid_amount" x-ref="disbursePaidAmountRef" x-model="disbursePaidAmount" :max="disburseExpense ? disburseExpense.balance_amount : null" placeholder="Enter amount to pay (e.g. 50000)..." required
+                                   class="w-full px-3 py-2 border rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
+                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (disburseExpense && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense.balance_amount)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                            <p x-show="hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The amount field is required.</p>
+                            <p x-show="disburseExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense.balance_amount)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(disburseExpense.balance_amount)"></span>.</p>
+                            
+                            {{-- Amount in Words Under Input Box --}}
+                            <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs"
+                                 x-show="disbursePaidAmount && parseFloat(disbursePaidAmount) > 0"
+                                 x-text="numberToWords(disbursePaidAmount)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT SOURCE <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="payment_source_type" x-model="disburseSourceType" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
+                                <option value="bank">Company Bank Account</option>
+                                <option value="loan">Project Bank Loan</option>
+                            </select>
+                        </div>
+
+                        <div x-show="disburseSourceType === 'bank'" class="relative" @click.outside="disburseBankOpen = false">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="hidden" name="company_bank_account_id" :value="disburseBankId" :required="disburseSourceType === 'bank'">
+
+                            <!-- Trigger Button -->
+                            <div @click="disburseBankOpen = !disburseBankOpen; if(disburseBankOpen) $nextTick(() => $refs.disburseBankSearchRef?.focus())"
+                                 class="w-full min-h-[38px] px-3 py-2 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
+                                 :class="(hasAttemptedDisburseSubmit && disburseSourceType === 'bank' && !disburseBankId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white border-slate-200 hover:border-[#a38c29]/60'">
+                                <template x-if="disburseSelectedAccount">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#8a7522] rounded-md font-bold text-[10px]" x-text="disburseSelectedAccount.bank_name"></span>
+                                        <span class="font-bold text-slate-800 truncate" x-text="disburseSelectedAccount.account_name || disburseSelectedAccount.bank_name"></span>
+                                        <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (disburseSelectedAccount.account_number || '—') + ')'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!disburseSelectedAccount">
+                                    <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                </template>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0 ml-1.5" :class="disburseBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                            <p x-show="hasAttemptedDisburseSubmit && disburseSourceType === 'bank' && !disburseBankId" class="mt-1 text-[10px] font-bold text-rose-600">The bank account field is required.</p>
+
+                            {{-- Selected Bank Balance in Words --}}
+                            <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="disburseSelectedAccount">
+                                <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                      x-text="numberToWords(disburseSelectedAccount?.current_balance || 0)"></span>
+                            </div>
+
+                            <!-- Dropdown Search Menu -->
+                            <div x-show="disburseBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                                <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                    <div class="relative">
+                                        <input type="text" x-ref="disburseBankSearchRef" x-model="disburseBankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                        <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="overflow-y-auto divide-y divide-slate-100">
+                                    <template x-for="acc in filteredDisburseBankAccounts" :key="acc.id">
+                                        <div @click="disburseBankId = acc.id; disburseBankOpen = false; disburseBankSearch = ''"
+                                             class="px-3 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                             :class="disburseBankId == acc.id ? 'bg-[#a38c29]/10 font-bold border-l-4 border-l-[#a38c29]' : ''">
+                                            <div class="flex flex-col min-w-0 pr-2">
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                    <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                </div>
+                                                <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                            </div>
+                                            <div class="text-right font-mono shrink-0">
+                                                <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + numberFormat(acc.current_balance || 0)"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="filteredDisburseBankAccounts.length === 0">
+                                        <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="disburseSourceType === 'loan'" style="display: none;">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">SELECT PROJECT LOAN <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="loan_id" x-model="disburseLoanId" :required="disburseSourceType === 'loan'" 
+                                    class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all"
+                                    :class="(hasAttemptedDisburseSubmit && disburseSourceType === 'loan' && !disburseLoanId) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'">
+                                <option value="">Select Project Loan</option>
+                                @foreach($loans as $l)
+                                    <option value="{{ $l->id }}">
+                                        {{ $l->lender_name }} — Loan A/C: {{ $l->account_number }} (Outstanding: ₹{{ number_format((float)$l->outstanding_balance, 2) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p x-show="hasAttemptedDisburseSubmit && disburseSourceType === 'loan' && !disburseLoanId" class="mt-1 text-[10px] font-bold text-rose-600">The loan account field is required.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="payment_mode" x-model="disbursePaymentMode" required 
+                                    class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all"
+                                    :class="(hasAttemptedDisburseSubmit && !disbursePaymentMode) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]'">
+                                @foreach(($paymentModes ?? ['Cheque', 'RTGS', 'NEFT', 'IMPS', 'UPI', 'Cash', 'Net Banking']) as $pm)
+                                    @php
+                                        $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
+                                        $pmName = is_object($pm) ? ($pm->name ?? $pm->code) : $pm;
+                                    @endphp
+                                    <option value="{{ $pmCode }}">{{ $pmName }}</option>
+                                @endforeach
+                            </select>
+                            <p x-show="hasAttemptedDisburseSubmit && !disbursePaymentMode" class="mt-1 text-[10px] font-bold text-rose-600">The payment mode field is required.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="text" name="reference_no" x-model="disburseRefNo" placeholder="e.g. UTR123456789 or Chq #000123" required
+                                   class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs"
+                                   :class="(hasAttemptedDisburseSubmit && !disburseRefNo) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                            <p x-show="hasAttemptedDisburseSubmit && !disburseRefNo" class="mt-1 text-[10px] font-bold text-rose-600">The reference number field is required.</p>
+                        </div>
+                    </div>
+
+                    <!-- ── LIVE BANK BALANCE & EXPENSE OUTFLOW ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
+                    <div x-show="disburseSourceType === 'bank'" class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Expense Outflow Analysis</span>
+                            </div>
+                            <div>
+                                <span x-show="isDisburseBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Sufficient Bank Balance</span>
+                                </span>
+                                <span x-show="!isDisburseBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Insufficient Funds: ₹<span x-text="numberFormat(getDisburseShortfall())"></span></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <!-- 1. Bank Account Balance & Post-Payment Balance -->
+                            <div class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">CURRENT BANK BALANCE</span>
+                                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </div>
+                                </div>
+                                <div class="font-mono font-black text-slate-900 text-xl sm:text-2xl mt-0.5" x-text="'₹ ' + numberFormat(getDisburseBankBalance())"></div>
+                                
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Post-Payment:</span>
+                                        <strong class="font-mono font-black text-base sm:text-lg" :class="getDisbursePostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getDisbursePostBankBalance())"></strong>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-50">
+                                        <span class="text-slate-500 font-semibold">Bank:</span>
+                                        <span class="font-black text-slate-900 text-xs sm:text-sm" x-text="disburseSelectedAccount?.bank_name || '-'"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. This Site Expense Remaining Balance -->
+                            <div class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">REMAINING VOUCHER BALANCE</span>
+                                    <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="font-mono font-black text-xl sm:text-2xl mt-0.5" :class="getDisburseRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹ ' + numberFormat(getDisburseRemaining())"></div>
+                                
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Current Due:</span>
+                                        <span class="font-mono font-black text-base sm:text-lg text-slate-800" x-text="'₹ ' + numberFormat(disburseExpense ? disburseExpense.balance_amount : 0)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-50">
+                                        <span class="text-slate-500 font-semibold">Voucher:</span>
+                                        <span class="font-mono font-black text-slate-900 text-xs sm:text-sm" x-text="disburseExpense ? disburseExpense.voucher_number : '-'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT REMARKS / AUDIT NOTES</label>
+                        <textarea name="remarks" rows="2" placeholder="e.g. Disbursed against site material delivery inspection..."
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
+                    </div>
+                </div>
+
+                <!-- Pinned Footer -->
+                <div class="p-3.5 px-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 flex-shrink-0">
+                    <button type="button" @click="disburseModalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>RELEASE PAYMENT &amp; PRINT VOUCHER</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

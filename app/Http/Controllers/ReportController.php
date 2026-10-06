@@ -4159,7 +4159,9 @@ class ReportController extends Controller
                 ->whereIn('status', ['Approved', 'approved', 'Paid', 'paid'])
                 ->get();
 
-            // Build a map: category_code → COA account_code via site_expense_categories safely
+            // Build a map: expense_category_code → COA account_code via site_expense_categories
+            // IMPORTANT: category_code column is often NULL in DB; codes like "SEC-2" are PHP-generated as "SEC-{id}"
+            // So we must build the map keyed by BOTH category_code (if set) AND "SEC-{id}" (always)
             $categoryCoaMap = [];
             try {
                 if (Schema::hasTable('site_expense_categories')) {
@@ -4168,12 +4170,24 @@ class ReportController extends Controller
                         : (Schema::hasColumn('site_expense_categories', 'coa_account_id') ? 'coa_account_id' : null);
 
                     if ($catCol) {
-                        $categoryCoaMap = DB::table('site_expense_categories')
+                        $catRows = DB::table('site_expense_categories')
                             ->join('chart_of_accounts', "site_expense_categories.{$catCol}", '=', 'chart_of_accounts.id')
                             ->whereNotNull("site_expense_categories.{$catCol}")
-                            ->pluck('chart_of_accounts.account_code', 'site_expense_categories.category_code')
-                            ->mapWithKeys(fn($coaCode, $catCode) => [(string)$catCode => (string)$coaCode])
-                            ->toArray();
+                            ->get([
+                                'site_expense_categories.id',
+                                'site_expense_categories.category_code',
+                                'chart_of_accounts.account_code as coa_code',
+                            ]);
+
+                        foreach ($catRows as $catRow) {
+                            $coaCode = (string) $catRow->coa_code;
+                            // Always add SEC-{id} key (covers auto-generated codes like "SEC-2")
+                            $categoryCoaMap['SEC-' . $catRow->id] = $coaCode;
+                            // Also add explicit category_code key if present
+                            if (!empty($catRow->category_code)) {
+                                $categoryCoaMap[(string) $catRow->category_code] = $coaCode;
+                            }
+                        }
                     }
                 }
             } catch (\Throwable $e) {
