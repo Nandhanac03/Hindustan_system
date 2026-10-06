@@ -200,6 +200,7 @@
                         <option value="LIABILITY" {{ request('account_type') === 'LIABILITY' ? 'selected' : '' }}>Liabilities</option>
                         <option value="REVENUE" {{ request('account_type') === 'REVENUE' ? 'selected' : '' }}>Revenue</option>
                         <option value="EXPENSE" {{ request('account_type') === 'EXPENSE' ? 'selected' : '' }}>Expenses</option>
+                        <option value="EQUITY" {{ request('account_type') === 'EQUITY' ? 'selected' : '' }}>EQUITY</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -263,9 +264,12 @@
                                 <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-extrabold text-[10px]">LIABILITY</span>
                             @elseif($acc->account_type === 'REVENUE')
                                 <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-extrabold text-[10px]">REVENUE</span>
-                            @else
+                           @elseif($acc->account_type === 'EXPENSE')
                                 <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full font-extrabold text-[10px]">EXPENSE</span>
+                            @else
+                                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-extrabold text-[10px]">EQUITY</span>
                             @endif
+                            
                         </td>
                         <td class="px-4 py-3.5 text-center">
                             <form action="{{ route('chart-of-accounts.toggle-status', $acc->id) }}" method="POST" class="inline">

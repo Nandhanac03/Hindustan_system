@@ -44,6 +44,8 @@ class ChartOfAccountController extends Controller
         $liabilityCount  = $all->where('account_type', 'LIABILITY')->count();
         $revenueCount    = $all->where('account_type', 'REVENUE')->count();
         $expenseCount    = $all->where('account_type', 'EXPENSE')->count();
+        $equityCount    = $all->where('account_type', 'EQUITY')->count();
+        
 
         $isLocked = \App\Models\AccountingSetting::isOpeningBalanceLocked();
 
@@ -54,6 +56,7 @@ class ChartOfAccountController extends Controller
             'liabilityCount',
             'revenueCount',
             'expenseCount',
+            'equityCount',
             'isLocked'
         ));
     }
@@ -63,7 +66,7 @@ class ChartOfAccountController extends Controller
         $validated = $request->validate([
             'account_code' => 'required|string|max:20|unique:chart_of_accounts,account_code',
             'account_name' => 'required|string|max:100',
-            'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE',
+            'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE,EQUITY',
             'opening_balance' => 'nullable|numeric|min:0',
             'opening_balance_type' => 'nullable|in:DR,CR',
             'is_active'    => 'nullable|boolean',
@@ -86,7 +89,7 @@ class ChartOfAccountController extends Controller
         $validated = $request->validate([
             'account_code' => 'required|string|max:20|unique:chart_of_accounts,account_code,' . $chartOfAccount->id,
             'account_name' => 'required|string|max:100',
-            'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE',
+            'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE,EQUITY',
             'opening_balance' => 'nullable|numeric|min:0',
             'opening_balance_type' => 'nullable|in:DR,CR',
             'is_active'    => 'nullable|boolean',
