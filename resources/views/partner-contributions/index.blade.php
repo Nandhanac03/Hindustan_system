@@ -403,6 +403,18 @@
                                 <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Remarks</label>
                                 <textarea name="remarks" x-model="modalForm.remarks" rows="1" placeholder="Partner contribution towards project development" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-3 py-1.5 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] transition resize-none"></textarea>
                             </div>
+
+                            <div class="col-span-1 md:col-span-2 mt-1">
+                                <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                                    <div class="pt-0.5">
+                                        <input type="checkbox" name="is_historical" x-model="modalForm.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Check this if recording a past transaction. The amount will not be added to the live company bank account balance.</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                     </div>
@@ -410,13 +422,15 @@
                     {{-- Live Bank Balance Summary Card (Matching Cheque Realization & Process Clearance UI) --}}
                     <div class="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-2 text-xs font-semibold shadow-2xs" x-show="selectedBankObj">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-600 font-bold">Selected Bank Account Balance (<span x-text="selectedBankObj ? (selectedBankObj.bank_name + (selectedBankObj.account_number ? ' ' + selectedBankObj.account_number : '')) : '—'"></span>)</span>
+                            <span class="text-slate-600 font-bold">Bank Account Balance (<span x-text="selectedBankObj ? (selectedBankObj.bank_name + (selectedBankObj.account_number ? ' ' + selectedBankObj.account_number : '')) : '—'"></span>)</span>
                             <span class="font-mono font-bold text-indigo-600" x-text="formatCurrency(selectedBankBalance)">₹ 0.00</span>
                         </div>
 
                         <div class="flex items-center justify-between">
                             <span class="text-slate-600 font-bold">Contribution Amount</span>
-                            <span class="font-mono font-bold text-emerald-600" x-text="'+ ' + formatCurrency(parsedModalAmount)">+ ₹ 0.00</span>
+                            <span class="font-mono font-bold text-emerald-600" 
+                                  :class="modalForm.is_historical ? 'line-through opacity-60 text-slate-400' : ''" 
+                                  x-text="'+ ' + formatCurrency(parsedModalAmount)">+ ₹ 0.00</span>
                         </div>
 
                         <div class="pt-2 border-t border-slate-200/90 flex items-center justify-between text-xs font-black">
@@ -611,6 +625,9 @@
                 },
 
                 get bankBalanceAfterContribution() {
+                    if (this.modalForm.is_historical) {
+                        return this.selectedBankBalance;
+                    }
                     return this.selectedBankBalance + this.parsedModalAmount;
                 },
 
@@ -646,7 +663,8 @@
                         company_bank_account_id: defaultBank,
                         payment_mode_id: defaultModeId,
                         reference_no: '',
-                        remarks: ''
+                        remarks: '',
+                        is_historical: false
                     };
                     this.modalBankDropdownOpen = false;
                     this.modalBankSearch = '';

@@ -136,9 +136,13 @@ class PartnerContributionController extends Controller
 
             $contribution = PartnerContribution::create($validated);
 
-            // Increment the company bank account balance with the contribution
+            $isHistorical = $request->boolean('is_historical');
+
+            // Always fetch the bank account (needed for voucher/journal creation)
             $bankAccount = CompanyBankAccount::lockForUpdate()->find($validated['company_bank_account_id']);
-            if ($bankAccount) {
+
+            // Only update live bank balance if NOT a historical entry
+            if (!$isHistorical && $bankAccount) {
                 $bankAccount->increment('current_balance', (float) $validated['amount']);
             }
 
@@ -224,7 +228,8 @@ class PartnerContributionController extends Controller
                 $partnerCode = (string)(3001 + ($partnerIndex !== false ? $partnerIndex : 0));
 
                 $requiredAccounts = [
-                    $partnerCode => ['name' => 'Partner ' . $partnerName . ' Capital Account', 'type' => 'EQUITY'],
+                    '3001' => ['name' => 'Share Capital', 'type' => 'EQUITY'],
+                    // $partnerCode => ['name' => 'Partner ' . $partnerName . ' Capital Account', 'type' => 'EQUITY'],
                     '1001'       => ['name' => 'Bank Balances', 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
