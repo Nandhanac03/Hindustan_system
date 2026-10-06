@@ -422,42 +422,59 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-1">
                     
-                    {{-- 1. Searchable Broker Filter (Custom Gold Popover) --}}
-                    <div class="relative" @click.outside="brokerFilterOpen = false">
-                        <div @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; statusFilterOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
-                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                             :class="brokerFilterOpen || selectedLedgerBrokerId ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                            <div class="flex items-center gap-2 truncate">
-                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="brokerFilterOpen || selectedLedgerBrokerId ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- 1. Searchable Broker Filter --}}
+                    <div class="relative w-full" @click.outside="brokerFilterOpen = false">
+                        <button type="button"
+                                @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; statusFilterOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="brokerFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
-                                <span class="truncate font-extrabold" :class="selectedLedgerBrokerId ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSelectedBrokerName()"></span>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedLedgerBrokerId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedBrokerName()">All Brokers</span>
                             </div>
-                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="brokerFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedLedgerBrokerId">
+                                    <span @click.stop="selectedLedgerBrokerId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="brokerFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
 
                         {{-- Broker Popover Menu --}}
-                        <div x-show="brokerFilterOpen" x-transition
-                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                        <div x-show="brokerFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
                              style="display: none;">
-                            <div class="p-2 bg-[#a38c29]/10 border-b border-[#a38c29]/20 sticky top-0 z-10">
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                    </div>
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     <input type="text"
                                            x-model="brokerFilterSearch"
                                            x-ref="brokerFilterSearchInput"
                                            placeholder="Search broker name..."
-                                           class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#a38c29]/40 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/30 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all">
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="brokerFilterOpen = false">
+                                    <template x-if="brokerFilterSearch">
+                                        <button type="button" @click="brokerFilterSearch = ''; $refs.brokerFilterSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
                                 </div>
                             </div>
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                                 <div @click="selectedLedgerBrokerId = ''; brokerFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                                     :class="!selectedLedgerBrokerId ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                     class="erp-dropdown-option"
+                                     :class="!selectedLedgerBrokerId ? 'selected-all' : ''">
                                     <span class="flex items-center gap-2">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                         <span>All Brokers</span>
@@ -466,8 +483,8 @@
                                 </div>
                                 <template x-for="b in getFilteredBrokersList(brokerFilterSearch)" :key="b.id">
                                     <div @click="selectedLedgerBrokerId = String(b.id); brokerFilterOpen = false"
-                                         class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                         :class="String(selectedLedgerBrokerId) === String(b.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                         class="erp-dropdown-option"
+                                         :class="String(selectedLedgerBrokerId) === String(b.id) ? 'selected' : ''">
                                         <span x-text="b.name"></span>
                                         <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-black shrink-0 ml-2"
                                               :class="String(selectedLedgerBrokerId) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
@@ -482,36 +499,51 @@
                         </div>
                     </div>
 
-                    {{-- 2. Project Filter (Custom Gold Popover - First Project Selected by Default) --}}
-                    <div class="relative" @click.outside="projectFilterOpen = false">
-                        <div @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; statusFilterOpen = false; }"
-                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                             :class="projectFilterOpen || selectedProjectId ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                            <div class="flex items-center gap-2 truncate">
-                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="projectFilterOpen || selectedProjectId ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- 2. Project Filter --}}
+                    <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                        <button type="button"
+                                @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; statusFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="projectFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
-                                <span class="truncate font-extrabold" :class="selectedProjectId ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSelectedProjectName()"></span>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedProjectName()">All Projects</span>
                             </div>
-                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="projectFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedProjectId">
+                                    <span @click.stop="selectedProjectId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
 
                         {{-- Project Popover Menu --}}
-                        <div x-show="projectFilterOpen" x-transition
-                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                        <div x-show="projectFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
                              style="display: none;">
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                                 <div @click="selectedProjectId = ''; projectFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                                     :class="!selectedProjectId ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                     class="erp-dropdown-option"
+                                     :class="!selectedProjectId ? 'selected-all' : ''">
                                     <span>All Projects</span>
                                 </div>
                                 @foreach($projects as $proj)
                                     <div @click="selectedProjectId = '{{ $proj->id }}'; projectFilterOpen = false"
-                                         class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                         :class="String(selectedProjectId) === '{{ $proj->id }}' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                         class="erp-dropdown-option"
+                                         :class="String(selectedProjectId) === '{{ $proj->id }}' ? 'selected' : ''">
                                         <span>{{ $proj->name }}</span>
                                     </div>
                                 @endforeach
@@ -519,45 +551,60 @@
                         </div>
                     </div>
 
-                    {{-- 3. Status Filter (Custom Gold Popover - Theme Color without blue browser dropdown) --}}
-                    <div class="relative" @click.outside="statusFilterOpen = false">
-                        <div @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
-                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                             :class="statusFilterOpen || selectedStatus ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                            <div class="flex items-center gap-2 truncate">
-                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="statusFilterOpen || selectedStatus ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- 3. Status Filter --}}
+                    <div class="relative w-full" @click.outside="statusFilterOpen = false">
+                        <button type="button"
+                                @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="statusFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                <span class="truncate font-extrabold" :class="selectedStatus ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSelectedStatusName()"></span>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedStatusName()">All Statuses</span>
                             </div>
-                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="statusFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
 
-                        {{-- Status Popover Menu (Golden theme) --}}
-                        <div x-show="statusFilterOpen" x-transition
-                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedStatus">
+                                    <span @click.stop="selectedStatus = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Status Popover Menu --}}
+                        <div x-show="statusFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
                              style="display: none;">
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                                 <div @click="selectedStatus = ''; statusFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                                     :class="!selectedStatus ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                     class="erp-dropdown-option"
+                                     :class="!selectedStatus ? 'selected-all' : ''">
                                     <span>All Statuses (Pending, Partial, Fully Paid)</span>
                                 </div>
                                 <div @click="selectedStatus = 'pending'; statusFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                     :class="selectedStatus === 'pending' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                     class="erp-dropdown-option"
+                                     :class="selectedStatus === 'pending' ? 'selected' : ''">
                                     <span>Pending (Unpaid / Payable Share)</span>
                                 </div>
                                 <div @click="selectedStatus = 'partial'; statusFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                     :class="selectedStatus === 'partial' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                     class="erp-dropdown-option"
+                                     :class="selectedStatus === 'partial' ? 'selected' : ''">
                                     <span>Partially Paid</span>
                                 </div>
                                 <div @click="selectedStatus = 'paid'; statusFilterOpen = false"
-                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                     :class="selectedStatus === 'paid' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                     class="erp-dropdown-option"
+                                     :class="selectedStatus === 'paid' ? 'selected' : ''">
                                     <span>Fully Paid / Disbursed</span>
                                 </div>
                             </div>
@@ -569,8 +616,8 @@
                 {{-- Reset Filters Button --}}
                 <div class="shrink-0 flex items-center">
                     <button type="button" @click="resetFilters()"
-                            class="h-[38px] px-5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group active:scale-95">
-                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>RESET FILTERS</span>
                     </button>
                 </div>
@@ -610,16 +657,16 @@
 
         <div class="overflow-x-auto">
             <table class="ledger-print-table w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-left">
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap">BOOKING & DATE</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap">PROPERTY / PROJECT</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap">BROKER / AGENT</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap">NET SALE VALUE</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap min-w-[170px]">SALE EMI PROGRESS</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] whitespace-nowrap">COMMISSION</th>
-                        <th class="py-3.5 px-4 border-r border-[#8a7522] text-center whitespace-nowrap min-w-[180px]">COMMISSION STATUS</th>
-                        <th class="py-3.5 px-4 text-center border-r border-[#8a7522] col-action print:hidden whitespace-nowrap">ACTION</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap">BOOKING & DATE</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap">PROPERTY / PROJECT</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap">BROKER / AGENT</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap">NET SALE VALUE</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap min-w-[170px]">SALE EMI PROGRESS</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header whitespace-nowrap">COMMISSION</th>
+                        <th class="py-3.5 px-4 border-r border-slate-600 erp-table-header text-center whitespace-nowrap min-w-[180px]">COMMISSION STATUS</th>
+                        <th class="py-3.5 px-4 text-center border-r border-slate-600 col-action print:hidden whitespace-nowrap erp-table-header">ACTION</th>
                     </tr>
                 </thead>
                 <template x-for="deal in filteredDeals()" :key="deal.id">
@@ -737,16 +784,16 @@
                                             <svg class="w-4 h-4 text-[#a38c29] shrink-0" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             Detailed Transaction Log — <span x-text="deal.sale_number"></span> (<span x-text="deal.broker_name"></span>)
                                         </h4>
-                                        <div class="overflow-hidden rounded-lg border border-[#a38c29]/30 bg-white shadow-sm">
+                                        <div class="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm">
                                             <table class="w-full text-left border-collapse">
-                                                <thead class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white border-b border-[#8a7522] text-[9px] font-black uppercase tracking-wider">
-                                                    <tr>
-                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-200/50">Date</th>
-                                                        <th class="px-4 py-2.5 border-r border-slate-200/50">Event Details</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Debit (Claim)</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Credit (Paid)</th>
-                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-200/50">Balance Due</th>
-                                                        <th class="px-2 py-2.5 text-center w-[60px] whitespace-nowrap">Action</th>
+                                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-600 erp-table-header">Date</th>
+                                                        <th class="px-4 py-2.5 border-r border-slate-600 erp-table-header">Event Details</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-blue-100 erp-table-header">Debit (Claim)</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-emerald-100 erp-table-header">Credit (Paid)</th>
+                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-600 text-rose-100 erp-table-header">Balance Due</th>
+                                                        <th class="px-2 py-2.5 text-center w-[60px] whitespace-nowrap erp-table-header">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-slate-100 text-slate-700">

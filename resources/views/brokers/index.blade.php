@@ -39,46 +39,65 @@
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
             
-            {{-- 1. Searchable Broker Filter (Golden Theme Styling) --}}
-            <div class="relative" @click.outside="brokerFilterOpen = false">
-                <div @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; sortOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
-                     class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                     :class="brokerFilterOpen || brokerId ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                    <div class="flex items-center gap-2 truncate">
-                        <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="brokerFilterOpen || brokerId ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- 1. Searchable Broker Filter --}}
+            <div class="relative w-full" @click.outside="brokerFilterOpen = false">
+                <button type="button"
+                        @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; sortOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
+                        class="erp-dropdown-trigger"
+                        :class="brokerFilterOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        <span class="truncate font-extrabold" :class="brokerId ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSelectedBrokerName()"></span>
+                        <span class="truncate text-xs font-bold"
+                              :class="brokerId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSelectedBrokerName()">All Brokers</span>
                     </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="brokerFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </div>
 
-                {{-- Search Popover (Theme Golden Style) --}}
-                <div x-show="brokerFilterOpen" x-transition
-                     class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="brokerId">
+                            <span @click.stop="selectBroker('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="brokerFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                {{-- Search Popover --}}
+                <div x-show="brokerFilterOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover"
                      style="display: none;">
                     
                     {{-- Search Header --}}
-                    <div class="p-2 bg-[#a38c29]/10 border-b border-[#a38c29]/20 sticky top-0 z-10">
+                    <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </div>
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
                             <input type="text"
                                    x-model="brokerFilterSearch"
                                    x-ref="brokerFilterSearchInput"
                                    placeholder="Search broker name..."
-                                   class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#a38c29]/40 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/30 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all">
+                                   class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                   @keydown.escape="brokerFilterOpen = false">
+                            <template x-if="brokerFilterSearch">
+                                <button type="button" @click="brokerFilterSearch = ''; $refs.brokerFilterSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                            </template>
                         </div>
                     </div>
 
                     {{-- Broker Options List --}}
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                         <div @click="selectBroker('')"
-                             class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                             :class="!brokerId ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                             class="erp-dropdown-option"
+                             :class="!brokerId ? 'selected-all' : ''">
                             <span class="flex items-center gap-2">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                 <span>All Brokers</span>
@@ -88,8 +107,8 @@
                         
                         <template x-for="b in filteredBrokers" :key="b.id">
                             <div @click="selectBroker(String(b.id))"
-                                 class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                 :class="String(brokerId) === String(b.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                 class="erp-dropdown-option"
+                                 :class="String(brokerId) === String(b.id) ? 'selected' : ''">
                                 <span x-text="b.name"></span>
                                 <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-black shrink-0 ml-2"
                                       :class="String(brokerId) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
@@ -105,36 +124,51 @@
                 </div>
             </div>
 
-            {{-- 2. Project Filter (Custom Gold Popover - First Project Selected by Default) --}}
-            <div class="relative" @click.outside="projectFilterOpen = false">
-                <div @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; sortOpen = false; }"
-                     class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                     :class="projectFilterOpen || projectId ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                    <div class="flex items-center gap-2 truncate">
-                        <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="projectFilterOpen || projectId ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- 2. Project Filter --}}
+            <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                <button type="button"
+                        @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; sortOpen = false; }"
+                        class="erp-dropdown-trigger"
+                        :class="projectFilterOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        <span class="truncate font-extrabold" :class="projectId ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSelectedProjectName()"></span>
+                        <span class="truncate text-xs font-bold"
+                              :class="projectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSelectedProjectName()">All Projects</span>
                     </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="projectFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="projectId">
+                            <span @click.stop="selectProject('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
 
                 {{-- Project Popover Menu --}}
-                <div x-show="projectFilterOpen" x-transition
-                     class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                <div x-show="projectFilterOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover"
                      style="display: none;">
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                         <div @click="selectProject('')"
-                             class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                             :class="!projectId ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                             class="erp-dropdown-option"
+                             :class="!projectId ? 'selected-all' : ''">
                             <span>All Projects</span>
                         </div>
                         <template x-for="p in projectsList" :key="p.id">
                             <div @click="selectProject(String(p.id))"
-                                 class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                                 :class="String(projectId) === String(p.id) ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                 class="erp-dropdown-option"
+                                 :class="String(projectId) === String(p.id) ? 'selected' : ''">
                                 <span x-text="p.name"></span>
                             </div>
                         </template>
@@ -142,50 +176,59 @@
                 </div>
             </div>
 
-            {{-- 3. Custom Gold Sort By Dropdown --}}
-            <div class="relative" @click.outside="sortOpen = false">
-                <div @click="sortOpen = !sortOpen; if(sortOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
-                     class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
-                     :class="sortOpen || sortBy ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
-                    <div class="flex items-center gap-2 truncate">
-                        <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="sortOpen || sortBy ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{-- 3. Sort By Dropdown --}}
+            <div class="relative w-full" @click.outside="sortOpen = false">
+                <button type="button"
+                        @click="sortOpen = !sortOpen; if(sortOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
+                        class="erp-dropdown-trigger"
+                        :class="sortOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
                         </svg>
-                        <span class="truncate font-extrabold" :class="sortBy ? 'text-[#8a7522]' : 'text-slate-900'" x-text="getSortLabel()"></span>
+                        <span class="truncate text-xs font-bold"
+                              :class="sortBy ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSortLabel()">Sort by Name (A-Z)</span>
                     </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="sortOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200 shrink-0 ml-2" :class="sortOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                </div>
+                </button>
 
                 {{-- Sort Popover Menu --}}
-                <div x-show="sortOpen" x-transition
-                     class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                <div x-show="sortOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover"
                      style="display: none;">
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                         <div @click="selectSort('')"
-                             class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
-                             :class="!sortBy ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                             class="erp-dropdown-option"
+                             :class="!sortBy ? 'selected-all' : ''">
                             <span>Sort by Name (A-Z)</span>
                         </div>
                         <div @click="selectSort('deals_desc')"
-                             class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                             :class="sortBy === 'deals_desc' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                             class="erp-dropdown-option"
+                             :class="sortBy === 'deals_desc' ? 'selected' : ''">
                             <span>Deals Count (High to Low)</span>
                         </div>
                         <div @click="selectSort('accrued_desc')"
-                             class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                             :class="sortBy === 'accrued_desc' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                             class="erp-dropdown-option"
+                             :class="sortBy === 'accrued_desc' ? 'selected' : ''">
                             <span>Accrued Commission (High to Low)</span>
                         </div>
                         <div @click="selectSort('payable_desc')"
-                             class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                             :class="sortBy === 'payable_desc' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                             class="erp-dropdown-option"
+                             :class="sortBy === 'payable_desc' ? 'selected' : ''">
                             <span>Payable Commission (High to Low)</span>
                         </div>
                         <div @click="selectSort('rate_desc')"
-                             class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
-                             :class="sortBy === 'rate_desc' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                             class="erp-dropdown-option"
+                             :class="sortBy === 'rate_desc' ? 'selected' : ''">
                             <span>Default Rate (High to Low)</span>
                         </div>
                     </div>
@@ -195,13 +238,13 @@
 
         <div class="flex items-center gap-2 flex-shrink-0">
             <button type="button" @click="resetFilters()"
-               class="h-[38px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+               class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset</span>
             </button>
             <button type="button" @click="openRegister = true"
-                    class="h-[38px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] px-5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 h-[38px] text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
+                <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>Add Broker</span>
             </button>
         </div>
@@ -272,21 +315,20 @@
     {{-- Registered Brokers Section --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
         <style>
-            #brokers-table thead th { border-color: #8a7522 !important; }
             #brokers-tbody tr:nth-child(even) { background-color: #F6F3E9 !important; }
             #brokers-tbody tr:hover { background-color: #ebe5d0 !important; }
         </style>
         <div class="overflow-x-auto">
             <table id="brokers-table" class="w-full text-xs text-left min-w-[1000px] border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Broker</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Default Rate</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Deals Closed</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Accrued (Locked)</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Payable (Unlocked)</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Paid Out</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
+                <thead class="erp-table-header text-white uppercase tracking-wider text-[10px] font-bold">
+                    <tr class="erp-table-header border-b border-slate-700 text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-left">Broker</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-center">Default Rate</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-center">Deals Closed</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-right">Accrued (Locked)</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-right">Payable (Unlocked)</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-right">Paid Out</th>
+                        <th class="px-3 py-3 border border-slate-600 erp-table-header sticky top-0 shadow-sm text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="brokers-tbody" class="divide-y divide-slate-100">
