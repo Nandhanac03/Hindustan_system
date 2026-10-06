@@ -30,26 +30,40 @@ class BrokerController extends Controller
         $systemId = Auth::user()->system_id;
         $this->syncCommissions($systemId);
 
-        $query = Broker::where('system_id', $systemId)
-            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.project'])
-            ->orderBy('name');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('name', 'like', "%{$search}%");
+        $projects = Project::where('is_active', true)->orderBy('name')->get();
+        if ($projects->isEmpty()) {
+            $projects = Project::orderBy('name')->get();
         }
 
-        $brokers = $query->get();
+        // If project_id is not explicitly provided in request, default to first project
+        $selectedProjectId = $request->has('project_id') ? (string)$request->project_id : ($projects->first()?->id ? (string)$projects->first()->id : '');
+
+        $allBrokers = Broker::where('system_id', $systemId)
+            ->orderBy('name')
+            ->get();
+
+        $brokers = Broker::where('system_id', $systemId)
+            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.unit', 'brokerages.sale.project'])
+            ->orderBy('name')
+            ->get();
 
         foreach ($brokers as $broker) {
-            $broker->total_deals = $broker->brokerages->count();
-            $broker->total_sale_value = $broker->brokerages->sum(fn($b) => $b->sale->total_amount ?? 0);
+            $matchingBrokerages = $broker->brokerages->filter(function ($entry) use ($selectedProjectId) {
+                if ($selectedProjectId === '' || $selectedProjectId === null) {
+                    return true;
+                }
+                $saleProjId = $entry->sale?->project_id ?? $entry->sale?->unit?->project_id;
+                return (string)$saleProjId === (string)$selectedProjectId;
+            });
+
+            $broker->total_deals = $matchingBrokerages->count();
+            $broker->total_sale_value = $matchingBrokerages->sum(fn($b) => $b->sale->total_amount ?? 0);
             
             $accrued = 0.0;
             $payable = 0.0;
             $paid = 0.0;
-
-            foreach ($broker->brokerages as $entry) {
+            
+            foreach ($matchingBrokerages as $entry) {
                 $commAmt = (float)$entry->commission_amount;
                 $paidAmt = (float)$entry->paid_amount;
 
@@ -84,78 +98,10 @@ class BrokerController extends Controller
             }
         }
 
-        return view('brokers.index', compact('brokers'));
+        return view('brokers.index', compact('brokers', 'allBrokers', 'projects', 'selectedProjectId'));
     }
 
-    public function commissionLedger(Request $request): View
-    {
-        $systemId = Auth::user()->system_id;
-        $this->syncCommissions($systemId);
 
-        $brokers = Broker::where('system_id', $systemId)
-            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.project'])
-            ->orderBy('name')
-            ->get();
-
-        foreach ($brokers as $broker) {
-            $accrued = 0.0;
-            $payable = 0.0;
-            $paid = 0.0;
-
-            foreach ($broker->brokerages as $entry) {
-                $commAmt = (float)$entry->commission_amount;
-                $paidAmt = (float)$entry->paid_amount;
-
-                $paid += $paidAmt;
-
-                $remaining = max(0.0, $commAmt - $paidAmt);
-
-                if ($entry->status === 'pending' && $paidAmt <= 0) {
-                    $accrued += $remaining;
-                } elseif ($remaining > 0) {
-                    $payable += $remaining;
-                }
-            }
-
-            $broker->accrued_commission = $accrued;
-            $broker->payable_commission = $payable;
-            $broker->paid_commission = $paid;
-        }
-
-        // Summary totals across all brokers
-        $totalAccrued = $brokers->sum('accrued_commission');
-        $totalPayable = $brokers->sum('payable_commission');
-        $totalPaid = $brokers->sum('paid_commission');
-        $totalCommission = $totalAccrued + $totalPayable + $totalPaid;
-
-        // Fetch recent deals/transactions with broker visibility
-        $dealsQuery = Brokerage::whereHas('broker', function ($q) use ($systemId) {
-                $q->where('system_id', $systemId);
-            })
-            ->with(['broker', 'sale.project', 'sale.customer', 'sale.unit']);
-
-        if ($request->filled('broker_id')) {
-            $dealsQuery->where('broker_id', $request->broker_id);
-        }
-        if ($request->filled('project_id')) {
-            $dealsQuery->whereHas('sale', function ($q) use ($request) {
-                $q->where('project_id', $request->project_id);
-            });
-        }
-
-        $deals = $dealsQuery->latest()->paginate(15);
-        $projects = Project::where('is_active', true)->get();
-
-        return view('brokers.commission-ledger', compact(
-            'brokers',
-            'deals',
-            'projects',
-            'totalCommission',
-            'totalAccrued',
-            'totalPayable',
-            'totalPaid'
-        ));
-    }
 
     public function store(Request $request): RedirectResponse
     {
@@ -240,6 +186,253 @@ class BrokerController extends Controller
 
         return redirect()->back()
             ->with('status', "Broker '{$brokerName}' deleted successfully.");
+    }
+
+    public function commissionLedger(Request $request): View
+    {
+        $systemId = Auth::user()->system_id;
+        $this->syncCommissions($systemId);
+
+        $brokers = Broker::where('system_id', $systemId)
+            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.unit', 'brokerages.sale.project'])
+            ->orderBy('name')
+            ->get();
+
+        $projects = Project::where('is_active', true)->orderBy('name')->get();
+
+        $companyBankAccounts = CompanyBankAccount::where('status', 'active')
+            ->orderByDesc('is_default')
+            ->orderBy('bank_name')
+            ->get();
+
+        $paymentModes = PaymentMode::where('status', 'active')
+            ->orderByRaw("CASE WHEN code = 'BANK_TRANSFER' OR name LIKE '%Bank Transfer%' THEN 0 ELSE 1 END, id ASC")
+            ->get();
+
+        $allDeals = collect();
+        $allLedgerEntries = collect();
+        $totalCommissionAccrued = 0.0;
+        $totalDisbursementsReleased = 0.0;
+
+        $brokerAccountIds = $brokers->pluck('linked_account_id')->filter()->unique()->toArray();
+
+        $vouchers = \App\Models\Voucher::where('system_id', $systemId)
+            ->where('type', 'Payment')
+            ->where(function ($q) use ($brokerAccountIds) {
+                $q->where('voucher_number', 'LIKE', 'PV-BROKER-%')
+                  ->orWhere('narration', 'LIKE', '%Commission payout%')
+                  ->orWhere('narration', 'LIKE', '%Broker%');
+                if (!empty($brokerAccountIds)) {
+                    $q->orWhereHas('lines', function ($lq) use ($brokerAccountIds) {
+                        $lq->whereIn('account_id', $brokerAccountIds);
+                    });
+                }
+            })
+            ->with(['companyBankAccount', 'lines'])
+            ->get();
+
+        // 1. Collect Broker Commission Allocations (Deals)
+        foreach ($brokers as $broker) {
+            foreach ($broker->brokerages as $entry) {
+                $sale = $entry->sale;
+                $claimDate = $sale?->sale_date ? \Carbon\Carbon::parse($sale->sale_date) : $entry->created_at;
+                $saleNo = $sale?->sale_number ?? ('COMM-#' . $entry->id);
+                $unitDoor = $sale?->unit?->door_no ? ($sale->unit->door_no) : '';
+                $customerName = $sale?->customer?->name ?? 'Customer';
+                $projectName = $sale?->project?->name ?? ($sale?->unit?->project?->name ?? 'Tabasco Project');
+                $dealAmount = (float)($sale?->total_amount ?? 0);
+                $remainingBalance = (float)($sale?->remaining_balance ?? 0);
+                $collectedAmount = max(0.0, $dealAmount - $remainingBalance);
+                $collectedPct = $dealAmount > 0 ? (int)round(($collectedAmount / $dealAmount) * 100) : 0;
+
+                $commPct = (float)($entry->commission_percent ?? $broker->default_commission_pct ?? 0);
+                $commAmount = (float)$entry->commission_amount;
+                $paidAmount = (float)$entry->paid_amount;
+                $balanceDue = max(0.0, $commAmount - $paidAmount);
+                $payoutPct = $commAmount > 0 ? (int)min(100, round(($paidAmount / $commAmount) * 100)) : 0;
+
+                $status = $entry->status ?? 'pending';
+                if ($paidAmount >= $commAmount - 0.01 && $commAmount > 0) {
+                    $status = 'paid';
+                } elseif ($paidAmount > 0) {
+                    $status = 'partial';
+                }
+
+                $particulars = "Brokerage Commission for Sale #{$saleNo}" . ($projectName ? " ({$projectName}" . ($unitDoor ? " - Unit {$unitDoor}" : "") . " - {$customerName})" : "");
+
+                $totalCommissionAccrued += $commAmount;
+
+                $dealEntries = [];
+
+                // Claim Entry
+                $claimEntry = [
+                    'id'                 => 'comm_' . $entry->id,
+                    'type'               => 'CLAIM',
+                    'type_label'         => 'Commission Allocated',
+                    'date'               => $claimDate->format('Y-m-d'),
+                    'date_formatted'     => $claimDate->format('d/m/Y'),
+                    'broker_id'          => $broker->id,
+                    'broker_name'        => $broker->name,
+                    'project_id'         => $sale?->project_id,
+                    'project_name'       => $projectName,
+                    'unit_name'          => $unitDoor ? "Unit {$unitDoor}" : '',
+                    'customer_name'      => $customerName,
+                    'deal_value'         => $dealAmount,
+                    'commission_percent' => $commPct,
+                    'ref_no'             => $saleNo,
+                    'particulars'        => $particulars,
+                    'gross_amount'       => $commAmount,
+                    'net_approved'       => $commAmount,
+                    'paid_amount'        => 0.0,
+                    'running_balance'    => $commAmount,
+                    'status'             => $status,
+                    'entry_id'           => $entry->id,
+                    'jv_id'              => null,
+                    'voucher_id'         => null,
+                    'company_bank_account_name' => null,
+                    'payment_mode'       => null,
+                ];
+
+                $dealEntries[] = $claimEntry;
+                $allLedgerEntries->push($claimEntry);
+
+                // Find matching vouchers for this specific deal
+                $matchedVouchers = $vouchers->filter(function($v) use ($saleNo) {
+                    return (stripos($v->narration ?? '', $saleNo) !== false);
+                });
+
+                $dealRunningBalance = $commAmount;
+
+                foreach ($matchedVouchers as $v) {
+                    $debitAmount = (float)$v->lines->where('debit', '>', 0)->sum('debit');
+                    if ($debitAmount <= 0 && preg_match('/₹\s*([\d,\.]+)/u', $v->narration ?? '', $amtMatch)) {
+                        $debitAmount = (float)str_replace(',', '', $amtMatch[1]);
+                    }
+                    if ($debitAmount <= 0) {
+                        $debitAmount = (float)$v->lines->sum('credit');
+                    }
+
+                    $paymentMode = 'Bank Transfer';
+                    if (preg_match('/\[Mode:\s*([^\]]+)\]/i', $v->narration ?? '', $pmMatch)) {
+                        $paymentMode = trim($pmMatch[1]);
+                    } elseif (stripos($v->narration ?? '', 'cheque') !== false) {
+                        $paymentMode = 'Cheque';
+                    } elseif (stripos($v->narration ?? '', 'cash') !== false) {
+                        $paymentMode = 'Cash';
+                    } elseif (stripos($v->narration ?? '', 'upi') !== false) {
+                        $paymentMode = 'UPI / Online';
+                    }
+
+                    $vDate = $v->date ? \Carbon\Carbon::parse($v->date) : $v->created_at;
+                    $dealRunningBalance = max(0.0, $dealRunningBalance - $debitAmount);
+
+                    $vEntry = [
+                        'id'                 => 'vouch_' . $v->id,
+                        'type'               => 'DISBURSEMENT',
+                        'type_label'         => 'Payment Released',
+                        'date'               => $vDate->format('Y-m-d'),
+                        'date_formatted'     => $vDate->format('d/m/Y'),
+                        'broker_id'          => $broker->id,
+                        'broker_name'        => $broker->name,
+                        'project_id'         => $sale?->project_id,
+                        'project_name'       => $projectName,
+                        'unit_name'          => $unitDoor ? "Unit {$unitDoor}" : '',
+                        'customer_name'      => $customerName,
+                        'deal_value'         => $dealAmount,
+                        'commission_percent' => $commPct,
+                        'ref_no'             => $v->reference_no ?: $v->voucher_number,
+                        'particulars'        => $v->narration ?: ("Commission Payout Released to {$broker->name}"),
+                        'gross_amount'       => 0.0,
+                        'net_approved'       => 0.0,
+                        'paid_amount'        => $debitAmount,
+                        'running_balance'    => $dealRunningBalance,
+                        'status'             => 'paid',
+                        'entry_id'           => $entry->id,
+                        'payment_id'         => $v->id,
+                        'voucher_id'         => $v->id,
+                        'company_bank_account_name' => $v->companyBankAccount?->bank_name ?? 'Source Bank Account',
+                        'payment_mode'       => $paymentMode,
+                    ];
+
+                    $dealEntries[] = $vEntry;
+                    $allLedgerEntries->push($vEntry);
+                }
+
+                // If deal has paid_amount > 0 but no specific voucher matched, add recorded payment entry
+                if ($paidAmount > 0 && $matchedVouchers->isEmpty()) {
+                    $dealRunningBalance = max(0.0, $dealRunningBalance - $paidAmount);
+                    $dealEntries[] = [
+                        'id'                 => 'deal_paid_' . $entry->id,
+                        'type'               => 'DISBURSEMENT',
+                        'type_label'         => 'Payment Released',
+                        'date'               => $entry->updated_at ? $entry->updated_at->format('Y-m-d') : now()->format('Y-m-d'),
+                        'date_formatted'     => $entry->updated_at ? $entry->updated_at->format('d/m/Y') : now()->format('d/m/Y'),
+                        'broker_id'          => $broker->id,
+                        'broker_name'        => $broker->name,
+                        'project_id'         => $sale?->project_id,
+                        'project_name'       => $projectName,
+                        'unit_name'          => $unitDoor ? "Unit {$unitDoor}" : '',
+                        'customer_name'      => $customerName,
+                        'deal_value'         => $dealAmount,
+                        'commission_percent' => $commPct,
+                        'ref_no'             => 'PV-COMM-' . $entry->id,
+                        'particulars'        => "Commission Payout Released for Sale #{$saleNo}",
+                        'gross_amount'       => 0.0,
+                        'net_approved'       => 0.0,
+                        'paid_amount'        => $paidAmount,
+                        'running_balance'    => $dealRunningBalance,
+                        'status'             => 'paid',
+                        'entry_id'           => $entry->id,
+                        'voucher_id'         => null,
+                        'company_bank_account_name' => 'Bank Transfer',
+                        'payment_mode'       => 'Bank Transfer',
+                    ];
+                }
+
+                $totalDisbursementsReleased += $paidAmount;
+
+                $allDeals->push([
+                    'id'                    => $entry->id,
+                    'sale_id'               => $sale?->id,
+                    'broker_id'             => $broker->id,
+                    'broker_name'           => $broker->name,
+                    'project_id'            => $sale?->project_id,
+                    'project_name'          => $projectName,
+                    'unit_name'             => $unitDoor,
+                    'customer_name'         => $customerName,
+                    'sale_number'           => $saleNo,
+                    'sale_date'             => $claimDate->format('Y-m-d'),
+                    'sale_date_formatted'   => $claimDate->format('d M Y'),
+                    'net_sale_value'        => $dealAmount,
+                    'sale_remaining_balance'=> $remainingBalance,
+                    'sale_collected_pct'    => $collectedPct,
+                    'commission_percent'    => $commPct,
+                    'commission_amount'     => $commAmount,
+                    'paid_amount'           => $paidAmount,
+                    'balance_due'           => $balanceDue,
+                    'payout_pct'            => $payoutPct,
+                    'status'                => $status,
+                    'entries'               => $dealEntries,
+                ]);
+            }
+        }
+
+        $allDeals = $allDeals->sortByDesc('sale_date')->values();
+        $allLedgerEntries = $allLedgerEntries->sortBy('date')->values();
+
+        $totalOutstandingBalance = max(0.0, $totalCommissionAccrued - $totalDisbursementsReleased);
+
+        return view('brokers.commission-ledger', compact(
+            'brokers',
+            'projects',
+            'companyBankAccounts',
+            'paymentModes',
+            'allDeals',
+            'allLedgerEntries',
+            'totalCommissionAccrued',
+            'totalDisbursementsReleased',
+            'totalOutstandingBalance'
+        ));
     }
 
     public function payableReport(Request $request): View
