@@ -10,7 +10,13 @@
     filterPaymentSource: '{{ request('payment_source', '') }}',
     filterPaymentMode: '{{ request('payment_mode', '') }}',
     filterStatusTab: '{{ request('status', 'all') }}',
+    projectFilterOpen: false,
+    categoryFilterOpen: false,
+    sourceFilterOpen: false,
+    modeFilterOpen: false,
+    projectNames: {{ json_encode($projects->pluck('name', 'id')) }},
     categoryNames: {{ json_encode($expenseCategories) }},
+    bankSourceNames: {{ json_encode($bankAccounts->mapWithKeys(fn($b) => [$b->id => $b->bank_name . ($b->account_name ? ' ('.$b->account_name.')' : '')])) }},
     counts: {
         all: {{ $tabCounts['all'] ?? count($siteExpenses) }},
         draft: {{ $tabCounts['draft'] ?? 0 }},
@@ -18,6 +24,46 @@
         approved: {{ $tabCounts['approved'] ?? 0 }},
         rejected: {{ $tabCounts['rejected'] ?? 0 }},
         posted: {{ $tabCounts['posted'] ?? 0 }},
+    },
+
+    selectProjectFilter(id) {
+        this.filterProjectId = id;
+        this.projectFilterOpen = false;
+        this.applyExpenseFilters();
+    },
+    getProjectFilterLabel() {
+        if (!this.filterProjectId) return 'All Projects';
+        return (this.projectNames && this.projectNames[this.filterProjectId]) ? this.projectNames[this.filterProjectId] : 'Project';
+    },
+
+    selectCategoryFilter(code) {
+        this.filterCategoryCode = code;
+        this.categoryFilterOpen = false;
+        this.applyExpenseFilters();
+    },
+    getCategoryFilterLabel() {
+        if (!this.filterCategoryCode) return 'All Categories';
+        return (this.categoryNames && this.categoryNames[this.filterCategoryCode]) ? this.categoryNames[this.filterCategoryCode] : 'Category';
+    },
+
+    selectSourceFilter(id) {
+        this.filterPaymentSource = id;
+        this.sourceFilterOpen = false;
+        this.applyExpenseFilters();
+    },
+    getSourceFilterLabel() {
+        if (!this.filterPaymentSource) return 'All Sources';
+        return (this.bankSourceNames && this.bankSourceNames[this.filterPaymentSource]) ? this.bankSourceNames[this.filterPaymentSource] : 'Source';
+    },
+
+    selectModeFilter(mode) {
+        this.filterPaymentMode = mode;
+        this.modeFilterOpen = false;
+        this.applyExpenseFilters();
+    },
+    getModeFilterLabel() {
+        if (!this.filterPaymentMode) return 'All Modes';
+        return this.filterPaymentMode;
     },
 
     init() {
@@ -98,6 +144,10 @@
         this.filterPaymentSource = '';
         this.filterPaymentMode = '';
         this.filterStatusTab = 'all';
+        this.projectFilterOpen = false;
+        this.categoryFilterOpen = false;
+        this.sourceFilterOpen = false;
+        this.modeFilterOpen = false;
         this.applyExpenseFilters();
     },
 
@@ -674,86 +724,237 @@
                 {{-- Filter Select Dropdowns Grid with Gold Theme Icons Inside Boxes --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     
-                    {{-- 1. Project Filter --}}
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Project</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
-                                <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                    {{-- 1. Project Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                        <button type="button"
+                                @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { categoryFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="projectFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getProjectFilterLabel()">All Projects</span>
                             </div>
-                            <select x-model="filterProjectId" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterProjectId && {{ $projects->count() }} > 1">
+                                    <span @click.stop="selectProjectFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Project Popover Menu --}}
+                        <div x-show="projectFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                                 @if($projects->count() > 1)
-                                    <option value="">All Projects</option>
+                                    <div @click="selectProjectFilter('')"
+                                         class="erp-dropdown-option"
+                                         :class="!filterProjectId ? 'selected-all' : ''">
+                                        <span>All Projects</span>
+                                    </div>
                                 @endif
                                 @foreach($projects as $proj)
-                                    <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || request('project_id') == $proj->id) ? 'selected' : '' }}>
-                                        {{ $proj->name }}
-                                    </option>
+                                    <div @click="selectProjectFilter('{{ $proj->id }}')"
+                                         class="erp-dropdown-option"
+                                         :class="String(filterProjectId) === '{{ $proj->id }}' ? 'selected' : ''">
+                                        <span>{{ $proj->name }}</span>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 2. Category Filter --}}
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Category</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
-                                <i data-lucide="layers" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                    {{-- 2. Category Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="categoryFilterOpen = false">
+                        <button type="button"
+                                @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { projectFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="categoryFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterCategoryCode ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getCategoryFilterLabel()">All Categories</span>
                             </div>
-                            <select x-model="filterCategoryCode" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                                <option value="">All Categories</option>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterCategoryCode">
+                                    <span @click.stop="selectCategoryFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Category Popover Menu --}}
+                        <div x-show="categoryFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectCategoryFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterCategoryCode ? 'selected-all' : ''">
+                                    <span>All Categories</span>
+                                </div>
                                 @foreach($expenseCategories as $code => $name)
-                                    <option value="{{ $code }}">
-                                        {{ $name }}
-                                    </option>
+                                    <div @click="selectCategoryFilter('{{ $code }}')"
+                                         class="erp-dropdown-option"
+                                         :class="filterCategoryCode === '{{ $code }}' ? 'selected' : ''">
+                                        <span>{{ $name }}</span>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 3. Payment Source Filter --}}
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Payment Source</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
-                                <i data-lucide="landmark" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                    {{-- 3. Payment Source Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="sourceFilterOpen = false">
+                        <button type="button"
+                                @click="sourceFilterOpen = !sourceFilterOpen; if(sourceFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; modeFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="sourceFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterPaymentSource ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSourceFilterLabel()">All Sources</span>
                             </div>
-                            <select x-model="filterPaymentSource" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                                <option value="">All Sources</option>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterPaymentSource">
+                                    <span @click.stop="selectSourceFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="sourceFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Source Popover Menu --}}
+                        <div x-show="sourceFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectSourceFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterPaymentSource ? 'selected-all' : ''">
+                                    <span>All Sources</span>
+                                </div>
                                 @foreach($bankAccounts as $bank)
-                                    <option value="{{ $bank->id }}">
-                                        {{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }}
-                                    </option>
+                                    <div @click="selectSourceFilter('{{ $bank->id }}')"
+                                         class="erp-dropdown-option"
+                                         :class="String(filterPaymentSource) === '{{ $bank->id }}' ? 'selected' : ''">
+                                        <span>{{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }}</span>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 4. Payment Mode Filter --}}
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Payment Mode</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
-                                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                    {{-- 4. Payment Mode Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="modeFilterOpen = false">
+                        <button type="button"
+                                @click="modeFilterOpen = !modeFilterOpen; if(modeFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; sourceFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="modeFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterPaymentMode ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getModeFilterLabel()">All Modes</span>
                             </div>
-                            <select x-model="filterPaymentMode" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                                <option value="">All Modes</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="RTGS / NEFT">RTGS / NEFT</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="UPI">UPI</option>
-                            </select>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterPaymentMode">
+                                    <span @click.stop="selectModeFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="modeFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Mode Popover Menu --}}
+                        <div x-show="modeFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectModeFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterPaymentMode ? 'selected-all' : ''">
+                                    <span>All Modes</span>
+                                </div>
+                                <div @click="selectModeFilter('Bank Transfer')"
+                                     class="erp-dropdown-option"
+                                     :class="filterPaymentMode === 'Bank Transfer' ? 'selected' : ''">
+                                    <span>Bank Transfer</span>
+                                </div>
+                                <div @click="selectModeFilter('RTGS / NEFT')"
+                                     class="erp-dropdown-option"
+                                     :class="filterPaymentMode === 'RTGS / NEFT' ? 'selected' : ''">
+                                    <span>RTGS / NEFT</span>
+                                </div>
+                                <div @click="selectModeFilter('Cheque')"
+                                     class="erp-dropdown-option"
+                                     :class="filterPaymentMode === 'Cheque' ? 'selected' : ''">
+                                    <span>Cheque</span>
+                                </div>
+                                <div @click="selectModeFilter('UPI')"
+                                     class="erp-dropdown-option"
+                                     :class="filterPaymentMode === 'UPI' ? 'selected' : ''">
+                                    <span>UPI</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {{-- 5. Reset Filters Button --}}
-                    <div class="flex flex-col justify-end">
-                        <label class="text-[10px] font-bold text-transparent select-none uppercase tracking-wider block mb-1.5 hidden lg:block">&nbsp;</label>
+                    <div class="flex items-center">
                         <button type="button" @click="resetExpenseFilters()" 
-                                class="w-full h-[37px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-xs font-extrabold text-white transition-all duration-200 shadow-sm shadow-[#a38c29]/25 hover:shadow-md uppercase tracking-wider group cursor-pointer border-0 active:scale-95">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-white transition-transform duration-300 group-hover:-rotate-180"></i>
-                            <span>Reset Filters</span>
+                                class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap w-full">
+                            <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>RESET FILTERS</span>
                         </button>
                     </div>
                 </div>
@@ -762,17 +963,17 @@
             {{-- Table View --}}
             <div class="overflow-x-auto min-h-[360px] pb-10">
                 <table class="w-full text-left text-slate-800 border-collapse">
-                    <thead class="bg-[#a38c29] text-white font-black uppercase tracking-widest text-[10px] border-b border-[#a38c29]">
-                        <tr>
-                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Voucher No.</th>
-                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Date</th>
-                            <th class="py-3.5 px-4 text-white">Project</th>
-                            <th class="py-3.5 px-4 text-white">Expense Category</th>
-                            <th class="py-3.5 px-4 text-white">Payee / Vendor</th>
-                            <th class="py-3.5 px-4 text-right text-white whitespace-nowrap">Amount (₹)</th>
-                            <th class="py-3.5 px-4 text-white">Payment Source</th>
-                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Payment Mode</th>
-                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Status</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white whitespace-nowrap">Voucher No.</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white whitespace-nowrap">Date</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white">Project</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white">Expense Category</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white">Payee / Vendor</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-right text-white whitespace-nowrap">Amount (₹)</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white">Payment Source</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white whitespace-nowrap">Payment Mode</th>
+                            <th class="py-3.5 px-4 border-r border-slate-600 text-white whitespace-nowrap">Status</th>
                             <th class="py-3.5 px-4 text-center text-white uppercase whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>

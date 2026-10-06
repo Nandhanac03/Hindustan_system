@@ -7,6 +7,7 @@ function siteExpenseCategoryComponent() {
         openViewModal: false,
         search: '',
         filterStatus: '',
+        statusFilterOpen: false,
         addCategory: { category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' },
         viewCategory: { id: null, category_code: '', category_name: '', chart_of_account_id: '', coa_code: '', coa_name: '', description: '', status: 'active', created_at: '' },
         editCategory: { id: null, category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' },
@@ -26,6 +27,15 @@ function siteExpenseCategoryComponent() {
         hasAttemptedAdd: false,
         hasAttemptedEdit: false,
         
+        selectStatusFilter(status) {
+            this.filterStatus = status;
+            this.statusFilterOpen = false;
+        },
+        getStatusLabel() {
+            if (this.filterStatus === 'active') return 'Active';
+            if (this.filterStatus === 'inactive') return 'Inactive';
+            return 'All Statuses';
+        },
         submitAdd() {
             this.hasAttemptedAdd = true;
             return !!(this.addCategory.category_name && this.addCategory.chart_of_account_id);
@@ -43,6 +53,7 @@ function siteExpenseCategoryComponent() {
         resetFilters() {
             this.search = '';
             this.filterStatus = '';
+            this.statusFilterOpen = false;
         },
         initView(cat) {
             this.viewCategory = { ...cat };
@@ -181,7 +192,7 @@ function siteExpenseCategoryComponent() {
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-                {{-- Search Input with Icon --}}
+                {{-- Search Input with Gold Icon --}}
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +200,7 @@ function siteExpenseCategoryComponent() {
                         </svg>
                     </div>
                     <input type="text" x-model="search" placeholder="Search Category or COA Account..." 
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full pl-10 pr-10 erp-search-input">
                     <template x-if="search">
                         <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
                             <button type="button" @click="search = ''"
@@ -200,30 +211,69 @@ function siteExpenseCategoryComponent() {
                     </template>
                 </div>
 
-                {{-- Status Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
-                        </svg>
-                    </div>
-                    <select x-model="filterStatus"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Status Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="statusFilterOpen = false">
+                    <button type="button"
+                            @click="statusFilterOpen = !statusFilterOpen"
+                            class="erp-dropdown-trigger"
+                            :class="statusFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getStatusLabel()">All Statuses</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterStatus">
+                                <span @click.stop="selectStatusFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectStatusFilter('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterStatus ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="selectStatusFilter('active')"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'active' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="selectStatusFilter('inactive')"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'inactive' ? 'selected' : ''">
+                                <span>Inactive</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Reset Filters Button --}}
             <button type="button" @click="resetFilters()"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
-                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset Filters</span>
+               class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>RESET FILTERS</span>
             </button>
         </div>
     </div>
@@ -232,12 +282,12 @@ function siteExpenseCategoryComponent() {
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
-                        <th class="px-4 py-3.5 w-16">SL.NO</th>
-                        <th class="px-4 py-3.5">CATEGORY NAME</th>
-                        <th class="px-4 py-3.5">COA MAPPING (PARENT)</th>
-                        <th class="px-4 py-3.5 text-center">STATUS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-4 py-3.5 border-r border-slate-600 w-16">SL.NO</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600">CATEGORY NAME</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600">COA MAPPING (PARENT)</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600 text-center">STATUS</th>
                         <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>

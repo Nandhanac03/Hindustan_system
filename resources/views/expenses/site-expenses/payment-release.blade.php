@@ -107,70 +107,277 @@
     </div>
 
     <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
+    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm mb-6 transition-all relative" :class="{ 'opacity-50 pointer-events-none': isLoading }">
         <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <input type="hidden" name="vendor_id" :value="filterVendorId">
+            <input type="hidden" name="project_id" :value="filterProjectId">
+            <input type="hidden" name="category_code" :value="filterCategoryCode">
+            <input type="hidden" name="payment_status" :value="filterPaymentStatus">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-1">
                 
-                {{-- 1. Project Filter (Defaults to First Project) --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    @php
-                        $defaultProjectId = $projects->first()->id ?? null;
-                        $selectedProject = request('project_id', $defaultProjectId);
-                    @endphp
-                    <select name="project_id" @change="submitSearch"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}" {{ $selectedProject == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- 1. Vendor / Payee Filter (Custom Gold Searchable Popover) --}}
+                <div class="relative w-full" @click.outside="vendorFilterOpen = false">
+                    <button type="button"
+                            @click="vendorFilterOpen = !vendorFilterOpen; if(vendorFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="vendorFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterVendorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getVendorFilterLabel()">All Vendors / Payees</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterVendorId">
+                                <span @click.stop="selectVendorFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="vendorFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Vendor Popover Menu --}}
+                    <div x-show="vendorFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+                            <input type="text" x-model="vendorSearch" placeholder="Search Vendor..." class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-[#a38c29]">
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectVendorFilter('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterVendorId ? 'selected-all' : ''">
+                                <span>All Vendors / Payees</span>
+                            </div>
+                            @foreach($vendors as $v)
+                                <div x-show="!vendorSearch || '{{ strtolower(addslashes($v->name)) }}'.includes(vendorSearch.toLowerCase())"
+                                     @click="selectVendorFilter('{{ $v->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(filterVendorId) === '{{ $v->id }}' ? 'selected' : ''">
+                                    <span>{{ $v->name }}</span>
+                                </div>
+                            @endforeach
+                            @foreach($payees as $p)
+                                <div x-show="!vendorSearch || '{{ strtolower(addslashes($p->name)) }}'.includes(vendorSearch.toLowerCase())"
+                                     @click="selectVendorFilter('{{ $p->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(filterVendorId) === '{{ $p->id }}' ? 'selected' : ''">
+                                    <span>{{ $p->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
-                {{-- 2. Status Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                {{-- 2. Project Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                    <button type="button"
+                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { vendorFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="projectFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getProjectFilterLabel()">All Projects</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterProjectId">
+                                <span @click.stop="selectProjectFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="projectFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectProjectFilter('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterProjectId ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($projects as $p)
+                                <div @click="selectProjectFilter('{{ $p->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(filterProjectId) === '{{ $p->id }}' ? 'selected' : ''">
+                                    <span>{{ $p->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                    <select name="payment_status" @change="submitSearch"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Payment Statuses</option>
-                        <option value="pending_disbursement" {{ request('payment_status') === 'pending_disbursement' ? 'selected' : '' }}>Pending Disbursement</option>
-                        <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
-                        <option value="partially_paid" {{ request('payment_status') === 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
-                        <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Cleared</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+
+                {{-- 3. Category Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="categoryFilterOpen = false">
+                    <button type="button"
+                            @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="categoryFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterCategoryCode ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getCategoryFilterLabel()">All Categories</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterCategoryCode">
+                                <span @click.stop="selectCategoryFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Category Popover Menu --}}
+                    <div x-show="categoryFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectCategoryFilter('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterCategoryCode ? 'selected-all' : ''">
+                                <span>All Categories</span>
+                            </div>
+                            @foreach($expenseCategories as $code => $name)
+                                <div @click="selectCategoryFilter('{{ $code }}')"
+                                     class="erp-dropdown-option"
+                                     :class="filterCategoryCode === '{{ $code }}' ? 'selected' : ''">
+                                    <span>{{ $name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. Status Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="statusFilterOpen = false">
+                    <button type="button"
+                            @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; categoryFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="statusFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterPaymentStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getStatusFilterLabel()">All Payment Statuses</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterPaymentStatus">
+                                <span @click.stop="selectStatusFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectStatusFilter('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterPaymentStatus ? 'selected-all' : ''">
+                                <span>All Payment Statuses</span>
+                            </div>
+                            <div @click="selectStatusFilter('pending_disbursement')"
+                                 class="erp-dropdown-option"
+                                 :class="filterPaymentStatus === 'pending_disbursement' ? 'selected' : ''">
+                                <span>Pending Disbursement</span>
+                            </div>
+                            <div @click="selectStatusFilter('unpaid')"
+                                 class="erp-dropdown-option"
+                                 :class="filterPaymentStatus === 'unpaid' ? 'selected' : ''">
+                                <span>Unpaid</span>
+                            </div>
+                            <div @click="selectStatusFilter('partially_paid')"
+                                 class="erp-dropdown-option"
+                                 :class="filterPaymentStatus === 'partially_paid' ? 'selected' : ''">
+                                <span>Partially Paid</span>
+                            </div>
+                            <div @click="selectStatusFilter('paid')"
+                                 class="erp-dropdown-option"
+                                 :class="filterPaymentStatus === 'paid' ? 'selected' : ''">
+                                <span>Cleared</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                {{-- 4. Search Box --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                {{-- 5. Search Box --}}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Voucher #, Vendor..."
-                           class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                    <input type="text" name="search" x-model="searchQuery" @input.debounce.400ms="submitSearch" placeholder="Search Voucher #, Vendor..."
+                           class="w-full pl-10 pr-10 erp-search-input">
+                    <template x-if="searchQuery">
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                            <button type="button" @click="searchQuery = ''; submitSearch();"
+                                   class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
             </div>
 
             <div class="flex gap-2">
-                @if(request()->hasAny(['project_id', 'payment_status', 'search']))
-                    <a href="{{ route('site-expenses.payment-release') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
-                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>RESET FILTERS</span>
-                    </a>
-                @else
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
-                        <svg class="h-3.5 w-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <span>SEARCH</span>
-                    </button>
-                @endif
+                <button type="button" @click="resetFilters()"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>RESET FILTERS</span>
+                </button>
             </div>
         </form>
     </div>
@@ -187,16 +394,16 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
-                    <tr class="text-left">
-                        <th class="px-3 py-3 text-left w-[130px]">VOUCHER NO</th>
-                        <th class="px-3 py-3 text-left w-[180px]">PROJECT / FLOOR</th>
-                        <th class="px-3 py-3 text-left w-[140px]">EXPENSE CATEGORY</th>
-                        <th class="px-3 py-3 text-left w-[170px]">PAYEE / VENDOR</th>
-                        <th class="px-3 py-3 text-left w-[120px]">NET APPROVED (₹)</th>
-                        <th class="px-3 py-3 text-left text-emerald-100 w-[120px]">AMOUNT (₹)</th>
-                        <th class="px-3 py-3 text-left text-rose-100 w-[120px]">BALANCE DUE (₹)</th>
-                        <th class="px-3 py-3 text-left w-[110px]">STATUS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10 shadow-2xs">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[130px]">VOUCHER NO</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[180px]">PROJECT / FLOOR</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[140px]">EXPENSE CATEGORY</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[170px]">PAYEE / VENDOR</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[120px]">NET APPROVED (₹)</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left text-emerald-100 w-[120px]">AMOUNT (₹)</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left text-rose-100 w-[120px]">BALANCE DUE (₹)</th>
+                        <th class="px-3 py-3 border-r border-slate-600 text-left w-[110px]">STATUS</th>
                         <th class="px-3 py-3 text-center w-[140px]">ACTION</th>
                     </tr>
                 </thead>
@@ -312,14 +519,14 @@
 
                                             <div class="overflow-x-auto">
                                                 <table class="w-full text-left border-collapse text-[10.5px]">
-                                                    <thead>
-                                                        <tr class="bg-[#a38c29] text-white text-[9px] font-black uppercase tracking-wider border-b border-[#8a7522]">
-                                                            <th class="px-3 py-2">INSTALLMENT #</th>
-                                                            <th class="px-3 py-2">DISBURSEMENT DATE</th>
-                                                            <th class="px-3 py-2">CORPORATE BANK / LOAN ACCOUNT</th>
-                                                            <th class="px-3 py-2">PAYMENT MODE & REF #</th>
-                                                            <th class="px-3 py-2">REMARKS</th>
-                                                            <th class="px-3 py-2 text-right text-emerald-100">DISBURSED AMOUNT (₹)</th>
+                                                    <thead class="erp-table-header text-white text-[9px] font-black uppercase tracking-wider border-b border-slate-700">
+                                                        <tr class="erp-table-header text-left">
+                                                            <th class="px-3 py-2 border-r border-slate-600">INSTALLMENT #</th>
+                                                            <th class="px-3 py-2 border-r border-slate-600">DISBURSEMENT DATE</th>
+                                                            <th class="px-3 py-2 border-r border-slate-600">CORPORATE BANK / LOAN ACCOUNT</th>
+                                                            <th class="px-3 py-2 border-r border-slate-600">PAYMENT MODE & REF #</th>
+                                                            <th class="px-3 py-2 border-r border-slate-600">REMARKS</th>
+                                                            <th class="px-3 py-2 border-r border-slate-600 text-right text-emerald-100">DISBURSED AMOUNT (₹)</th>
                                                             <th class="px-3 py-2 text-right">ACTION</th>
                                                         </tr>
                                                     </thead>
@@ -697,6 +904,11 @@
 
 <script>
 function siteExpensePaymentRelease() {
+    const projectNames = {{ json_encode($projects->pluck('name', 'id')) }};
+    const vendorNames = {{ json_encode($vendors->pluck('name', 'id')) }};
+    const payeeNames = {{ json_encode($payees->pluck('name', 'id')) }};
+    const categoryNames = {{ json_encode($expenseCategories) }};
+
     return {
         disburseModalOpen: false,
         openErrorModal: {{ ($errors->any() || session('error')) ? 'true' : 'false' }},
@@ -710,6 +922,80 @@ function siteExpensePaymentRelease() {
         bankOpen: false,
         bankSearch: '',
         
+        filterVendorId: '{{ request('vendor_id', '') }}',
+        filterProjectId: '{{ request('project_id', '') }}',
+        filterCategoryCode: '{{ request('category_code', '') }}',
+        filterPaymentStatus: '{{ request('payment_status', '') }}',
+        searchQuery: '{{ request('search', '') }}',
+
+        vendorFilterOpen: false,
+        vendorSearch: '',
+        projectFilterOpen: false,
+        categoryFilterOpen: false,
+        statusFilterOpen: false,
+
+        projectNames: projectNames,
+        vendorNames: vendorNames,
+        payeeNames: payeeNames,
+        categoryNames: categoryNames,
+
+        selectVendorFilter(id) {
+            this.filterVendorId = id;
+            this.vendorFilterOpen = false;
+            this.submitSearch();
+        },
+        getVendorFilterLabel() {
+            if (!this.filterVendorId) return 'All Vendors / Payees';
+            return (this.vendorNames && this.vendorNames[this.filterVendorId]) || (this.payeeNames && this.payeeNames[this.filterVendorId]) || 'Vendor / Payee';
+        },
+
+        selectProjectFilter(id) {
+            this.filterProjectId = id;
+            this.projectFilterOpen = false;
+            this.submitSearch();
+        },
+        getProjectFilterLabel() {
+            if (!this.filterProjectId) return 'All Projects';
+            return this.projectNames[this.filterProjectId] || 'Project';
+        },
+
+        selectCategoryFilter(code) {
+            this.filterCategoryCode = code;
+            this.categoryFilterOpen = false;
+            this.submitSearch();
+        },
+        getCategoryFilterLabel() {
+            if (!this.filterCategoryCode) return 'All Categories';
+            return (this.categoryNames && this.categoryNames[this.filterCategoryCode]) || 'Category';
+        },
+
+        selectStatusFilter(status) {
+            this.filterPaymentStatus = status;
+            this.statusFilterOpen = false;
+            this.submitSearch();
+        },
+        getStatusFilterLabel() {
+            if (this.filterPaymentStatus === 'pending_disbursement') return 'Pending Disbursement';
+            if (this.filterPaymentStatus === 'unpaid') return 'Unpaid';
+            if (this.filterPaymentStatus === 'partially_paid') return 'Partially Paid';
+            if (this.filterPaymentStatus === 'paid') return 'Cleared';
+            return 'All Payment Statuses';
+        },
+
+        resetFilters() {
+            this.filterVendorId = '';
+            this.filterProjectId = '';
+            this.filterCategoryCode = '';
+            this.filterPaymentStatus = '';
+            this.searchQuery = '';
+            this.vendorFilterOpen = false;
+            this.vendorSearch = '';
+            this.projectFilterOpen = false;
+            this.categoryFilterOpen = false;
+            this.statusFilterOpen = false;
+            this.submitSearch();
+        },
+
         isLoading: false,
         hasAttemptedDisburseSubmit: false,
         disbursePaymentDate: '{{ date("Y-m-d") }}',
@@ -718,7 +1004,7 @@ function siteExpensePaymentRelease() {
 
         async submitSearch(event) {
             this.isLoading = true;
-            const form = event.target.closest('form') || document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]');
+            const form = (event && event.target) ? (event.target.closest('form') || document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]')) : document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]');
             const url = new URL(form.action);
             const formData = new FormData(form);
             const searchParams = new URLSearchParams();

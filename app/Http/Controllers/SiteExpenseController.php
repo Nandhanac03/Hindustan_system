@@ -587,6 +587,7 @@ class SiteExpenseController extends Controller
             'project',
             'floor',
             'payee',
+            'vendor',
             'companyBankAccount',
             'loan',
             'creator',
@@ -599,11 +600,19 @@ class SiteExpenseController extends Controller
         ->orderByDesc('id');
 
         $projects = Project::where('is_active', true)->orderBy('name')->get();
-        $defaultProjectId = $projects->first()->id ?? null;
-        $selectedProjectId = $request->has('project_id') ? $request->project_id : $defaultProjectId;
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+        $expenseCategories = $this->getExpenseCategories();
 
-        if ($selectedProjectId) {
-            $query->where('project_id', $selectedProjectId);
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->filled('vendor_id')) {
+            $query->where('vendor_id', $request->vendor_id);
+        }
+
+        if ($request->filled('category_code')) {
+            $query->where('expense_category_code', $request->category_code);
         }
 
         if ($request->filled('payment_status')) {
@@ -625,7 +634,8 @@ class SiteExpenseController extends Controller
                   ->orWhere('casual_payee_name', 'like', $s)
                   ->orWhere('expense_category_name', 'like', $s)
                   ->orWhere('transaction_reference_no', 'like', $s)
-                  ->orWhereHas('payee', fn($pq) => $pq->where('name', 'like', $s));
+                  ->orWhereHas('payee', fn($pq) => $pq->where('name', 'like', $s))
+                  ->orWhereHas('vendor', fn($vq) => $vq->where('name', 'like', $s));
             });
         }
 
@@ -633,8 +643,14 @@ class SiteExpenseController extends Controller
 
         // Summary KPI Calculations
         $allApproved = SiteExpense::where('status', 'Approved');
-        if ($selectedProjectId) {
-            $allApproved->where('project_id', $selectedProjectId);
+        if ($request->filled('project_id')) {
+            $allApproved->where('project_id', $request->project_id);
+        }
+        if ($request->filled('vendor_id')) {
+            $allApproved->where('vendor_id', $request->vendor_id);
+        }
+        if ($request->filled('category_code')) {
+            $allApproved->where('expense_category_code', $request->category_code);
         }
 
         $totalApproved = (float) (clone $allApproved)->sum('net_amount');
@@ -668,6 +684,9 @@ class SiteExpenseController extends Controller
         return view('expenses.site-expenses.payment-release', compact(
             'siteExpenses',
             'projects',
+            'vendors',
+            'payees',
+            'expenseCategories',
             'companyBankAccounts',
             'loans',
             'paymentModes',

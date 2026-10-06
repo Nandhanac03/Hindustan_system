@@ -146,79 +146,82 @@
 
         {{-- Search & Filter Panel (1 Row, Instant Live Filtering without Page Reload, Picture 2 Matched Reset Button) --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 flex-1 w-full">
                     
                     {{-- 1. Searchable Vendor Select Dropdown (4 cols) --}}
                     <div class="relative sm:col-span-4" @click.outside="openVendorDropdown = false">
-                        <button type="button" @click="openVendorDropdown = !openVendorDropdown; if(openVendorDropdown) { $nextTick(() => $refs.vendorSearchInput?.focus()); }" 
-                                class="w-full h-[42px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 shadow-2xs flex items-center justify-between gap-2 transition cursor-pointer text-left">
-                            <div class="flex items-center gap-2 min-w-0">
+                        <button type="button" @click="openVendorDropdown = !openVendorDropdown; if(openVendorDropdown) { gstStatusOpen = false; $nextTick(() => $refs.vendorSearchInput?.focus()); }" 
+                                class="erp-dropdown-trigger"
+                                :class="openVendorDropdown ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
                                 <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
-                                <span class="truncate" :class="selectedVendorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'" x-text="getSelectedVendorLabel()"></span>
+                                <span class="truncate text-xs font-bold" :class="selectedVendorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'" x-text="getSelectedVendorLabel()"></span>
                             </div>
-                            <div class="flex items-center gap-1.5 shrink-0">
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 <template x-if="selectedVendorId">
                                     <span @click.stop="selectedVendorId = ''; vendorDropdownSearch = '';" 
-                                          class="w-4 h-4 rounded-full bg-slate-200 hover:bg-rose-100 hover:text-rose-600 text-slate-500 flex items-center justify-center text-[10px] font-black transition cursor-pointer" 
-                                          title="Clear vendor selection">✕</span>
+                                          class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" 
+                                          title="Clear vendor selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
                                 </template>
-                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openVendorDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="{ 'rotate-180': openVendorDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </div>
                         </button>
 
                         <!-- Searchable Dropdown Menu -->
-                        <div x-show="openVendorDropdown" 
+                        <div x-show="openVendorDropdown" x-cloak
                              x-transition:enter="transition ease-out duration-150"
                              x-transition:enter-start="opacity-0 translate-y-1"
                              x-transition:enter-end="opacity-100 translate-y-0"
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             class="absolute top-full left-0 mt-1.5 w-full min-w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                             class="erp-dropdown-popover p-2 space-y-2" 
                              style="display: none;">
                             
-                            <div class="relative">
-                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
                                 <input x-ref="vendorSearchInput" 
                                        type="text" 
                                        x-model="vendorDropdownSearch" 
                                        placeholder="Type vendor name, code, contact to search..." 
-                                       class="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                       class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
                                        @keydown.escape="openVendorDropdown = false">
                                 <template x-if="vendorDropdownSearch">
-                                    <button type="button" @click="vendorDropdownSearch = ''; $refs.vendorSearchInput.focus();" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕</button>
+                                    <button type="button" @click="vendorDropdownSearch = ''; $refs.vendorSearchInput.focus();" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕</button>
                                 </template>
                             </div>
 
-                            <div class="max-h-60 overflow-y-auto space-y-1 text-xs font-semibold custom-scrollbar divide-y divide-slate-50">
+                            <div class="max-h-60 overflow-y-auto space-y-1 text-xs font-semibold divide-y divide-slate-100">
                                 {{-- All Vendors Option --}}
-                                <button type="button" 
-                                        @click="selectedVendorId = ''; openVendorDropdown = false; vendorDropdownSearch = '';" 
-                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition cursor-pointer"
-                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !selectedVendorId }">
+                                <div @click="selectedVendorId = ''; openVendorDropdown = false; vendorDropdownSearch = '';" 
+                                     class="erp-dropdown-option"
+                                     :class="!selectedVendorId ? 'selected-all' : ''">
                                     <span>All Vendors</span>
                                     <span class="text-[10px] text-slate-400 font-mono" x-text="'(' + (allVendors ? allVendors.length : 0) + ')'"></span>
-                                </button>
+                                </div>
                                 
                                 {{-- Filtered Vendor List Items --}}
                                 <template x-for="v in getFilteredVendorsList(vendorDropdownSearch)" :key="v.id">
-                                    <button type="button" 
-                                            @click="selectedVendorId = v.id; openVendorDropdown = false; vendorDropdownSearch = '';" 
-                                            class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between gap-2 transition cursor-pointer group"
-                                            :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': selectedVendorId == v.id }">
+                                    <div @click="selectedVendorId = v.id; openVendorDropdown = false; vendorDropdownSearch = '';" 
+                                         class="erp-dropdown-option justify-between"
+                                         :class="selectedVendorId == v.id ? 'selected' : ''">
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-1.5 truncate">
                                                 <template x-if="v.vendor_code">
                                                     <span class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono font-bold text-slate-600 shrink-0" x-text="v.vendor_code"></span>
                                                 </template>
-                                                <span class="truncate font-bold text-slate-800 group-hover:text-slate-900" :class="{ '!text-[#8a7522] !font-black': selectedVendorId == v.id }" x-text="v.name"></span>
+                                                <span class="truncate font-bold text-slate-800" x-text="v.name"></span>
                                             </div>
                                             <div class="flex items-center gap-2 text-[10px] text-slate-400 font-normal mt-0.5">
                                                 <span x-show="v.contact_person" x-text="v.contact_person"></span>
@@ -229,13 +232,8 @@
                                             <template x-if="v.gstin">
                                                 <span class="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60" x-text="v.gstin"></span>
                                             </template>
-                                            <template x-if="selectedVendorId == v.id">
-                                                <svg class="w-4 h-4 text-[#a38c29] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </template>
                                         </div>
-                                    </button>
+                                    </div>
                                 </template>
                                 
                                 <div x-show="getFilteredVendorsList(vendorDropdownSearch).length === 0" class="px-3 py-4 text-center text-slate-400 text-xs italic">
@@ -246,34 +244,84 @@
                     </div>
 
                     {{-- 2. General Keyword Search (5 cols) --}}
-                    <div class="relative sm:col-span-5">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="relative group sm:col-span-5">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
                         <input type="text" x-model="searchQuery" placeholder="Search Vendor Name, Code, Phone, GSTIN, PAN..."
-                               class="w-full h-[42px] pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                               class="w-full pl-10 pr-10 erp-search-input">
                         <template x-if="searchQuery">
-                            <button type="button" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕</button>
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                                <button type="button" @click="searchQuery = ''"
+                                       class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
                         </template>
                     </div>
 
-                    {{-- 3. GST Status Filter (3 cols) --}}
-                    <div class="relative sm:col-span-3">
-                        <select x-model="gstStatus"
-                                class="w-full h-[42px] py-2.5 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer">
-                            <option value="">All GST Status</option>
-                            <option value="with_gst">With GSTIN Only</option>
-                            <option value="without_gst">Without GSTIN</option>
-                        </select>
+                    {{-- 3. GST Status Filter (Custom Gold Popover - 3 cols) --}}
+                    <div class="relative w-full sm:col-span-3" @click.outside="gstStatusOpen = false">
+                        <button type="button"
+                                @click="gstStatusOpen = !gstStatusOpen; if(gstStatusOpen) { openVendorDropdown = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="gstStatusOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="gstStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getGstStatusLabel()">All GST Status</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="gstStatus">
+                                    <span @click.stop="selectGstStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="gstStatusOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- GST Status Popover Menu --}}
+                        <div x-show="gstStatusOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectGstStatus('')"
+                                     class="erp-dropdown-option"
+                                     :class="!gstStatus ? 'selected-all' : ''">
+                                    <span>All GST Status</span>
+                                </div>
+                                <div @click="selectGstStatus('with_gst')"
+                                     class="erp-dropdown-option"
+                                     :class="gstStatus === 'with_gst' ? 'selected' : ''">
+                                    <span>With GSTIN Only</span>
+                                </div>
+                                <div @click="selectGstStatus('without_gst')"
+                                     class="erp-dropdown-option"
+                                     :class="gstStatus === 'without_gst' ? 'selected' : ''">
+                                    <span>Without GSTIN</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- Single Unified Reset Filters Button (Picture 2 Signature Gold Gradient) --}}
                 <button type="button" @click="resetFilters()"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer h-[42px] w-full lg:w-auto">
-                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                     <span>RESET FILTERS</span>
@@ -283,12 +331,6 @@
 
         <!-- Master Table Card -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <style>
-                #vendors-master-table thead th { border-color: #8a741f !important; }
-                #vendors-master-tbody tr:nth-child(even) { background-color: #faf7eb !important; }
-                #vendors-master-tbody tr:hover { background-color: #f5eed6 !important; }
-            </style>
-
             {{-- Table Header Box (Exact Picture 2 Corporate Standard) --}}
             <div class="px-6 py-4 bg-slate-50/60 border-b border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
@@ -319,16 +361,16 @@
 
             <div class="overflow-x-auto custom-scrollbar">
                 <table id="vendors-master-table" class="w-full text-xs text-left border-collapse min-w-[1100px]">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[10px] font-black uppercase tracking-wider text-left">
-                            <th class="px-5 py-3.5 whitespace-nowrap w-14 text-center">SL NO</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">VENDOR CODE</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">VENDOR / FIRM NAME</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">TAX IDENTIFIERS (GST / PAN)</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">CONTACT DETAILS</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">BANKING DETAILS</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap text-center">EXPENSES BILLED</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap text-center w-24">ACTION</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap w-14 text-center">SL NO</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap">VENDOR CODE</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap">VENDOR / FIRM NAME</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap">TAX IDENTIFIERS (GST / PAN)</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap">CONTACT DETAILS</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap">BANKING DETAILS</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 whitespace-nowrap text-center">EXPENSES BILLED</th>
+                            <th class="px-5 py-3.5 text-center w-24">ACTION</th>
                         </tr>
                     </thead>
                     <tbody id="vendors-master-tbody" class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -719,8 +761,19 @@
                 vendorDropdownSearch: '',
                 searchQuery: '',
                 gstStatus: '',
+                gstStatusOpen: false,
                 allVendors: @json($vendors ?? []),
                 isLoading: false,
+
+                selectGstStatus(status) {
+                    this.gstStatus = status;
+                    this.gstStatusOpen = false;
+                },
+                getGstStatusLabel() {
+                    if (this.gstStatus === 'with_gst') return 'With GSTIN Only';
+                    if (this.gstStatus === 'without_gst') return 'Without GSTIN';
+                    return 'All GST Status';
+                },
 
                 form: {
                     name: '',
@@ -803,6 +856,7 @@
                     this.gstStatus = '';
                     this.vendorDropdownSearch = '';
                     this.openVendorDropdown = false;
+                    this.gstStatusOpen = false;
                 },
 
                 getActiveVendorsCount() {
