@@ -367,82 +367,113 @@
 
         <!-- Toolbar & Filter Header -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm transition-all">
-            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3.5 w-full">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 w-full">
                     <!-- Searchable Contractor Select Dropdown -->
                     <div class="relative w-full" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Contractor</label>
-                        
-                        <button type="button" @click="open = !open" 
-                                class="px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none w-full shadow-2xs flex items-center justify-between gap-2 hover:border-[#a38c29]/60 transition">
-                            <span class="truncate" x-text="getSelectedContractorName()"></span>
-                            <div class="flex items-center gap-1 shrink-0">
-                                <template x-if="selectedLedgerContractorId">
-                                    <span @click.stop="selectedLedgerContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear selection">✕</span>
-                                </template>
-                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        <button type="button"
+                                @click="open = !open; if (open) { $nextTick(() => $refs.contractorSearchInput?.focus()); }" 
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedLedgerContractorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedContractorName()"></span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedLedgerContractorId">
+                                    <span @click.stop="selectedLedgerContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </button>
 
                         <!-- Searchable Dropdown Menu -->
-                        <div x-show="open" x-transition.opacity.duration.150ms 
-                             class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" 
                              style="display: none;">
                             
-                            <div class="relative">
-                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                <input type="text" x-model="search" placeholder="Type contractor name to filter..." 
-                                       class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
-                                       @keydown.escape="open = false" autofocus>
-                                <template x-if="search">
-                                    <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                                </template>
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="search" x-ref="contractorSearchInput" placeholder="Type contractor name to filter..." 
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="open = false">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.contractorSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
                             </div>
 
-                            <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
-                                <button type="button" @click="selectedLedgerContractorId = ''; open = false; search = '';" 
-                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !selectedLedgerContractorId }">
-                                    <span>All Contractors</span>
-                                    <span class="text-[10px] text-slate-400 font-normal" x-text="'(' + (contractorsList ? contractorsList.length : 0) + ')'"></span>
-                                </button>
-                                
+                            {{-- All Contractors Option --}}
+                            <button type="button" @click="selectedLedgerContractorId = ''; open = false; search = '';" 
+                                    class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center justify-between transition cursor-pointer"
+                                    :class="!selectedLedgerContractorId ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>— All Contractors —</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-normal" x-text="'(' + (contractorsList ? contractorsList.length : 0) + ')'"></span>
+                            </button>
+                            
+                            {{-- Options List --}}
+                            <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
                                 <template x-for="cont in getFilteredContractorsList(search)" :key="cont.id">
                                     <button type="button" @click="selectedLedgerContractorId = cont.id; open = false; search = '';" 
-                                            class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                            :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': selectedLedgerContractorId == cont.id }">
-                                        <span class="truncate" x-text="cont.name"></span>
+                                            class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium"
+                                            :class="selectedLedgerContractorId == cont.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div :class="selectedLedgerContractorId == cont.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                                 class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                                 x-text="(cont.name || '?').charAt(0).toUpperCase()">
+                                            </div>
+                                            <span class="truncate text-xs" :class="selectedLedgerContractorId == cont.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="cont.name"></span>
+                                        </div>
                                         <span class="text-[9px] text-slate-400 font-mono" x-text="cont.gstin || cont.type || ''"></span>
                                     </button>
                                 </template>
                                 
-                                <div x-show="getFilteredContractorsList(search).length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
-                                    No contractors found.
+                                <div x-show="getFilteredContractorsList(search).length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                    No contractors found
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Enhanced Search Particulars / Ref # -->
-                    <div class="w-full">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Particulars / Ref #</label>
-                        <div class="relative w-full">
-                            <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #, project..."
-                                   class="w-full px-3.5 py-2.5 pr-7 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs hover:border-[#a38c29]/60 transition">
-                            <template x-if="ledgerSearchQuery">
-                                <button type="button" @click="ledgerSearchQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                            </template>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #, project..." autocomplete="off"
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="ledgerSearchQuery && ledgerSearchQuery.length > 0" style="display: none;">
+                            <button type="button" @click="ledgerSearchQuery = ''" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 {{-- Reset Filters Button --}}
                 <button type="button" @click="resetFilters()"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer h-[42px]">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                     <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>RESET FILTERS</span>
                 </button>
@@ -540,40 +571,40 @@
 
         <div class="overflow-x-auto">
             <table class="ledger-print-table w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-left">
-                        <th class="py-3 px-4 border-r border-[#8a7522]">Date</th>
-                        <th class="py-3 px-4 border-r border-[#8a7522]">Description</th>
-                        <th class="py-3 px-4 text-right text-blue-100 border-r border-[#8a7522]">Debit (Claimed)</th>
-                        <th class="py-3 px-4 text-right text-emerald-100 border-r border-[#8a7522]">Credit (Released)</th>
-                        <th class="py-3 px-4 text-right text-rose-100 border-r border-[#8a7522]">Running Balance</th>
-                        <th class="py-3 px-4 text-center border-r border-[#8a7522] col-action print:hidden">Action</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="py-3 px-4 border-r border-slate-600 erp-table-header">Date</th>
+                        <th class="py-3 px-4 border-r border-slate-600 erp-table-header">Description</th>
+                        <th class="py-3 px-4 text-right text-blue-100 border-r border-slate-600 erp-table-header">Debit (Claimed)</th>
+                        <th class="py-3 px-4 text-right text-emerald-100 border-r border-slate-600 erp-table-header">Credit (Released)</th>
+                        <th class="py-3 px-4 text-right text-rose-100 border-r border-slate-600 erp-table-header">Running Balance</th>
+                        <th class="py-3 px-4 text-center border-r border-slate-600 col-action print:hidden erp-table-header">Action</th>
                     </tr>
                 </thead>
                 <template x-for="group in groupedLedger()" :key="group.contractor_id">
-                    <tbody class="divide-y divide-slate-100 bg-white text-[11px] font-semibold text-slate-700">
+                    <tbody class="divide-y divide-slate-100 bg-white text-xs font-semibold text-slate-700">
                         <!-- Group Header Row -->
                         <tr class="transition-colors border-b border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 cursor-pointer" @click="expandedContractor === group.contractor_id ? expandedContractor = null : expandedContractor = group.contractor_id">
                             <td class="px-4 py-3 border-r border-slate-200/40 align-middle" colspan="2">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-7 h-7 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-sm"
+                                    <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm"
                                          x-text="(group.contractor_name || 'XX').substring(0, 2).toUpperCase()"></div>
                                     <div class="flex flex-col gap-1.5 items-start">
-                                        <div class="font-black text-slate-900 text-xs leading-tight" x-text="group.contractor_name"></div>
+                                        <div class="font-bold text-slate-900 text-sm leading-tight" x-text="group.contractor_name"></div>
                                         <button type="button" @click.stop="expandedContractor === group.contractor_id ? expandedContractor = null : expandedContractor = group.contractor_id"
-                                                class="px-2 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[10px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
+                                                class="px-2.5 py-1 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded-md font-bold text-[10px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
                                                 title="Toggle Transactions">
                                             <span x-text="expandedContractor === group.contractor_id ? '▲ Hide Log' : '▼ ' + group.entries.length + ' Transactions'"></span>
                                         </button>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-right font-mono text-[12px] text-blue-800 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.netClaimed > 0 ? '₹' + numberFormat(group.netClaimed) : '—'"></td>
-                            <td class="px-4 py-3 text-right font-mono text-[12px] text-emerald-700 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.paid > 0 ? '₹' + numberFormat(group.paid) : '—'"></td>
-                            <td class="px-4 py-3 text-right font-mono text-[12px] font-black border-r border-slate-200/40 align-middle">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border bg-rose-50 text-rose-700 border-rose-200">
+                            <td class="px-4 py-3 text-right font-mono text-xs text-blue-800 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.netClaimed > 0 ? '₹' + numberFormat(group.netClaimed) : '—'"></td>
+                            <td class="px-4 py-3 text-right font-mono text-xs text-emerald-700 font-extrabold border-r border-slate-200/40 align-middle" x-text="group.paid > 0 ? '₹' + numberFormat(group.paid) : '—'"></td>
+                            <td class="px-4 py-3 text-right font-mono text-xs font-black border-r border-slate-200/40 align-middle">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border bg-rose-50 text-rose-700 border-rose-200">
                                     <span x-text="'₹' + numberFormat(Math.abs(group.balance))"></span>
-                                    <span class="text-[8px] font-extrabold uppercase text-rose-500">CR</span>
+                                    <span class="text-[10px] font-extrabold uppercase text-rose-500">CR</span>
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center col-action print:hidden align-middle">
@@ -585,66 +616,66 @@
                             <tr>
                                 <td colspan="6" class="p-0 border-b border-slate-200">
                                     <div class="bg-slate-50/80 p-4 sm:p-5 shadow-[inset_0_4px_6px_-4px_rgba(0,0,0,0.05)] border-l-4 border-emerald-500 rounded-r-xl">
-                                        <h4 class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <h4 class="text-xs font-black text-slate-700 uppercase tracking-widest mb-3 flex items-center gap-2">
                                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             Detailed Transaction Log
                                         </h4>
-                                        <div class="overflow-hidden rounded-lg border border-[#a38c29]/30 bg-white shadow-sm">
+                                        <div class="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm">
                                             <table class="w-full text-left border-collapse">
-                                                <thead class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white border-b border-[#8a7522] text-[9px] font-black uppercase tracking-wider">
-                                                    <tr>
-                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-200/50">Date</th>
-                                                        <th class="px-4 py-2.5 border-r border-slate-200/50">Event Details</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Debit (Claim)</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-200/50">Credit (Paid)</th>
-                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-200/50">Balance Due</th>
-                                                        <th class="px-2 py-2.5 text-center w-[85px] whitespace-nowrap">Action</th>
+                                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-600 erp-table-header">Date</th>
+                                                        <th class="px-4 py-2.5 border-r border-slate-600 erp-table-header">Event Details</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-blue-100 erp-table-header">Debit (Claim)</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-emerald-100 erp-table-header">Credit (Paid)</th>
+                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-600 text-rose-100 erp-table-header">Balance Due</th>
+                                                        <th class="px-2 py-2.5 text-center w-[85px] whitespace-nowrap erp-table-header">Action</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                                <tbody class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
                                                     <template x-for="(entry, index) in group.entries" :key="index">
                                                         <tr class="hover:bg-slate-50/70 transition-colors" :class="entry.type === 'CLAIM' ? '' : 'bg-emerald-50/20'">
-                                                            <td class="px-4 py-3 text-[10px] font-mono whitespace-nowrap border-r border-slate-200/50 align-top">
-                                                                <div class="font-bold text-slate-600" x-text="entry.date_formatted"></div>
+                                                            <td class="px-4 py-3 text-xs font-mono font-bold whitespace-nowrap border-r border-slate-200/50 align-top">
+                                                                <div class="font-bold text-slate-700" x-text="entry.date_formatted"></div>
                                                             </td>
                                                             <td class="px-4 py-3 border-r border-slate-200/50 align-top">
                                                                 <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider" 
+                                                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider" 
                                                                           :class="entry.type === 'CLAIM' ? 'bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/20' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
                                                                           x-text="entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released'"></span>
-                                                                    <span class="font-mono text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 rounded border border-slate-200" x-text="entry.ref_no"></span>
+                                                                    <span class="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" x-text="entry.ref_no"></span>
                                                                 </div>
-                                                                <div class="text-[11px] font-bold text-slate-800 leading-snug mb-1" x-text="entry.particulars"></div>
-                                                                <div class="text-[9px] text-slate-500 font-semibold" x-text="entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')"></div>
+                                                                <div class="text-xs font-bold text-slate-800 leading-snug mb-1" x-text="entry.particulars"></div>
+                                                                <div class="text-xs text-slate-500 font-semibold" x-text="entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')"></div>
                                                             </td>
-                                                            <td class="px-4 py-3 text-right font-mono text-[11px] text-blue-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
-                                                            <td class="px-4 py-3 text-right font-mono text-[11px] text-emerald-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
-                                                            <td class="px-4 py-3 text-right font-mono text-[11px] font-black border-r border-slate-200/50 align-top" :class="entry.running_balance > 0 ? 'text-rose-700' : 'text-emerald-700'">
+                                                            <td class="px-4 py-3 text-right font-mono text-xs text-blue-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
+                                                            <td class="px-4 py-3 text-right font-mono text-xs text-emerald-700 font-bold border-r border-slate-200/50 align-top" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
+                                                            <td class="px-4 py-3 text-right font-mono text-xs font-black border-r border-slate-200/50 align-top" :class="entry.running_balance > 0 ? 'text-rose-700' : 'text-emerald-700'">
                                                                 <div class="flex flex-col items-end">
                                                                     <span x-text="'₹' + numberFormat(Math.abs(entry.running_balance))"></span>
-                                                                    <span class="text-[8px] font-bold uppercase text-slate-400 mt-0.5">CR</span>
+                                                                    <span class="text-[10px] font-bold uppercase text-slate-400 mt-0.5">CR</span>
                                                                 </div>
                                                             </td>
                                                             <td class="px-2 py-3 text-center col-action print:hidden align-middle">
-                                                                <div class="flex items-center justify-center gap-2 flex-nowrap">
+                                                                <div class="flex items-center justify-center gap-1.5 flex-nowrap">
                                                                     <!-- View Modal (Eye Icon) - Gold Theme -->
-                                                                    <button type="button" @click="openViewModal(entry)" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Transaction Details">
-                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                    <button type="button" @click="openViewModal(entry)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Transaction Details">
+                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                                     </button>
 
                                                                     <!-- Print Voucher Icon - Green Theme for Disbursment -->
                                                                     <template x-if="entry.type === 'DISBURSEMENT'">
                                                                         <a :href="'{{ url('vouchers') }}/' + (entry.voucher_id ? entry.voucher_id : entry.payment_id) + '/payment-voucher-print' + (entry.voucher_id ? '' : '?type=ra_payment')" target="_blank"
-                                                                           class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Payment Voucher">
-                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                                           class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Payment Voucher">
+                                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                                                         </a>
                                                                     </template>
                                                                     
                                                                     <!-- Print Voucher Icon - Gold Theme for Claim -->
                                                                     <template x-if="entry.type === 'CLAIM'">
                                                                         <a :href="'{{ url('vouchers') }}/' + (entry.jv_id || entry.voucher_id || entry.ra_bill_id) + '/payment-voucher-print?type=' + ((entry.jv_id || entry.voucher_id) ? 'jv' : 'ra_bill')" target="_blank"
-                                                                           class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Claim Voucher">
-                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                                           class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Print Claim Voucher">
+                                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                                         </a>
                                                                     </template>
                                                                 </div>

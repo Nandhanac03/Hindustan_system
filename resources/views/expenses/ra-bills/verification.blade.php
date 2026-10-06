@@ -173,98 +173,169 @@
                             if (!this.search) return this.contractorsList;
                             const s = this.search.toLowerCase();
                             return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                        },
+                        select(id) {
+                            filterContractorId = id;
+                            this.open = false;
+                            this.search = '';
+                        },
+                        clear() {
+                            filterContractorId = '';
+                            this.open = false;
+                            this.search = '';
                         }
                      }" 
                      @click.outside="open = false">
-                     
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    </div>
 
-                    <button type="button" @click="open = !open" 
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs flex items-center justify-between transition hover:border-[#a38c29]/60 hover:bg-white text-left">
-                        <span class="truncate" x-text="getSelectedContractorName()"></span>
-                        <div class="flex items-center gap-1 shrink-0 absolute right-2.5 top-1/2 -translate-y-1/2">
+                    <button type="button"
+                            @click="open = !open; if (open) { $nextTick(() => $refs.contractorSearchInput?.focus()); }" 
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterContractorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedContractorName()">All Contractors</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
                             <template x-if="filterContractorId">
-                                <span @click.stop="filterContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition cursor-pointer" title="Clear selection">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
-                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
 
                     <!-- Searchable Dropdown Menu -->
-                    <div x-show="open" x-transition.opacity.duration.150ms 
-                         class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" 
                          style="display: none;">
                         
-                        <div class="relative">
-                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <input type="text" x-model="search" placeholder="Search contractor..." 
-                                   class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
-                                   @keydown.escape="open = false">
-                            <template x-if="search">
-                                <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                            </template>
+                        {{-- Search Input inside Popover --}}
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="search" x-ref="contractorSearchInput" placeholder="Search contractor..." 
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="open = false">
+                                <template x-if="search">
+                                    <button type="button" @click="search = ''; $refs.contractorSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
                         </div>
 
-                        <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
-                            <button type="button" @click="filterContractorId = ''; open = false; search = '';" 
-                                    class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !filterContractorId }">
-                                <span>All Contractors</span>
-                            </button>
-                            
+                        {{-- All Contractors Option --}}
+                        <button type="button" @click="clear()" 
+                                class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
+                                :class="!filterContractorId ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>— All Contractors —</span>
+                        </button>
+                        
+                        {{-- Options List --}}
+                        <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
                             <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
-                                <button type="button" @click="filterContractorId = cont.id; open = false; search = '';" 
-                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': filterContractorId == cont.id }">
-                                    <span class="truncate" x-text="cont.name"></span>
+                                <button type="button" @click="select(cont.id)" 
+                                        class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium"
+                                        :class="filterContractorId == cont.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div :class="filterContractorId == cont.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                             class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                             x-text="(cont.name || '?').charAt(0).toUpperCase()">
+                                        </div>
+                                        <span class="truncate text-xs" :class="filterContractorId == cont.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="cont.name"></span>
+                                    </div>
                                 </button>
                             </template>
                             
-                            <div x-show="getFilteredContractorsList().length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
-                                No contractors found.
+                            <div x-show="getFilteredContractorsList().length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                No contractors found
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- 2. Project Filter (1st Project Default Selected) --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    <select x-model="filterProjectId"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($filterProjects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- 2. Project Filter (ERP Standardized Dropdown) --}}
+                @php
+                    $projectsJson = collect($filterProjects ?? [])->map(fn($p) => (object)['id' => $p->id, 'name' => $p->name])->toJson();
+                @endphp
+                <div class="relative"
+                     x-data="{
+                        open: false,
+                        projectsList: {{ $projectsJson }},
+                        getSelectedProjectName() {
+                            if (!filterProjectId) return 'All Projects';
+                            const p = this.projectsList.find(x => x.id == filterProjectId);
+                            return p ? p.name : 'All Projects';
+                        }
+                     }"
+                     @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="truncate" x-text="getSelectedProjectName()">All Projects</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="erp-dropdown-popover">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filterProjectId = ''; applyFilter(); open = false"
+                                 class="erp-dropdown-option"
+                                 :class="!filterProjectId ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            <template x-for="p in projectsList" :key="p.id">
+                                <div @click="filterProjectId = p.id; applyFilter(); open = false"
+                                     class="erp-dropdown-option"
+                                     :class="filterProjectId == p.id ? 'selected' : ''">
+                                    <span x-text="p.name"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
                 {{-- 3. Status Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
-                    </div>
-                    <select x-model="filterStatus"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="verified">Verified / Signed Off</option>
-                        <option value="submitted">Pending Verification</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                            <span class="truncate" x-text="filterStatus === 'verified' ? 'Verified / Signed Off' : (filterStatus === 'submitted' ? 'Pending Verification' : 'All Statuses')">All Statuses</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="erp-dropdown-popover">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filterStatus = ''; applyFilter(); open = false"
+                                 class="erp-dropdown-option"
+                                 :class="!filterStatus ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="filterStatus = 'verified'; applyFilter(); open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'verified' ? 'selected' : ''">
+                                <span>Verified / Signed Off</span>
+                            </div>
+                            <div @click="filterStatus = 'submitted'; applyFilter(); open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'submitted' ? 'selected' : ''">
+                                <span>Pending Verification</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -272,7 +343,7 @@
 
             {{-- Reset Filters Button --}}
             <button type="button" @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>RESET FILTERS</span>
             </button>
@@ -292,66 +363,66 @@
 
         <div class="overflow-x-auto">
             <table class="w-full min-w-[1240px] text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
-                    <tr class="text-left">
-                        <th class="px-3 py-3 text-left w-[85px]">RA BILL NO</th>
-                        <th class="px-3 py-3 text-left w-[170px]">CONTRACTOR / PROJECT</th>
-                        <th class="px-3 py-3 text-left w-[115px]">SUBMIT / VERIFIED</th>
-                        <th class="px-3 py-3 text-right w-[110px]">RA BILL AMOUNT</th>
-                        <th class="px-3 py-3 text-right w-[100px]">CORRECTION</th>
-                        <th class="px-3 py-3 text-right w-[110px]">AFTER CORRECTION</th>
-                        <th class="px-3 py-3 text-right w-[110px]">ADDITIONAL %</th>
-                        <th class="px-3 py-3 text-right bg-[#8a7522]/40 w-[115px]">NET RA PAYABLE</th>
-                        <th class="px-3 py-3 text-center w-[95px]">DUE DATE</th>
-                        <th class="px-3 py-3 text-center w-[85px]">STATUS</th>
-                        <th class="px-3 py-3 text-right w-[105px]">ACTIONS</th>
+                <thead class="erp-table-header text-white uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-2xs">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-3 py-3 text-left w-[95px] erp-table-header">RA BILL NO</th>
+                        <th class="px-3 py-3 text-left min-w-[190px] erp-table-header">CONTRACTOR / PROJECT</th>
+                        <th class="px-3 py-3 text-left w-[130px] erp-table-header">SUBMIT / VERIFIED</th>
+                        <th class="px-3 py-3 text-right w-[120px] erp-table-header">RA BILL AMOUNT</th>
+                        <th class="px-3 py-3 text-right w-[110px] erp-table-header">CORRECTION</th>
+                        <th class="px-3 py-3 text-right w-[120px] erp-table-header">AFTER CORRECTION</th>
+                        <th class="px-3 py-3 text-right w-[110px] erp-table-header">ADDITIONAL %</th>
+                        <th class="px-3 py-3 text-right bg-slate-800/40 w-[130px] erp-table-header">NET RA PAYABLE</th>
+                        <th class="px-3 py-3 text-center w-[105px] erp-table-header">DUE DATE</th>
+                        <th class="px-3 py-3 text-center w-[95px] erp-table-header">STATUS</th>
+                        <th class="px-3 py-3 text-right w-[110px] erp-table-header">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                <tbody class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
                     @forelse($raBills as $bill)
                         @php
                             $statusVal = $bill->verified_date ? 'verified' : 'submitted';
                         @endphp
                         <tr x-show="matchesFilter('{{ $bill->contractor_id }}', '{{ $bill->project_id }}', '{{ $statusVal }}')"
                             class="hover:bg-amber-50/20 transition-colors border-b border-slate-100">
-                            <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
-                                <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
+                            <td class="px-3 py-3.5 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
+                                <span class="inline-block px-2.5 py-1 bg-slate-200/80 text-slate-900 rounded-md font-mono font-bold text-xs whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
                             </td>
 
-                            <td class="px-3 py-3 align-middle">
-                                <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
-                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
+                            <td class="px-3 py-3.5 align-middle">
+                                <div class="font-bold text-slate-900 text-sm leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
+                                <div class="text-xs text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono align-middle">
-                                <div class="text-slate-700 font-bold text-[10.5px]">
+                            <td class="px-3 py-3.5 text-left font-mono align-middle">
+                                <div class="text-slate-800 font-bold text-xs">
                                     {{ $bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—' }}
                                 </div>
                                 @if($bill->verified_date)
-                                    <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
+                                    <div class="text-xs text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
                                         Ver: {{ $bill->verified_date->format('d/m/Y') }}
                                     </div>
-                                    <div class="text-[8.5px] text-slate-500 font-semibold truncate max-w-[100px]">
+                                    <div class="text-[10px] text-slate-500 font-medium truncate max-w-[120px]">
                                         By: {{ $bill->engineer_name ?: 'Engineer' }}
                                     </div>
                                 @else
-                                    <div class="text-[9.5px] text-amber-600 italic font-medium mt-0.5">Unverified</div>
+                                    <div class="text-xs text-amber-600 italic font-semibold mt-0.5">Unverified</div>
                                 @endif
                             </td>
 
-                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-900 align-middle">
+                            <td class="px-3 py-3.5 text-right font-mono font-bold text-slate-900 text-xs align-middle">
                                 ₹{{ number_format((float) $bill->gross_amount, 2) }}
                             </td>
 
-                            <td class="px-3 py-3 text-right font-mono text-amber-700 font-bold align-middle">
+                            <td class="px-3 py-3.5 text-right font-mono text-amber-700 font-bold text-xs align-middle">
                                 {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
                             </td>
 
-                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-800 bg-slate-50/50 align-middle">
+                            <td class="px-3 py-3.5 text-right font-mono font-bold text-slate-800 text-xs bg-slate-50/50 align-middle">
                                 ₹{{ number_format(max(0, (float)$bill->gross_amount - (float)$bill->correction_amount), 2) }}
                             </td>
 
-                            <td class="px-3 py-3 text-right font-mono align-middle">
+                            <td class="px-3 py-3.5 text-right font-mono align-middle">
                                 @php
                                     $afterCorr = max(0, (float)$bill->gross_amount - (float)$bill->correction_amount);
                                     $addAmt = (float)$bill->additional_amount;
@@ -359,10 +430,10 @@
                                     $formattedPct = ($pct == (int)$pct) ? (int)$pct : $pct;
                                 @endphp
                                 @if($addAmt > 0)
-                                    <div class="font-bold text-slate-900 text-[11px]">
+                                    <div class="font-bold text-slate-900 text-xs">
                                         +₹{{ number_format($addAmt, 2) }}
                                     </div>
-                                    <div class="text-[9.5px] font-black text-amber-700 mt-0.5 whitespace-nowrap">
+                                    <div class="text-[10px] font-black text-amber-700 mt-0.5 whitespace-nowrap">
                                         ({{ $formattedPct }}%)
                                     </div>
                                 @else
@@ -370,47 +441,47 @@
                                 @endif
                             </td>
 
-                            <td class="px-3 py-3 text-right font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
+                            <td class="px-3 py-3.5 text-right font-mono font-black text-blue-900 text-xs bg-blue-50/30 align-middle">
                                 ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
                             </td>
 
-                            <td class="px-3 py-3 text-center font-mono align-middle">
-                                <div class="text-slate-700 font-bold text-[10.5px]">
+                            <td class="px-3 py-3.5 text-center font-mono align-middle">
+                                <div class="text-slate-800 font-bold text-xs">
                                     {{ $bill->due_date ? $bill->due_date->format('d/m/Y') : '—' }}
                                 </div>
                             </td>
 
-                            <td class="px-3 py-3 text-center whitespace-nowrap align-middle">
+                            <td class="px-3 py-3.5 text-center whitespace-nowrap align-middle">
                                 @if($bill->verified_date)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                         <span>VERIFIED</span>
                                     </span>
                                 @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
                                         SUBMITTED
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
+                            <td class="px-3 py-3.5 text-right whitespace-nowrap align-middle">
                                 <div class="flex items-center justify-end gap-1.5">
                                     @if($bill->verified_date)
                                         <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
                                                 title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
                                     @else
                                         <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer"
                                                 title="Engineer Sign-off & Apply Correction">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         </button>
                                     @endif
 
-                                    <button type="button" @click="openViewModal({{ json_encode($bill) }})" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Bill Details">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <button type="button" @click="openViewModal({{ json_encode($bill) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Bill Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
                                 </div>
                             </td>

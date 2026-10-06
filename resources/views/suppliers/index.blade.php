@@ -139,18 +139,18 @@
         </div>
 
         {{-- Ultra-Clean Modern Light Search & Filter Panel (Live Instant Filter - No Page Refresh) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
-            <form @submit.prevent="applyFilter()" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0">
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 w-full">
                     {{-- 1. Live Instant Search Input --}}
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
                         <input type="text" x-model="filterSearch" @input="applyFilter()" placeholder="Search Ledger Code / Phone / PAN..." autocomplete="off"
-                               class="w-full pl-10 pr-9 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                               class="w-full erp-search-input pl-10 pr-9">
                         <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filterSearch && filterSearch.length > 0" style="display: none;">
                             <button type="button" @click="filterSearch = ''; applyFilter()" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -176,231 +176,272 @@
                                 if (!this.search) return this.contractorsList;
                                 const s = this.search.toLowerCase();
                                 return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                            },
+                            select(id) {
+                                filterContractorId = id;
+                                this.open = false;
+                                this.search = '';
+                                applyFilter();
+                            },
+                            clear() {
+                                filterContractorId = '';
+                                this.open = false;
+                                this.search = '';
+                                applyFilter();
                             }
                          }" 
                          @click.outside="open = false">
                          
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                        </div>
+                        <button type="button"
+                                @click="open = !open; if (open) { $nextTick(() => $refs.contractorSearchInput?.focus()); }" 
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterContractorId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedContractorName()">All Contractors / Firms</span>
+                            </div>
 
-                        <button type="button" @click="open = !open" 
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs flex items-center justify-between transition hover:border-[#a38c29]/60 hover:bg-white text-left">
-                            <span class="truncate" x-text="getSelectedContractorName()"></span>
-                            <div class="flex items-center gap-1 shrink-0 absolute right-2.5 top-1/2 -translate-y-1/2">
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 <template x-if="filterContractorId">
-                                    <span @click.stop="filterContractorId = ''; search = ''; applyFilter();" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition cursor-pointer" title="Clear selection">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </span>
                                 </template>
-                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </button>
 
                         <!-- Searchable Dropdown Menu -->
-                        <div x-show="open" x-transition.opacity.duration.150ms 
-                             class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" 
                              style="display: none;">
                             
-                            <div class="relative">
-                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                <input type="text" x-model="search" placeholder="Search contractor..." 
-                                       class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
-                                       @keydown.escape="open = false">
-                                <template x-if="search">
-                                    <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                                </template>
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="search" x-ref="contractorSearchInput" placeholder="Search contractor..." 
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="open = false">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.contractorSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
                             </div>
 
-                            <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
-                                <button type="button" @click="filterContractorId = ''; open = false; search = ''; applyFilter();" 
-                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !filterContractorId }">
-                                    <span>All Contractors / Firms</span>
-                                </button>
-                                
+                            {{-- All Contractors Option --}}
+                            <button type="button" @click="clear()" 
+                                    class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
+                                    :class="!filterContractorId ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>— All Contractors / Firms —</span>
+                            </button>
+                            
+                            {{-- Options List --}}
+                            <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
                                 <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
-                                    <button type="button" @click="filterContractorId = cont.id; open = false; search = ''; applyFilter();" 
-                                            class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                            :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': filterContractorId == cont.id }">
-                                        <span class="truncate" x-text="cont.name"></span>
+                                    <button type="button" @click="select(cont.id)" 
+                                            class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium"
+                                            :class="filterContractorId == cont.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div :class="filterContractorId == cont.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                                 class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                                 x-text="(cont.name || '?').charAt(0).toUpperCase()">
+                                            </div>
+                                            <span class="truncate text-xs" :class="filterContractorId == cont.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="cont.name"></span>
+                                        </div>
                                     </button>
                                 </template>
                                 
-                                <div x-show="getFilteredContractorsList().length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
-                                    No contractors found.
+                                <div x-show="getFilteredContractorsList().length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                    No contractors found
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- 3. Active / Inactive Status Dropdown (Instant Filter) --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <select x-model="filterStatus" @change="applyFilter()"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Contractors (Default)</option>
-                            <option value="active">Active Contractors</option>
-                            <option value="inactive">Inactive Contractors</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <div class="relative" x-data="{ open: false }">
+                        <button type="button" @click="open = !open" @click.outside="open = false"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="truncate" x-text="filterStatus === 'active' ? 'Active Contractors' : (filterStatus === 'inactive' ? 'Inactive Contractors' : 'All Contractors (Default)')">All Contractors (Default)</span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open" x-cloak class="erp-dropdown-popover">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="filterStatus = ''; applyFilter(); open = false"
+                                     class="erp-dropdown-option"
+                                     :class="!filterStatus ? 'selected-all' : ''">
+                                    <span>All Contractors (Default)</span>
+                                </div>
+                                <div @click="filterStatus = 'active'; applyFilter(); open = false"
+                                     class="erp-dropdown-option"
+                                     :class="filterStatus === 'active' ? 'selected' : ''">
+                                    <span>Active Contractors</span>
+                                </div>
+                                <div @click="filterStatus = 'inactive'; applyFilter(); open = false"
+                                     class="erp-dropdown-option"
+                                     :class="filterStatus === 'inactive' ? 'selected' : ''">
+                                    <span>Inactive Contractors</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Action Buttons: Reset Filters (Instant - No Page Reload) --}}
-                <div class="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
-                    <button type="button" @click="resetFilters()"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 whitespace-nowrap cursor-pointer">
-                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>Reset Filters</span>
-                    </button>
-                </div>
-            </form>
+                <button type="button" @click="resetFilters()"
+                        class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>RESET FILTERS</span>
+                </button>
+            </div>
         </div>
 
         <!-- Master Table Card -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
 
             <!-- Master Table -->
-            <style>
-                #contractors-master-table thead th { border-color: #8a741f !important; }
-                #contractors-master-tbody tr:nth-child(even) { background-color: #faf7eb !important; }
-                #contractors-master-tbody tr:hover { background-color: #f5eed6 !important; }
-            </style>
             <div class="overflow-x-auto custom-scrollbar">
                 <table id="contractors-master-table" class="w-full text-xs text-left border-collapse table-auto">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[9.5px] font-black uppercase tracking-wider text-left">
-                            <th class="px-2 py-3 text-center w-[45px] whitespace-nowrap">SL NO</th>
-                            <th class="px-2.5 py-3 whitespace-nowrap w-[110px]">LEDGER CODE</th>
-                            <th class="px-2.5 py-3 min-w-[160px]">CONTRACTOR / FIRM NAME</th>
-                            <th class="px-2 py-3 whitespace-nowrap w-[140px]">TAX IDENTIFIERS</th>
-                            <th class="px-2 py-3 whitespace-nowrap w-[135px]">CONTACT DETAILS</th>
-                            <th class="px-2.5 py-3 max-w-[150px]">OFFICE ADDRESS</th>
-                            <th class="px-2 py-3 whitespace-nowrap text-center w-[100px]">RA BILLS & BILLED</th>
-                            <th class="px-2 py-3 whitespace-nowrap text-center w-[75px]">STATUS</th>
-                            <th class="px-2.5 py-3 whitespace-nowrap text-right w-[95px]">ACTIONS</th>
+                    <thead class="erp-table-header text-white uppercase tracking-wider text-[10px] font-bold">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-3 py-3 text-center w-[50px] whitespace-nowrap erp-table-header">SL NO</th>
+                            <th class="px-3 py-3 whitespace-nowrap w-[120px] erp-table-header">LEDGER CODE</th>
+                            <th class="px-3 py-3 min-w-[200px] erp-table-header">CONTRACTOR / FIRM NAME</th>
+                            <th class="px-3 py-3 whitespace-nowrap w-[160px] erp-table-header">TAX IDENTIFIERS</th>
+                            <th class="px-3 py-3 whitespace-nowrap w-[160px] erp-table-header">CONTACT DETAILS</th>
+                            <th class="px-3 py-3 max-w-[180px] erp-table-header">OFFICE ADDRESS</th>
+                            <th class="px-3 py-3 whitespace-nowrap text-center w-[120px] erp-table-header">RA BILLS & BILLED</th>
+                            <th class="px-3 py-3 whitespace-nowrap text-center w-[90px] erp-table-header">STATUS</th>
+                            <th class="px-3 py-3 whitespace-nowrap text-right w-[110px] erp-table-header">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody id="contractors-master-tbody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                    <tbody id="contractors-master-tbody" class="divide-y divide-slate-100 font-semibold text-slate-700 text-xs">
                         @forelse($suppliers as $index => $sup)
                             <tr class="contractor-table-row transition hover:bg-[#faf7eb] {{ !($sup->is_active ?? true) ? 'bg-slate-50/70' : '' }}"
                                 data-id="{{ $sup->id }}"
                                 data-status="{{ ($sup->is_active ?? true) ? 'active' : 'inactive' }}"
                                 data-search="{{ strtolower($sup->name . ' ' . ($sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT))) . ' ' . ($sup->phone ?? '') . ' ' . ($sup->pan ?? '') . ' ' . ($sup->gstin ?? '') . ' ' . ($sup->email ?? '') . ' ' . ($sup->address ?? '')) }}">
-                                <td class="contractor-sl-no px-2 py-2.5 text-center font-bold text-slate-400">
+                                <td class="contractor-sl-no px-3 py-3.5 text-center font-bold text-slate-500 text-xs">
                                     {{ $index + 1 }}
                                 </td>
-                                <td class="px-2.5 py-2.5 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-[#7a671b] border border-amber-200/80">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-50 text-[#7a671b] border border-amber-200/80">
                                         {{ $sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT)) }}
                                     </span>
                                 </td>
-                                <td class="px-2.5 py-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-2xs">
+                                <td class="px-3 py-3.5">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
                                             {{ strtoupper(substr($sup->name, 0, 2)) }}
                                         </div>
                                         <div class="min-w-0">
-                                            <strong class="text-slate-900 font-extrabold text-[11.5px] block uppercase leading-tight truncate" title="{{ $sup->name }}">{{ $sup->name }}</strong>
-                                            <span class="text-[9px] text-slate-400 font-bold block leading-tight">CONTRACTOR PAYEE</span>
+                                            <span class="font-bold text-slate-900 block text-sm leading-tight truncate" title="{{ $sup->name }}">{{ $sup->name }}</span>
+                                            <span class="text-[10px] text-slate-500 font-bold block mt-0.5 uppercase tracking-wide">Contractor Payee</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-2 py-2.5 whitespace-nowrap">
-                                    <div class="space-y-0.5 text-[10.5px]">
-                                        <div class="flex items-center gap-1">
-                                            <span class="text-[8.5px] font-bold text-slate-400 uppercase w-6">GST:</span>
+                                <td class="px-3 py-3.5 whitespace-nowrap">
+                                    <div class="space-y-1 text-xs">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase w-7">GST:</span>
                                             @if($sup->gstin)
-                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-[10px]">{{ $sup->gstin }}</span>
+                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs">{{ $sup->gstin }}</span>
                                             @else
-                                                <span class="text-slate-400 italic text-[10px]">Unregistered</span>
+                                                <span class="text-slate-400 italic text-xs">Unregistered</span>
                                             @endif
                                         </div>
-                                        <div class="flex items-center gap-1">
-                                            <span class="text-[8.5px] font-bold text-slate-400 uppercase w-6">PAN:</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase w-7">PAN:</span>
                                             @if($sup->pan)
-                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-[10px]">{{ $sup->pan }}</span>
+                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs">{{ $sup->pan }}</span>
                                             @else
-                                                <span class="text-slate-400 italic text-[10px]">N/A</span>
+                                                <span class="text-slate-400 italic text-xs">N/A</span>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-2 py-2.5 whitespace-nowrap">
-                                    <div class="space-y-0.5 text-[11px]">
+                                <td class="px-3 py-3.5 whitespace-nowrap">
+                                    <div class="space-y-1 text-xs">
                                         @if($sup->phone)
-                                            <div class="flex items-center gap-1 font-bold text-slate-800">
-                                                <svg class="w-3 h-3 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                            <div class="flex items-center gap-1.5 font-bold text-slate-800">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                                 <span>{{ $sup->phone }}</span>
                                             </div>
                                         @endif
                                         @if($sup->email)
-                                            <div class="flex items-center gap-1 text-slate-500 font-semibold text-[10px]">
-                                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                <span class="truncate max-w-[110px]" title="{{ $sup->email }}">{{ $sup->email }}</span>
+                                            <div class="flex items-center gap-1.5 text-slate-600 font-medium text-xs">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                <span class="truncate max-w-[130px]" title="{{ $sup->email }}">{{ $sup->email }}</span>
                                             </div>
                                         @endif
                                         @if(!$sup->phone && !$sup->email)
-                                            <span class="text-slate-400 italic text-[10px]">No contact specified</span>
+                                            <span class="text-slate-400 italic text-xs">No contact specified</span>
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-2.5 py-2.5 max-w-[140px] truncate text-slate-600 font-medium text-[11px]" title="{{ $sup->address }}">
+                                <td class="px-3 py-3.5 max-w-[180px] truncate text-slate-700 font-medium text-xs" title="{{ $sup->address }}">
                                     {{ $sup->address ?? '—' }}
                                 </td>
-                                <td class="px-2 py-2.5 text-center">
-                                    <div class="inline-flex flex-col items-center justify-center px-1.5 py-1 bg-slate-50 border border-slate-200/80 rounded-lg">
-                                        <span class="text-[9.5px] font-black text-slate-900 font-mono leading-tight">{{ $sup->ra_bills_count ?? 0 }} RA Bills</span>
-                                        <span class="text-[8.5px] font-mono font-bold text-slate-500 leading-tight">₹{{ number_format($sup->total_billed ?? 0, 2) }}</span>
+                                <td class="px-3 py-3.5 text-center">
+                                    <div class="inline-flex flex-col items-center justify-center px-2 py-1 bg-slate-50 border border-slate-200/80 rounded-lg">
+                                        <span class="text-xs font-black text-slate-900 font-mono leading-tight">{{ $sup->ra_bills_count ?? 0 }} RA Bills</span>
+                                        <span class="text-[11px] font-mono font-bold text-[#8a741f] leading-tight mt-0.5">₹{{ number_format($sup->total_billed ?? 0, 2) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-2 py-2.5 text-center whitespace-nowrap">
+                                <td class="px-3 py-3.5 text-center whitespace-nowrap">
                                     @if($sup->is_active ?? true)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Active</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">
                                             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             <span>Inactive</span>
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-2.5 py-2.5 text-right whitespace-nowrap">
+                                <td class="px-3 py-3.5 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center justify-end gap-1.5">
                                         <!-- View Details Modal Button -->
-                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Contractor Details">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Contractor Details">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
 
                                         <!-- Edit Modal Button -->
-                                        <button type="button" @click="openEditModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Contractor">
-                                            <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        <button type="button" @click="openEditModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Contractor">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
 
                                         @if($sup->is_active ?? true)
                                             <!-- Delete / Inactivate Button -->
-                                            <button type="button" @click="openDeactivateModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Delete Contractor">
-                                                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <button type="button" @click="openDeactivateModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Delete Contractor">
+                                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         @else
                                             <!-- Activate Button (Opens Confirmation Modal) -->
-                                            <button type="button" @click="openActivateModalFunc({{ json_encode($sup) }})" class="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 border border-emerald-200 transition inline-flex items-center gap-1 shadow-2xs cursor-pointer font-bold text-[10px]" title="Activate Contractor (Restore to Active)">
-                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            <button type="button" @click="openActivateModalFunc({{ json_encode($sup) }})" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 border border-emerald-200 transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer font-bold text-xs" title="Activate Contractor (Restore to Active)">
+                                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                                 <span>Activate</span>
                                             </button>
                                         @endif
