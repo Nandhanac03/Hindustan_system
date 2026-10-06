@@ -53,45 +53,11 @@ class DocumentController extends Controller
             $selectedCategory = null;
         }
 
-        // Build DMS query
-        $query = Document::where('system_id', $systemId)
-            ->with(['documentable', 'uploader', 'referenceProject']);
-
-        if ($selectedCategory) {
-            $query->where('category', $selectedCategory);
-        }
-
-        if ($selectedProject) {
-            $query->where(function ($q) use ($selectedProject) {
-                $q->where('reference_project_id', $selectedProject)
-                  ->orWhere(function ($sq) use ($selectedProject) {
-                      $sq->where('documentable_type', Project::class)
-                         ->where('documentable_id', $selectedProject);
-                  });
-            });
-        }
-
-        if ($selectedDocType) {
-            $query->where('document_type', $selectedDocType);
-        }
-
-        if ($searchQuery) {
-            $query->where(function ($q) use ($searchQuery) {
-                $q->where('title', 'like', "%{$searchQuery}%")
-                  ->orWhere('document_number', 'like', "%{$searchQuery}%")
-                  ->orWhere('file_name', 'like', "%{$searchQuery}%");
-            });
-        }
-
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        // Retrieve document list for instant zero-reload reactive filtering
-        $documents = $query->orderBy('created_at', 'desc')->get();
+        // Retrieve all documents for instant zero-reload reactive filtering
+        $documents = Document::where('system_id', $systemId)
+            ->with(['documentable', 'uploader', 'referenceProject'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // 1. Stats Counters for top cards
         $categoryCounts = [];
@@ -113,14 +79,14 @@ class DocumentController extends Controller
             ->get();
 
         // 3. Total active and expired counts for status badges
-        $totalActiveCount = (clone $query)->where('is_archived', false)->count();
-        $totalArchivedCount = (clone $query)->where('is_archived', true)->count();
-        $totalExpiringCount = (clone $query)->where('is_archived', false)
+        $totalActiveCount = Document::where('system_id', $systemId)->where('is_archived', false)->count();
+        $totalArchivedCount = Document::where('system_id', $systemId)->where('is_archived', true)->count();
+        $totalExpiringCount = Document::where('system_id', $systemId)->where('is_archived', false)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>=', now())
             ->where('expiry_date', '<=', now()->addDays(30))
             ->count();
-        $totalExpiredCount = (clone $query)->where('is_archived', false)
+        $totalExpiredCount = Document::where('system_id', $systemId)->where('is_archived', false)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '<', now())
             ->count();

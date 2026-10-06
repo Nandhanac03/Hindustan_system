@@ -162,8 +162,10 @@
                     'templates' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>'
                 ][$catKey] ?? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>';
             @endphp
-            <a href="{{ route('dms.index', array_merge(request()->except(['category', 'page']), $isSelected ? [] : ['category' => $catKey])) }}" 
-               class="bg-white rounded-2xl border border-l-[5px] {{ $colors['border-l'] }} border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 {{ $colors['hover-shadow'] }} {{ $colors['hover-border'] }} h-full min-h-[130px] {{ $isSelected ? 'ring-2 ring-[#a38c29]/25 bg-slate-50/10' : '' }}">
+            <button type="button"
+               @click="toggleCategoryCard('{{ $catKey }}')" 
+               class="bg-white rounded-2xl border border-l-[5px] {{ $colors['border-l'] }} border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 {{ $colors['hover-shadow'] }} {{ $colors['hover-border'] }} h-full min-h-[130px] cursor-pointer"
+               :class="filterCategory === '{{ $catKey }}' ? 'ring-2 ring-[#a38c29]/25 bg-slate-50/10' : ''">
                 
                 <div class="w-9 h-9 rounded-xl {{ $colors['bg'] }} {{ $colors['text'] }} border {{ $colors['border'] }} flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 {{ $colors['hover-icon'] }} group-hover:shadow-md group-hover:scale-110">
                     {!! $iconSvg !!}
@@ -173,7 +175,7 @@
                     <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">{{ $info['label'] }}</h4>
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">{{ $docCount }} Docs</p>
                 </div>
-            </a>
+            </button>
         @endforeach
     </div>
 
@@ -182,93 +184,144 @@
         
         {{-- Left: Repository Filter & Table --}}
         <div class="lg:col-span-2 space-y-4">
-            
-            {{-- Ultra-Clean Modern Search & Filter Panel (Single Line) --}}
-            <form method="GET" action="{{ route('dms.index') }}" class="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-all">
-                @if(request('category'))
-                    <input type="hidden" name="category" value="{{ request('category') }}">
-                @endif
-                <input type="hidden" name="status" :value="activeStatusTab">
-                
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
-                    {{-- Search Input --}}
-                    <div class="relative group flex-1 min-w-[180px]">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <input type="text" name="search" value="{{ request('search') }}" 
-                               placeholder="Search Title / Document #..." 
-                               class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
-                        
-                        {{-- Clear Search Button if active --}}
-                        @if(request('search'))
-                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                                <a href="{{ route('dms.index', array_merge(request()->except('search'), $selectedCategory ? ['category' => $selectedCategory] : [])) }}"
-                                   class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </a>
+                     {{-- Ultra-Clean Modern Search & Filter Panel (Instant Zero-Reload) --}}
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+                        {{-- Search Input with Gold Icon --}}
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
                             </div>
-                        @endif
+                            <input type="text" x-model="search" placeholder="Search Title / Document # / Ref..." 
+                                   class="w-full pl-10 pr-10 erp-search-input">
+                            <template x-if="search">
+                                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                                    <button type="button" @click="search = ''"
+                                           class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Category Filter (Custom Gold Popover) --}}
+                        <div class="relative w-full" @click.outside="categoryFilterOpen = false">
+                            <button type="button"
+                                    @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { docTypeFilterOpen = false; }"
+                                    class="erp-dropdown-trigger"
+                                    :class="categoryFilterOpen ? 'active' : ''">
+                                <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                    <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                    </svg>
+                                    <span class="truncate text-xs font-bold"
+                                          :class="filterCategory ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                          x-text="getSelectedCategoryName()">All Categories</span>
+                                </div>
+
+                                <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                    <template x-if="filterCategory">
+                                        <span @click.stop="selectCategoryFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    </template>
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </button>
+
+                            {{-- Category Popover Menu --}}
+                            <div x-show="categoryFilterOpen" x-cloak
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="erp-dropdown-popover"
+                                 style="display: none;">
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                    <div @click="selectCategoryFilter('')"
+                                         class="erp-dropdown-option"
+                                         :class="!filterCategory ? 'selected-all' : ''">
+                                        <span>All Categories</span>
+                                    </div>
+                                    @foreach($categoriesInfo as $k => $info)
+                                        <div @click="selectCategoryFilter('{{ $k }}')"
+                                             class="erp-dropdown-option"
+                                             :class="filterCategory === '{{ $k }}' ? 'selected' : ''">
+                                            <span>{{ $info['label'] }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Document Type Filter (Custom Gold Popover) --}}
+                        <div class="relative w-full" @click.outside="docTypeFilterOpen = false">
+                            <button type="button"
+                                    @click="docTypeFilterOpen = !docTypeFilterOpen; if(docTypeFilterOpen) { categoryFilterOpen = false; }"
+                                    class="erp-dropdown-trigger"
+                                    :class="docTypeFilterOpen ? 'active' : ''">
+                                <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                    <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="truncate text-xs font-bold"
+                                          :class="filterDocType ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                          x-text="filterDocType || 'All Document Types'">All Document Types</span>
+                                </div>
+
+                                <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                    <template x-if="filterDocType">
+                                        <span @click.stop="selectDocTypeFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    </template>
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="docTypeFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </button>
+
+                            {{-- Document Type Popover Menu --}}
+                            <div x-show="docTypeFilterOpen" x-cloak
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="erp-dropdown-popover"
+                                 style="display: none;">
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                    <div @click="selectDocTypeFilter('')"
+                                         class="erp-dropdown-option"
+                                         :class="!filterDocType ? 'selected-all' : ''">
+                                        <span>All Document Types</span>
+                                    </div>
+                                    <template x-for="type in availableDocTypes" :key="type">
+                                        <div @click="selectDocTypeFilter(type)"
+                                             class="erp-dropdown-option"
+                                             :class="filterDocType === type ? 'selected' : ''">
+                                            <span x-text="type"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- Category filter if not selected --}}
-                    @if(!$selectedCategory)
-                        <div class="relative flex-1 min-w-[160px]">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                            </div>
-                            <select name="category" onchange="this.form.submit()" 
-                                    class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                <option value="">All Categories</option>
-                                @foreach($categoriesInfo as $k => $info)
-                                    <option value="{{ $k }}" @selected(request('category') === $k)>{{ $info['label'] }}</option>
-                                @endforeach
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Document Type --}}
-                    <div class="relative flex-1 min-w-[160px]">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        </div>
-                        <select name="document_type" onchange="this.form.submit()" 
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Document Types</option>
-                            @if($selectedCategory && isset($categoriesInfo[$selectedCategory]))
-                                @foreach($categoriesInfo[$selectedCategory]['types'] as $type)
-                                    <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
-                                @endforeach
-                            @else
-                                @foreach($categoriesInfo as $k => $info)
-                                    <optgroup label="{{ $info['label'] }}">
-                                        @foreach($info['types'] as $type)
-                                            <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
-                                        @endforeach
-                                    </optgroup>
-                                @endforeach
-                            @endif
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
+                    {{-- Reset Filters Button --}}
+                    <button type="button" @click="resetFilters()"
+                       class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>RESET FILTERS</span>
+                    </button>
                 </div>
-
-                {{-- Reset Filters Button --}}
-                <a href="{{ route('dms.index', $selectedCategory ? ['category' => $selectedCategory] : []) }}" 
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 h-[42px] text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 cursor-pointer shrink-0 whitespace-nowrap">
-                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <span>RESET FILTERS</span>
-                </a>
-            </form>
+            </div>
 
             {{-- Premium Segmented Navigation Tabs (Below Search & Filter Box) --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
@@ -384,15 +437,15 @@
                 {{-- Table List --}}
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse text-left">
-                        <thead>
-                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[9px] font-bold uppercase text-slate-500 tracking-wider">
-                                <th class="px-5 py-3">Document Details</th>
-                                <th class="px-5 py-3">Category</th>
-                                <th class="px-5 py-3">Reference Entity</th>
-                                <th class="px-5 py-3">Document Type</th>
-                                <th class="px-5 py-3">Issue/Expiry</th>
-                                <th class="px-5 py-3">Status</th>
-                                <th class="px-5 py-3 text-right">Actions</th>
+                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                            <tr class="erp-table-header border-b border-slate-700 text-left">
+                                <th class="px-5 py-3.5 border-r border-slate-600">Document Details</th>
+                                <th class="px-5 py-3.5 border-r border-slate-600">Category</th>
+                                <th class="px-5 py-3.5 border-r border-slate-600">Reference Entity</th>
+                                <th class="px-5 py-3.5 border-r border-slate-600">Document Type</th>
+                                <th class="px-5 py-3.5 border-r border-slate-600">Issue / Expiry</th>
+                                <th class="px-5 py-3.5 border-r border-slate-600 text-center">Status</th>
+                                <th class="px-5 py-3.5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-150 text-xs">
@@ -442,7 +495,7 @@
                                         $refName = $doc->referenceProject->name;
                                     }
                                 @endphp
-                                <tr x-show="isDocVisible({{ $isArchived ? 'true' : 'false' }}, {{ $isExpiringSoon ? 'true' : 'false' }}, {{ $isExpired ? 'true' : 'false' }})"
+                                <tr x-show="isDocMatch('{{ $doc->category }}', '{{ addslashes($doc->document_type) }}', '{{ strtolower(addslashes($doc->title)) }}', '{{ strtolower(addslashes($doc->document_number ?? '')) }}', '{{ strtolower(addslashes($refName)) }}', {{ $isArchived ? 'true' : 'false' }}, {{ $isExpiringSoon ? 'true' : 'false' }}, {{ $isExpired ? 'true' : 'false' }})"
                                     class="hover:bg-slate-50/50 transition-colors {{ $isArchived ? 'opacity-70 bg-slate-50/30' : '' }}">
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
@@ -1426,12 +1479,99 @@
         const defaultProjId = '{{ $selectedProject ?? ($projects->first()?->id ?? '') }}';
 
         return {
+            search: '{{ request('search', '') }}',
+            filterCategory: '{{ $selectedCategory ?? '' }}',
+            filterDocType: '{{ request('document_type', '') }}',
+            categoryFilterOpen: false,
+            docTypeFilterOpen: false,
             activeStatusTab: '{{ request('status', 'active') }}',
+
+            selectCategoryFilter(cat) {
+                this.filterCategory = cat;
+                this.categoryFilterOpen = false;
+                this.filterDocType = '';
+                this.syncUrl();
+            },
+            selectDocTypeFilter(type) {
+                this.filterDocType = type;
+                this.docTypeFilterOpen = false;
+                this.syncUrl();
+            },
+            toggleCategoryCard(cat) {
+                if (this.filterCategory === cat) {
+                    this.selectCategoryFilter('');
+                } else {
+                    this.selectCategoryFilter(cat);
+                }
+            },
+            resetFilters() {
+                this.search = '';
+                this.filterCategory = '';
+                this.filterDocType = '';
+                this.activeStatusTab = 'active';
+                this.categoryFilterOpen = false;
+                this.docTypeFilterOpen = false;
+                this.syncUrl();
+            },
+            syncUrl() {
+                const url = new URL(window.location);
+                if (this.filterCategory) url.searchParams.set('category', this.filterCategory);
+                else url.searchParams.delete('category');
+                
+                if (this.filterDocType) url.searchParams.set('document_type', this.filterDocType);
+                else url.searchParams.delete('document_type');
+                
+                if (this.search) url.searchParams.set('search', this.search);
+                else url.searchParams.delete('search');
+
+                if (this.activeStatusTab && this.activeStatusTab !== 'active') url.searchParams.set('status', this.activeStatusTab);
+                else url.searchParams.delete('status');
+
+                window.history.replaceState({}, '', url);
+            },
+            getSelectedCategoryName() {
+                if (!this.filterCategory) return 'All Categories';
+                return this.categoryLabels[this.filterCategory] || this.filterCategory;
+            },
+            get availableDocTypes() {
+                if (this.filterCategory && this.categoryTypes[this.filterCategory]) {
+                    return this.categoryTypes[this.filterCategory];
+                }
+                const all = [];
+                for (const key in this.categoryTypes) {
+                    all.push(...this.categoryTypes[key]);
+                }
+                return [...new Set(all)];
+            },
             setStatusTab(tab) {
                 this.activeStatusTab = tab;
-                const url = new URL(window.location);
-                url.searchParams.set('status', tab);
-                window.history.replaceState({}, '', url);
+                this.syncUrl();
+            },
+            isDocMatch(docCategory, docType, docTitle, docNumber, docRef, isArchived, isExpiringSoon, isExpired) {
+                // Status tab check
+                if (this.activeStatusTab === 'active' && isArchived) return false;
+                if (this.activeStatusTab === 'expiring_soon' && (isArchived || !isExpiringSoon)) return false;
+                if (this.activeStatusTab === 'expired' && (isArchived || !isExpired)) return false;
+                if (this.activeStatusTab === 'archived' && !isArchived) return false;
+
+                // Category filter check
+                if (this.filterCategory && docCategory !== this.filterCategory) return false;
+
+                // Document type filter check
+                if (this.filterDocType && docType !== this.filterDocType) return false;
+
+                // Search query check
+                if (this.search) {
+                    const q = this.search.toLowerCase().trim();
+                    const title = (docTitle || '').toLowerCase();
+                    const num = (docNumber || '').toLowerCase();
+                    const ref = (docRef || '').toLowerCase();
+                    if (!title.includes(q) && !num.includes(q) && !ref.includes(q)) {
+                        return false;
+                    }
+                }
+
+                return true;
             },
             isDocVisible(isArchived, isExpiringSoon, isExpired) {
                 if (this.activeStatusTab === 'active') return !isArchived;

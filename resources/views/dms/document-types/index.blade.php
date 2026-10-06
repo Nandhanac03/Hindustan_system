@@ -82,8 +82,150 @@
             </div>
         </div>
 
+        <!-- Ultra-Clean Modern Instant Filter Panel -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+                    {{-- Search Input with Gold Icon --}}
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" x-model="search" placeholder="Search Document Type Name..." 
+                               class="w-full pl-10 pr-10 erp-search-input">
+                        <template x-if="search">
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                                <button type="button" @click="search = ''"
+                                       class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Category Group Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="categoryFilterOpen = false">
+                        <button type="button"
+                                @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { statusFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="categoryFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterCategoryId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedCategoryName()">All Category Groups</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterCategoryId">
+                                    <span @click.stop="selectCategoryFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Category Popover Menu --}}
+                        <div x-show="categoryFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectCategoryFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterCategoryId ? 'selected-all' : ''">
+                                    <span>All Category Groups</span>
+                                </div>
+                                @foreach($categories as $cat)
+                                    <div @click="selectCategoryFilter('{{ $cat->id }}')"
+                                         class="erp-dropdown-option"
+                                         :class="String(filterCategoryId) === '{{ $cat->id }}' ? 'selected' : ''">
+                                        <span>{{ $cat->name }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Status Filter (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="statusFilterOpen = false">
+                        <button type="button"
+                                @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { categoryFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="statusFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filterStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getStatusLabel()">All Statuses</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterStatus">
+                                    <span @click.stop="selectStatusFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Status Popover Menu --}}
+                        <div x-show="statusFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectStatusFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterStatus ? 'selected-all' : ''">
+                                    <span>All Statuses</span>
+                                </div>
+                                <div @click="selectStatusFilter('active')"
+                                     class="erp-dropdown-option"
+                                     :class="filterStatus === 'active' ? 'selected' : ''">
+                                    <span>Active</span>
+                                </div>
+                                <div @click="selectStatusFilter('inactive')"
+                                     class="erp-dropdown-option"
+                                     :class="filterStatus === 'inactive' ? 'selected' : ''">
+                                    <span>Inactive</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Reset Filters Button --}}
+                <button type="button" @click="resetFilters()"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>RESET FILTERS</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Directory Table Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6 flex flex-col">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 flex flex-col">
             
             <!-- Header -->
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -97,20 +239,21 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto min-h-[400px]">
+            <div class="overflow-x-auto min-h-[300px]">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr>
-                            <th class="px-5 py-3 w-16 text-center">ID</th>
-                            <th class="px-5 py-3">Document Type</th>
-                            <th class="px-5 py-3">Category Group</th>
-                            <th class="px-5 py-3">Status</th>
-                            <th class="px-5 py-3 text-right w-28">Actions</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 border-r border-slate-600 w-16 text-center">ID</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Document Type</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Category Group</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 text-center">Status</th>
+                            <th class="px-5 py-3.5 text-right w-28">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($documentTypes as $type)
-                            <tr class="hover:bg-slate-50 transition group">
+                            <tr x-show="isDocTypeMatch('{{ strtolower(addslashes($type->name)) }}', '{{ $type->dms_category_id }}', {{ $type->is_active ? 'true' : 'false' }})"
+                                class="hover:bg-slate-50 transition group">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">
                                     {{ str_pad((string)$type->id, 4, '0', STR_PAD_LEFT) }}
                                 </td>
@@ -120,7 +263,7 @@
                                 <td class="px-5 py-3 text-xs font-bold text-slate-650">
                                     {{ $type->category->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-5 py-3">
+                                <td class="px-5 py-3 text-center">
                                     @if($type->is_active)
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200/50">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
@@ -266,7 +409,49 @@
 
     <script>
         function dmsDocumentTypeApp() {
+            const categoriesMap = @json($categories->pluck('name', 'id'));
+
             return {
+                search: '',
+                filterCategoryId: '',
+                filterStatus: '',
+                categoryFilterOpen: false,
+                statusFilterOpen: false,
+
+                selectCategoryFilter(catId) {
+                    this.filterCategoryId = catId;
+                    this.categoryFilterOpen = false;
+                },
+                selectStatusFilter(status) {
+                    this.filterStatus = status;
+                    this.statusFilterOpen = false;
+                },
+                resetFilters() {
+                    this.search = '';
+                    this.filterCategoryId = '';
+                    this.filterStatus = '';
+                    this.categoryFilterOpen = false;
+                    this.statusFilterOpen = false;
+                },
+                getSelectedCategoryName() {
+                    if (!this.filterCategoryId) return 'All Category Groups';
+                    return categoriesMap[this.filterCategoryId] || 'Category Group';
+                },
+                getStatusLabel() {
+                    if (this.filterStatus === 'active') return 'Active';
+                    if (this.filterStatus === 'inactive') return 'Inactive';
+                    return 'All Statuses';
+                },
+                isDocTypeMatch(name, catId, isActive) {
+                    if (this.filterCategoryId && String(catId) !== String(this.filterCategoryId)) return false;
+                    if (this.filterStatus === 'active' && !isActive) return false;
+                    if (this.filterStatus === 'inactive' && isActive) return false;
+                    if (this.search) {
+                        const q = this.search.toLowerCase().trim();
+                        if (!name.includes(q)) return false;
+                    }
+                    return true;
+                },
                 modals: {
                     add: { open: false },
                     edit: { open: false },

@@ -82,8 +82,10 @@
             </div>
         </div>
 
+        
+
         <!-- Directory Table Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6 flex flex-col">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 flex flex-col">
             
             <!-- Header -->
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -97,21 +99,22 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto min-h-[400px]">
+            <div class="overflow-x-auto min-h-[300px]">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr>
-                            <th class="px-5 py-3 w-16 text-center">ID</th>
-                            <th class="px-5 py-3">Category Name</th>
-                            <th class="px-5 py-3">Code / Slug</th>
-                            <th class="px-5 py-3">Icon Name</th>
-                            <th class="px-5 py-3 text-center">Types Count</th>
-                            <th class="px-5 py-3 text-right w-28">Actions</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 border-r border-slate-600 w-16 text-center">ID</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Category Name</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Code / Slug</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Icon Name</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600 text-center">Types Count</th>
+                            <th class="px-5 py-3.5 text-right w-28">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($categories as $category)
-                            <tr class="hover:bg-slate-50 transition group">
+                            <tr x-show="isCategoryMatch('{{ strtolower(addslashes($category->name)) }}', '{{ strtolower(addslashes($category->code)) }}', '{{ strtolower(addslashes($category->icon ?? '')) }}')"
+                                class="hover:bg-slate-50 transition group">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">
                                     {{ str_pad((string)$category->id, 4, '0', STR_PAD_LEFT) }}
                                 </td>
@@ -265,6 +268,15 @@
     <script>
         function dmsCategoryApp() {
             return {
+                search: '',
+                resetFilters() {
+                    this.search = '';
+                },
+                isCategoryMatch(name, code, icon) {
+                    if (!this.search) return true;
+                    const q = this.search.toLowerCase().trim();
+                    return name.includes(q) || code.includes(q) || icon.includes(q);
+                },
                 modals: {
                     add: { open: false },
                     edit: { open: false },
