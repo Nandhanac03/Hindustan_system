@@ -17,9 +17,8 @@
         <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
     </div>
 
-    {{-- Top Action & Customer Filter Bar (Above Filter Panel) --}}
+    {{-- Dedicated Export & Customer Selector Card (Excel UI) --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all">
-        {{-- Customer Search & Select Dropdown Filter (Like Image) --}}
         <div class="flex-1 min-w-[260px] relative" 
              x-data="{ 
                  open: false, 
@@ -51,185 +50,299 @@
              }" 
              @click.outside="open = false">
 
-            <div class="relative w-full">
-                <button type="button"
-                        @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
-                        :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
-                        class="w-full min-h-[42px] px-3 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
-                    
+            <button type="button"
+                    @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
+                    class="w-full h-[42px] px-4 border border-slate-300 hover:border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs bg-white text-slate-700">
+                
+                <div class="flex items-center gap-2.5 overflow-hidden min-w-0 flex-1">
+                    <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="truncate text-xs" 
+                          :class="selectedCustomer ? 'text-slate-900 font-bold' : 'text-slate-500 font-medium'"
+                          x-text="selectedCustomer ? selectedCustomer.name : 'Filter by Customers'">Filter by Customers</span>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0 ml-2">
                     <template x-if="selectedCustomer">
-                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                            <span class="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 text-xs font-bold">
-                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span x-text="selectedCustomer.name" class="whitespace-nowrap max-w-[220px] truncate"></span>
-                                <button type="button" @click.stop="clearCustomer()" class="text-[#8a7522]/70 hover:text-rose-600 hover:bg-rose-50 rounded p-0.5 transition-colors">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                            </span>
-                        </div>
+                        <span @click.stop="clearCustomer()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </span>
                     </template>
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </button>
 
-                    <template x-if="!selectedCustomer">
-                        <div class="flex items-center gap-2 text-slate-500 font-bold px-1">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            <span class="text-xs">Filter by Customers</span>
-                        </div>
-                    </template>
-
-                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                        <template x-if="selectedCustomer">
-                            <span @click.stop="clearCustomer()" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </span>
+            <div x-show="open" x-cloak
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 translate-y-1"
+                 class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                 style="display: none;">
+                
+                <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                    <div class="relative">
+                        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text"
+                               x-model="search"
+                               x-ref="customerSearchInput"
+                               placeholder="Type name or phone number..."
+                               @keydown.escape="open = false"
+                               class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                        <template x-if="search">
+                            <button type="button" @click="search = ''; $refs.customerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
                         </template>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
+                </div>
+
+                <button type="button" @click="clearCustomer()"
+                        class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>— All Customers —</span>
                 </button>
 
-                <div x-show="open"
-                     x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
-                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave="transition ease-in duration-150"
-                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                     class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
-                     style="display: none;">
-                    
-                    <div class="p-2.5 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
-                        <div class="relative">
-                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input type="text"
-                                   x-model="search"
-                                   x-ref="customerSearchInput"
-                                   placeholder="Type name or phone number..."
-                                   @keydown.escape="open = false"
-                                   class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
-                            <template x-if="search">
-                                <button type="button" @click="search = ''; $refs.customerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
-                            </template>
-                        </div>
-                    </div>
-
-                    <button type="button" @click="clearCustomer()"
-                            class="w-full px-3.5 py-2.5 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        <span>— Clear Selection (All Customers) —</span>
-                    </button>
-
-                    <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
-                        <template x-for="c in getFilteredList()" :key="c.id">
-                            <button type="button"
-                                    @click="selectCustomer(c.id)"
-                                    :class="filters.customer_id == c.id ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
-                                    class="w-full p-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
-                                         class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors"
-                                         x-text="(c.name || '?').charAt(0).toUpperCase()">
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-xs truncate leading-snug" :class="filters.customer_id == c.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="c.name"></p>
-                                        <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="c.phone">
-                                            <span class="flex items-center gap-1">
-                                                <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                                <span x-text="c.phone"></span>
-                                            </span>
-                                        </div>
+                <div class="overflow-y-auto flex-1 p-1.5 space-y-0.5">
+                    <template x-for="c in getFilteredList()" :key="c.id">
+                        <button type="button"
+                                @click="selectCustomer(c.id)"
+                                :class="filters.customer_id == c.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'"
+                                class="w-full px-2.5 py-2 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                     class="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center shrink-0 transition-colors"
+                                     x-text="(c.name || '?').charAt(0).toUpperCase()">
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-xs truncate leading-snug" :class="filters.customer_id == c.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="c.name"></p>
+                                    <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="c.phone">
+                                        <span x-text="c.phone"></span>
                                     </div>
                                 </div>
-                            </button>
-                        </template>
-                    </div>
+                            </div>
+                        </button>
+                    </template>
                 </div>
             </div>
         </div>
 
-        {{-- Export Excel Button (Aligned on the right of this top bar) --}}
         <div class="flex items-center gap-2.5 shrink-0">
             <button type="button" @click="exportCustomersExcel()"
-                    class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                    class="h-[42px] px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <span>Export Customers</span>
+                <span>EXPORT CUSTOMERS</span>
             </button>
         </div>
     </div>
 
-    {{-- Ultra-Clean Modern Light Search & Filter Panel (Below Top Bar) --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-            {{-- Search: Name / Email / Phone --}}
-            <div class="relative sm:col-span-2 group">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
+    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+
+                {{-- 1. Search by Name / Email / Phone --}}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" placeholder="Search by name, email or phone..."
+                           x-model="filters.search" @input.debounce.300ms="fetchCustomers()"
+                           class="w-full erp-search-input placeholder-slate-400">
+                    
+                    {{-- Clear Button --}}
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <button type="button" x-show="filters.search" @click="filters.search = ''; fetchCustomers()"
+                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
-                <input type="text" placeholder="Search by name, email or phone..."
-                       x-model="filters.search" @input.debounce.300ms="fetchCustomers()"
-                       class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
-                
-                {{-- Clear Button --}}
-                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                    <button type="button" x-show="filters.search" @click="filters.search = ''; fetchCustomers()"
-                            class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+
+                {{-- 2. Search & Select Customer Name Dropdown --}}
+                <div class="relative" 
+                     x-data="{ 
+                         open: false, 
+                         search: '',
+                         get selectedCustomer() {
+                             return (allCustomerList || []).find(c => c.id == filters.customer_id);
+                         },
+                         getFilteredList() {
+                             const q = (this.search || '').toLowerCase().trim();
+                             if (!q) return allCustomerList;
+                             return (allCustomerList || []).filter(c => 
+                                 (c.name && c.name.toLowerCase().includes(q)) || 
+                                 (c.phone && c.phone.includes(q)) || 
+                                 (c.email && c.email.toLowerCase().includes(q))
+                             );
+                         },
+                         selectCustomer(id) {
+                             filters.customer_id = id;
+                             this.open = false;
+                             this.search = '';
+                             fetchCustomers();
+                         },
+                         clearCustomer() {
+                             filters.customer_id = '';
+                             this.open = false;
+                             this.search = '';
+                             fetchCustomers();
+                         }
+                     }" 
+                     @click.outside="open = false">
+
+                    <button type="button"
+                            @click="open = !open; if (open) { $nextTick(() => $refs.filterCustomerSearchInput?.focus()); }"
+                            class="w-full h-[38px] px-3.5 border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs bg-slate-50 hover:bg-white text-slate-800">
+                        
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="truncate font-bold text-xs" 
+                                  :class="selectedCustomer ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="selectedCustomer ? selectedCustomer.name : 'Search & Select Customer Name'">Search & Select Customer Name</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedCustomer">
+                                <span @click.stop="clearCustomer()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </button>
+
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                         style="display: none;">
+                        
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text"
+                                       x-model="search"
+                                       x-ref="filterCustomerSearchInput"
+                                       placeholder="Type name or phone number..."
+                                       @keydown.escape="open = false"
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                <template x-if="search">
+                                    <button type="button" @click="search = ''; $refs.filterCustomerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <button type="button" @click="clearCustomer()"
+                                class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>— All Customers —</span>
+                        </button>
+
+                        <div class="overflow-y-auto flex-1 p-1.5 space-y-0.5">
+                            <template x-for="c in getFilteredList()" :key="c.id">
+                                <button type="button"
+                                        @click="selectCustomer(c.id)"
+                                        :class="filters.customer_id == c.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'"
+                                        class="w-full px-2.5 py-2 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                             class="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center shrink-0 transition-colors"
+                                             x-text="(c.name || '?').charAt(0).toUpperCase()">
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-xs truncate leading-snug" :class="filters.customer_id == c.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="c.name"></p>
+                                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="c.phone">
+                                                <span x-text="c.phone"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
+
+                {{-- 3. Status Filter (Custom Gold Popover) --}}
+                <div class="relative" x-data="{ statusDropdownOpen: false }" @click.outside="statusDropdownOpen = false">
+                    <div @click="statusDropdownOpen = !statusDropdownOpen"
+                         class="erp-dropdown-trigger h-[38px]"
+                         :class="statusDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="filters.status === '1' ? 'Active' : (filters.status === '0' ? 'Inactive' : 'All Statuses')">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusDropdownOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filters.status = ''; statusDropdownOpen = false; fetchCustomers()"
+                                 class="erp-dropdown-option"
+                                 :class="!filters.status ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="filters.status = '1'; statusDropdownOpen = false; fetchCustomers()"
+                                 class="erp-dropdown-option"
+                                 :class="filters.status === '1' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="filters.status = '0'; statusDropdownOpen = false; fetchCustomers()"
+                                 class="erp-dropdown-option"
+                                 :class="filters.status === '0' ? 'selected' : ''">
+                                <span>Inactive</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            {{-- Status Filter --}}
-            <div class="relative">
-                <select x-model="filters.status" @change="fetchCustomers()"
-                        class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                    <option value="">All Statuses</option>
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                </select>
+            <div class="flex items-center gap-2 flex-wrap shrink-0">
+                <button @click="resetFilters()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95 cursor-pointer">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Reset</span>
+                </button>
+                <button @click="openAddModal()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 h-[38px] text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add Customer</span>
+                </button>
             </div>
-        </div>
-
-        <div class="flex items-center gap-2 flex-shrink-0">
-            <button @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
-                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset</span>
-            </button>
-            <button @click="openAddModal()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Add Customer</span>
-            </button>
         </div>
     </div>
 
     {{-- Customers Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-        <style>
-            #customers-table thead th {
-                border-color: #8a7522 !important;
-            }
-            #customers-tbody tr:nth-child(even) {
-                background-color: #F6F3E9 !important;
-            }
-            #customers-tbody tr:hover {
-                background-color: #ebe5d0 !important;
-            }
-        </style>
         <div class="overflow-x-auto">
             <table id="customers-table" class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Customer</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Contact Info</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Units Purchased</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Total Sale Value</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Total Paid</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Outstanding Balance</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">Status</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
+                <thead class="erp-table-header text-white uppercase tracking-wider text-[10px] font-bold">
+                    <tr class="erp-table-header border-b border-slate-700 text-center">
+                        <th class="px-3 py-3 erp-table-header text-left">Customer</th>
+                        <th class="px-3 py-3 erp-table-header text-left">Contact Info</th>
+                        <th class="px-3 py-3 erp-table-header text-center">Units Purchased</th>
+                        <th class="px-3 py-3 erp-table-header text-right">Total Sale Value</th>
+                        <th class="px-3 py-3 erp-table-header text-right">Total Paid</th>
+                        <th class="px-3 py-3 erp-table-header text-right">Outstanding Balance</th>
+                        <th class="px-3 py-3 erp-table-header text-center">Status</th>
+                        <th class="px-3 py-3 erp-table-header text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="customers-tbody">

@@ -134,14 +134,14 @@
             
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                            <th class="px-6 py-3.5">S.No.</th>
-                            <th class="px-6 py-3.5">Milestone Name / Stage</th>
-                            <th class="px-6 py-3.5">Due Percentage</th>
-                            <th class="px-6 py-3.5">Trigger Condition</th>
-                            <th class="px-6 py-3.5">Expected Timeline</th>
-                            <th class="px-6 py-3.5 text-right">Grace Days</th>
+                    <thead class="erp-table-header">
+                        <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                            <th class="px-6 py-3.5 text-white">S.No.</th>
+                            <th class="px-6 py-3.5 text-white">Milestone Name / Stage</th>
+                            <th class="px-6 py-3.5 text-white">Due Percentage</th>
+                            <th class="px-6 py-3.5 text-white">Trigger Condition</th>
+                            <th class="px-6 py-3.5 text-white">Expected Timeline</th>
+                            <th class="px-6 py-3.5 text-right text-white">Grace Days</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650">
@@ -262,14 +262,14 @@
                 
                 <div class="overflow-y-auto max-h-[400px]">
                     <table class="w-full text-xs text-left border-collapse">
-                        <thead>
-                            <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522] sticky top-0">
-                                <th class="px-6 py-3.5">Inst. No.</th>
-                                <th class="px-6 py-3.5">Due Date</th>
-                                <th class="px-6 py-3.5">Installment (₹)</th>
-                                <th class="px-6 py-3.5">Principal Portion</th>
-                                <th class="px-6 py-3.5">Interest Portion</th>
-                                <th class="px-6 py-3.5 text-right">Balance Outstanding</th>
+                        <thead class="erp-table-header sticky top-0">
+                            <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                                <th class="px-6 py-3.5 text-white">Inst. No.</th>
+                                <th class="px-6 py-3.5 text-white">Due Date</th>
+                                <th class="px-6 py-3.5 text-white">Installment (₹)</th>
+                                <th class="px-6 py-3.5 text-white">Principal Portion</th>
+                                <th class="px-6 py-3.5 text-white">Interest Portion</th>
+                                <th class="px-6 py-3.5 text-right text-white">Balance Outstanding</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-660 font-mono">

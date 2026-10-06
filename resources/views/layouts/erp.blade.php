@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=31.0">
+    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=49.0">
     
     {{-- CKEditor 5 — Rich Text Editor for description/narration fields --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
@@ -521,7 +521,7 @@
         </div>
 
         <!-- 📊 Reports & Analytics -->
-        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Reports & Analytics</p>
+        <!-- <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Reports & Analytics</p>
         
         <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openReports = !openReports" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
@@ -556,7 +556,7 @@
                     Availability Report
                 </a>
             </div>
-        </div>
+        </div> -->
 
         <!-- ⚙️ System Settings & Administration -->
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Administration</p>

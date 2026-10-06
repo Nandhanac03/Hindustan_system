@@ -207,8 +207,8 @@
 
                 <div class="overflow-x-auto border border-slate-200 rounded-xl" id="ledger-table">
                     <table id="reportsTable" class="w-full text-xs text-left">
-                        <thead>
-                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                            <tr class="erp-table-header border-b border-slate-700">
                                 <th class="px-5 py-3.5 text-white font-extrabold">Posting Date</th>
                                 @if($selectedCustomers->count() > 1)
                                     <th class="px-5 py-3.5 text-white font-extrabold">Customer Name</th>
@@ -383,8 +383,8 @@
 
                         <div class="overflow-x-auto">
                             <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                    <tr class="erp-table-header border-b border-slate-700">
                                         <th class="px-5 py-3.5 text-white font-extrabold">SL NO</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Customer Name & Contact</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Project / Unit</th>

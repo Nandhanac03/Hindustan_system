@@ -459,15 +459,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
                     {{-- Search Input --}}
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
-                        <input type="text" placeholder="Search Customer/Unit/Sale No..." 
+                        <input type="text" placeholder="Search Customer / Unit / Sale No..." 
                                x-model="search"
-                               class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                               class="w-full erp-search-input placeholder-slate-400">
                         
                         {{-- Clear Button --}}
-                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                             <button type="button" x-show="search" @click="search = ''"
                                     class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -475,27 +475,57 @@
                         </div>
                     </div>
 
-                    {{-- Status Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h7"/></svg>
+                    {{-- Status Filter (Custom Gold Popover) --}}
+                    <div class="relative" x-data="{ statusOpen: false }" @click.outside="statusOpen = false">
+                        <div @click="statusOpen = !statusOpen"
+                             class="erp-dropdown-trigger"
+                             :class="statusOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h7"/>
+                                </svg>
+                                <span class="truncate font-extrabold text-slate-800"
+                                      x-text="status ? (status.charAt(0).toUpperCase() + status.slice(1)) : 'All Statuses'">
+                                </span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="statusOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
                         </div>
-                        <select x-model="status"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                        {{-- Status Popover Menu --}}
+                        <div x-show="statusOpen" x-transition
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="status = ''; statusOpen = false;"
+                                     class="erp-dropdown-option"
+                                     :class="!status ? 'selected-all' : ''">
+                                    <span>All Statuses</span>
+                                </div>
+                                <div @click="status = 'active'; statusOpen = false;"
+                                     class="erp-dropdown-option"
+                                     :class="status === 'active' ? 'selected' : ''">
+                                    <span>Active</span>
+                                </div>
+                                <div @click="status = 'cancelled'; statusOpen = false;"
+                                     class="erp-dropdown-option"
+                                     :class="status === 'cancelled' ? 'selected' : ''">
+                                    <span>Cancelled</span>
+                                </div>
+                                <div @click="status = 'completed'; statusOpen = false;"
+                                     class="erp-dropdown-option"
+                                     :class="status === 'completed' ? 'selected' : ''">
+                                    <span>Completed</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 {{-- Reset Filters Button --}}
                 <button type="button" @click="search = ''; status = '';"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95 cursor-pointer">
                     <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>RESET FILTERS</span>
                 </button>
@@ -568,8 +598,8 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-center text-sm text-slate-600">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr>
+                    <thead class="erp-table-header text-[10px] font-black text-white uppercase tracking-wider">
+                        <tr class="erp-table-header">
                             <th class="px-5 py-3 w-16 text-center">#</th>
                             <th class="px-5 py-3 text-center">Sale Booking No.</th>
                             <th class="px-5 py-3 text-center">Customer Name</th>
@@ -665,8 +695,8 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-center text-sm text-slate-600">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr>
+                    <thead class="erp-table-header text-[10px] font-black text-white uppercase tracking-wider">
+                        <tr class="erp-table-header">
                             <th class="px-5 py-3 w-16 text-center">#</th>
                             <th class="px-5 py-3 text-center">Sale Booking No.</th>
                             <th class="px-5 py-3 text-center">Customer Name</th>

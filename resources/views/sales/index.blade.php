@@ -40,19 +40,19 @@
     {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-1">
-            {{-- Pro Search Input --}}
+            {{-- Pro Light Search Input --}}
             <div class="relative group">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
                 <input type="text" placeholder="Sale No / Customer..." 
                        x-model="filters.search" @input.debounce.300ms="fetchSales()"
-                       class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                       class="w-full erp-search-input placeholder-slate-400">
                 
                 {{-- Clear Button --}}
-                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                     <button type="button" x-show="filters.search" @click="filters.search = ''; fetchSales()"
                             class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -60,48 +60,104 @@
                 </div>
             </div>
 
-            {{-- Project Filter --}}
-            <div class="relative">
-                <select x-model="filters.project_id" @change="fetchSales()"
-                        class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                    <option value="">All Projects</option>
-                    @foreach($projects as $project)
-                        <option value="{{ $project->id }}">{{ $project->name }}</option>
-                    @endforeach
-                </select>
+            {{-- Project Filter (Custom Gold Popover) --}}
+            <div class="relative" @click.outside="projectDropdownOpen = false">
+                <div @click="projectDropdownOpen = !projectDropdownOpen; statusDropdownOpen = false;"
+                     class="erp-dropdown-trigger"
+                     :class="projectDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        <span class="truncate font-extrabold text-slate-800" x-text="selectedFilterProjectName"></span>
+                    </div>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+
+                {{-- Project Popover Menu (Golden theme) --}}
+                <div x-show="projectDropdownOpen" x-transition
+                     class="erp-dropdown-popover"
+                     style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                        <div @click="filters.project_id = ''; projectDropdownOpen = false; fetchSales()"
+                             class="erp-dropdown-option"
+                             :class="!filters.project_id ? 'selected-all' : ''">
+                            <span>All Projects</span>
+                        </div>
+                        @foreach($projects as $project)
+                            <div @click="filters.project_id = '{{ $project->id }}'; projectDropdownOpen = false; fetchSales()"
+                                 class="erp-dropdown-option"
+                                 :class="String(filters.project_id) === '{{ $project->id }}' ? 'selected' : ''">
+                                <span>{{ $project->name }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
-            {{-- Status Filter --}}
-            <div class="relative">
-                <select x-model="filters.status" @change="fetchSales()"
-                        class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="returned">Returned</option>
-                    <option value="exchanged">Exchanged</option>
-                    <option value="resale">Resale</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+            {{-- Status Filter (Custom Gold Popover) --}}
+            <div class="relative" @click.outside="statusDropdownOpen = false">
+                <div @click="statusDropdownOpen = !statusDropdownOpen; projectDropdownOpen = false;"
+                     class="erp-dropdown-trigger"
+                     :class="statusDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="truncate font-extrabold text-slate-800" x-text="selectedFilterStatusName"></span>
+                    </div>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+
+                {{-- Status Popover Menu (Golden theme) --}}
+                <div x-show="statusDropdownOpen" x-transition
+                     class="erp-dropdown-popover"
+                     style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                        <div @click="filters.status = ''; statusDropdownOpen = false; fetchSales()"
+                             class="erp-dropdown-option"
+                             :class="!filters.status ? 'selected-all' : ''">
+                            <span>All Statuses</span>
+                        </div>
+                        <template x-for="st in [
+                            { id: 'active', name: 'Active' },
+                            { id: 'cancelled', name: 'Cancelled' },
+                            { id: 'returned', name: 'Returned' },
+                            { id: 'exchanged', name: 'Exchanged' },
+                            { id: 'resale', name: 'Resale' },
+                            { id: 'inactive', name: 'Inactive' }
+                        ]" :key="st.id">
+                            <div @click="filters.status = st.id; statusDropdownOpen = false; fetchSales()"
+                                 class="erp-dropdown-option"
+                                 :class="filters.status === st.id ? 'selected' : ''">
+                                <span x-text="st.name"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             {{-- Date From --}}
             <input type="date" x-model="filters.date_from" @change="fetchSales()"
-                   class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                   class="w-full erp-filter-input">
 
             {{-- Date To --}}
             <input type="date" x-model="filters.date_to" @change="fetchSales()"
-                   class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                   class="w-full erp-filter-input">
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
             <button @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset</span>
             </button>
             <button @click="openAddModal()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 h-[38px] text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider">
                 <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 Add Sale
             </button>
@@ -111,18 +167,18 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale No</th>
-                        <th class="px-4 py-3.5 text-left text-white font-extrabold border-b border-[#8a7522]">Project / Unit</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Customer</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Broker</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale Amount</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">GST</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Total</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale Date</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Status</th>
-                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522] text-right">Actions</th>
+                <thead class="sales-desk-table-header">
+                    <tr class="sales-desk-table-header text-white border-b text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Sale No</th>
+                        <th class="px-4 py-3.5 text-left text-white font-extrabold border-b sales-desk-table-header">Project / Unit</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Customer</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Broker</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Sale Amount</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">GST</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Total</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Sale Date</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header">Status</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b sales-desk-table-header text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -2006,7 +2062,20 @@ function salesApp() {
         sales: [],
         currentPage: 1,
         perPage: 10,
+        projectDropdownOpen: false,
+        statusDropdownOpen: false,
+        projectsList: {!! json_encode($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])) !!},
         filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
+        get selectedFilterProjectName() {
+            if (!this.filters.project_id) return 'All Projects';
+            const found = this.projectsList?.find(p => String(p.id) === String(this.filters.project_id));
+            return found ? found.name : 'All Projects';
+        },
+        get selectedFilterStatusName() {
+            if (!this.filters.status) return 'All Statuses';
+            const map = { active: 'Active', cancelled: 'Cancelled', returned: 'Returned', exchanged: 'Exchanged', resale: 'Resale', inactive: 'Inactive' };
+            return map[this.filters.status] || (this.filters.status.charAt(0).toUpperCase() + this.filters.status.slice(1));
+        },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         confirmDeleteUnitModal: { open: false, index: null, mode: 'add', doorNo: '', hasEmis: false, hasReceipts: false, isEmiPlan: false },
         confirmDeactivateModal: { open: false, saleId: null, saleNumber: '', doorNo: '', hasEmis: false, hasReceipts: false },

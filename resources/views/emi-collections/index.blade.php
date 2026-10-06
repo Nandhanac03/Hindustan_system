@@ -72,69 +72,210 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
 
-                {{-- 1. Customer Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    </div>
-                    <select x-model="filters.customer_id" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Customers</option>
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- 1. Customer Filter (Search & Select) --}}
+                <div class="relative"
+                     x-data="{
+                         open: false,
+                         search: '',
+                         customerList: @js($customers->map(fn($c) => ['id' => (string)$c->id, 'name' => $c->name, 'phone' => $c->phone ?? ''])),
+                         get selectedCustomer() {
+                             return this.customerList.find(c => c.id == filters.customer_id);
+                         },
+                         get filteredCustomers() {
+                             const q = (this.search || '').toLowerCase().trim();
+                             if (!q) return this.customerList;
+                             return this.customerList.filter(c => 
+                                 (c.name && c.name.toLowerCase().includes(q)) || 
+                                 (c.phone && c.phone.includes(q))
+                             );
+                         },
+                         select(id) {
+                             filters.customer_id = id;
+                             currentPage = 1;
+                             this.open = false;
+                             this.search = '';
+                         },
+                         clear() {
+                             filters.customer_id = '';
+                             currentPage = 1;
+                             this.open = false;
+                             this.search = '';
+                         }
+                     }"
+                     @click.outside="open = false">
+
+                    <button type="button"
+                            @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
+                            class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-800">
+                        
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="selectedCustomer ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="selectedCustomer ? selectedCustomer.name : 'All Customers'">All Customers</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedCustomer">
+                                <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="absolute left-0 top-full mt-1.5 w-full min-w-[240px] bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-72 flex flex-col z-[100]"
+                         style="display: none;">
+                        
+                        {{-- Search Input inside Popover --}}
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text"
+                                       x-model="search"
+                                       x-ref="customerSearchInput"
+                                       placeholder="Type to search customer..."
+                                       @keydown.escape="open = false"
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                <template x-if="search">
+                                    <button type="button" @click="search = ''; $refs.customerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- All Customers Option --}}
+                        <button type="button" @click="clear()"
+                                class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
+                                :class="!filters.customer_id ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>— All Customers —</span>
+                        </button>
+
+                        {{-- Options List --}}
+                        <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
+                            <template x-for="c in filteredCustomers" :key="c.id">
+                                <button type="button"
+                                        @click="select(c.id)"
+                                        :class="filters.customer_id == c.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'"
+                                        class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                             class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                             x-text="(c.name || '?').charAt(0).toUpperCase()">
+                                        </div>
+                                        <span class="truncate text-xs" :class="filters.customer_id == c.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="c.name"></span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-mono shrink-0" x-show="c.phone" x-text="c.phone"></span>
+                                </button>
+                            </template>
+                            <div x-show="filteredCustomers.length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                No customers found
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- 2. Project Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    <select x-model="filters.project_id" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="truncate" x-text="filters.project_id ? ($el.closest('[x-data]').querySelector(`[data-val='${filters.project_id}']`)?.innerText || 'Selected Project') : 'All Projects'">All Projects</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak
+                         class="erp-dropdown-popover">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filters.project_id = ''; currentPage = 1; open = false" data-val=""
+                                 class="erp-dropdown-option"
+                                 :class="!filters.project_id ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($projects as $p)
+                                <div @click="filters.project_id = '{{ $p->id }}'; currentPage = 1; open = false" data-val="{{ $p->id }}"
+                                     class="erp-dropdown-option"
+                                     :class="filters.project_id == '{{ $p->id }}' ? 'selected' : ''">
+                                    <span>{{ $p->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
                 {{-- 3. Payment Plan Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    </div>
-                    <select x-model="filters.payment_plan" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Payment Plans</option>
-                        <option value="emi">EMI Plan</option>
-                        <option value="lump_sum">Lump Sum</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            <span class="truncate" x-text="filters.payment_plan ? (filters.payment_plan === 'emi' ? 'EMI Plan' : 'Lump Sum') : 'All Payment Plans'">All Payment Plans</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak
+                         class="erp-dropdown-popover">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filters.payment_plan = ''; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="!filters.payment_plan ? 'selected-all' : ''">
+                                <span>All Payment Plans</span>
+                            </div>
+                            <div @click="filters.payment_plan = 'emi'; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filters.payment_plan === 'emi' ? 'selected' : ''">
+                                <span>EMI Plan</span>
+                            </div>
+                            <div @click="filters.payment_plan = 'lump_sum'; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filters.payment_plan === 'lump_sum' ? 'selected' : ''">
+                                <span>Lump Sum</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- 4. Balance Status Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
-                    </div>
-                    <select x-model="filters.balance_status" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Balances</option>
-                        <option value="pending">Pending Balance</option>
-                        <option value="paid">Fully Paid</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                            <span class="truncate" x-text="filters.balance_status ? (filters.balance_status === 'pending' ? 'Pending Balance' : 'Fully Paid') : 'All Balances'">All Balances</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak
+                         class="erp-dropdown-popover">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="filters.balance_status = ''; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="!filters.balance_status ? 'selected-all' : ''">
+                                <span>All Balances</span>
+                            </div>
+                            <div @click="filters.balance_status = 'pending'; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filters.balance_status === 'pending' ? 'selected' : ''">
+                                <span>Pending Balance</span>
+                            </div>
+                            <div @click="filters.balance_status = 'paid'; currentPage = 1; open = false"
+                                 class="erp-dropdown-option"
+                                 :class="filters.balance_status === 'paid' ? 'selected' : ''">
+                                <span>Fully Paid</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -142,7 +283,7 @@
 
             {{-- Reset Filters Button --}}
             <button type="button" @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                    class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>RESET FILTERS</span>
             </button>
@@ -168,15 +309,15 @@
 
         <div class="overflow-x-auto flex-1">
             <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                        <th class="px-5 py-3.5">Booking No.</th>
-                        <th class="px-5 py-3.5">Customer</th>
-                        <th class="px-5 py-3.5">Project & Unit</th>
-                        <th class="px-5 py-3.5 text-right">Contract Value</th>
-                        <th class="px-5 py-3.5 text-right">Total Paid</th>
-                        <th class="px-5 py-3.5 text-right">Outstanding</th>
-                        <th class="px-5 py-3.5 text-center w-[170px]">Actions</th>
+                <thead class="erp-table-header">
+                    <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                        <th class="px-5 py-3.5 text-white">Booking No.</th>
+                        <th class="px-5 py-3.5 text-white">Customer</th>
+                        <th class="px-5 py-3.5 text-white">Project & Unit</th>
+                        <th class="px-5 py-3.5 text-right text-white">Contract Value</th>
+                        <th class="px-5 py-3.5 text-right text-white">Total Paid</th>
+                        <th class="px-5 py-3.5 text-right text-white">Outstanding</th>
+                        <th class="px-5 py-3.5 text-center w-[170px] text-white">Actions</th>
                     </tr>
                 </thead>
                 <template x-for="sale in paginatedSales" :key="sale.id">
@@ -236,12 +377,12 @@
                                     <template x-if="sale.receipts && sale.receipts.length > 0">
                                         <table class="w-full text-left text-[11px] bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
                                             <thead>
-                                                <tr class="bg-[#a38c29] text-white font-extrabold text-[9px] uppercase tracking-widest border-b border-[#8a7522]">
-                                                    <th class="px-4 py-2.5">Receipt Date</th>
-                                                    <th class="px-4 py-2.5">Payment Mode</th>
-                                                    <th class="px-4 py-2.5">Ref / Chq</th>
-                                                    <th class="px-4 py-2.5">Bank Name</th>
-                                                    <th class="px-4 py-2.5 text-right">Amount</th>
+                                                <tr class="erp-table-header text-white font-extrabold text-[9px] uppercase tracking-widest border-b border-[#3e3a35]">
+                                                    <th class="px-4 py-2.5 text-white">Receipt Date</th>
+                                                    <th class="px-4 py-2.5 text-white">Payment Mode</th>
+                                                    <th class="px-4 py-2.5 text-white">Ref / Chq</th>
+                                                    <th class="px-4 py-2.5 text-white">Bank Name</th>
+                                                    <th class="px-4 py-2.5 text-right text-white">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-slate-100">

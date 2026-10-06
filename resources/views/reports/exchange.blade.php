@@ -290,34 +290,34 @@
                             <col style="width: 8%;" />    {{-- Contract Value --}}
                             <col style="width: 4%;" />    {{-- Status --}}
                         </colgroup>
-                        <thead class="bg-[#a38c29] text-white uppercase text-[10px] font-extrabold tracking-wider">
-                            <tr class="border-b border-white/30">
-                                <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-white/30 whitespace-nowrap">Exchange No.</th>
-                                <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30 whitespace-nowrap">Date</th>
-                                <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/40">Project</th>
+                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                            <tr class="erp-table-header border-b border-white/20">
+                                <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-white/20 whitespace-nowrap">Exchange No.</th>
+                                <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/20 whitespace-nowrap">Date</th>
+                                <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/20">Project</th>
                                 
-                                {{-- Old Unit Main Header (Golden Theme with White Border) --}}
-                                <th colspan="2" class="px-3 py-2 text-center bg-[#8f7a23] text-white border-r border-l border-white font-black tracking-wider">
+                                {{-- Old Unit Main Header --}}
+                                <th colspan="2" class="px-3 py-2 text-center bg-black/20 text-white border-r border-l border-white/20 font-black tracking-wider">
                                     Old Unit (Cancelled)
                                 </th>
                                 
-                                {{-- New Unit Main Header (Golden Theme with White Border) --}}
-                                <th colspan="2" class="px-3 py-2 text-center bg-[#84711f] text-white border-r border-white font-black tracking-wider">
+                                {{-- New Unit Main Header --}}
+                                <th colspan="2" class="px-3 py-2 text-center bg-black/30 text-white border-r border-white/20 font-black tracking-wider">
                                     New Unit (Booked)
                                 </th>
                                 
-                                <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/30 whitespace-nowrap">Equity Applied (Paid)</th>
-                                <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/30 whitespace-nowrap">Contract Value</th>
+                                <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/20 whitespace-nowrap">Equity Applied (Paid)</th>
+                                <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/20 whitespace-nowrap">Contract Value</th>
                                 <th rowspan="2" class="px-3 py-3 text-center align-middle whitespace-nowrap">Status</th>
                             </tr>
-                            <tr class="border-b border-white/40 text-[9.5px]">
-                                {{-- Old Unit Subheaders (Golden Theme with White Border) --}}
-                                <th class="px-3 py-1.5 text-left bg-[#8f7a23] text-amber-100 border-l border-r border-white/40 font-extrabold uppercase tracking-wider whitespace-nowrap">Unit Details</th>
-                                <th class="px-3 py-1.5 text-left bg-[#8f7a23] text-amber-100 border-r border-white font-extrabold uppercase tracking-wider whitespace-nowrap">Customer</th>
+                            <tr class="erp-table-header border-b border-white/20 text-[9.5px]">
+                                {{-- Old Unit Subheaders --}}
+                                <th class="px-3 py-1.5 text-left bg-black/20 text-amber-100 border-l border-r border-white/20 font-extrabold uppercase tracking-wider whitespace-nowrap">Unit Details</th>
+                                <th class="px-3 py-1.5 text-left bg-black/20 text-amber-100 border-r border-white/20 font-extrabold uppercase tracking-wider whitespace-nowrap">Customer</th>
                                 
-                                {{-- New Unit Subheaders (Golden Theme with White Border) --}}
-                                <th class="px-3 py-1.5 text-left bg-[#84711f] text-amber-100 border-r border-white/40 font-extrabold uppercase tracking-wider whitespace-nowrap">Unit Details</th>
-                                <th class="px-3 py-1.5 text-left bg-[#84711f] text-amber-100 border-r border-white font-extrabold uppercase tracking-wider whitespace-nowrap">Customer</th>
+                                {{-- New Unit Subheaders --}}
+                                <th class="px-3 py-1.5 text-left bg-black/30 text-amber-100 border-r border-white/20 font-extrabold uppercase tracking-wider whitespace-nowrap">Unit Details</th>
+                                <th class="px-3 py-1.5 text-left bg-black/30 text-amber-100 border-r border-white/20 font-extrabold uppercase tracking-wider whitespace-nowrap">Customer</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">

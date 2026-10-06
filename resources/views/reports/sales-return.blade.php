@@ -242,8 +242,8 @@
 
                 <div class="w-full overflow-x-auto">
                     <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                            <tr class="erp-table-header border-b border-slate-700">
                                 <th class="px-4 py-3 text-white font-extrabold text-center w-12">SL No</th>
                                 <th class="px-4 py-3 text-white font-extrabold whitespace-nowrap">Ref Code No.</th>
                                 <th class="px-4 py-3 text-white font-extrabold">Customer Entity</th>

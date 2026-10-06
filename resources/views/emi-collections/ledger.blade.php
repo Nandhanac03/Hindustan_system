@@ -172,14 +172,14 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                        <th class="px-4 py-2.5">Date</th>
-                        <th class="px-4 py-2.5">Description</th>
-                        <th class="px-4 py-2.5 text-right">Debit (Due)</th>
-                        <th class="px-4 py-2.5 text-right">Credit (Paid)</th>
-                        <th class="px-4 py-2.5 text-right">Running Balance</th>
-                        <th class="px-4 py-2.5 text-center">Type & Status</th>
+                <thead class="erp-table-header">
+                    <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                        <th class="px-4 py-2.5 text-white">Date</th>
+                        <th class="px-4 py-2.5 text-white">Description</th>
+                        <th class="px-4 py-2.5 text-right text-white">Debit (Due)</th>
+                        <th class="px-4 py-2.5 text-right text-white">Credit (Paid)</th>
+                        <th class="px-4 py-2.5 text-right text-white">Running Balance</th>
+                        <th class="px-4 py-2.5 text-center text-white">Type & Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">

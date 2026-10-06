@@ -97,63 +97,124 @@
     </div>
 
     {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
-        <form method="GET" action="{{ route('rate-revision.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 flex-1">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all"
+         x-data="rateRevisionFilter(window.rateRevisionFilterData)">
+        <form id="rateRevisionFilterForm" method="GET" action="{{ route('rate-revision.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 flex-1">
+            <input type="hidden" name="project_id" :value="projectId">
+            <input type="hidden" name="unit_type_id" :value="unitTypeId">
+            <input type="hidden" name="floor_id" :value="floorId">
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-                {{-- Project Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                {{-- Project Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="projectOpen = false">
+                    <div @click="projectOpen = !projectOpen; unitTypeOpen = false; floorOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="projectOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800" x-text="selectedProjectName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="projectOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select name="project_id" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}" {{ $projectId == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="projectOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            @foreach($projects as $p)
+                                <div @click="selectProject('{{ $p->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(projectId) === '{{ $p->id }}' ? 'selected' : ''">
+                                    <span>{{ $p->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
-                {{-- Unit Type Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                {{-- Unit Type Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="unitTypeOpen = false">
+                    <div @click="unitTypeOpen = !unitTypeOpen; projectOpen = false; floorOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="unitTypeOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800" x-text="selectedUnitTypeName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="unitTypeOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select name="unit_type_id" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Types</option>
-                        @foreach($unitTypes as $ut)
-                            <option value="{{ $ut->id }}" {{ request('unit_type_id') == $ut->id ? 'selected' : '' }}>{{ $ut->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Unit Type Popover Menu --}}
+                    <div x-show="unitTypeOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectUnitType('')"
+                                 class="erp-dropdown-option"
+                                 :class="!unitTypeId ? 'selected-all' : ''">
+                                <span>All Types</span>
+                            </div>
+                            @foreach($unitTypes as $ut)
+                                <div @click="selectUnitType('{{ $ut->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(unitTypeId) === '{{ $ut->id }}' ? 'selected' : ''">
+                                    <span>{{ $ut->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
-                {{-- Floor Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/></svg>
+                {{-- Floor Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="floorOpen = false">
+                    <div @click="floorOpen = !floorOpen; projectOpen = false; unitTypeOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="floorOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800" x-text="selectedFloorName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="floorOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select name="floor_id" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Floors</option>
-                        @foreach($floors as $fl)
-                            <option value="{{ $fl->id }}" {{ request('floor_id') == $fl->id ? 'selected' : '' }}>{{ $fl->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Floor Popover Menu --}}
+                    <div x-show="floorOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectFloor('')"
+                                 class="erp-dropdown-option"
+                                 :class="!floorId ? 'selected-all' : ''">
+                                <span>All Floors</span>
+                            </div>
+                            @foreach($floors as $fl)
+                                <div @click="selectFloor('{{ $fl->id }}')"
+                                     class="erp-dropdown-option"
+                                     :class="String(floorId) === '{{ $fl->id }}' ? 'selected' : ''">
+                                    <span>{{ $fl->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Reset Filters Button --}}
             <a href="{{ route('rate-revision.index') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+               class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
             </a>
@@ -164,15 +225,15 @@
     <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b border-[#8a7522] font-bold uppercase tracking-wider text-[10px] text-center">
-                        <th class="px-5 py-3.5 font-black text-left">PROJECT / UNIT</th>
-                        <th class="px-5 py-3.5 font-black text-right">OLD RATE / SQFT</th>
-                        <th class="px-5 py-3.5 font-black text-right">NEW RATE / SQFT</th>
-                        <th class="px-5 py-3.5 font-black text-right">RATE CHANGE</th>
-                        <th class="px-5 py-3.5 font-black">EFFECTIVE DATE</th>
-                        <th class="px-5 py-3.5 font-black text-left font-sans">CHANGED BY</th>
-                        <th class="px-5 py-3.5 font-black text-left">REASON</th>
+                <thead class="sales-desk-table-header">
+                    <tr class="sales-desk-table-header text-white border-b font-bold uppercase tracking-wider text-[10px] text-center">
+                        <th class="px-5 py-3.5 font-black text-left sales-desk-table-header">PROJECT / UNIT</th>
+                        <th class="px-5 py-3.5 font-black text-right sales-desk-table-header">OLD RATE / SQFT</th>
+                        <th class="px-5 py-3.5 font-black text-right sales-desk-table-header">NEW RATE / SQFT</th>
+                        <th class="px-5 py-3.5 font-black text-right sales-desk-table-header">RATE CHANGE</th>
+                        <th class="px-5 py-3.5 font-black sales-desk-table-header">EFFECTIVE DATE</th>
+                        <th class="px-5 py-3.5 font-black text-left font-sans sales-desk-table-header">CHANGED BY</th>
+                        <th class="px-5 py-3.5 font-black text-left sales-desk-table-header">REASON</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 bg-white text-center">
@@ -334,6 +395,58 @@
 </div>
 
 <script>
+window.rateRevisionFilterData = {
+    projectId: '{{ $projectId }}',
+    unitTypeId: '{{ request('unit_type_id') }}',
+    floorId: '{{ request('floor_id') }}',
+    projects: @json($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])),
+    unitTypes: @json($unitTypes->map(fn($t) => ['id' => $t->id, 'name' => $t->name])),
+    floors: @json($floors->map(fn($f) => ['id' => $f->id, 'name' => $f->name]))
+};
+
+function rateRevisionFilter(config) {
+    return {
+        projectOpen: false,
+        unitTypeOpen: false,
+        floorOpen: false,
+        projectId: config.projectId || '',
+        unitTypeId: config.unitTypeId || '',
+        floorId: config.floorId || '',
+        projects: config.projects || [],
+        unitTypes: config.unitTypes || [],
+        floors: config.floors || [],
+        get selectedProjectName() {
+            const found = this.projects.find(p => String(p.id) === String(this.projectId));
+            return found ? found.name : 'Select Project';
+        },
+        get selectedUnitTypeName() {
+            if (!this.unitTypeId) return 'All Types';
+            const found = this.unitTypes.find(t => String(t.id) === String(this.unitTypeId));
+            return found ? found.name : 'All Types';
+        },
+        get selectedFloorName() {
+            if (!this.floorId) return 'All Floors';
+            const found = this.floors.find(f => String(f.id) === String(this.floorId));
+            return found ? found.name : 'All Floors';
+        },
+        selectProject(id) {
+            this.projectId = id;
+            this.projectOpen = false;
+            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
+        },
+        selectUnitType(id) {
+            this.unitTypeId = id;
+            this.unitTypeOpen = false;
+            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
+        },
+        selectFloor(id) {
+            this.floorId = id;
+            this.floorOpen = false;
+            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
+        }
+    };
+}
+
 function rateRevisionApp() {
     return {
         addModalOpen: false,

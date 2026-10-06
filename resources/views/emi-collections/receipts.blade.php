@@ -215,14 +215,14 @@
 
             <div class="overflow-x-auto overflow-y-auto max-h-[550px] flex-1">
                 <table class="w-full text-xs text-left border-collapse">
-                    <thead class="sticky top-0 z-10">
-                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522] shadow-xs">
-                            <th class="px-5 py-3.5">Sale No.</th>
-                            <th class="px-5 py-3.5">Customer</th>
-                            <th class="px-5 py-3.5">Project / Unit</th>
-                            <th class="px-5 py-3.5 text-right">Amount</th>
-                            <th class="px-5 py-3.5 text-center">Mode</th>
-                            <th class="px-5 py-3.5">Date</th>
+                    <thead class="erp-table-header sticky top-0 z-10">
+                        <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35] shadow-xs">
+                            <th class="px-5 py-3.5 text-white">Sale No.</th>
+                            <th class="px-5 py-3.5 text-white">Customer</th>
+                            <th class="px-5 py-3.5 text-white">Project / Unit</th>
+                            <th class="px-5 py-3.5 text-right text-white">Amount</th>
+                            <th class="px-5 py-3.5 text-center text-white">Mode</th>
+                            <th class="px-5 py-3.5 text-white">Date</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

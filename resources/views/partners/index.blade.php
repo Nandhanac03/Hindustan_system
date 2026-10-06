@@ -37,8 +37,8 @@
                           <div class="space-y-1.5">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Partner / Firm Name <span class="text-rose-500">*</span></label>
                               <input type="text" name="name" x-model="name" required placeholder="e.g. John Doe & Sons"
-                                     :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                     class="w-full px-3 py-2.5 border focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                                     :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'erp-input'"
+                                     class="w-full px-3 py-2.5 erp-input">
                               <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                           </div>
 
@@ -46,18 +46,18 @@
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Phone</label>
                                   <input type="text" name="phone" placeholder="+91 9876543210"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs focus:outline-none transition-all">
+                                         class="w-full px-3 py-2.5 erp-input">
                               </div>
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Email</label>
                                   <input type="email" name="email" placeholder="partner@email.com"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs focus:outline-none transition-all">
+                                         class="w-full px-3 py-2.5 erp-input">
                               </div>
                           </div>
 
                           <div class="space-y-1.5">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Assign to Project</label>
-                              <select name="project_id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none transition-all">
+                              <select name="project_id" class="w-full px-3 py-2.5 erp-select cursor-pointer">
                                   <option value="">— No project assignment —</option>
                                   @foreach($projects as $proj)
                                       <option value="{{ $proj->id }}" {{ $loop->first ? 'selected' : '' }}>{{ $proj->name }}</option>
@@ -68,7 +68,7 @@
                           <div class="space-y-1.5">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Initial Share % (0–100)</label>
                               <input type="number" name="share_pct" min="0" max="100" step="0.01" placeholder="e.g. 50"
-                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs focus:outline-none transition-all">
+                                     class="w-full px-3 py-2.5 erp-input">
                           </div>
 
                           <div class="pt-4 flex justify-end gap-2">

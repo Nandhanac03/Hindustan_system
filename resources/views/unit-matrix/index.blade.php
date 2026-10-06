@@ -62,8 +62,8 @@
                 <div class="relative flex-1">
                     <button type="button" 
                             @click="open = !open"
-                            :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
-                            class="w-full min-h-[42px] px-3 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
+                            :class="open || (selectedStatus && selectedStatus !== 'all' && selectedStatus !== '') ? 'active' : ''"
+                            class="erp-dropdown-trigger text-left">
                         
                         <template x-if="selectedStatus && selectedStatus !== 'all' && selectedStatus !== ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -112,7 +112,7 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                         class="erp-dropdown-popover w-full top-full max-h-80 z-[100]"
                          style="display: none;">
                         
                         <button type="button" @click="selectedStatus = ''; open = false"

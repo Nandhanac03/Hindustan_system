@@ -5,6 +5,312 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
 
 /* --------------------------------------------------------------------------
+   Global ERP Theme Variables & Reusable Classes (Whole Software)
+   - Table Headers: Change --erp-table-header-bg to change all table header colors
+   - Form Inputs & Selects: Common class .erp-input, .erp-select, .erp-border-input
+   -------------------------------------------------------------------------- */
+:root {
+    /* 🎨 Global Main Theme Palette (Change here to rebrand entire application) */
+    --theme-primary: #a38c29;
+    --theme-primary-hover: #8a7522;
+    --theme-primary-dark: #73611b;
+    --theme-primary-light: #fdfaf3;
+    --theme-primary-bg: rgba(163, 140, 41, 0.1);
+    --theme-primary-bg-hover: rgba(163, 140, 41, 0.15);
+    --theme-primary-border: rgba(163, 140, 41, 0.3);
+    --theme-primary-ring: rgba(163, 140, 41, 0.2);
+    --theme-text: #7c691c;
+    --theme-text-dark: #635314;
+
+    /* 🎨 Table Headers Theme */
+    --erp-table-header-bg: #534E47;
+    --erp-table-header-text: #ffffff;
+    --erp-table-header-border: #443f38;
+    --sales-desk-table-header-bg: #534E47;
+    --sales-desk-table-header-text: #ffffff;
+    --sales-desk-table-header-border: #443f38;
+
+    /* 🎨 Input & Component Borders */
+    --erp-border-idle: #cbd5e1;
+    --erp-border-hover: rgba(163, 140, 41, 0.6);
+    --erp-border-focus: #a38c29;
+    --erp-focus-ring: rgba(163, 140, 41, 0.2);
+}
+
+/* 🎨 Global Theme Classes (Reusable Across Entire Application) */
+.theme-btn-primary,
+.theme-btn {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-hover) 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 2px 6px var(--theme-primary-ring) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.theme-btn-primary:hover,
+.theme-btn:hover {
+    background: linear-gradient(135deg, var(--theme-primary-hover) 0%, var(--theme-primary-dark) 100%) !important;
+    box-shadow: 0 4px 12px var(--theme-primary-ring) !important;
+}
+
+.theme-btn-outline {
+    background: transparent !important;
+    border: 1.5px solid var(--theme-primary) !important;
+    color: var(--theme-primary) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.theme-btn-outline:hover {
+    background-color: var(--theme-primary-bg) !important;
+    color: var(--theme-primary-dark) !important;
+}
+
+.theme-text-primary,
+.theme-text {
+    color: var(--theme-primary) !important;
+}
+
+.theme-text-dark {
+    color: var(--theme-text) !important;
+}
+
+.theme-bg-primary {
+    background-color: var(--theme-primary) !important;
+    color: #ffffff !important;
+}
+
+.theme-bg-soft {
+    background-color: var(--theme-primary-bg) !important;
+    color: var(--theme-text) !important;
+}
+
+.theme-border {
+    border-color: var(--theme-primary) !important;
+}
+
+.theme-border-soft {
+    border-color: var(--theme-primary-border) !important;
+}
+
+.theme-icon {
+    color: var(--theme-primary) !important;
+}
+
+.theme-badge {
+    background-color: var(--theme-primary-bg) !important;
+    color: var(--theme-text) !important;
+    border: 1px solid var(--theme-primary-border) !important;
+}
+
+.theme-active-tab {
+    background-color: var(--theme-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px var(--theme-primary-ring) !important;
+}
+
+/* 🎨 Global Common Class for Table Headers (Whole Software) */
+.erp-table-header,
+.table-header-theme,
+.sales-desk-table-header,
+thead.erp-table-header,
+thead.erp-table-header th,
+thead.table-header-theme,
+thead.table-header-theme th,
+thead.sales-desk-table-header,
+thead.sales-desk-table-header th,
+tr.erp-table-header,
+tr.erp-table-header th,
+tr.table-header-theme,
+tr.table-header-theme th,
+tr.sales-desk-table-header,
+tr.sales-desk-table-header th {
+    background-color: var(--erp-table-header-bg) !important;
+    background-image: none !important;
+    color: var(--erp-table-header-text) !important;
+    border-color: var(--erp-table-header-border) !important;
+}
+
+/* 🎨 Global Common Class for Inputs, Selects & Search Filters (Whole Software) */
+.erp-input,
+.erp-select,
+.erp-filter-input,
+.erp-search-input,
+.erp-border-input {
+    width: 100%;
+    height: 38px !important;
+    padding: 0 0.875rem;
+    border: 1px solid var(--erp-border-idle) !important;
+    background-color: #f8fafc;
+    color: #1e293b;
+    border-radius: 0.75rem !important; /* rounded-xl */
+    font-size: 0.75rem;     /* text-xs */
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Dedicated search input with icon spacing */
+.erp-search-input,
+.erp-filter-input.erp-search-input {
+    padding-left: 2.25rem !important; /* 36px padding-left ensures icon never overlaps placeholder text */
+    padding-right: 2rem !important;
+}
+
+.erp-input:hover,
+.erp-select:hover,
+.erp-filter-input:hover,
+.erp-search-input:hover,
+.erp-border-input:hover {
+    background-color: #ffffff;
+    border-color: var(--erp-border-hover) !important;
+}
+
+.erp-input:focus,
+.erp-select:focus,
+.erp-filter-input:focus,
+.erp-search-input:focus,
+.erp-border-input:focus,
+.erp-input:focus-visible,
+.erp-select:focus-visible,
+.erp-filter-input:focus-visible,
+.erp-search-input:focus-visible,
+.erp-border-input:focus-visible {
+    background-color: #ffffff !important;
+    border-color: var(--erp-border-focus) !important;
+    box-shadow: 0 0 0 3px var(--erp-focus-ring) !important;
+    --tw-ring-color: var(--erp-focus-ring) !important;
+    outline: none !important;
+}
+
+/* 🎨 Global Common Classes for Custom Dropdown Filter Components */
+.erp-dropdown-trigger,
+.erp-filter-dropdown-btn {
+    width: 100%;
+    height: 38px;
+    padding: 0 0.875rem;
+    border: 1px solid var(--erp-border-idle) !important;
+    background-color: #f8fafc;
+    color: #1e293b;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease-in-out;
+    outline: none !important;
+}
+
+.erp-dropdown-trigger svg,
+.erp-filter-dropdown-btn svg,
+.erp-filter-icon,
+.erp-input-icon {
+    color: #a38c29 !important;
+    flex-shrink: 0;
+}
+
+.erp-dropdown-trigger:hover,
+.erp-filter-dropdown-btn:hover {
+    background-color: #ffffff;
+    border-color: var(--erp-border-hover) !important;
+}
+
+.erp-dropdown-trigger.active,
+.erp-dropdown-trigger:focus,
+.erp-filter-dropdown-btn.active,
+.erp-filter-dropdown-btn:focus {
+    background-color: #ffffff !important;
+    border-color: var(--erp-border-focus) !important;
+    box-shadow: 0 0 0 3px var(--erp-focus-ring) !important;
+    color: #0f172a !important;
+}
+
+.erp-dropdown-popover,
+.erp-filter-popover {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    margin-top: 0.375rem;
+    background-color: #ffffff;
+    border: 2px solid rgba(163, 140, 41, 0.4) !important;
+    border-radius: 0.75rem;
+    box-shadow: 0 12px 36px -6px rgba(163, 140, 41, 0.25) !important;
+    overflow: hidden;
+    max-height: 16rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.erp-dropdown-option,
+.erp-filter-option {
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.15s ease-in-out;
+}
+
+.erp-dropdown-option:hover,
+.erp-filter-option:hover {
+    background-color: rgba(163, 140, 41, 0.1) !important;
+    color: #7c691c !important;
+}
+
+.erp-dropdown-option.selected,
+.erp-filter-option.selected {
+    background-color: rgba(163, 140, 41, 0.15) !important;
+    border-left: 4px solid #a38c29 !important;
+    font-weight: 900 !important;
+    color: #7c691c !important;
+}
+
+.erp-dropdown-option.selected-all,
+.erp-filter-option.selected-all {
+    background-color: #a38c29 !important;
+    color: #ffffff !important;
+}
+
+/* 🎨 Unified Filter & Dropdown Theme Styling */
+select,
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="email"],
+input[type="search"],
+textarea {
+    accent-color: #a38c29 !important;
+}
+
+/* Remove browser default blue focus outline across all filter dropdowns & inputs */
+select:focus,
+select:focus-visible,
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: #a38c29 !important;
+    box-shadow: 0 0 0 3px rgba(163, 140, 41, 0.18) !important;
+}
+
+/* Option selection theme highlight */
+select option:checked {
+    background: #a38c29 !important;
+    background-color: #a38c29 !important;
+    color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
    Readability Overrides for Ultra-Small Tailwind Font Classes
    -------------------------------------------------------------------------- */
 .text-\[8px\] {
@@ -665,4 +971,68 @@ td.border.text-slate-900.font-extrabold.text-\[11px\].uppercase.bg-\[\#a38c29\]\
     max-width: 55%;
     position: relative;
     left: 122px;
+}
+
+/* --------------------------------------------------------------------------
+   Unified Filter & Dropdown Theme Styling (Grey Border Idle, Gold Theme Focus/Open)
+   -------------------------------------------------------------------------- */
+select,
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="email"],
+input[type="search"],
+textarea {
+    accent-color: #a38c29 !important;
+}
+
+/* Eliminate browser default blue focus outline and replace with theme gold */
+select:focus,
+select:focus-visible,
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: #a38c29 !important;
+    box-shadow: 0 0 0 3px rgba(163, 140, 41, 0.18) !important;
+}
+
+/* Standardized Filter Dropdown Select Elements */
+select.filter-select,
+.filter-dropdown select,
+.filter-panel select {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+    color: #1e293b;
+    transition: all 0.2s ease-in-out;
+}
+
+select.filter-select:hover,
+.filter-dropdown select:hover,
+.filter-panel select:hover {
+    background-color: #ffffff;
+    border-color: rgba(163, 140, 41, 0.6);
+}
+
+select.filter-select:focus,
+.filter-dropdown select:focus,
+.filter-panel select:focus {
+    background-color: #ffffff;
+    border-color: #a38c29 !important;
+    box-shadow: 0 0 0 3px rgba(163, 140, 41, 0.2) !important;
+}
+
+/* Dropdown Option Highlights */
+select option:checked {
+    background: linear-gradient(0deg, #a38c29 0%, #a38c29 100%) !important;
+    background-color: #a38c29 !important;
+    color: #ffffff !important;
+}
+
+select option:hover {
+    background-color: rgba(163, 140, 41, 0.15) !important;
+    color: #7c691c !important;
 }

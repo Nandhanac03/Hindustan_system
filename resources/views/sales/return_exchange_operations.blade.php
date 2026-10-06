@@ -38,13 +38,13 @@
     <div>
         @if(request('tab') === 'sale-return' || request('tab') === 'returns' || request('tab') === 'cancellations')
             <button type="button" @click="openNewReturnModal = true; newReturnStep = 1; newReturnSaleId = ''; newReturnSale = null;" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span x-text="isCancellationTab ? 'New Cancellation' : '{{ request('tab') === 'sale-return' ? 'Cancellation' : 'New Return' }}'"></span>
             </button>
         @elseif(request('tab') === 'exchange')
             <button type="button" @click="openNewExchangeModal = true; newExchangeStep = 1; newExchangeSaleId = '';" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span> New Exchange</span>
             </button>
@@ -138,21 +138,22 @@
     </div>
 
     {{-- ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4"
+         x-data="{ returnProjectOpen: false, returnTypeOpen: false, returnStatusOpen: false }">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
                 {{-- Search Input --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
-                    <input type="text" placeholder="Search Customer/Unit..." 
+                    <input type="text" placeholder="Search Customer / Unit..." 
                            x-model="returnFilters.search"
                            @input="returnCurrentPage = 1"
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full erp-search-input placeholder-slate-400">
                     
                     {{-- Clear Button --}}
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                         <button type="button" x-show="returnFilters.search" @click="returnFilters.search = ''; returnCurrentPage = 1;"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -160,62 +161,132 @@
                     </div>
                 </div>
 
-                {{-- Project Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                {{-- Project Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="returnProjectOpen = false">
+                    <div @click="returnProjectOpen = !returnProjectOpen; returnTypeOpen = false; returnStatusOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="returnProjectOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="(() => { const p = [ @foreach($projects as $p) { id: '{{ $p->id }}', name: '{{ addslashes($p->name) }}' }, @endforeach ].find(x => String(x.id) === String(returnFilters.project_id)); return p ? p.name : 'All Projects'; })()">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="returnProjectOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select x-model="returnFilters.project_id" @change="returnCurrentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($projects as $proj)
-                            <option value="{{ $proj->id }}">{{ $proj->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
 
-                {{-- Unit Type Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    </div>
-                    <select x-model="returnFilters.type" @change="returnCurrentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Unit Types</option>
-                        @if(isset($unitTypes))
-                            @foreach($unitTypes as $ut)
-                                <option value="{{ $ut->id }}">{{ $ut->name }}</option>
+                    {{-- Project Popover Menu --}}
+                    <div x-show="returnProjectOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="returnFilters.project_id = ''; returnProjectOpen = false; returnCurrentPage = 1;"
+                                 class="erp-dropdown-option"
+                                 :class="!returnFilters.project_id ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($projects as $proj)
+                                <div @click="returnFilters.project_id = '{{ $proj->id }}'; returnProjectOpen = false; returnCurrentPage = 1;"
+                                     class="erp-dropdown-option"
+                                     :class="String(returnFilters.project_id) === '{{ $proj->id }}' ? 'selected' : ''">
+                                    <span>{{ $proj->name }}</span>
+                                </div>
                             @endforeach
-                        @endif
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Return Type Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                {{-- Unit Type Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="returnTypeOpen = false">
+                    <div @click="returnTypeOpen = !returnTypeOpen; returnProjectOpen = false; returnStatusOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="returnTypeOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="(() => { const t = [ @if(isset($unitTypes)) @foreach($unitTypes as $ut) { id: '{{ $ut->id }}', name: '{{ addslashes($ut->name) }}' }, @endforeach @endif ].find(x => String(x.id) === String(returnFilters.type)); return t ? t.name : 'All Unit Types'; })()">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="returnTypeOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select x-model="returnFilters.status" @change="returnCurrentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Return Types</option>
-                        <option value="cancelled">Cancellation</option>
-                        <option value="returned">Return</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Unit Type Popover Menu --}}
+                    <div x-show="returnTypeOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="returnFilters.type = ''; returnTypeOpen = false; returnCurrentPage = 1;"
+                                 class="erp-dropdown-option"
+                                 :class="!returnFilters.type ? 'selected-all' : ''">
+                                <span>All Unit Types</span>
+                            </div>
+                            @if(isset($unitTypes))
+                                @foreach($unitTypes as $ut)
+                                    <div @click="returnFilters.type = '{{ $ut->id }}'; returnTypeOpen = false; returnCurrentPage = 1;"
+                                         class="erp-dropdown-option"
+                                         :class="String(returnFilters.type) === '{{ $ut->id }}' ? 'selected' : ''">
+                                        <span>{{ $ut->name }}</span>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Return Type Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="returnStatusOpen = false">
+                    <div @click="returnStatusOpen = !returnStatusOpen; returnProjectOpen = false; returnTypeOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="returnStatusOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="returnFilters.status === 'cancelled' ? 'Cancellation' : (returnFilters.status === 'returned' ? 'Return' : 'All Return Types')">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="returnStatusOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+
+                    {{-- Return Type Popover Menu --}}
+                    <div x-show="returnStatusOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="returnFilters.status = ''; returnStatusOpen = false; returnCurrentPage = 1;"
+                                 class="erp-dropdown-option"
+                                 :class="!returnFilters.status ? 'selected-all' : ''">
+                                <span>All Return Types</span>
+                            </div>
+                            <div @click="returnFilters.status = 'cancelled'; returnStatusOpen = false; returnCurrentPage = 1;"
+                                 class="erp-dropdown-option"
+                                 :class="returnFilters.status === 'cancelled' ? 'selected' : ''">
+                                <span>Cancellation</span>
+                            </div>
+                            <div @click="returnFilters.status = 'returned'; returnStatusOpen = false; returnCurrentPage = 1;"
+                                 class="erp-dropdown-option"
+                                 :class="returnFilters.status === 'returned' ? 'selected' : ''">
+                                <span>Return</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             {{-- Reset Filters Button --}}
             <button type="button" @click="returnFilters.search = ''; returnFilters.project_id = ''; returnFilters.type = ''; returnFilters.status = ''; returnCurrentPage = 1;"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
             </button>
@@ -226,9 +297,9 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full mb-6">
         <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-[11px] border-collapse">
-                <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
-                    <tr>
-                        <th class="px-3 py-3 text-left">Return No</th>
+                <thead class="sales-desk-table-header text-white uppercase tracking-wider text-[10px] font-bold">
+                    <tr class="sales-desk-table-header border-b">
+                        <th class="px-3 py-3 text-left sales-desk-table-header">Return No</th>
                         <th class="px-3 py-3 text-left">Date</th>
                         <th class="px-3 py-3 text-left">Project</th>
                         <th class="px-3 py-3 text-left">Unit Details</th>
@@ -1318,20 +1389,21 @@
     </div>
 
     {{-- ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4"
+         x-data="{ exchangeProjectOpen: false, exchangeTypeOpen: false, exchangeStatusOpen: false }">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
                 {{-- Search Input --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
-                    <input type="text" placeholder="Search Customer/Unit..." 
+                    <input type="text" placeholder="Search Customer / Unit..." 
                            x-model="exchangeFilters.search"
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full erp-search-input placeholder-slate-400">
                     
                     {{-- Clear Button --}}
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                         <button type="button" x-show="exchangeFilters.search" @click="exchangeFilters.search = ''"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1339,60 +1411,138 @@
                     </div>
                 </div>
 
-                {{-- Project Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                {{-- Project Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="exchangeProjectOpen = false">
+                    <div @click="exchangeProjectOpen = !exchangeProjectOpen; exchangeTypeOpen = false; exchangeStatusOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="exchangeProjectOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="(() => { const p = [ @foreach($projects as $p) { id: '{{ $p->id }}', name: '{{ addslashes($p->name) }}' }, @endforeach ].find(x => String(x.id) === String(exchangeFilters.project_id)); return p ? p.name : 'All Projects'; })()">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="exchangeProjectOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select x-model="exchangeFilters.project_id"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($projects as $proj)
-                            <option value="{{ $proj->id }}">{{ $proj->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="exchangeProjectOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="exchangeFilters.project_id = ''; exchangeProjectOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="!exchangeFilters.project_id ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($projects as $proj)
+                                <div @click="exchangeFilters.project_id = '{{ $proj->id }}'; exchangeProjectOpen = false;"
+                                     class="erp-dropdown-option"
+                                     :class="String(exchangeFilters.project_id) === '{{ $proj->id }}' ? 'selected' : ''">
+                                    <span>{{ $proj->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
-                {{-- Type Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                {{-- Type Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="exchangeTypeOpen = false">
+                    <div @click="exchangeTypeOpen = !exchangeTypeOpen; exchangeProjectOpen = false; exchangeStatusOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="exchangeTypeOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="exchangeFilters.type ? exchangeFilters.type : 'All Types'">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="exchangeTypeOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select x-model="exchangeFilters.type"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Types</option>
-                        <option value="Flat">Flat</option>
-                        <option value="Shop">Shop</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Type Popover Menu --}}
+                    <div x-show="exchangeTypeOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="exchangeFilters.type = ''; exchangeTypeOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="!exchangeFilters.type ? 'selected-all' : ''">
+                                <span>All Types</span>
+                            </div>
+                            <div @click="exchangeFilters.type = 'Flat'; exchangeTypeOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="exchangeFilters.type === 'Flat' ? 'selected' : ''">
+                                <span>Flat</span>
+                            </div>
+                            <div @click="exchangeFilters.type = 'Shop'; exchangeTypeOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="exchangeFilters.type === 'Shop' ? 'selected' : ''">
+                                <span>Shop</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Status Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                {{-- Status Filter (Custom Gold Popover) --}}
+                <div class="relative" @click.outside="exchangeStatusOpen = false">
+                    <div @click="exchangeStatusOpen = !exchangeStatusOpen; exchangeProjectOpen = false; exchangeTypeOpen = false;"
+                         class="erp-dropdown-trigger"
+                         :class="exchangeStatusOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate font-extrabold text-slate-800"
+                                  x-text="exchangeFilters.status ? (exchangeFilters.status.charAt(0).toUpperCase() + exchangeFilters.status.slice(1)) : 'All Statuses'">
+                            </span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="exchangeStatusOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </div>
-                    <select x-model="exchangeFilters.status"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="exchanged">Exchanged</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="exchangeStatusOpen" x-transition
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="exchangeFilters.status = ''; exchangeStatusOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="!exchangeFilters.status ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="exchangeFilters.status = 'active'; exchangeStatusOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="exchangeFilters.status === 'active' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="exchangeFilters.status = 'cancelled'; exchangeStatusOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="exchangeFilters.status === 'cancelled' ? 'selected' : ''">
+                                <span>Cancelled</span>
+                            </div>
+                            <div @click="exchangeFilters.status = 'exchanged'; exchangeStatusOpen = false;"
+                                 class="erp-dropdown-option"
+                                 :class="exchangeFilters.status === 'exchanged' ? 'selected' : ''">
+                                <span>Exchanged</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             {{-- Reset Filters Button --}}
-            <button @click="exchangeFilters.search = ''; exchangeFilters.project_id = ''; exchangeFilters.type = ''; exchangeFilters.status = '';"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+            <button type="button" @click="exchangeFilters.search = ''; exchangeFilters.project_id = ''; exchangeFilters.type = ''; exchangeFilters.status = '';"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
             </button>
@@ -1403,7 +1553,7 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full mb-6">
         <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-[11px] border-collapse">
-                <thead class="bg-[#a38c29] text-white uppercase text-[10px] font-extrabold tracking-wider">
+                <thead class="sales-desk-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                     <tr class="border-b border-white/30">
                         <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-white/30">Exchange No.</th>
                         <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30">Date</th>

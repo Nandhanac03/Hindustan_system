@@ -222,16 +222,16 @@
         {{-- Table --}}
         <div class="overflow-x-auto flex-1">
             <table id="ledger-table" class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                        <th class="px-5 py-3.5">Date</th>
-                        <th class="px-5 py-3.5">Voucher Ref</th>
-                        <th class="px-5 py-3.5">Narrative / Customer</th>
-                        <th class="px-5 py-3.5">Project / Unit</th>
-                        <th class="px-5 py-3.5 text-center">Mode</th>
-                        <th class="px-5 py-3.5 text-right">Debit</th>
-                        <th class="px-5 py-3.5 text-right">Credit</th>
-                        <th class="px-5 py-3.5 text-right">Balance</th>
+                <thead class="erp-table-header">
+                    <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                        <th class="px-5 py-3.5 text-white">Date</th>
+                        <th class="px-5 py-3.5 text-white">Voucher Ref</th>
+                        <th class="px-5 py-3.5 text-white">Narrative / Customer</th>
+                        <th class="px-5 py-3.5 text-white">Project / Unit</th>
+                        <th class="px-5 py-3.5 text-center text-white">Mode</th>
+                        <th class="px-5 py-3.5 text-right text-white">Debit</th>
+                        <th class="px-5 py-3.5 text-right text-white">Credit</th>
+                        <th class="px-5 py-3.5 text-right text-white">Balance</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#EAE3CD] font-mono text-slate-700 bg-white">

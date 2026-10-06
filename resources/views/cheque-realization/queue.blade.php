@@ -346,76 +346,324 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
                     
-                    {{-- 1. Customer Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        </div>
-                        <select x-model="filters.customer_id" @change="currentPage = 1"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Customers</option>
-                            @foreach($customers as $c)
-                                <option value="{{ $c->id }}">{{ $c->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    {{-- 1. Customer Filter (Search & Select) --}}
+                    <div class="relative"
+                         x-data="{
+                             open: false,
+                             search: '',
+                             customerList: {{ json_encode($customers->map(fn($c) => ['id' => (string)$c->id, 'name' => $c->name, 'phone' => $c->phone ?? ''])) }},
+                             get selectedCustomer() {
+                                 return this.customerList.find(c => c.id == filters.customer_id);
+                             },
+                             get filteredCustomers() {
+                                 const q = (this.search || '').toLowerCase().trim();
+                                 if (!q) return this.customerList;
+                                 return this.customerList.filter(c => 
+                                     (c.name && c.name.toLowerCase().includes(q)) || 
+                                     (c.phone && c.phone.includes(q))
+                                 );
+                             },
+                             select(id) {
+                                 filters.customer_id = id;
+                                 currentPage = 1;
+                                 this.open = false;
+                                 this.search = '';
+                             },
+                             clear() {
+                                 filters.customer_id = '';
+                                 currentPage = 1;
+                                 this.open = false;
+                                 this.search = '';
+                             }
+                         }"
+                         @click.outside="open = false">
+
+                        <button type="button"
+                                @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedCustomer ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="selectedCustomer ? selectedCustomer.name : 'All Customers'">All Customers</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedCustomer">
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <input type="text"
+                                           x-model="search"
+                                           x-ref="customerSearchInput"
+                                           placeholder="Type to search customer..."
+                                           @keydown.escape="open = false"
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.customerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- All Customers Option --}}
+                            <button type="button" @click="clear()"
+                                    class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
+                                    :class="!filters.customer_id ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>— All Customers —</span>
+                            </button>
+
+                            {{-- Options List --}}
+                            <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
+                                <template x-for="c in filteredCustomers" :key="c.id">
+                                    <button type="button"
+                                            @click="select(c.id)"
+                                            :class="filters.customer_id == c.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'"
+                                            class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                                 class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                                 x-text="(c.name || '?').charAt(0).toUpperCase()">
+                                            </div>
+                                            <span class="truncate text-xs" :class="filters.customer_id == c.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="c.name"></span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono shrink-0" x-show="c.phone" x-text="c.phone"></span>
+                                    </button>
+                                </template>
+                                <div x-show="filteredCustomers.length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                    No customers found
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 2. Company Bank Account Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
-                        </div>
-                        <select x-model="filters.company_bank_account_id" @change="currentPage = 1"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Bank Accounts</option>
-                            @foreach($companyBankAccounts as $acc)
-                                <option value="{{ $acc->id }}">
-                                    {{ $acc->bank_name }} {{ $acc->account_number ? '('.$acc->account_number.')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    {{-- 2. Company Bank Account Filter (Search & Select) --}}
+                    <div class="relative"
+                         x-data="{
+                             open: false,
+                             search: '',
+                             bankList: {{ json_encode($companyBankAccounts->map(fn($b) => [
+                                 'id' => (string)$b->id,
+                                 'bank_name' => $b->bank_name,
+                                 'account_number' => $b->account_number ?? '',
+                                 'account_name' => $b->account_name ?? '',
+                                 'display_name' => $b->bank_name . ($b->account_number ? ' (' . $b->account_number . ')' : '')
+                             ])) }},
+                             get selectedBank() {
+                                 return this.bankList.find(b => b.id == filters.company_bank_account_id);
+                             },
+                             get filteredBanks() {
+                                 const q = (this.search || '').toLowerCase().trim();
+                                 if (!q) return this.bankList;
+                                 return this.bankList.filter(b => 
+                                     (b.bank_name && b.bank_name.toLowerCase().includes(q)) || 
+                                     (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                                     (b.account_name && b.account_name.toLowerCase().includes(q))
+                                 );
+                             },
+                             select(id) {
+                                 filters.company_bank_account_id = id;
+                                 currentPage = 1;
+                                 this.open = false;
+                                 this.search = '';
+                             },
+                             clear() {
+                                 filters.company_bank_account_id = '';
+                                 currentPage = 1;
+                                 this.open = false;
+                                 this.search = '';
+                             }
+                         }"
+                         @click.outside="open = false">
+
+                        <button type="button"
+                                @click="open = !open; if (open) { $nextTick(() => $refs.bankSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedBank ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="selectedBank ? selectedBank.display_name : 'All Bank Accounts'">All Bank Accounts</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedBank">
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <input type="text"
+                                           x-model="search"
+                                           x-ref="bankSearchInput"
+                                           placeholder="Type bank name or account..."
+                                           @keydown.escape="open = false"
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.bankSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- All Bank Accounts Option --}}
+                            <button type="button" @click="clear()"
+                                    class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
+                                    :class="!filters.company_bank_account_id ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>— All Bank Accounts —</span>
+                            </button>
+
+                            {{-- Options List --}}
+                            <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
+                                <template x-for="b in filteredBanks" :key="b.id">
+                                    <button type="button"
+                                            @click="select(b.id)"
+                                            :class="filters.company_bank_account_id == b.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'"
+                                            class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div :class="filters.company_bank_account_id == b.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                                 class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
+                                                 x-text="(b.bank_name || '?').charAt(0).toUpperCase()">
+                                            </div>
+                                            <span class="truncate text-xs" :class="filters.company_bank_account_id == b.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="b.display_name"></span>
+                                        </div>
+                                    </button>
+                                </template>
+                                <div x-show="filteredBanks.length === 0" class="py-4 text-center text-slate-400 text-xs">
+                                    No bank accounts found
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {{-- 3. Status Filter (Only on Queue page) --}}
                     @unless(request()->routeIs('cheque-realization.realized'))
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
-                            </div>
-                            <select x-model="filters.status" @change="currentPage = 1"
-                                    class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                <option value="">All Realization Statuses</option>
-                                <option value="pending">Pending</option>
-                                <option value="cheque_in_hand">Cheque In Hand</option>
-                                <option value="deposited">Deposited</option>
-                                <option value="in_clearing">In Clearing</option>
-                                <option value="bounced">Bounced</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open" @click.outside="open = false"
+                                    class="erp-dropdown-trigger"
+                                    :class="open ? 'active' : ''">
+                                <div class="flex items-center gap-2 truncate">
+                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                                    <span class="truncate" x-text="filters.status ? (filters.status.replace(/_/g, ' ').toUpperCase()) : 'All Realization Statuses'">All Realization Statuses</span>
+                                </div>
+                                <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" x-cloak
+                                 class="erp-dropdown-popover">
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                    <div @click="filters.status = ''; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="!filters.status ? 'selected-all' : ''">
+                                        <span>All Realization Statuses</span>
+                                    </div>
+                                    <div @click="filters.status = 'pending'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.status === 'pending' ? 'selected' : ''">
+                                        <span>Pending</span>
+                                    </div>
+                                    <div @click="filters.status = 'cheque_in_hand'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.status === 'cheque_in_hand' ? 'selected' : ''">
+                                        <span>Cheque In Hand</span>
+                                    </div>
+                                    <div @click="filters.status = 'deposited'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.status === 'deposited' ? 'selected' : ''">
+                                        <span>Deposited</span>
+                                    </div>
+                                    <div @click="filters.status = 'in_clearing'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.status === 'in_clearing' ? 'selected' : ''">
+                                        <span>In Clearing</span>
+                                    </div>
+                                    <div @click="filters.status = 'bounced'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.status === 'bounced' ? 'selected' : ''">
+                                        <span>Bounced</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @else
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                            </div>
-                            <select x-model="filters.payment_mode" @change="currentPage = 1"
-                                    class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                <option value="">All Payment Modes</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="Online">Online</option>
-                                <option value="Cash">Cash</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open" @click.outside="open = false"
+                                    class="erp-dropdown-trigger"
+                                    :class="open ? 'active' : ''">
+                                <div class="flex items-center gap-2 truncate">
+                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                    <span class="truncate" x-text="filters.payment_mode || 'All Payment Modes'">All Payment Modes</span>
+                                </div>
+                                <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29]" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" x-cloak
+                                 class="erp-dropdown-popover">
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                    <div @click="filters.payment_mode = ''; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="!filters.payment_mode ? 'selected-all' : ''">
+                                        <span>All Payment Modes</span>
+                                    </div>
+                                    <div @click="filters.payment_mode = 'Cheque'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.payment_mode === 'Cheque' ? 'selected' : ''">
+                                        <span>Cheque</span>
+                                    </div>
+                                    <div @click="filters.payment_mode = 'Bank Transfer'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.payment_mode === 'Bank Transfer' ? 'selected' : ''">
+                                        <span>Bank Transfer</span>
+                                    </div>
+                                    <div @click="filters.payment_mode = 'Online'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.payment_mode === 'Online' ? 'selected' : ''">
+                                        <span>Online</span>
+                                    </div>
+                                    <div @click="filters.payment_mode = 'Cash'; currentPage = 1; open = false"
+                                         class="erp-dropdown-option"
+                                         :class="filters.payment_mode === 'Cash' ? 'selected' : ''">
+                                        <span>Cash</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endunless
@@ -423,17 +671,17 @@
                     {{-- 4. Date Filter --}}
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <input type="date" x-model="filters.date" @change="currentPage = 1"
-                               class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                               class="w-full erp-search-input pl-10 pr-3.5">
                     </div>
 
                 </div>
 
                 {{-- Reset Filters Button --}}
                 <button type="button" @click="resetFilters()"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                   class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                     <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>RESET FILTERS</span>
                 </button>
@@ -452,12 +700,12 @@
             
             <div class="flex items-center">
                 @if(request()->routeIs('cheque-realization.realized'))
-                    <a href="{{ route('cheque-realization.queue') }}" class="px-4 py-2 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-[#8a7522] transition-colors flex items-center justify-center gap-2 group">
+                    <a href="{{ route('cheque-realization.queue') }}" class="theme-btn px-4 py-2 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 group">
                         <svg class="w-4 h-4 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         View Pending Queue
                     </a>
                 @else
-                    <a href="{{ route('cheque-realization.realized') }}" class="px-4 py-2 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-[#8a7522] transition-colors flex items-center justify-center gap-2 group">
+                    <a href="{{ route('cheque-realization.realized') }}" class="theme-btn px-4 py-2 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 group">
                         <svg class="w-4 h-4 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         View Realized
                     </a>
@@ -481,8 +729,8 @@
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[11px] font-black uppercase tracking-widest">
-                        <tr>
+                    <thead class="erp-table-header">
+                        <tr class="text-white border-b border-[#3e3a35] text-[11px] font-black uppercase tracking-widest">
                             <th class="px-4 py-3.5 text-white">RECEIPT #</th>
                             <th class="px-4 py-3.5 text-white">DATE</th>
                             <th class="px-4 py-3.5 text-white">CUSTOMER</th>

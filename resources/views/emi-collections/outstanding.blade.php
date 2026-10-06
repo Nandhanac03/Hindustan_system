@@ -161,15 +161,15 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                        <th class="px-6 py-3.5">Customer</th>
-                        <th class="px-6 py-3.5">Project / Unit</th>
-                        <th class="px-6 py-3.5">Sale No.</th>
-                        <th class="px-6 py-3.5 text-right">Sale Total</th>
-                        <th class="px-6 py-3.5 text-right">Receipts Paid</th>
-                        <th class="px-6 py-3.5 text-right">Outstanding</th>
-                        <th class="px-6 py-3.5 text-center">Actions</th>
+                <thead class="erp-table-header">
+                    <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
+                        <th class="px-6 py-3.5 text-white">Customer</th>
+                        <th class="px-6 py-3.5 text-white">Project / Unit</th>
+                        <th class="px-6 py-3.5 text-white">Sale No.</th>
+                        <th class="px-6 py-3.5 text-right text-white">Sale Total</th>
+                        <th class="px-6 py-3.5 text-right text-white">Receipts Paid</th>
+                        <th class="px-6 py-3.5 text-right text-white">Outstanding</th>
+                        <th class="px-6 py-3.5 text-center text-white">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
