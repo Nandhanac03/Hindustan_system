@@ -1731,8 +1731,8 @@ class ReportController extends Controller
         $companyBank = $companyBankId ? \App\Models\CompanyBankAccount::find($companyBankId) : null;
         $bankName = $companyBank ? ($companyBank->bank_name . ($companyBank->account_number ? ' (' . $companyBank->account_number . ')' : '')) : '';
 
-        // Validate available bank account balance
-        if ($companyBank) {
+        // Skip bank balance validation if this is a historical entry
+        if (!$request->boolean('is_historical') && $companyBank) {
             $availBal = (float)($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
             if ($amount > $availBal) {
                 return redirect()->back()
@@ -1741,9 +1741,11 @@ class ReportController extends Controller
             }
         }
 
-        DB::transaction(function () use ($systemId, $partner, $validated, $user, $amount, $paymentMode, $companyBankId, $bankName) {
-            // Deduct payout amount from selected CompanyBankAccount balance
-            if ($companyBankId) {
+        DB::transaction(function () use ($systemId, $partner, $validated, $user, $amount, $paymentMode, $companyBankId, $bankName, $request) {
+            $isHistorical = $request->boolean('is_historical');
+
+            // Deduct payout amount from selected CompanyBankAccount balance (skip if historical)
+            if (!$isHistorical && $companyBankId) {
                 $bankAccount = \App\Models\CompanyBankAccount::lockForUpdate()->find($companyBankId);
                 if ($bankAccount) {
                     $currentBal = (float)($bankAccount->current_balance ?? $bankAccount->opening_balance ?? 0);
@@ -1905,16 +1907,18 @@ class ReportController extends Controller
                     'line_narration' => 'Partner Capital Liability Cleared (' . $partner->name . ')',
                 ]);
 
-                // Credit 1001 Bank Account
-                JournalEntry::create([
-                    'voucher_id'     => $journalVoucher->id,
-                    'account_id'     => '1001',
-                    'debit_amount'   => 0.00,
-                    'credit_amount'  => $amount,
-                    'entity_type'    => 'BANK',
-                    'entity_id'      => $companyBankId,
-                    'line_narration' => 'Bank Account (Bank Asset Decreases)',
-                ]);
+                // Credit 1001 Bank Account — only post when NOT a historical entry
+                if (!$isHistorical) {
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '1001',
+                        'debit_amount'   => 0.00,
+                        'credit_amount'  => $amount,
+                        'entity_type'    => 'BANK',
+                        'entity_id'      => $companyBankId,
+                        'line_narration' => 'Bank Account (Bank Asset Decreases)',
+                    ]);
+                }
             } catch (\Exception $e) {}
         });
 

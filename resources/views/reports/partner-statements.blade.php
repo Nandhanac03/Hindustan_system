@@ -677,6 +677,19 @@
                             <span x-show="modalErrors.remarks" x-text="modalErrors.remarks" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                         </div>
 
+                        {{-- 4b. Is Historical Checkbox --}}
+                        <div>
+                            <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                                <div class="pt-0.5">
+                                    <input type="checkbox" name="is_historical" x-model="modalData.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Check this if recording a past transaction. The payout will NOT deduct from the live company bank account balance.</span>
+                                </div>
+                            </label>
+                        </div>
+
                         {{-- Live Error Banner --}}
                         <template x-if="modalErrorMessage">
                             <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700 text-xs font-bold shadow-xs">
@@ -700,7 +713,9 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
-                                        <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
+                                        <span class="font-mono font-bold text-xs" 
+                                              :class="modalData.is_historical ? 'line-through opacity-50 text-slate-400' : 'text-rose-500'" 
+                                              x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
                                         <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Bank Balance After:</span>
@@ -820,7 +835,8 @@ function partnerStatementApp() {
             company_bank_account_id: '',
             allocated_amount: '',
             date: '{{ date('Y-m-d') }}',
-            remarks: ''
+            remarks: '',
+            is_historical: false
         },
 
         openPayoutModal(partnerId = null, projectId = null) {
@@ -840,6 +856,7 @@ function partnerStatementApp() {
             this.modalData.allocated_amount = '';
             this.modalData.date = new Date().toISOString().split('T')[0];
             this.modalData.remarks = '';
+            this.modalData.is_historical = false;
             this.showPayoutModal = true;
         },
 
@@ -867,7 +884,7 @@ function partnerStatementApp() {
             if (!this.modalData.allocated_amount || isNaN(amount) || amount <= 0) {
                 this.modalErrors.allocated_amount = 'Please enter a valid payout amount greater than ₹0.00';
                 hasError = true;
-            } else if (this.isBankInsufficient) {
+            } else if (!this.modalData.is_historical && this.isBankInsufficient) {
                 this.modalErrors.allocated_amount = `Payout amount exceeds available bank balance (${this.formatCurrency(this.modalSelectedBankBalance)})`;
                 hasError = true;
             } else if (this.isPartnerInsufficient) {
@@ -923,6 +940,7 @@ function partnerStatementApp() {
         },
 
         get modalBankBalanceAfterPayout() {
+            if (this.modalData.is_historical) return this.modalSelectedBankBalance;
             return this.modalSelectedBankBalance - this.modalPayoutAmount;
         },
 
