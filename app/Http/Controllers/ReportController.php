@@ -2664,6 +2664,13 @@ class ReportController extends Controller
             'updated_by' => $updatedBy,
         ];
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'reportData' => $reportData
+            ]);
+        }
+
         return view('reports.petty-cash-reports', array_merge($lookups, compact('activeTab', 'reportData')));
     }
 

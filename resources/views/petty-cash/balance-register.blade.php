@@ -254,39 +254,138 @@
                             </svg>
                         </div>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Voucher..." 
-                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-sm">
+                               class="w-full pl-10 pr-3 erp-search-input">
                     </div>
 
-                    {{-- Site Dropdown --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                        </div>
-                        <select name="project_id"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm appearance-none">
-                            <option value="" {{ request('project_id') === '' || (request()->has('project_id') && !request('project_id')) ? 'selected' : '' }}>All Sites</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}" {{ $selectedProject == $project->id ? 'selected' : '' }}>{{ $project->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    {{-- Site Dropdown (Custom Gold Popover) --}}
+                    @php
+                        $selectedSiteId = request('project_id', $selectedProject ?? '');
+                        $selectedSiteObj = $projects->firstWhere('id', $selectedSiteId);
+                        $selectedSiteName = $selectedSiteObj ? $selectedSiteObj->name : 'All Sites';
+                    @endphp
+                    <div class="relative w-full" x-data="{ 
+                        open: false, 
+                        selectedId: '{{ $selectedSiteId }}',
+                        selectedName: '{{ addslashes($selectedSiteName) }}',
+                        select(id, name) {
+                            this.selectedId = id;
+                            this.selectedName = name;
+                            this.open = false;
+                            $nextTick(() => document.getElementById('filter-form').submit());
+                        }
+                    }" @click.outside="open = false">
+                        <input type="hidden" name="project_id" :value="selectedId">
+                        <button type="button"
+                                @click="open = !open"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="selectedName"></span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedId">
+                                    <span @click.stop="select('', 'All Sites')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Project Popover Menu --}}
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="select('', 'All Sites')"
+                                     class="erp-dropdown-option"
+                                     :class="!selectedId ? 'selected-all' : ''">
+                                    <span>All Sites</span>
+                                </div>
+                                @foreach($projects as $p)
+                                    <div @click="select('{{ $p->id }}', '{{ addslashes($p->name) }}')"
+                                         class="erp-dropdown-option"
+                                         :class="String(selectedId) === '{{ $p->id }}' ? 'selected' : ''">
+                                        <span>{{ $p->name }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Status Dropdown --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                        </div>
-                        <select name="status"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm appearance-none">
-                            <option value="" {{ !request('status') ? 'selected' : '' }}>All Statuses</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    {{-- Status Dropdown (Custom Gold Popover) --}}
+                    <div class="relative w-full" x-data="{ 
+                        open: false, 
+                        selectedStatus: '{{ request('status', '') }}',
+                        getStatusLabel() {
+                            if (!this.selectedStatus) return 'All Statuses';
+                            return this.selectedStatus === 'active' ? 'Active' : (this.selectedStatus === 'pending' ? 'Pending' : this.selectedStatus);
+                        },
+                        select(s) {
+                            this.selectedStatus = s;
+                            this.open = false;
+                            $nextTick(() => document.getElementById('filter-form').submit());
+                        }
+                    }" @click.outside="open = false">
+                        <input type="hidden" name="status" :value="selectedStatus">
+                        <button type="button"
+                                @click="open = !open"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getStatusLabel()">All Statuses</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedStatus">
+                                    <span @click.stop="select('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Status Popover Menu --}}
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="select('')"
+                                     class="erp-dropdown-option"
+                                     :class="!selectedStatus ? 'selected-all' : ''">
+                                    <span>All Statuses</span>
+                                </div>
+                                <div @click="select('active')"
+                                     class="erp-dropdown-option"
+                                     :class="selectedStatus === 'active' ? 'selected' : ''">
+                                    <span>Active</span>
+                                </div>
+                                <div @click="select('pending')"
+                                     class="erp-dropdown-option"
+                                     :class="selectedStatus === 'pending' ? 'selected' : ''">
+                                    <span>Pending</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -300,7 +399,7 @@
                 {{-- Reset Filters Button --}}
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('petty-cash.balance-register') }}"
-                       class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group">
+                       class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
                         <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>RESET FILTERS</span>
                     </a>
@@ -315,16 +414,16 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left whitespace-nowrap">
-                    <thead class="bg-[#a38c29] text-white">
-                        <tr>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Date</th>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Voucher No.</th>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Type</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash In (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash Out (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Balance (₹)</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-extrabold uppercase tracking-wide">Reference</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-wide">Action</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700">
+                            <th class="px-5 py-3.5 border-r border-slate-600">Date</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Voucher No.</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Type</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash In (₹)</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash Out (₹)</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Balance (₹)</th>
+                            <th class="px-5 py-3.5 text-left border-r border-slate-600">Reference</th>
+                            <th class="px-5 py-3.5 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">

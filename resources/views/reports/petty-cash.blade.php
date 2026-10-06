@@ -75,12 +75,12 @@
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
-                    <thead>
-                        <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                            <th class="px-5 py-3.5 text-white font-extrabold">Transaction Date</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold">Voucher Ref ID</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold">Site / Customer Detail</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold">Receipt Amount</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700">
+                            <th class="px-5 py-3.5 border-r border-slate-600">Transaction Date</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Voucher Ref ID</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Site / Customer Detail</th>
+                            <th class="px-5 py-3.5 text-right">Receipt Amount</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">

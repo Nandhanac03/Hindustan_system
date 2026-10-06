@@ -371,11 +371,11 @@
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-[#FAF0D7]/30 border-b border-[#EAE3CD]">
-                            <tr>
-                                <th class="px-4 py-3 text-[10px] font-black text-[#8a7522] uppercase tracking-wider">Voucher No.</th>
-                                <th class="px-4 py-3 text-[10px] font-black text-[#8a7522] uppercase tracking-wider">Date</th>
-                                <th class="px-4 py-3 text-[10px] font-black text-[#8a7522] uppercase tracking-wider text-right">Amount (₹)</th>
+                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                            <tr class="erp-table-header border-b border-slate-700">
+                                <th class="px-4 py-3 border-r border-slate-600">Voucher No.</th>
+                                <th class="px-4 py-3 border-r border-slate-600">Date</th>
+                                <th class="px-4 py-3 text-right">Amount (₹)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">

@@ -57,6 +57,106 @@
 }
 </style>
 
+<script>
+function pettyCashReportApp() {
+    return {
+        filters: {
+            search: '{{ addslashes(request('search', '')) }}',
+            project_id: '{{ request('project_id', $reportData['project_id'] ?? ($projects->first()?->id ?? '')) }}',
+            date_from: '{{ request('date_from', $reportData['from_date'] ?? date('Y-m-01')) }}',
+            date_to: '{{ request('date_to', $reportData['to_date'] ?? date('Y-m-d')) }}',
+            status: '{{ request('status', '') }}'
+        },
+        projectsList: @json($projects),
+        siteDropdownOpen: false,
+        statusDropdownOpen: false,
+        isLoading: false,
+
+        siteName: '{{ addslashes($siteName ?? 'All Sites') }}',
+        openingBalance: {{ (float)($reportData['opening_balance'] ?? 0) }},
+        totalCashIn: {{ (float)($reportData['total_cash_in'] ?? 0) }},
+        totalCashOut: {{ (float)($reportData['total_cash_out'] ?? 0) }},
+        closingBalance: {{ (float)($reportData['closing_balance'] ?? 0) }},
+        entries: @json($reportData['entries'] ?? []),
+        fromDateFormatted: '{{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }}',
+        toDateFormatted: '{{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}',
+
+        getSelectedSiteName() {
+            if (!this.filters.project_id) return 'All Sites';
+            const p = this.projectsList.find(x => String(x.id) === String(this.filters.project_id));
+            return p ? p.name : 'All Sites';
+        },
+        getStatusLabel() {
+            if (!this.filters.status) return 'All Statuses';
+            return this.filters.status === 'active' ? 'Active' : (this.filters.status === 'pending' ? 'Pending' : this.filters.status);
+        },
+        selectSite(id) {
+            this.filters.project_id = id;
+            this.siteDropdownOpen = false;
+            this.fetchReportData();
+        },
+        selectStatus(st) {
+            this.filters.status = st;
+            this.statusDropdownOpen = false;
+            this.fetchReportData();
+        },
+        resetFilters() {
+            this.filters.search = '';
+            this.filters.project_id = '{{ $projects->first()?->id ?? '' }}';
+            this.filters.date_from = '{{ \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d') }}';
+            this.filters.date_to = '{{ \Carbon\Carbon::now()->format('Y-m-d') }}';
+            this.filters.status = '';
+            this.fetchReportData();
+        },
+        formatCurrency(num) {
+            return Number(num || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getTypeDisplay(txn) {
+            if (txn.type === 'Contra') return 'Contra - ' + (txn.particulars || '');
+            if (txn.type === 'Expense') return 'Site Expense - ' + (txn.particulars || '');
+            return txn.particulars || '-';
+        },
+        async fetchReportData() {
+            this.isLoading = true;
+            try {
+                const params = new URLSearchParams();
+                if (this.filters.search) params.append('search', this.filters.search);
+                if (this.filters.project_id) params.append('project_id', this.filters.project_id);
+                if (this.filters.date_from) params.append('date_from', this.filters.date_from);
+                if (this.filters.date_to) params.append('date_to', this.filters.date_to);
+                if (this.filters.status) params.append('status', this.filters.status);
+
+                const url = `{{ route('reports.petty_cash.reports') }}?${params.toString()}`;
+                window.history.replaceState({}, '', url);
+
+                const res = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if (data && data.reportData) {
+                    this.openingBalance = parseFloat(data.reportData.opening_balance) || 0;
+                    this.totalCashIn = parseFloat(data.reportData.total_cash_in) || 0;
+                    this.totalCashOut = parseFloat(data.reportData.total_cash_out) || 0;
+                    this.closingBalance = parseFloat(data.reportData.closing_balance) || 0;
+                    this.entries = data.reportData.entries || [];
+                    this.siteName = data.reportData.site_name || 'All Sites';
+
+                    const scriptTag = document.getElementById('petty-cash-report-data');
+                    if (scriptTag) scriptTag.textContent = JSON.stringify(this.entries);
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+            } finally {
+                this.isLoading = false;
+            }
+        }
+    };
+}
+</script>
+
 @php
     $selectedProjectId = request('project_id', $reportData['project_id'] ?? null);
     $currentProject = $projects->firstWhere('id', $selectedProjectId) ?? ($projects->first() ?? (object)['name' => 'All Sites', 'id' => '']);
@@ -71,7 +171,7 @@
     $updatedBy = $reportData['updated_by'] ?? (auth()->check() ? auth()->user()->name : 'Owner');
 @endphp
 
-<div class="w-full px-6 py-6 bg-[#f8f9fa] min-h-screen font-sans print:px-0 print:py-0 print:min-h-0 print:bg-white">
+<div class="w-full px-6 py-6 bg-[#f8f9fa] min-h-screen font-sans print:px-0 print:py-0 print:min-h-0 print:bg-white" x-data="pettyCashReportApp()">
     
     <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
     <div class="hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
@@ -85,10 +185,10 @@
                 <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">PETTY CASH STATEMENT &amp; AUDIT REPORT</h2>
             </div>
             <div class="text-right text-[9.5px] text-slate-600 space-y-1">
-                <div><span class="font-bold text-slate-400 uppercase">Site Name:</span> <span class="font-bold text-slate-900">{{ $siteName }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Site Name:</span> <span class="font-bold text-slate-900" x-text="siteName">{{ $siteName }}</span></div>
                 <div><span class="font-bold text-slate-400 uppercase">Period:</span> <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}</span></div>
                 <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ date('d-M-Y h:i A') }}</span></div>
-                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]">{{ count($reportData['entries'] ?? []) }} Entries</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]"><span x-text="entries.length">{{ count($reportData['entries'] ?? []) }}</span> Entries</span></div>
             </div>
         </div>
     </div>
@@ -97,22 +197,22 @@
     <div class="hidden print:grid grid-cols-4 gap-3 mb-5">
         <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50">
             <span class="text-[8.5px] font-black uppercase text-slate-500 block">Opening Balance</span>
-            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}</strong>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5" x-text="'₹ ' + formatCurrency(openingBalance)">₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}</strong>
             <span class="text-[8px] text-slate-500 font-bold">As on {{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</span>
         </div>
         <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/30">
             <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Cash In (Period)</span>
-            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</strong>
+            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5" x-text="'₹ ' + formatCurrency(totalCashIn)">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</strong>
             <span class="text-[8px] text-emerald-600 font-bold">Bank Withdrawals &amp; Receipts</span>
         </div>
         <div class="border border-rose-300 rounded-xl p-3 bg-rose-50/30">
             <span class="text-[8.5px] font-black uppercase text-rose-600 block">Cash Out (Period)</span>
-            <strong class="text-sm font-black text-rose-700 font-mono block mt-0.5">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</strong>
+            <strong class="text-sm font-black text-rose-700 font-mono block mt-0.5" x-text="'₹ ' + formatCurrency(totalCashOut)">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</strong>
             <span class="text-[8px] text-rose-600 font-bold">Site Expenses</span>
         </div>
         <div class="border border-slate-700 rounded-xl p-3 bg-slate-100/60">
             <span class="text-[8.5px] font-black uppercase text-slate-700 block">Closing Balance</span>
-            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</strong>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5" x-text="'₹ ' + formatCurrency(closingBalance)">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</strong>
             <span class="text-[8px] text-slate-600 font-bold">Current Cash In Hand</span>
         </div>
     </div>
@@ -145,6 +245,158 @@
     <div id="petty-cash-report-content" class="relative">
         <script id="petty-cash-report-data" type="application/json">@json($reportData['entries'] ?? [])</script>
 
+        <!-- Filter Area (Global Style - Instant No-Refresh Filter) -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 mb-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all print:hidden">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0" id="filter-form">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 flex-1">
+                    {{-- Pro Light Search Input --}}
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" x-model="filters.search" @input.debounce.300ms="fetchReportData()" placeholder="Search Voucher, Narration..." 
+                               class="w-full pl-10 pr-9 erp-search-input">
+                        <template x-if="filters.search">
+                            <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                                <button type="button" @click="filters.search = ''; fetchReportData()"
+                                        class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Site Dropdown (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="siteDropdownOpen = false">
+                        <button type="button"
+                                @click="siteDropdownOpen = !siteDropdownOpen; if(siteDropdownOpen) statusDropdownOpen = false;"
+                                class="erp-dropdown-trigger"
+                                :class="siteDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.project_id ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedSiteName()"></span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.project_id">
+                                    <span @click.stop="selectSite('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="siteDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Project Popover Menu --}}
+                        <div x-show="siteDropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectSite('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filters.project_id ? 'selected-all' : ''">
+                                    <span>All Sites</span>
+                                </div>
+                                @foreach($projects as $p)
+                                    <div @click="selectSite('{{ $p->id }}')"
+                                         class="erp-dropdown-option"
+                                         :class="String(filters.project_id) === '{{ $p->id }}' ? 'selected' : ''">
+                                        <span>{{ $p->name }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- From Date --}}
+                    <div class="relative">
+                        <input type="date" x-model="filters.date_from" @change="fetchReportData()"
+                               class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm appearance-none">
+                    </div>
+
+                    {{-- To Date --}}
+                    <div class="relative">
+                        <input type="date" x-model="filters.date_to" @change="fetchReportData()"
+                               class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm appearance-none">
+                    </div>
+
+                    {{-- Status Dropdown (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="statusDropdownOpen = false">
+                        <button type="button"
+                                @click="statusDropdownOpen = !statusDropdownOpen; if(statusDropdownOpen) siteDropdownOpen = false;"
+                                class="erp-dropdown-trigger"
+                                :class="statusDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.status ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getStatusLabel()">All Statuses</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.status">
+                                    <span @click.stop="selectStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Status Popover Menu --}}
+                        <div x-show="statusDropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="selectStatus('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filters.status ? 'selected-all' : ''">
+                                    <span>All Statuses</span>
+                                </div>
+                                <div @click="selectStatus('active')"
+                                     class="erp-dropdown-option"
+                                     :class="filters.status === 'active' ? 'selected' : ''">
+                                    <span>Active</span>
+                                </div>
+                                <div @click="selectStatus('pending')"
+                                     class="erp-dropdown-option"
+                                     :class="filters.status === 'pending' ? 'selected' : ''">
+                                    <span>Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="shrink-0 flex items-center">
+                    <button type="button"
+                            @click="resetFilters()"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- ── 4 Metric KPI Cards Grid (Web Only) ── -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 print:hidden">
             
@@ -159,7 +411,8 @@
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300"
+                          x-text="'₹ ' + formatCurrency(openingBalance)">
                         ₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">As on {{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</p>
@@ -177,7 +430,8 @@
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300"
+                          x-text="'₹ ' + formatCurrency(totalCashIn)">
                         ₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Bank Withdrawals &amp; Receipts</p>
@@ -195,7 +449,8 @@
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300"
+                          x-text="'₹ ' + formatCurrency(totalCashOut)">
                         ₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Site Expenses</p>
@@ -213,7 +468,8 @@
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300"
+                          x-text="'₹ ' + formatCurrency(closingBalance)">
                         ₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Current Cash In Hand</p>
@@ -226,77 +482,63 @@
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Petty Cash Transaction Ledger</h3>
                 <span class="text-[11px] bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold">
-                    <span>{{ count($reportData['entries'] ?? []) }}</span> Entries
+                    <span x-text="entries.length">{{ count($reportData['entries'] ?? []) }}</span> Entries
                 </span>
             </div>
 
             <!-- Ledger Table -->
             <div id="ledgerTableContainer" class="overflow-x-auto">
                 <table class="w-full text-left whitespace-nowrap" id="pettyCashReportTable">
-                    <thead class="bg-[#a38c29] text-white">
-                        <tr>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Date</th>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Voucher No.</th>
-                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Type</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash In (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash Out (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Balance (₹)</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-extrabold uppercase tracking-wide">Reference</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700">
+                            <th class="px-5 py-3.5 border-r border-slate-600">Date</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Voucher No.</th>
+                            <th class="px-5 py-3.5 border-r border-slate-600">Type</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash In (₹)</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash Out (₹)</th>
+                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Balance (₹)</th>
+                            <th class="px-5 py-3.5 text-left">Reference</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white" id="reportTableBody">
-                        @forelse($reportData['entries'] ?? [] as $txn)
-                            @php
-                                $isOpening = ($txn->type === 'Opening' || $txn->particulars === 'Opening Balance');
-                                $typeDisplay = $txn->type === 'Contra' ? 'Contra - ' . $txn->particulars : ($txn->type === 'Expense' ? 'Site Expense - ' . $txn->particulars : $txn->particulars);
-                            @endphp
+                        <template x-for="(txn, index) in entries" :key="index">
                             <tr class="transaction-row hover:bg-gray-50 transition-colors">
-                                
-                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700">{{ $txn->date }}</td>
+                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700" x-text="txn.date"></td>
                                 
                                 <td class="px-5 py-4">
-                                    @if(!$isOpening && $txn->voucher_number !== '-')
+                                    <template x-if="txn.type !== 'Opening' && txn.particulars !== 'Opening Balance' && txn.voucher_number && txn.voucher_number !== '-'">
                                         <span class="text-[11px] font-bold text-[#a38c29] uppercase cursor-pointer hover:underline"
-                                              onclick="showDetailModal(this)"
-                                              data-voucher="{{ $txn->voucher_number }}"
-                                              data-date="{{ $txn->date }}"
-                                              data-type="{{ $typeDisplay }}"
-                                              data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
-                                              data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
-                                              data-balance="{{ number_format($txn->balance, 2) }}"
-                                              data-reference="{{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : 'N/A' }}">
-                                            {{ $txn->voucher_number }}
+                                              @click="openDetailModal(txn.voucher_number, txn.date, getTypeDisplay(txn), txn.cash_in > 0 ? formatCurrency(txn.cash_in) : '0.00', txn.cash_out > 0 ? formatCurrency(txn.cash_out) : '0.00', formatCurrency(txn.balance), (txn.reference_no && txn.reference_no !== '-') ? txn.reference_no : 'N/A')"
+                                              x-text="txn.voucher_number">
                                         </span>
-                                    @else
+                                    </template>
+                                    <template x-if="txn.type === 'Opening' || txn.particulars === 'Opening Balance' || !txn.voucher_number || txn.voucher_number === '-'">
                                         <span class="text-gray-400 font-bold text-[11px]">—</span>
-                                    @endif
+                                    </template>
                                 </td>
 
-                                <td class="px-5 py-4 text-[11px] font-bold text-[#1e2a5e]">
-                                    {{ $typeDisplay }}
-                                </td>
+                                <td class="px-5 py-4 text-[11px] font-bold text-[#1e2a5e]" x-text="getTypeDisplay(txn)"></td>
 
-                                <td class="px-5 py-4 text-right text-[11px] font-bold {{ $txn->cash_in > 0 ? 'text-[#1e2a5e]' : 'text-gray-400' }}">
-                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
-                                </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold"
+                                    :class="Number(txn.cash_in) > 0 ? 'text-[#1e2a5e]' : 'text-gray-400'"
+                                    x-text="Number(txn.cash_in) > 0 ? formatCurrency(txn.cash_in) : '-'"></td>
 
-                                <td class="px-5 py-4 text-right text-[11px] font-bold {{ $txn->cash_out > 0 ? 'text-[#1e2a5e]' : 'text-gray-400' }}">
-                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
-                                </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold"
+                                    :class="Number(txn.cash_out) > 0 ? 'text-[#1e2a5e]' : 'text-gray-400'"
+                                    x-text="Number(txn.cash_out) > 0 ? formatCurrency(txn.cash_out) : '-'"></td>
 
-                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
-                                    {{ number_format($txn->balance, 2) }}
-                                </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]"
+                                    x-text="formatCurrency(txn.balance)"></td>
 
-                                <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500">
-                                    {{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : '—' }}
-                                </td>
+                                <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500"
+                                    x-text="(txn.reference_no && txn.reference_no !== '-') ? txn.reference_no : '—'"></td>
                             </tr>
-                        @empty
+                        </template>
+                        <template x-if="entries.length === 0">
                             <tr>
                                 <td colspan="7" class="px-5 py-8 text-center text-[12px] font-bold text-gray-400 uppercase tracking-wider">No transactions found for this period.</td>
                             </tr>
-                        @endforelse
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -320,38 +562,34 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                        @forelse($reportData['entries'] ?? [] as $index => $txn)
-                            @php
-                                $typeDisplay = $txn->type === 'Contra' ? 'Contra - ' . $txn->particulars : ($txn->type === 'Expense' ? 'Site Expense - ' . $txn->particulars : $txn->particulars);
-                            @endphp
+                        <template x-for="(txn, index) in entries" :key="'print-'+index">
                             <tr class="border-b border-slate-200 text-slate-800">
-                                <td class="px-3 py-2 text-center font-bold text-slate-500">{{ $index + 1 }}</td>
-                                <td class="px-3 py-2 font-bold text-slate-900">{{ $txn->date }}</td>
-                                <td class="px-3 py-2 font-mono font-bold text-[#a38c29] uppercase">{{ $txn->voucher_number ?? '—' }}</td>
-                                <td class="px-3 py-2 font-bold text-slate-700">{{ $typeDisplay }}</td>
-                                <td class="px-3 py-2 text-right font-mono font-bold {{ $txn->cash_in > 0 ? 'text-emerald-700' : 'text-slate-400' }}">
-                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
-                                </td>
-                                <td class="px-3 py-2 text-right font-mono font-bold {{ $txn->cash_out > 0 ? 'text-rose-700' : 'text-slate-400' }}">
-                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
-                                </td>
-                                <td class="px-3 py-2 text-right font-mono font-black text-slate-900">
-                                    {{ number_format($txn->balance, 2) }}
-                                </td>
-                                <td class="px-3 py-2 text-left font-mono text-slate-600">
-                                    {{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : '—' }}
-                                </td>
+                                <td class="px-3 py-2 text-center font-bold text-slate-500" x-text="index + 1"></td>
+                                <td class="px-3 py-2 font-bold text-slate-900" x-text="txn.date"></td>
+                                <td class="px-3 py-2 font-mono font-bold text-[#a38c29] uppercase" x-text="txn.voucher_number || '—'"></td>
+                                <td class="px-3 py-2 font-bold text-slate-700" x-text="getTypeDisplay(txn)"></td>
+                                <td class="px-3 py-2 text-right font-mono font-bold"
+                                    :class="Number(txn.cash_in) > 0 ? 'text-emerald-700' : 'text-slate-400'"
+                                    x-text="Number(txn.cash_in) > 0 ? formatCurrency(txn.cash_in) : '-'"></td>
+                                <td class="px-3 py-2 text-right font-mono font-bold"
+                                    :class="Number(txn.cash_out) > 0 ? 'text-rose-700' : 'text-slate-400'"
+                                    x-text="Number(txn.cash_out) > 0 ? formatCurrency(txn.cash_out) : '-'"></td>
+                                <td class="px-3 py-2 text-right font-mono font-black text-slate-900"
+                                    x-text="formatCurrency(txn.balance)"></td>
+                                <td class="px-3 py-2 text-left font-mono text-slate-600"
+                                    x-text="(txn.reference_no && txn.reference_no !== '-') ? txn.reference_no : '—'"></td>
                             </tr>
-                        @empty
+                        </template>
+                        <template x-if="entries.length === 0">
                             <tr>
                                 <td colspan="8" class="px-4 py-4 text-center text-slate-500 italic">No transactions found for this period.</td>
                             </tr>
-                        @endforelse
+                        </template>
                         <tr class="bg-slate-100 font-bold border-t-2 border-slate-400">
                             <td colspan="4" class="px-4 py-2.5 text-right uppercase tracking-wider text-[10px] text-slate-800">TOTAL SUMMARY:</td>
-                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-emerald-800 font-black">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
-                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-rose-800 font-black">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
-                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-slate-900 font-black">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-emerald-800 font-black" x-text="'₹ ' + formatCurrency(totalCashIn)">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-rose-800 font-black" x-text="'₹ ' + formatCurrency(totalCashOut)">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-slate-900 font-black" x-text="'₹ ' + formatCurrency(closingBalance)">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</td>
                             <td></td>
                         </tr>
                     </tbody>

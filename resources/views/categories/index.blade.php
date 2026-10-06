@@ -9,12 +9,32 @@ function categoryMasterComponent() {
         search: '',
         filterProjectId: '',
         filterStatus: '',
+        projectFilterOpen: false,
+        statusFilterOpen: false,
+        projectsList: @json($projects),
         defaultProjectId: '{{ $projects->first()?->id ?? '' }}',
         addCategory: { category: '', chart_of_account_id: '', project_id: '{{ $projects->first()?->id ?? '' }}', status: 'active' },
         viewCategory: { id: null, category: '', chart_of_account_id: '', coa_code: '', coa_name: '', project_name: '', status: 'active', created_at: '' },
         editCategory: { id: null, category: '', chart_of_account_id: '', project_id: '', status: 'active' },
         deleteCategory: { id: null, category: '' },
         categories: @json($categoriesArray),
+        getSelectedProjectName() {
+            if (!this.filterProjectId) return 'All Projects';
+            const p = this.projectsList.find(x => String(x.id) === String(this.filterProjectId));
+            return p ? p.name : 'All Projects';
+        },
+        getStatusLabel() {
+            if (!this.filterStatus) return 'All Statuses';
+            return this.filterStatus.toLowerCase() === 'active' ? 'Active' : 'Inactive';
+        },
+        selectProject(id) {
+            this.filterProjectId = id;
+            this.projectFilterOpen = false;
+        },
+        selectStatus(s) {
+            this.filterStatus = s;
+            this.statusFilterOpen = false;
+        },
         get filteredCategories() {
 
             return this.categories.filter(c => {
@@ -38,6 +58,8 @@ function categoryMasterComponent() {
             this.search = '';
             this.filterProjectId = '';
             this.filterStatus = '';
+            this.projectFilterOpen = false;
+            this.statusFilterOpen = false;
         },
         initView(cat) {
             this.viewCategory = { ...cat };
@@ -188,7 +210,7 @@ function categoryMasterComponent() {
                         </svg>
                     </div>
                     <input type="text" x-model="search" placeholder="Search Category Name..." 
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full pl-10 pr-10 erp-search-input">
                     <template x-if="search">
                         <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
                             <button type="button" @click="search = ''"
@@ -199,47 +221,117 @@ function categoryMasterComponent() {
                     </template>
                 </div>
 
-                {{-- Project Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
-                        </svg>
-                    </div>
-                    <select x-model="filterProjectId"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Project Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                    <button type="button"
+                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="projectFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedProjectName()">All Projects</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterProjectId">
+                                <span @click.stop="selectProject('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="projectFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectProject('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterProjectId ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            <template x-for="p in projectsList" :key="p.id">
+                                <div @click="selectProject(String(p.id))"
+                                     class="erp-dropdown-option"
+                                     :class="String(filterProjectId) === String(p.id) ? 'selected' : ''">
+                                    <span x-text="p.name"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Status Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
-                        </svg>
-                    </div>
-                    <select x-model="filterStatus"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Status Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="statusFilterOpen = false">
+                    <button type="button"
+                            @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { projectFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="statusFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filterStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getStatusLabel()">All Statuses</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterStatus">
+                                <span @click.stop="selectStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectStatus('')"
+                                 class="erp-dropdown-option"
+                                 :class="!filterStatus ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="selectStatus('active')"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'active' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="selectStatus('inactive')"
+                                 class="erp-dropdown-option"
+                                 :class="filterStatus === 'inactive' ? 'selected' : ''">
+                                <span>Inactive</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Reset Filters Button --}}
             <button type="button" @click="resetFilters()"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+               class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
             </button>
@@ -250,13 +342,13 @@ function categoryMasterComponent() {
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
-                        <th class="px-4 py-3.5 w-16">SL.NO</th>
-                        <th class="px-4 py-3.5">CATEGORY NAME</th>
-                        <th class="px-4 py-3.5">PARENT COA ACCOUNT</th>
-                        <th class="px-4 py-3.5">PROJECT SCOPE</th>
-                        <th class="px-4 py-3.5 text-center">STATUS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-4 py-3.5 w-16 border-r border-slate-600">SL.NO</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600">CATEGORY NAME</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600">PARENT COA ACCOUNT</th>
+                        <th class="px-4 py-3.5 border-r border-slate-600">PROJECT SCOPE</th>
+                        <th class="px-4 py-3.5 text-center border-r border-slate-600">STATUS</th>
                         <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>
