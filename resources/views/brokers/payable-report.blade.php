@@ -125,7 +125,7 @@
                     
                     {{-- 1. Searchable Broker Filter (Golden Theme Styling) --}}
                     <div class="relative" @click.outside="brokerFilterOpen = false">
-                        <div @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
+                        <div @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; statusFilterOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
                              class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
                              :class="brokerFilterOpen || filters.broker_id ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
                             <div class="flex items-center gap-2 truncate">
@@ -189,40 +189,84 @@
                         </div>
                     </div>
 
-                    {{-- 2. Project Filter (First Project Selected by Default) --}}
-                    <div class="relative">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    {{-- 2. Project Filter (Custom Gold Popover - First Project Selected by Default) --}}
+                    <div class="relative" @click.outside="projectFilterOpen = false">
+                        <div @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; statusFilterOpen = false; }"
+                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
+                             :class="projectFilterOpen || filters.project_id ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="projectFilterOpen || filters.project_id ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="truncate font-extrabold" :class="filters.project_id ? 'text-[#8a7522]' : 'text-slate-900'" x-text="selectedFilterProjectName"></span>
                             </div>
-                            <select x-model="filters.project_id" @change="currentPage = 1"
-                                    class="w-full h-[38px] pl-9 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                <option value="">All Projects</option>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="projectFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+
+                        {{-- Project Popover Menu --}}
+                        <div x-show="projectFilterOpen" x-transition
+                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="filters.project_id = ''; projectFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
+                                     :class="!filters.project_id ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                    <span>All Projects</span>
+                                </div>
                                 @foreach($projects as $proj)
-                                    <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                    <div @click="filters.project_id = '{{ $proj->id }}'; projectFilterOpen = false; currentPage = 1"
+                                         class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
+                                         :class="String(filters.project_id) === '{{ $proj->id }}' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                        <span>{{ $proj->name }}</span>
+                                    </div>
                                 @endforeach
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 3. Transaction Status Filter --}}
-                    <div class="relative">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{-- 3. Status Filter (Custom Gold Popover - Theme Color without blue browser dropdown) --}}
+                    <div class="relative" @click.outside="statusFilterOpen = false">
+                        <div @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
+                             class="w-full h-[38px] px-3 border rounded-xl text-xs font-bold cursor-pointer flex items-center justify-between transition-all duration-200 shadow-2xs"
+                             :class="statusFilterOpen || filters.status ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20 text-slate-900' : 'bg-slate-50 hover:bg-white border-slate-250 hover:border-[#a38c29]/60 text-slate-800'">
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="w-4 h-4 shrink-0 transition-colors duration-200" :class="statusFilterOpen || filters.status ? 'text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="truncate font-extrabold" :class="filters.status ? 'text-[#8a7522]' : 'text-slate-900'" x-text="selectedFilterStatusName"></span>
                             </div>
-                            <select x-model="filters.status" @change="currentPage = 1"
-                                    class="w-full h-[38px] pl-9 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                <option value="">All Statuses (Pending, Partial, Fully Paid)</option>
-                                <option value="pending">Pending (Unpaid / Payable Share)</option>
-                                <option value="partial">Partially Paid</option>
-                                <option value="paid">Fully Paid / Disbursed</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="statusFilterOpen ? 'rotate-180 text-[#a38c29]' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+
+                        {{-- Status Popover Menu (Golden theme) --}}
+                        <div x-show="statusFilterOpen" x-transition
+                             class="absolute left-0 right-0 z-50 mt-1.5 bg-white border-2 border-[#a38c29]/40 rounded-xl shadow-[0_12px_36px_-6px_rgba(163,140,41,0.25)] overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="filters.status = ''; statusFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer text-xs font-extrabold transition-all flex items-center justify-between"
+                                     :class="!filters.status ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c]'">
+                                    <span>All Statuses (Pending, Partial, Fully Paid)</span>
+                                </div>
+                                <div @click="filters.status = 'pending'; statusFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
+                                     :class="filters.status === 'pending' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                    <span>Pending (Unpaid / Payable Share)</span>
+                                </div>
+                                <div @click="filters.status = 'partial'; statusFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
+                                     :class="filters.status === 'partial' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                    <span>Partially Paid</span>
+                                </div>
+                                <div @click="filters.status = 'paid'; statusFilterOpen = false; currentPage = 1"
+                                     class="px-3.5 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-all"
+                                     :class="filters.status === 'paid' ? 'bg-[#a38c29]/15 border-l-4 border-[#a38c29] font-black text-[#7c691c]' : 'text-slate-800 hover:bg-[#a38c29]/10 hover:text-[#7c691c] font-bold'">
+                                    <span>Fully Paid / Disbursed</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -360,8 +404,8 @@
 
     {{-- Record Broker Payout Modal --}}
     <div x-show="payoutModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
-         style="display: none;" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm text-left"
+         style="display: none; background-color: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important;" 
          x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="payoutModalOpen = false">
             {{-- Header --}}
@@ -702,42 +746,93 @@
                     </div>
                 </template>
 
-                {{-- Live Dynamic Balance Box --}}
-                <div class="bg-slate-50/90 border border-slate-200/90 rounded-xl p-3.5 shadow-2xs text-xs">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                        <div class="space-y-1.5 md:border-r md:border-slate-200/80 md:pr-6">
-                            <template x-if="modalSelectedBankAccount">
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="font-bold text-slate-600 text-[11px]">Bank Balance (<span x-text="modalSelectedBankAccount?.bank_name"></span>)</span>
-                                        <span class="font-mono font-black text-blue-600 text-xs shrink-0" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="font-bold text-slate-600 text-[11px]">Bank Balance After Payout</span>
-                                        <span class="font-mono font-black text-xs shrink-0" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-800'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
-                                    </div>
+                {{-- Live Dynamic Financial Impact Cards --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    
+                    {{-- Left Card: Bank Treasury Outflow Impact --}}
+                    <div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <div class="w-5 h-5 rounded-md bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center shrink-0">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                                 </div>
-                            </template>
-                            <template x-if="!modalSelectedBankAccount">
-                                <div class="text-slate-400 italic text-[11px]">Select a bank account to view balance.</div>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 truncate">
+                                    Bank Treasury Source
+                                </span>
+                            </div>
+                            <template x-if="modalSelectedBankAccount">
+                                <span class="px-2 py-0.5 rounded text-[9.5px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200/80 shrink-0"
+                                      x-text="modalSelectedBankAccount.bank_name">
+                                </span>
                             </template>
                         </div>
 
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-bold text-slate-600 text-[11px]" x-text="modalSelectedSale ? 'Available Sale Balance' : 'Available Broker Balance'"></span>
-                                <span class="font-mono font-extrabold text-emerald-600 text-xs shrink-0" x-text="formatCurrency(modalMaxPayable)">Rs. 0</span>
+                        <template x-if="modalSelectedBankAccount">
+                            <div class="space-y-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[10.5px] font-bold text-slate-500">Current Ledger Balance:</span>
+                                    <span class="font-mono font-black text-slate-900 text-xs shrink-0" x-text="formatCurrency(modalSelectedBankBalance)"></span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[10.5px] font-bold text-slate-500">Post-Payout Projected:</span>
+                                    <span class="font-mono font-black text-xs shrink-0" 
+                                          :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-emerald-700'" 
+                                          x-text="formatCurrency(modalBankBalanceAfterPayout)"></span>
+                                </div>
+
+                                <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                                    <span class="text-[9.5px] font-bold uppercase tracking-wide text-slate-400">Funds Status</span>
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider"
+                                          :class="modalBankBalanceAfterPayout < 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'"
+                                          x-text="modalBankBalanceAfterPayout < 0 ? 'Insufficient Balance' : 'Sufficient Funds'">
+                                    </span>
+                                </div>
                             </div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-bold text-slate-600 text-[11px]">Payout Amount</span>
-                                <span class="font-mono font-extrabold text-rose-500 text-xs shrink-0" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
+                        </template>
+
+                        <template x-if="!modalSelectedBankAccount">
+                            <div class="py-4 text-center text-slate-400 italic text-[11px]">
+                                Select a company bank account to preview treasury impact.
                             </div>
-                            <div class="pt-1.5 border-t border-slate-200/80 flex items-center justify-between gap-2">
-                                <span class="font-black text-slate-900 uppercase tracking-wider text-[11px]" x-text="modalSelectedSale ? 'Sale Bal After Payout' : 'Broker Bal After Payout'"></span>
-                                <span class="font-mono font-black text-slate-900 text-sm shrink-0" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                        </template>
+                    </div>
+
+                    {{-- Right Card: Broker Settlement & Balance Impact --}}
+                    <div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <div class="w-5 h-5 rounded-md bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center shrink-0">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-800 truncate"
+                                      x-text="modalSelectedSale ? 'Deal Settlement Balance' : 'Broker Payable Balance'">
+                                </span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 shrink-0"
+                                  x-text="modalSelectedSale ? 'Specific Deal' : 'All Deals'">
+                            </span>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10.5px] font-bold text-slate-500" x-text="modalSelectedSale ? 'Available Sale Liability:' : 'Available Payable Bal:'"></span>
+                                <span class="font-mono font-bold text-emerald-700 text-xs shrink-0" x-text="formatCurrency(modalMaxPayable)"></span>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10.5px] font-bold text-slate-500">Payout Outflow Amount:</span>
+                                <span class="font-mono font-bold text-rose-600 text-xs shrink-0" x-text="'- ' + formatCurrency(modalPayoutAmount)"></span>
+                            </div>
+
+                            <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                <span class="text-[10.5px] font-black text-slate-900 uppercase tracking-tight" x-text="modalSelectedSale ? 'Sale Bal After Payout:' : 'Broker Bal After Payout:'"></span>
+                                <span class="font-mono font-black text-slate-900 text-xs shrink-0 px-2 py-0.5 rounded bg-slate-100 border border-slate-200/90" 
+                                      x-text="formatCurrency(modalBalanceAfterPayout)"></span>
                             </div>
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Actions --}}
@@ -797,6 +892,8 @@ function brokerPayoutApp() {
 
         brokerFilterOpen: false,
         brokerFilterSearch: '',
+        projectFilterOpen: false,
+        statusFilterOpen: false,
 
         filters: {
             broker_id: '',
@@ -1066,6 +1163,20 @@ function brokerPayoutApp() {
             return b ? b.name : 'All Brokers';
         },
 
+        get selectedFilterProjectName() {
+            if (!this.filters.project_id) return 'All Projects';
+            const p = (this.projects || []).find(proj => String(proj.id) === String(this.filters.project_id));
+            return p ? p.name : 'All Projects';
+        },
+
+        get selectedFilterStatusName() {
+            if (!this.filters.status) return 'All Statuses (Pending, Partial, Fully Paid)';
+            if (this.filters.status === 'pending') return 'Pending (Unpaid / Payable Share)';
+            if (this.filters.status === 'partial') return 'Partially Paid';
+            if (this.filters.status === 'paid') return 'Fully Paid / Disbursed';
+            return 'All Statuses (Pending, Partial, Fully Paid)';
+        },
+
         get filteredSearchableBrokers() {
             const list = this.brokers || [];
             if (!this.brokerFilterSearch || !this.brokerFilterSearch.trim()) return list;
@@ -1256,6 +1367,8 @@ function brokerPayoutApp() {
             this.filters.to_date = '';
             this.brokerFilterOpen = false;
             this.brokerFilterSearch = '';
+            this.projectFilterOpen = false;
+            this.statusFilterOpen = false;
             this.currentPage = 1;
         },
 
@@ -1439,7 +1552,7 @@ function brokerPayoutApp() {
                 <div class="amount-val">${amountFormatted}</div>
             </div>
 
-            <div class="table-section">
+            <div class="table-section" style="margin-bottom: 0;">
                 <table class="det-table">
                     <thead>
                         <tr>
@@ -1456,17 +1569,6 @@ function brokerPayoutApp() {
                         </tr>
                     </tbody>
                 </table>
-            </div>
-
-            <div class="footer-sig">
-                <div class="sig-box">
-                    <div class="sig-line"></div>
-                    <div class="sig-title">AUTHORIZED SIGNATORY (ACCOUNTS)</div>
-                </div>
-                <div class="sig-box">
-                    <div class="sig-line"></div>
-                    <div class="sig-title">RECEIVER / BROKER SIGNATURE</div>
-                </div>
             </div>
         </div>
     </div>
