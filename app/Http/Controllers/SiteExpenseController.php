@@ -267,9 +267,19 @@ class SiteExpenseController extends Controller
             $voucherNumber = $this->generateVoucherNumber();
 
             // Find linked chart of account via SiteExpenseCategory master or sensible default
+            // SEC-{id} codes are PHP-generated; category_code column is NULL in DB, so look up by id
             $chartOfAccount = null;
             if (class_exists(SiteExpenseCategory::class)) {
-                $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                $sec = null;
+                if (str_starts_with($categoryCode, 'SEC-')) {
+                    $secId = (int) substr($categoryCode, 4);
+                    if ($secId > 0) {
+                        $sec = SiteExpenseCategory::find($secId);
+                    }
+                }
+                if (!$sec) {
+                    $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                }
                 $chartOfAccount = $sec?->chartOfAccount;
             }
             if (!$chartOfAccount && $categoryCode !== '4001') {
@@ -416,10 +426,20 @@ class SiteExpenseController extends Controller
 
         DB::beginTransaction();
         try {
-            // Find linked chart of account via SiteExpenseCategory master or sensible default
+            // Find linked chart of account via SiteExpenseCategory master or sensible default (update)
+            // SEC-{id} codes are PHP-generated; category_code column is NULL in DB, so look up by id
             $chartOfAccount = null;
             if (class_exists(SiteExpenseCategory::class)) {
-                $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                $sec = null;
+                if (str_starts_with($categoryCode, 'SEC-')) {
+                    $secId = (int) substr($categoryCode, 4);
+                    if ($secId > 0) {
+                        $sec = SiteExpenseCategory::find($secId);
+                    }
+                }
+                if (!$sec) {
+                    $sec = SiteExpenseCategory::where('category_code', $categoryCode)->first();
+                }
                 $chartOfAccount = $sec?->chartOfAccount;
             }
             if (!$chartOfAccount && $categoryCode !== '4001') {
