@@ -789,6 +789,7 @@ class EmiCollectionController extends Controller
         $closingBalance = (float)$sale->remaining_balance;
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
+        $paymentModes   = PaymentMode::where('status', 'active')->orderBy('name')->get();
 
         return view('emi-collections.ledger', compact(
             'sale',
@@ -800,6 +801,7 @@ class EmiCollectionController extends Controller
             'allSales',
             'installments',
             'banks',
+            'paymentModes',
             'archiveSnapshot'
         ));
     }

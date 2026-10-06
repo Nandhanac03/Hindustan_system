@@ -283,6 +283,22 @@ class ChequeRealizationController extends Controller
 
         $receipt = Receipt::findOrFail($id);
 
+        // Validation: Check if there are older pending cheques for the same customer
+        $olderPendingCheque = Receipt::where('customer_id', $receipt->customer_id)
+            ->whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited', 'in_clearing'])
+            ->where(function ($query) use ($receipt) {
+                $query->where('receipt_date', '<', $receipt->receipt_date)
+                      ->orWhere(function ($q) use ($receipt) {
+                          $q->whereDate('receipt_date', $receipt->receipt_date)
+                            ->where('id', '<', $receipt->id);
+                      });
+            })
+            ->exists();
+
+        if ($olderPendingCheque) {
+            return redirect()->back()->with('error', "You must realize older pending cheques for this customer first.");
+        }
+
         try {
             $this->realizationService->realize($receipt, [
                 'realized_by' => auth()->id(),

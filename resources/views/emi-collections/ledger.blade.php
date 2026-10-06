@@ -438,15 +438,15 @@
 
                           <div class="space-y-2">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
-                              <div class="grid grid-cols-2 gap-2">
-                                  <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                                      <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
-                                              :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm shadow-[#a38c29]/20' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'"
-                                              class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
-                                              x-text="mode">
-                                      </button>
-                                  </template>
-                              </div>
+                              <select x-model="form.payment_mode"
+                                      @change="if(errors.payment_mode) delete errors.payment_mode;"
+                                      class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm"
+                                      :class="errors.payment_mode ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <option value="">-- Select Payment Mode --</option>
+                                  @foreach($paymentModes as $pm)
+                                      <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                  @endforeach
+                              </select>
                               <template x-if="errors.payment_mode">
                                   <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
                               </template>
@@ -696,7 +696,7 @@ function ledgerApp() {
             sale_id: '{{ $sale->id }}',
             amount: 0,
             receipt_date: new Date().toISOString().split('T')[0],
-            payment_mode: 'Cash',
+            payment_mode: '{{ $paymentModes->first()?->name ?? '' }}',
             reference_no: '',
             bank_id: '',
             partner_id: '',
@@ -709,7 +709,7 @@ function ledgerApp() {
             this.form.amount = amount;
             this.form.label = label;
             this.form.receipt_date = new Date().toISOString().split('T')[0];
-            this.form.payment_mode = 'Cash';
+            this.form.payment_mode = '{{ $paymentModes->first()?->name ?? '' }}';
             this.form.reference_no = '';
             this.form.bank_id = '';
             this.form.partner_id = '';

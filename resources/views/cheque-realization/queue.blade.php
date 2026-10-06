@@ -202,12 +202,39 @@
             </div>
         @endif
         @if(session('error'))
-            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ session('error') }}</span>
+            <div x-data="{ showWarningModal: true }" x-show="showWarningModal" 
+                 class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" 
+                 style="display: none;" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+                <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col" @click.away="showWarningModal = false">
+                    <div class="bg-[#1c1716] px-6 py-4 text-white flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
+                        </div>
+                        <button type="button" @click="showWarningModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                    </div>
+                    
+                    <div class="p-6 space-y-5 text-slate-700 text-xs pb-10">
+                        <p class="font-bold text-slate-900 text-sm">
+                            Cannot process this cheque realization.
+                        </p>
+                        
+                        <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2 text-amber-900 shadow-2xs">
+                            <p class="font-extrabold uppercase tracking-wider text-[11px] text-amber-800 flex items-center gap-1.5">
+                                <span>⚠️ REALIZATION BLOCKED</span>
+                            </p>
+                            <ul class="list-disc list-inside space-y-1.5 text-[12px] text-slate-700 font-medium leading-relaxed mt-2">
+                                <li>{{ session('error') }}</li>
+                                <li>Please clear them sequentially to maintain accurate ledger balances.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="this.parentElement.remove()" class="text-rose-600 hover:opacity-75 font-black">✕</button>
             </div>
         @endif
         @if($errors->any())
