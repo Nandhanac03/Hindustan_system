@@ -3019,7 +3019,18 @@
                                 </template>
                             </select>
                         </div>
-
+                        {{-- Is Historical --}}
+                        <div class="space-y-1">
+                            <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                                <div class="pt-0.5">
+                                    <input type="checkbox" x-model="customerRefundForm.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Check if recording a past refund. Voucher is created but the company bank balance is not updated.</span>
+                                </div>
+                            </label>
+                        </div>
                         {{-- Remarks --}}
                         <div class="space-y-1">
                             <div class="flex items-center justify-between">
@@ -3133,11 +3144,11 @@
                                         </div>
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
-                                            <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + fmt(customerRefundForm.refund_amount || 0)"></span>
+                                            <span class="font-mono font-bold text-rose-500 text-xs" x-text="customerRefundForm.is_historical ? '₹0.00' : ('- ' + fmt(customerRefundForm.refund_amount || 0))"></span>
                                         </div>
                                         <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
                                             <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">BANK BALANCE AFTER:</span>
-                                            <span class="font-mono font-black text-xs" :class="((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0)) < 0 ? 'text-rose-600' : 'text-slate-900'" x-text="fmt((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0))"></span>
+                                            <span class="font-mono font-black text-xs" :class="(!customerRefundForm.is_historical && ((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0)) < 0) ? 'text-rose-600' : 'text-slate-900'" x-text="customerRefundForm.is_historical ? fmt(getSelectedBankAccount().current_balance || 0) : fmt((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0))"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -3171,7 +3182,7 @@
                         </div>
 
                         {{-- Insufficient Funds Error Banner (Image 2 design) --}}
-                        <template x-if="getSelectedBankAccount() && (Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
+                        <template x-if="!customerRefundForm.is_historical && getSelectedBankAccount() && (Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
                             <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex items-start gap-3 text-rose-800 shadow-2xs">
                                 <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -3181,7 +3192,7 @@
                         </template>
 
                         {{-- Info Box --}}
-                        <template x-if="!getSelectedBankAccount() || !(Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
+                        <template x-if="!customerRefundForm.is_historical && (!getSelectedBankAccount() || !(Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0)))">
                             <div class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
                                 <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <p class="leading-relaxed">This amount will be credited to the customer's bank account as per the selected company account.</p>

@@ -2148,7 +2148,7 @@ function salesApp() {
         refundModalSale: null,
         openRefundLedgerModal: false,
         refundLedgerSaleId: null,
-        customerRefundForm: { company_bank_account_id: '', refund_amount: 0, payment_mode: 'Bank Transfer', remarks: 'Customer refund processed as per cancellation agreement.' },
+        customerRefundForm: { company_bank_account_id: '', refund_amount: 0, payment_mode: 'Bank Transfer', remarks: 'Customer refund processed as per cancellation agreement.', is_historical: false },
         customerRefundFormErrors: {},
         isSubmittingRefund: false,
         bankSearch: '',
@@ -2585,7 +2585,8 @@ function salesApp() {
                 company_bank_account_id: defaultAccount,
                 refund_amount: '',
                 payment_mode: defaultMode,
-                remarks: 'Customer refund processed as per cancellation agreement.'
+                remarks: 'Customer refund processed as per cancellation agreement.',
+                is_historical: false
             };
             this.customerRefundFormErrors = {};
             this.openCustomerRefundModal = true;

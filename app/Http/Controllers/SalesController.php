@@ -1412,23 +1412,26 @@ class SalesController extends Controller
         $sale = Sale::with(['customer', 'unit', 'project'])->findOrFail($id);
 
         try {
-            DB::transaction(function () use ($sale, $validated) {
+            DB::transaction(function () use ($sale, $validated, $request) {
                 $amount = (float) $validated['refund_amount'];
                 $companyBankId = (int) $validated['company_bank_account_id'];
                 $paymentMode = $validated['payment_mode'];
                 $remarks = $validated['remarks'] ?? '';
                 $systemId = $sale->system_id ?? 1;
+                $isHistorical = $request->boolean('is_historical');
 
-                // 1. Lock & Update Company Bank Account Balance
+                // 1. Lock & Update Company Bank Account Balance (skip for historical entries)
                 $companyBank = CompanyBankAccount::lockForUpdate()->find($companyBankId);
                 if ($companyBank) {
                     $currentBal = (float) ($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
-                    if ($amount > $currentBal) {
-                        $accDisplayName = $companyBank->bank_name . ($companyBank->account_number ? ' ' . $companyBank->account_number : '');
-                        throw new \Exception('Insufficient Bank Funds! Payout amount (Rs. ' . number_format($amount, 2) . ') exceeds available balance in ' . $accDisplayName . ' (Rs. ' . number_format($currentBal, 2) . ').');
+                    if (!$isHistorical) {
+                        if ($amount > $currentBal) {
+                            $accDisplayName = $companyBank->bank_name . ($companyBank->account_number ? ' ' . $companyBank->account_number : '');
+                            throw new \Exception('Insufficient Bank Funds! Payout amount (Rs. ' . number_format($amount, 2) . ') exceeds available balance in ' . $accDisplayName . ' (Rs. ' . number_format($currentBal, 2) . ').');
+                        }
+                        $companyBank->current_balance = $currentBal - $amount;
+                        $companyBank->save();
                     }
-                    $companyBank->current_balance = $currentBal - $amount;
-                    $companyBank->save();
                 }
 
                 // 2. Build Reference Allocation JSON for refund tracking
@@ -1454,7 +1457,7 @@ class SalesController extends Controller
                     'type'                    => 'Payment',
                     'date'                    => date('Y-m-d'),
                     'reference_no'            => $refNoJson,
-                    'narration'               => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : ''),
+                    'narration'               => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : '') . ($isHistorical ? ' [Historical]' : ''),
                     'created_by'              => auth()->id() ?? 1,
                     'status'                  => 'Posted',
                 ]);
