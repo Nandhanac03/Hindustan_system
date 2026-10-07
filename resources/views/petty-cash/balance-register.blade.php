@@ -4,7 +4,13 @@
 {{-- ExcelJS Library --}}
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
-<div class="w-full px-6 py-6 bg-[#f8f9fa] min-h-screen font-sans">
+@php
+    $selectedSiteId = request('project_id', $selectedProject ?? '');
+    $selectedSiteObj = $selectedSiteId ? $projects->firstWhere('id', $selectedSiteId) : null;
+    $selectedSiteName = $selectedSiteObj ? $selectedSiteObj->name : 'All Sites';
+@endphp
+
+<div class="w-full px-6 py-6 bg-[#f8f9fa] min-h-screen font-sans" x-data="pettyCashRegisterApp()">
     
     <!-- Breadcrumb & Top Action Header (Modern Clean Layout) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -27,7 +33,7 @@
     <div id="petty-cash-content" class="relative">
         <script id="petty-cash-txns-data" type="application/json">@json($transactions)</script>
         <!-- 4 Metric KPI Cards Grid (Matches Partner Statements Design) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div id="petty-cash-metrics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             
             <!-- Card 1: Opening Balance -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
@@ -102,15 +108,15 @@
             </div>
         </div>
 
-        <!-- Summaries Section (Executive Rich Gold Theme) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Summaries Section (Executive Theme with ERP Table Header Color) -->
+        <div id="petty-cash-summaries" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             <!-- Card 1: Petty Cash Summary -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                    <div class="px-5 py-3.5 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                         <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <h2 class="text-[11px] font-black text-white uppercase tracking-widest">PETTY CASH SUMMARY</h2>
                         </div>
                         <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Site Info</span>
@@ -150,11 +156,11 @@
             </div>
 
             <!-- Card 2: Today's Transaction Summary -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                    <div class="px-5 py-3.5 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                         <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                             <h2 class="text-[11px] font-black text-white uppercase tracking-widest">TRANSACTION FLOW</h2>
                         </div>
                         <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Today's Flow</span>
@@ -174,10 +180,6 @@
                                     <td class="py-2.5 font-semibold text-slate-600">Recorded Transactions</td>
                                     <td class="py-2.5 text-right font-mono font-bold text-slate-800">{{ $transactions->count() }} Entries</td>
                                 </tr>
-                                <!-- <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Audit Status</td>
-                                    <td class="py-2.5 text-right font-bold text-emerald-700">Reconciled</td>
-                                </tr> -->
                             </tbody>
                         </table>
                     </div>
@@ -196,11 +198,11 @@
             </div>
 
             <!-- Card 3: Balance Snapshot -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                    <div class="px-5 py-3.5 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                         <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <h2 class="text-[11px] font-black text-white uppercase tracking-widest">BALANCE SNAPSHOT</h2>
                         </div>
                         <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Live Balance</span>
@@ -241,82 +243,88 @@
 
         </div>
 
-        <!-- Filter Area (Positioned directly above the data table) -->
+        <!-- Filter Area (ERP Standard Design System) -->
         <div class="bg-white rounded-2xl border border-slate-200/90 p-4 mb-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
-            <form method="GET" action="{{ route('petty-cash.balance-register') }}" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0" id="filter-form">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
-                    {{-- Pro Light Search Input --}}
+                    {{-- Search Input --}}
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Voucher..." 
-                               class="w-full pl-10 pr-3 erp-search-input">
+                        <input type="text" x-model="searchQuery" @input.debounce.350ms="updateFilters()" placeholder="Search Voucher..." 
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
+                            <button type="button" @click="searchQuery = ''; updateFilters()"
+                                    class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
 
                     {{-- Site Dropdown (Custom Gold Popover) --}}
-                    @php
-                        $selectedSiteId = request('project_id', $selectedProject ?? '');
-                        $selectedSiteObj = $projects->firstWhere('id', $selectedSiteId);
-                        $selectedSiteName = $selectedSiteObj ? $selectedSiteObj->name : 'All Sites';
-                    @endphp
-                    <div class="relative w-full" x-data="{ 
-                        open: false, 
-                        selectedId: '{{ $selectedSiteId }}',
-                        selectedName: '{{ addslashes($selectedSiteName) }}',
-                        select(id, name) {
-                            this.selectedId = id;
-                            this.selectedName = name;
-                            this.open = false;
-                            $nextTick(() => document.getElementById('filter-form').submit());
-                        }
-                    }" @click.outside="open = false">
-                        <input type="hidden" name="project_id" :value="selectedId">
+                    <div class="relative w-full" @click.outside="projectDropdownOpen = false">
+                        <input type="hidden" name="project_id" :value="selectedProjectId">
                         <button type="button"
-                                @click="open = !open"
+                                @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { $nextTick(() => $refs.projSearchInput?.focus()); }"
                                 class="erp-dropdown-trigger"
-                                :class="open ? 'active' : ''">
+                                :class="projectDropdownOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
                                 <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 <span class="truncate text-xs font-bold"
-                                      :class="selectedId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="selectedName"></span>
+                                      :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="selectedProjectName"></span>
                             </div>
 
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedId">
-                                    <span @click.stop="select('', 'All Sites')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                <template x-if="selectedProjectId">
+                                    <span @click.stop="selectProject('', 'All Sites')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </span>
                                 </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </button>
 
                         {{-- Project Popover Menu --}}
-                        <div x-show="open" x-cloak
+                        <div x-show="projectDropdownOpen" x-cloak
                              x-transition:enter="transition ease-out duration-150"
                              x-transition:enter-start="opacity-0 translate-y-1"
                              x-transition:enter-end="opacity-100 translate-y-0"
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover"
+                             class="erp-dropdown-popover min-w-[240px]"
                              style="display: none;">
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="projectSearch" x-ref="projSearchInput" placeholder="Search site..."
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="projectDropdownOpen = false">
+                                    <template x-if="projectSearch">
+                                        <button type="button" @click="projectSearch = ''; $refs.projSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="select('', 'All Sites')"
+                                <div @click="selectProject('', 'All Sites')"
+                                     x-show="!projectSearch || 'All Sites'.toLowerCase().includes(projectSearch.toLowerCase())"
                                      class="erp-dropdown-option"
-                                     :class="!selectedId ? 'selected-all' : ''">
+                                     :class="!selectedProjectId ? 'selected-all' : ''">
                                     <span>All Sites</span>
                                 </div>
                                 @foreach($projects as $p)
-                                    <div @click="select('{{ $p->id }}', '{{ addslashes($p->name) }}')"
+                                    <div @click="selectProject('{{ $p->id }}', '{{ addslashes($p->name) }}')"
+                                         x-show="!projectSearch || '{{ strtolower(addslashes($p->name)) }}'.includes(projectSearch.toLowerCase())"
                                          class="erp-dropdown-option"
-                                         :class="String(selectedId) === '{{ $p->id }}' ? 'selected' : ''">
-                                        <span>{{ $p->name }}</span>
+                                         :class="String(selectedProjectId) === '{{ (string)$p->id }}' ? 'selected' : ''">
+                                        <span class="truncate">{{ $p->name }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -324,24 +332,12 @@
                     </div>
 
                     {{-- Status Dropdown (Custom Gold Popover) --}}
-                    <div class="relative w-full" x-data="{ 
-                        open: false, 
-                        selectedStatus: '{{ request('status', '') }}',
-                        getStatusLabel() {
-                            if (!this.selectedStatus) return 'All Statuses';
-                            return this.selectedStatus === 'active' ? 'Active' : (this.selectedStatus === 'pending' ? 'Pending' : this.selectedStatus);
-                        },
-                        select(s) {
-                            this.selectedStatus = s;
-                            this.open = false;
-                            $nextTick(() => document.getElementById('filter-form').submit());
-                        }
-                    }" @click.outside="open = false">
+                    <div class="relative w-full" @click.outside="statusDropdownOpen = false">
                         <input type="hidden" name="status" :value="selectedStatus">
                         <button type="button"
-                                @click="open = !open"
+                                @click="statusDropdownOpen = !statusDropdownOpen"
                                 class="erp-dropdown-trigger"
-                                :class="open ? 'active' : ''">
+                                :class="statusDropdownOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
                                 <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                                 <span class="truncate text-xs font-bold"
@@ -351,36 +347,36 @@
 
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 <template x-if="selectedStatus">
-                                    <span @click.stop="select('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <span @click.stop="selectStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </span>
                                 </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </button>
 
                         {{-- Status Popover Menu --}}
-                        <div x-show="open" x-cloak
+                        <div x-show="statusDropdownOpen" x-cloak
                              x-transition:enter="transition ease-out duration-150"
                              x-transition:enter-start="opacity-0 translate-y-1"
                              x-transition:enter-end="opacity-100 translate-y-0"
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover"
+                             class="erp-dropdown-popover w-full"
                              style="display: none;">
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="select('')"
+                                <div @click="selectStatus('')"
                                      class="erp-dropdown-option"
                                      :class="!selectedStatus ? 'selected-all' : ''">
                                     <span>All Statuses</span>
                                 </div>
-                                <div @click="select('active')"
+                                <div @click="selectStatus('active')"
                                      class="erp-dropdown-option"
                                      :class="selectedStatus === 'active' ? 'selected' : ''">
                                     <span>Active</span>
                                 </div>
-                                <div @click="select('pending')"
+                                <div @click="selectStatus('pending')"
                                      class="erp-dropdown-option"
                                      :class="selectedStatus === 'pending' ? 'selected' : ''">
                                     <span>Pending</span>
@@ -391,24 +387,27 @@
 
                     {{-- Date Filter --}}
                     <div class="relative">
-                        <input type="date" name="date" value="{{ $selectedDate }}"
-                               class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm appearance-none">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="selectedDate" @change="updateFilters()"
+                               class="erp-input erp-date-input w-full pl-10 pr-3 py-2 text-xs font-bold text-slate-800 cursor-pointer">
                     </div>
                 </div>
 
                 {{-- Reset Filters Button --}}
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('petty-cash.balance-register') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
-                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <button type="button" @click="resetFilters()"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-5 h-[38px] text-xs font-black text-white shadow-xs transition duration-200 flex-shrink-0 uppercase tracking-wider group cursor-pointer active:scale-95 whitespace-nowrap">
+                        <svg class="w-4 h-4 text-white transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>RESET FILTERS</span>
-                    </a>
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
 
         <!-- Recent Transactions Table (Theme matched) -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 relative">
+        <div id="petty-cash-table-container" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 relative">
             <div class="px-5 py-4 border-b border-gray-100">
                 <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Recent Transactions</h3>
             </div>
@@ -473,85 +472,106 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterForm = document.getElementById('filter-form');
-            const contentContainer = document.getElementById('petty-cash-content');
+        function pettyCashRegisterApp() {
+            return {
+                searchQuery: '{{ addslashes(request('search', '')) }}',
+                selectedProjectId: '{{ $selectedSiteId }}',
+                selectedProjectName: '{{ addslashes($selectedSiteName) }}',
+                projectDropdownOpen: false,
+                projectSearch: '',
+                selectedStatus: '{{ request('status', '') }}',
+                statusDropdownOpen: false,
+                selectedDate: '{{ $selectedDate }}',
+                isLoading: false,
 
-            if (filterForm && contentContainer) {
-                let fetchController = null;
+                selectProject(id, name) {
+                    this.selectedProjectId = id;
+                    this.selectedProjectName = name;
+                    this.projectDropdownOpen = false;
+                    this.$nextTick(() => {
+                        this.updateFilters();
+                    });
+                },
 
-                function fetchData() {
-                    const url = new URL(filterForm.action);
-                    const formData = new FormData(filterForm);
-                    const searchParams = new URLSearchParams(formData);
-                    url.search = searchParams.toString();
+                selectStatus(s) {
+                    this.selectedStatus = s;
+                    this.statusDropdownOpen = false;
+                    this.$nextTick(() => {
+                        this.updateFilters();
+                    });
+                },
 
-                    if (fetchController) {
-                        fetchController.abort();
-                    }
-                    fetchController = new AbortController();
+                getStatusLabel() {
+                    if (!this.selectedStatus) return 'All Statuses';
+                    return this.selectedStatus === 'active' ? 'Active' : (this.selectedStatus === 'pending' ? 'Pending' : this.selectedStatus);
+                },
 
-                    fetch(url, {
+                updateFilters() {
+                    this.isLoading = true;
+                    const params = new URLSearchParams();
+                    if (this.searchQuery) params.append('search', this.searchQuery);
+                    if (this.selectedProjectId) params.append('project_id', this.selectedProjectId);
+                    if (this.selectedStatus) params.append('status', this.selectedStatus);
+                    if (this.selectedDate) params.append('date', this.selectedDate);
+
+                    const baseUrl = '{{ route('petty-cash.balance-register') }}';
+                    const fetchUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+
+                    fetch(fetchUrl, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        signal: fetchController.signal
+                        }
                     })
-                    .then(response => response.text())
+                    .then(res => res.text())
                     .then(html => {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
-                        
-                        const newContent = doc.getElementById('petty-cash-content');
-                        if (newContent) {
-                            contentContainer.innerHTML = newContent.innerHTML;
+
+                        const newMetrics = doc.getElementById('petty-cash-metrics');
+                        const curMetrics = document.getElementById('petty-cash-metrics');
+                        if (newMetrics && curMetrics) {
+                            curMetrics.innerHTML = newMetrics.innerHTML;
+                        }
+
+                        const newSummaries = doc.getElementById('petty-cash-summaries');
+                        const curSummaries = document.getElementById('petty-cash-summaries');
+                        if (newSummaries && curSummaries) {
+                            curSummaries.innerHTML = newSummaries.innerHTML;
+                        }
+
+                        const newTable = doc.getElementById('petty-cash-table-container');
+                        const curTable = document.getElementById('petty-cash-table-container');
+                        if (newTable && curTable) {
+                            curTable.innerHTML = newTable.innerHTML;
+                        }
+
+                        const newTxnData = doc.getElementById('petty-cash-txns-data');
+                        const curTxnData = document.getElementById('petty-cash-txns-data');
+                        if (newTxnData && curTxnData) {
+                            curTxnData.textContent = newTxnData.textContent;
                         }
                     })
-                    .catch(error => {
-                        if (error.name !== 'AbortError') {
-                            console.error('Error fetching data:', error);
-                        }
+                    .catch(err => console.error('Error fetching balance register:', err))
+                    .finally(() => {
+                        this.isLoading = false;
+                    });
+                },
+
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.selectedProjectId = '';
+                    this.selectedProjectName = 'All Sites';
+                    this.projectSearch = '';
+                    this.projectDropdownOpen = false;
+                    this.selectedStatus = '';
+                    this.statusDropdownOpen = false;
+                    this.selectedDate = '';
+                    this.$nextTick(() => {
+                        this.updateFilters();
                     });
                 }
-
-                // Debounce helper
-                function debounce(func, wait) {
-                    let timeout;
-                    return function(...args) {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(() => func(...args), wait);
-                    };
-                }
-
-                const debouncedFetch = debounce(fetchData, 400);
-
-                // Auto-fetch on change
-                document.body.addEventListener('change', function(e) {
-                    if (e.target.closest('#filter-form') && (e.target.tagName === 'SELECT' || e.target.type === 'date')) {
-                        fetchData();
-                    }
-                });
-
-                document.body.addEventListener('input', function(e) {
-                    if (e.target.closest('#filter-form') && e.target.name === 'search') {
-                        debouncedFetch();
-                    }
-                });
-
-                document.body.addEventListener('submit', function(e) {
-                    if (e.target.id === 'filter-form') {
-                        e.preventDefault();
-                        fetchData();
-                    }
-                });
-                
-                document.body.addEventListener('reset', function(e) {
-                    if (e.target.closest('#filter-form')) {
-                        setTimeout(() => fetchData(), 10);
-                    }
-                });
-            }
-        });
+            };
+        }
 
         // Modal Functions
         function showTransactionModal(btn) {
