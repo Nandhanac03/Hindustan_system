@@ -490,12 +490,13 @@ class RaBillController extends Controller
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
             'reference_no'            => ['required', 'string', 'max:100'],
             'remarks'                 => ['nullable', 'string', 'max:500'],
+            'is_historical'           => ['nullable', 'boolean'],
         ]);
 
         $service = app(ChequeRealizationService::class);
 
         try {
-            $voucher = DB::transaction(function () use ($raBill, $validated, $service) {
+            $voucher = DB::transaction(function () use ($raBill, $validated, $service, $request) {
                 $contractorName = $raBill->contractor_name ?: ($raBill->contractor?->name ?? 'Contractor');
 
                 $voucher = $service->recordPayment([
@@ -510,6 +511,7 @@ class RaBillController extends Controller
                     'narration'               => "Staggered RA Bill Disbursement for #{$raBill->ra_bill_number} ({$contractorName})",
                     'created_by'              => Auth::id(),
                     'system_id'               => Auth::user()->system_id ?? 1,
+                    'is_historical'           => $request->boolean('is_historical'),
                 ]);
 
                 $payment = RaBillPayment::create([
@@ -522,6 +524,7 @@ class RaBillController extends Controller
                     'reference_no'            => $validated['reference_no'] ?? null,
                     'voucher_id'              => $voucher->id,
                     'status'                  => 'paid',
+                    'is_historical'           => $request->boolean('is_historical'),
                     'remarks'                 => $validated['remarks'] ?? null,
                     'created_by'              => Auth::id(),
                 ]);

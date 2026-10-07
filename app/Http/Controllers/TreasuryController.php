@@ -164,6 +164,9 @@ class TreasuryController extends Controller
 
         // Outward Debits: RA Bill Payments
         $allRaPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
             ->whereNotNull('company_bank_account_id')
             ->orderByDesc('payment_date')
             ->orderByDesc('id')
@@ -531,6 +534,9 @@ class TreasuryController extends Controller
         // 2. OUTFLOW: Contractor RA Bill Payments
         $raPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])
             ->whereNotNull('company_bank_account_id')
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
             ->get();
 
         foreach ($raPayments as $raPay) {

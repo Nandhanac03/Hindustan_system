@@ -333,8 +333,9 @@ class ChequeRealizationService
             $bankAccount = CompanyBankAccount::lockForUpdate()
                 ->findOrFail($data['company_bank_account_id']);
 
-            // Step 5.5: Validate sufficient balance
-            if ((float) $bankAccount->current_balance < (float) $data['amount']) {
+            // Step 5.5: Validate sufficient balance (skip for historical entries)
+            $isHistorical = !empty($data['is_historical']);
+            if (!$isHistorical && (float) $bankAccount->current_balance < (float) $data['amount']) {
                 throw ValidationException::withMessages([
                     'amount' => [
                         "Insufficient balance. Available: ₹" .
@@ -380,6 +381,9 @@ class ChequeRealizationService
             };
 
             // Step 5.6: Create the Payment Voucher
+            if ($isHistorical) {
+                $narration .= ' [Historical]';
+            }
             $voucher = Voucher::create([
                 'system_id'      => $systemId,
                 'voucher_number' => $voucherNumber,
@@ -416,8 +420,10 @@ class ChequeRealizationService
                 ]);
             }
 
-            // Deduct from treasury balance (Step 5.5)
-            $bankAccount->decrement('current_balance', $data['amount']);
+            // Deduct from treasury balance (Step 5.5) — skip for historical entries
+            if (!$isHistorical) {
+                $bankAccount->decrement('current_balance', $data['amount']);
+            }
 
             return $voucher;
         });
