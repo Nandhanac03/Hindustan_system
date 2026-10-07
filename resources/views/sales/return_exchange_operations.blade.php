@@ -443,28 +443,28 @@
 
         {{-- PROCESS RETURN / CANCELLATION DETAILS MODAL POPUP --}}
 
-        <div x-show="selectedReturnSale" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div x-show="selectedReturnSale" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
             <!-- VIEW MODE MODAL (New Design) -->
             <template x-if="!isEditReturn">
-                <div class="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="selectedReturnSale = null">
+                <div class="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="selectedReturnSale = null">
                     <!-- Header -->
-                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10 shrink-0">
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-primary-500/10 shrink-0">
                         <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                         <div class="relative z-10 flex items-center justify-between gap-4">
                             <div>
                                 <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                     <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return & Cancellation</span>
-                                    <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancellation Details' : 'Return Details'"></span>
+                                    <!-- <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancellation Details' : 'Return Details'"></span> -->
                                 </div>
-                                <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancel Sale Details' : 'Sale Return Details'"></h2>
-                                <p class="text-[11px] text-slate-300 font-medium">View cancellation information and process status</p>
+                                <h2 class="text-lg font-extrabold text-white tracking-tight mt-1 uppercase" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancellation Summary' : 'Sale Return Details'"></h2>
+                                <p class="text-[11px] text-slate-300 font-medium"><template x-if="selectedReturnSale && selectedReturnSale.status === 'cancelled'"></template><template x-if="!(selectedReturnSale && selectedReturnSale.status === 'cancelled')"><span>View sale return information and process status</span></template></p>
                             </div>
                             <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm">✕</button>
                         </div>
                     </div>
 
                     <!-- Body container -->
-                    <div class="p-6 overflow-y-auto bg-[#f8f9fa] space-y-4 flex-1">
+                    <div class="p-6 overflow-y-auto bg-white space-y-5 flex-1">
                         
                         <!-- Badges & Header Info -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -478,7 +478,7 @@
                         </div>
 
                         <!-- Sale/Booking Banner -->
-                        <div class="p-3 border border-slate-200 bg-white rounded-lg flex items-center gap-3 shadow-sm">
+                        <div class="p-3 border border-slate-200 bg-white rounded-xl flex items-center gap-3 shadow-2xs">
                             <div class="w-8 h-8 rounded bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </div>
@@ -491,7 +491,7 @@
                         <!-- Grid sections -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Cancellation Summary -->
-                            <div class="md:col-span-2 border border-[#a38c29]/20 rounded-lg p-5 bg-white relative overflow-hidden shadow-sm">
+                            <div class="md:col-span-2 border border-slate-200/80 rounded-xl p-5 bg-white relative overflow-hidden shadow-2xs">
                                 <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-4 uppercase tracking-wide">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                     Cancellation Summary
@@ -517,7 +517,7 @@
                             </div>
 
                             <!-- Cancellation Date -->
-                            <div class="border border-[#a38c29]/10 rounded-lg p-5 bg-[#a38c29]/[0.03] shadow-sm">
+                            <div class="border border-slate-200/80 rounded-xl p-5 bg-slate-50/50 shadow-2xs">
                                 <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-4 uppercase tracking-wide">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     Cancellation Date
@@ -527,7 +527,7 @@
                         </div>
 
                         <!-- Sale Information -->
-                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Sale Information
@@ -565,7 +565,7 @@
                         </div>
 
                         <!-- Cancellation Information -->
-                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 Cancellation Information
@@ -591,7 +591,7 @@
                         </div>
 
                         <!-- Cancellation Fee Details -->
-                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
                                 Cancellation Fee Details
@@ -617,7 +617,7 @@
                         </div>
 
                         <!-- Refund & Payment Details -->
-                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                                 Refund & Payment Details
@@ -662,7 +662,7 @@
 
                         <!-- Previous Refund Payments (history) -->
                         <template x-if="selectedReturnSale && getRefundPayments(selectedReturnSale).length > 0">
-                            <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                                 <div class="flex items-center justify-between mb-3">
                                     <h3 class="text-xs font-extrabold text-[#a38c29] uppercase tracking-wide">Previous Refund Payments</h3>
                                     <!-- <button type="button" @click="openRefundLedger(selectedReturnSale)" class="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-800 underline">View Full Ledger</button> -->
@@ -695,7 +695,7 @@
                         </template>
 
                         <!-- Cancellation Process Flow -->
-                        <!--<div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <!--<div class="border border-slate-200/80 rounded-xl p-5 bg-white shadow-2xs">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-8 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Cancellation Process Flow
@@ -2782,7 +2782,7 @@
              @click.away="openRefundLedgerModal = false">
 
             {{-- Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 shrink-0 rounded-t-2xl">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 shrink-0 rounded-t-2xl">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
@@ -2790,11 +2790,11 @@
                             <!-- <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return &amp; Cancellation</span> -->
                             <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Refund Ledger</span>
                         </div>
-                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Refund Payment History</h2>
-                        <template x-if="refundLedgerSale">
+                        <h2 class="text-lg font-extrabold text-white tracking-tight font-bold uppercase mt-1">Refund Payment History</h2>
+                        <!-- <template x-if="refundLedgerSale">
                             <p class="text-[11px] text-slate-300 mt-0.5"
                                x-text="(refundLedgerSale.customer ? refundLedgerSale.customer.name : 'N/A') + ' • ' + (refundLedgerSale.unit ? formatUnitDisplay(refundLedgerSale.unit) : 'N/A') + ' • RET-' + new Date(refundLedgerSale.cancelled_at || refundLedgerSale.updated_at).getFullYear() + '-' + String(refundLedgerSale.id).padStart(3, '0')"></p>
-                        </template>
+                        </template> -->
                     </div>
                     <button type="button" @click="openRefundLedgerModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
@@ -2838,7 +2838,6 @@
                                         <th class="px-3 py-2.5 text-left">#</th>
                                         <th class="px-3 py-2.5 text-left">Date</th>
                                         <th class="px-3 py-2.5 text-left">Voucher No</th>
-                                        <th class="px-3 py-2.5 text-left">Payment Mode</th>
                                         <th class="px-3 py-2.5 text-left">Paid From (Bank)</th>
                                         <th class="px-3 py-2.5 text-right">Amount Paid</th>
                                         <th class="px-3 py-2.5 text-right">Total Refunded</th>
@@ -2852,8 +2851,10 @@
                                         <tr class="hover:bg-slate-50/60">
                                             <td class="px-3 py-2.5 text-slate-500 font-bold" x-text="row.sl"></td>
                                             <td class="px-3 py-2.5 text-slate-800 font-semibold whitespace-nowrap" x-text="formatDate(row.date)"></td>
-                                            <td class="px-3 py-2.5 font-mono text-[11px] text-[#8a7522] font-bold whitespace-nowrap" x-text="row.voucher_number"></td>
-                                            <td class="px-3 py-2.5 text-slate-800 font-semibold" x-text="row.payment_mode || '—'"></td>
+                                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                                <span class="block font-mono text-[11px] text-[#8a7522] font-bold" x-text="row.voucher_number"></span>
+                                                <span class="block text-slate-500 text-[10px] font-semibold mt-0.5" x-text="row.payment_mode || '—'"></span>
+                                            </td>
                                             <td class="px-3 py-2.5 text-slate-800 font-semibold" x-text="row.bank_name || '—'"></td>
                                             <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600" x-text="fmt(row.amount)"></td>
                                             <td class="px-3 py-2.5 text-right font-mono text-slate-700" x-text="fmt(row.cumulative)"></td>
@@ -2863,12 +2864,12 @@
                                         </tr>
                                     </template>
                                     <tr x-show="getRefundPayments(refundLedgerSale).length === 0">
-                                        <td colspan="10" class="px-3 py-8 text-center text-slate-400 italic">No refund payments have been made yet.</td>
+                                        <td colspan="9" class="px-3 py-8 text-center text-slate-400 italic">No refund payments have been made yet.</td>
                                     </tr>
                                 </tbody>
                                 <tfoot x-show="getRefundPayments(refundLedgerSale).length > 0" class="bg-slate-50 border-t-2 border-slate-200">
                                     <tr>
-                                        <td colspan="5" class="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Total</td>
+                                        <td colspan="4" class="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Total</td>
                                         <td class="px-3 py-2.5 text-right font-mono font-extrabold text-emerald-700" x-text="fmt(getRefundPaid(refundLedgerSale))"></td>
                                         <td></td>
                                         <td class="px-3 py-2.5 text-right font-mono font-extrabold text-amber-700" x-text="fmt(getRemainingRefund(refundLedgerSale))"></td>
@@ -2902,15 +2903,15 @@
              @click.away="openCustomerRefundModal = false">
             
             {{-- Modal Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10 shrink-0 rounded-t-2xl">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-primary-500/10 shrink-0 rounded-t-2xl">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
                         <div class="flex flex-wrap items-center gap-2 mb-1.5">
                             <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return & Cancellation</span>
-                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Refund</span>
+                            <!-- <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Refund</span> -->
                         </div>
-                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Customer Refund <span class="text-xs font-normal text-slate-450 font-sans">(Process customer refund for cancellation)</span></h2>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight font-bold uppercase mt-1">Customer Refund</h2>
                     </div>
                     <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
