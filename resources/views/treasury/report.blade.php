@@ -578,83 +578,196 @@
             </div>
         </div>
 
-        {{-- ── 4. 1-Row Compact Filter Toolbar Directly Above Table (No Above Labels) ── --}}
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 print:hidden">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 items-center">
-                
-                {{-- 1. Company Bank Account Selector --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        {{-- ── 4. Standard ERP Filter Bar Directly Above Table ── --}}
+        <div class="erp-filter-card print:hidden">
+            <div class="erp-filter-container">
+                <div class="erp-filter-grid-5">
+                    
+                    {{-- 1. Live Instant Search Input --}}
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" x-model.debounce.250ms="filters.search" placeholder="Search ref, counterparty, voucher..." autocomplete="off"
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filters.search && filters.search.length > 0" style="display: none;">
+                            <button type="button" @click="filters.search = ''" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
-                    <select x-model="filters.bank_account_id"
-                            class="w-full h-11 pl-10 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all appearance-none shadow-2xs"
-                            title="Company Bank Account">
-                        <option value="all">All Bank Accounts</option>
-                        <template x-for="ba in bankAccounts" :key="ba.id">
-                            <option :value="String(ba.id)" x-text="ba.bank_name + (ba.account_number ? ' (•••• ' + ba.account_number.slice(-4) + ')' : '') + ' - ₹' + formatMoney(ba.current_balance)"></option>
-                        </template>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
 
-                {{-- 2. Flow Direction --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-                    </div>
-                    <select x-model="filters.flow_type"
-                            class="w-full h-11 pl-10 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all appearance-none shadow-2xs"
-                            title="Flow Direction">
-                        <option value="all">All Cash Flows</option>
-                        <option value="inflow">Inflows Only (Credits)</option>
-                        <option value="outflow">Outflows Only (Debits)</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
+                    {{-- 2. Bank Account Filter (Custom Popover) --}}
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            search: '',
+                            getSelectedName() {
+                                if (!filters.bank_account_id || filters.bank_account_id === 'all') return '— All Bank Accounts —';
+                                const b = bankAccounts.find(x => String(x.id) === String(filters.bank_account_id));
+                                return b ? (b.bank_name + (b.account_number ? ' (' + b.account_number.slice(-4) + ')' : '')) : '— All Bank Accounts —';
+                            },
+                            getFilteredBanks() {
+                                if (!this.search) return bankAccounts;
+                                const s = this.search.toLowerCase();
+                                return bankAccounts.filter(b => 
+                                    (b.bank_name && b.bank_name.toLowerCase().includes(s)) ||
+                                    (b.account_number && b.account_number.toLowerCase().includes(s))
+                                );
+                            },
+                            select(id) {
+                                filters.bank_account_id = id;
+                                this.open = false;
+                                this.search = '';
+                            },
+                            clear() {
+                                filters.bank_account_id = 'all';
+                                this.open = false;
+                                this.search = '';
+                            }
+                         }" 
+                         @click.outside="open = false">
+                        <button type="button"
+                                @click="open = !open; if(open) { $nextTick(() => $refs.bankSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.bank_account_id && filters.bank_account_id !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedName()">— All Bank Accounts —</span>
+                            </div>
 
-                {{-- 3. From Date --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    <input type="date" x-model="filters.date_from" placeholder="From Date" title="From Date"
-                           class="w-full h-11 pl-10 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
-                </div>
-
-                {{-- 4. To Date --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    <input type="date" x-model="filters.date_to" placeholder="To Date" title="To Date"
-                           class="w-full h-11 pl-10 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
-                </div>
-
-                {{-- 5. Search Keywords (Instant debounced search) --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input type="text" x-model.debounce.250ms="filters.search" placeholder="Search keywords..." title="Search Keywords"
-                           class="w-full h-11 pl-10 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
-                    <template x-if="filters.search">
-                        <button type="button" @click="filters.search = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
-                            ✕
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.bank_account_id && filters.bank_account_id !== 'all'">
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
                         </button>
-                    </template>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" 
+                             style="display: none;">
+                            
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="bankAccounts.length > 4">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="search" x-ref="bankSearchInput" placeholder="Search bank..." 
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="open = false">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.bankSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- All Banks Option --}}
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="clear()" 
+                                     class="erp-dropdown-option"
+                                     :class="!filters.bank_account_id || filters.bank_account_id === 'all' ? 'selected-all' : ''">
+                                    <span>— All Bank Accounts —</span>
+                                </div>
+                                <template x-for="b in getFilteredBanks()" :key="b.id">
+                                    <div @click="select(String(b.id))" 
+                                         class="erp-dropdown-option"
+                                         :class="String(filters.bank_account_id) === String(b.id) ? 'selected' : ''">
+                                        <div class="flex items-center justify-between w-full">
+                                            <span class="truncate font-bold" x-text="b.bank_name + (b.account_number ? ' (' + b.account_number.slice(-4) + ')' : '')"></span>
+                                            <span class="text-[10px] text-slate-400 font-mono" x-text="'₹' + formatMoney(b.current_balance)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Flow Direction Filter (Custom Popover) --}}
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            getFlowLabel() {
+                                if (filters.flow_type === 'inflow') return 'Inflows Only (Credits)';
+                                if (filters.flow_type === 'outflow') return 'Outflows Only (Debits)';
+                                return '— All Cash Flows —';
+                            },
+                            select(val) {
+                                filters.flow_type = val;
+                                this.open = false;
+                            }
+                         }" 
+                         @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.flow_type && filters.flow_type !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getFlowLabel()">— All Cash Flows —</span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <div x-show="open" x-cloak class="erp-dropdown-popover">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="select('all')" class="erp-dropdown-option" :class="!filters.flow_type || filters.flow_type === 'all' ? 'selected-all' : ''">
+                                    <span>— All Cash Flows —</span>
+                                </div>
+                                <div @click="select('inflow')" class="erp-dropdown-option" :class="filters.flow_type === 'inflow' ? 'selected' : ''">
+                                    <span class="text-emerald-700 font-bold">▲ Inflows Only (Credits)</span>
+                                </div>
+                                <div @click="select('outflow')" class="erp-dropdown-option" :class="filters.flow_type === 'outflow' ? 'selected' : ''">
+                                    <span class="text-rose-700 font-bold">▼ Outflows Only (Debits)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. From Date --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.date_from" title="From Date"
+                               class="w-full erp-input erp-date-input">
+                    </div>
+
+                    {{-- 5. To Date --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.date_to" title="To Date"
+                               class="w-full erp-input erp-date-input">
+                    </div>
+
                 </div>
 
-                {{-- 6. Reset Filters Button (In 1 Single Row, Signature Gold Gradient) --}}
-                <div>
-                    <button type="button" @click="resetFilters()" 
-                            class="w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] px-4 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                {{-- Signature Gold RESET FILTERS Button --}}
+                <div class="shrink-0 flex items-center">
+                    <button type="button" @click="resetFilters()"
+                            class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                         <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>Reset Filters</span>
+                        <span>RESET FILTERS</span>
                     </button>
                 </div>
 
@@ -724,15 +837,15 @@
                     <col style="width: 11%;">
                     <col style="width: 12%;">
                 </colgroup>
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] font-extrabold uppercase text-[10px] tracking-wider text-center">
-                        <th class="py-3 px-3 border border-[#8a7522] w-12 text-center">#</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] whitespace-nowrap text-left">Date & Voucher</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] whitespace-nowrap text-left">Bank Account</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] text-left">Transaction Particulars</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] text-right whitespace-nowrap">Inflow (₹)</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] text-right whitespace-nowrap">Outflow (₹)</th>
-                        <th class="py-3 px-3.5 border border-[#8a7522] text-right whitespace-nowrap">Running Bal (₹)</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="py-3.5 px-3 erp-table-header border-r border-slate-600 w-12 text-center whitespace-nowrap">#</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Date & Voucher</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Bank Account</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-left">Transaction Particulars</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap text-emerald-300">Inflow (₹)</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap text-rose-300">Outflow (₹)</th>
+                        <th class="py-3.5 px-3.5 erp-table-header text-right whitespace-nowrap">Running Bal (₹)</th>
                     </tr>
                 </thead>
                 <tbody id="treasuryReportTbody" class="divide-y divide-slate-100 text-slate-700 font-medium">

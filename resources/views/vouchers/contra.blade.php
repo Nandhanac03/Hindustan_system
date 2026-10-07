@@ -334,18 +334,18 @@
             </div>
 
             <!-- TABLE CONTENT -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead class="bg-[#a38c29] text-white text-[10px] sm:text-[11px] font-black uppercase tracking-widest border-b-2 border-[#8a7522]">
-                        <tr>
-                            <th class="px-4 py-3.5 text-white">SL NO</th>
-                            <th class="px-4 py-3.5 text-white">VOUCHER NO.</th>
-                            <th class="px-4 py-3.5 text-white">DATE</th>
-                            <th class="px-4 py-3.5 text-white">FROM ACCOUNT (SOURCE)</th>
-                            <th class="px-4 py-3.5 text-white">TO ACCOUNT (DESTINATION)</th>
-                            <th class="px-4 py-3.5 text-white">MODE / REF NO.</th>
-                            <th class="px-4 py-3.5 text-right text-white">TRANSFER AMOUNT (₹)</th>
-                            <th class="px-4 py-3.5 text-center text-white print:hidden">ACTION</th>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs table-auto">
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center w-14 whitespace-nowrap">SL NO</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">VOUCHER NO.</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">DATE</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">FROM ACCOUNT (SOURCE)</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">TO ACCOUNT (DESTINATION)</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">MODE / REF NO.</th>
+                            <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">TRANSFER AMOUNT (₹)</th>
+                            <th class="px-4 py-3.5 erp-table-header text-center whitespace-nowrap print:hidden">ACTION</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-800 bg-white">

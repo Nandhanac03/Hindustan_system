@@ -240,17 +240,17 @@
                 <span class="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs font-mono">{{ $cashBookEntries->total() }} records</span>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table id="reportsTable" class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                        <th class="px-5 py-3.5 text-white font-extrabold">Date</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Voucher #</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Customer / Unit</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Partner</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Mode</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Bank Ref</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Amount</th>
+        <div class="overflow-x-auto custom-scrollbar">
+            <table id="reportsTable" class="w-full text-xs text-left border-collapse table-auto">
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Date</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Voucher #</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Customer / Unit</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Mode</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Bank Ref</th>
+                        <th class="px-5 py-3.5 erp-table-header text-right whitespace-nowrap">Amount</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">

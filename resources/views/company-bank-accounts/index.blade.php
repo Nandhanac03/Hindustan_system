@@ -101,17 +101,17 @@
                 background-color: #ebe5d0 !important;
             }
         </style>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
             <table id="company-banks-table" class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-center w-12">SL NO</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-left">BANK & ACCOUNT NAME</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-left">ACCOUNT NO & TYPE</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-left">IFSC & BRANCH</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-right">CURRENT BALANCE</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-center">STATUS</th>
-                        <th class="px-4 py-3.5 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-3 py-3.5 erp-table-header border-r border-slate-600 text-center w-12 whitespace-nowrap">SL NO</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">BANK & ACCOUNT NAME</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">ACCOUNT NO & TYPE</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">IFSC & BRANCH</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">CURRENT BALANCE</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">STATUS</th>
+                        <th class="px-4 py-3.5 erp-table-header text-right whitespace-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody id="company-banks-tbody" class="divide-y divide-[#EAE3CD] text-center">

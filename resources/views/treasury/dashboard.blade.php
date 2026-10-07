@@ -217,17 +217,17 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                        <th class="px-5 py-3.5 text-center w-12">#</th>
-                        <th class="px-5 py-3.5">Bank / Account Details</th>
-                        <th class="px-5 py-3.5">Account Number</th>
-                        <th class="px-5 py-3.5">IFSC & Branch</th>
-                        <th class="px-5 py-3.5 text-center">Realized Instruments</th>
-                        <th class="px-5 py-3.5 text-center">Pending Cheques</th>
-                        <th class="px-5 py-3.5 text-right font-extrabold">Current Balance (₹)</th>
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-xs text-left border-collapse table-auto">
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center w-12 whitespace-nowrap">#</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Bank / Account Details</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Account Number</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">IFSC & Branch</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Realized Instruments</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Pending Cheques</th>
+                        <th class="px-5 py-3.5 erp-table-header text-right whitespace-nowrap">Current Balance (₹)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -362,19 +362,19 @@
                                 </div>
 
                                 {{-- Statement Table --}}
-                                <div class="overflow-x-auto bg-white rounded-b-xl border-x border-b border-slate-200/60 shadow-xs">
-                                    <table class="w-full text-xs text-left">
-                                        <thead>
-                                            <tr class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white text-[9px] font-black uppercase tracking-wider border-b border-[#8a7522]">
-                                                <th class="px-4 py-2.5 text-center w-12">#</th>
-                                                <th class="px-4 py-2.5 w-24 border-l border-[#a38c29]/50">Date</th>
-                                                <th class="px-4 py-2.5 w-36 border-l border-[#a38c29]/50">Voucher / Ref No.</th>
-                                                <th class="px-4 py-2.5 border-l border-[#a38c29]/50">Particulars / Customer</th>
-                                                <th class="px-4 py-2.5 w-44 border-l border-[#a38c29]/50">Instrument</th>
-                                                <th class="px-4 py-2.5 text-center w-24 border-l border-[#a38c29]/50">Type</th>
-                                                <th class="px-4 py-2.5 text-right font-black w-32 border-l border-[#a38c29]/50 text-emerald-100">Credit (₹)</th>
-                                                <th class="px-4 py-2.5 text-right font-black w-32 border-l border-[#a38c29]/50 text-rose-100">Debit (₹)</th>
-                                                <th class="px-4 py-2.5 text-right font-black w-36 border-l border-[#a38c29]/50">Balance (₹)</th>
+                                <div class="overflow-x-auto custom-scrollbar bg-white rounded-b-xl border-x border-b border-slate-200/60 shadow-xs">
+                                    <table class="w-full text-xs text-left border-collapse table-auto">
+                                        <thead class="erp-table-header text-white uppercase text-[9px] font-extrabold tracking-wider sticky top-0 z-10">
+                                            <tr class="erp-table-header border-b border-slate-700 text-left">
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-center w-12 whitespace-nowrap">#</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-24 whitespace-nowrap">Date</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-36 whitespace-nowrap">Voucher / Ref No.</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Particulars / Customer</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-44 whitespace-nowrap">Instrument</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-center w-24 whitespace-nowrap">Type</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-right w-32 whitespace-nowrap text-emerald-300">Credit (₹)</th>
+                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-right w-32 whitespace-nowrap text-rose-300">Debit (₹)</th>
+                                                <th class="px-4 py-2.5 erp-table-header text-right w-36 whitespace-nowrap">Balance (₹)</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100/80 bg-white">
