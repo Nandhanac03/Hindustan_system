@@ -151,7 +151,10 @@ class SiteExpenseController extends Controller
         $loans             = Loan::orderBy('lender_name')->get();
         $expenseCategories = $this->getExpenseCategories();
         $autoVoucherNumber = $this->generateVoucherNumber();
-        $paymentModes      = ['Cheque', 'RTGS', 'NEFT', 'IMPS', 'UPI', 'Cash', 'Net Banking'];
+        $paymentModes      = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = collect(['Cheque', 'RTGS', 'NEFT', 'IMPS', 'UPI', 'Cash', 'Net Banking']);
+        }
 
         return view('expenses.site-expenses.index', compact(
             'siteExpenses',
