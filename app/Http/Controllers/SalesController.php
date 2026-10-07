@@ -62,9 +62,17 @@ class SalesController extends Controller
             ->whereIn('type', ['Receipt', 'Payment'])
             ->where('status', 'Posted')
             ->whereNotNull('reference_no')
-            ->get(['reference_no']);
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get(['id', 'voucher_number', 'date', 'reference_no', 'company_bank_account_id', 'created_by', 'created_at']);
+
+        $bankNames = CompanyBankAccount::get(['id', 'bank_name', 'account_number'])->keyBy('id');
+        $userNames = DB::table('users')
+            ->whereIn('id', $postedVouchers->pluck('created_by')->filter()->unique()->all())
+            ->pluck('name', 'id');
 
         $refundsPaidBySale = [];
+        $refundPaymentsBySale = [];
         foreach ($postedVouchers as $v) {
             $refData = json_decode($v->reference_no, true);
             if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
@@ -73,13 +81,28 @@ class SalesController extends Controller
                         $sId = (int)$alloc['target_id'];
                         $amt = (float)($alloc['amount'] ?? 0);
                         $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + $amt;
+
+                        $bankId = $refData['company_bank_account_id'] ?? $v->company_bank_account_id;
+                        $bank = $bankId ? $bankNames->get((int)$bankId) : null;
+                        $refundPaymentsBySale[$sId][] = [
+                            'voucher_id'     => $v->id,
+                            'voucher_number' => $v->voucher_number,
+                            'date'           => $v->date,
+                            'created_at'     => $v->created_at,
+                            'amount'         => $amt,
+                            'payment_mode'   => $refData['payment_mode'] ?? null,
+                            'bank_name'      => $bank ? $bank->bank_name . ($bank->account_number ? ' (' . $bank->account_number . ')' : '') : null,
+                            'remarks'        => $refData['remarks'] ?? null,
+                            'processed_by'   => $v->created_by ? ($userNames[$v->created_by] ?? null) : null,
+                        ];
                     }
                 }
             }
         }
 
-        $sales = $query->orderByDesc('created_at')->get()->map(function ($sale) use ($refundsPaidBySale) {
+        $sales = $query->orderByDesc('created_at')->get()->map(function ($sale) use ($refundsPaidBySale, $refundPaymentsBySale) {
             $sale->refund_paid = $refundsPaidBySale[$sale->id] ?? 0.00;
+            $sale->refund_payments = $refundPaymentsBySale[$sale->id] ?? [];
             return $sale;
         });
         if ($request->wantsJson() || $request->ajax()) {

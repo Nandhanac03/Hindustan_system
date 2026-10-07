@@ -2146,6 +2146,8 @@ function salesApp() {
         paymentModesList: {!! json_encode(($paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get())->map(function($pm) { return ['id' => $pm->id, 'name' => $pm->name]; })) !!},
         openCustomerRefundModal: false,
         refundModalSale: null,
+        openRefundLedgerModal: false,
+        refundLedgerSaleId: null,
         customerRefundForm: { company_bank_account_id: '', refund_amount: 0, payment_mode: 'Bank Transfer', remarks: 'Customer refund processed as per cancellation agreement.' },
         customerRefundFormErrors: {},
         isSubmittingRefund: false,
@@ -2447,6 +2449,35 @@ function salesApp() {
             const paid = this.getRefundPaid(sale);
             return Math.max(0, due - paid);
         },
+        getRefundPayments(sale) {
+            if (!sale || !Array.isArray(sale.refund_payments)) return [];
+            return sale.refund_payments;
+        },
+        // Ledger rows with running totals: refunded so far and balance still payable
+        getRefundLedgerRows(sale) {
+            if (!sale) return [];
+            const total = this.getRefundDue(sale);
+            let running = 0;
+            return this.getRefundPayments(sale).map((p, i) => {
+                const amount = Number(p.amount || 0);
+                running += amount;
+                return {
+                    ...p,
+                    sl: i + 1,
+                    amount: amount,
+                    cumulative: running,
+                    balance: Math.max(0, total - running)
+                };
+            });
+        },
+        get refundLedgerSale() {
+            if (!this.refundLedgerSaleId) return null;
+            return this.sales.find(s => s.id === this.refundLedgerSaleId) || null;
+        },
+        openRefundLedger(sale) {
+            this.refundLedgerSaleId = sale.id;
+            this.openRefundLedgerModal = true;
+        },
         getRefundStatus(sale) {
             if (!sale) return 'Pending';
             const due = this.getRefundDue(sale);
@@ -2573,6 +2604,13 @@ function salesApp() {
                 let availBal = Number(selectedBank.current_balance || 0);
                 let bankName = selectedBank.bank_name + (selectedBank.account_number ? ' ' + selectedBank.account_number : '');
                 let errMsg = `Insufficient Bank Funds! Payout amount (${this.fmt(reqAmt)}) exceeds available balance in ${bankName} (${this.fmt(availBal)}).`;
+                this.customerRefundFormErrors.refund_amount = errMsg;
+                this.showToast(errMsg, 'error');
+                return;
+            }
+            const remainingRefund = this.getRemainingRefund(this.refundModalSale);
+            if (Number(this.customerRefundForm.refund_amount || 0) > remainingRefund + 0.009) {
+                const errMsg = `Refund amount (${this.fmt(Number(this.customerRefundForm.refund_amount))}) exceeds the balance refund payable (${this.fmt(remainingRefund)}).`;
                 this.customerRefundFormErrors.refund_amount = errMsg;
                 this.showToast(errMsg, 'error');
                 return;

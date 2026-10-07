@@ -375,6 +375,18 @@
                                     </button>
 
                                     <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
+                                        <button type="button" @click="openRefundLedger(sale)"
+                                                class="relative p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 hover:text-blue-700 transition inline-flex items-center justify-center shadow-sm"
+                                                title="Refund Ledger">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                            </svg>
+                                            <span x-show="getRefundPayments(sale).length > 0" x-text="getRefundPayments(sale).length"
+                                                  class="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 rounded-full bg-blue-600 text-white text-[8px] font-bold flex items-center justify-center"></span>
+                                        </button>
+                                    </template>
+
+                                    <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
                                         <button type="button" @click="openCustomerRefund(sale)" 
                                                 class="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
                                                 title="Customer Refund">
@@ -648,14 +660,47 @@
                             </div>
                         </div>
 
+                        <!-- Previous Refund Payments (history) -->
+                        <template x-if="selectedReturnSale && getRefundPayments(selectedReturnSale).length > 0">
+                            <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xs font-extrabold text-[#a38c29] uppercase tracking-wide">Previous Refund Payments</h3>
+                                    <!-- <button type="button" @click="openRefundLedger(selectedReturnSale)" class="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-800 underline">View Full Ledger</button> -->
+                                </div>
+                                <div class="max-h-32 overflow-y-auto border border-slate-200 rounded-lg">
+                                    <table class="w-full text-[11px]">
+                                        <thead class="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider sticky top-0">
+                                            <tr>
+                                                <th class="px-3 py-1.5 text-left">#</th>
+                                                <th class="px-3 py-1.5 text-left">Date</th>
+                                                <th class="px-3 py-1.5 text-left">Mode</th>
+                                                <th class="px-3 py-1.5 text-right">Amount</th>
+                                                <th class="px-3 py-1.5 text-right">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            <template x-for="row in getRefundLedgerRows(selectedReturnSale)" :key="row.voucher_id + '-' + row.sl">
+                                                <tr>
+                                                    <td class="px-3 py-1.5 text-slate-500" x-text="row.sl"></td>
+                                                    <td class="px-3 py-1.5 text-slate-700" x-text="formatDate(row.date)"></td>
+                                                    <td class="px-3 py-1.5 text-slate-700" x-text="row.payment_mode || '—'"></td>
+                                                    <td class="px-3 py-1.5 text-right font-mono font-bold text-teal-600" x-text="fmt(row.amount)"></td>
+                                                    <td class="px-3 py-1.5 text-right font-mono text-amber-600" x-text="fmt(row.balance)"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </template>
+
                         <!-- Cancellation Process Flow -->
-                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                        <!--<div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
                             <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-8 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Cancellation Process Flow
                             </h3>
                             <div class="flex items-start justify-between text-[11px] font-bold text-slate-650 max-w-4xl mx-auto py-2 relative">
-                                <!-- Process steps dynamically driven by status -->
                                 <div class="flex flex-col items-center gap-3 w-1/4 relative z-10">
                                     <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center shadow-md">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
@@ -703,8 +748,8 @@
                                         <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase mt-1.5 shadow-sm" :class="getRefundStatus(selectedReturnSale) === 'Completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'" x-text="getRefundStatus(selectedReturnSale) === 'Completed' ? 'Completed' : 'Pending'"></span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+                            </div> 
+                        </div>-->
 
                     </div>
 
@@ -2731,6 +2776,126 @@
         </div>
     </div>
 
+    {{-- REFUND LEDGER MODAL --}}
+    <div x-show="openRefundLedgerModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
+             @click.away="openRefundLedgerModal = false">
+
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 shrink-0 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <!-- <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return &amp; Cancellation</span> -->
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Refund Ledger</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Refund Payment History</h2>
+                        <template x-if="refundLedgerSale">
+                            <p class="text-[11px] text-slate-300 mt-0.5"
+                               x-text="(refundLedgerSale.customer ? refundLedgerSale.customer.name : 'N/A') + ' • ' + (refundLedgerSale.unit ? formatUnitDisplay(refundLedgerSale.unit) : 'N/A') + ' • RET-' + new Date(refundLedgerSale.cancelled_at || refundLedgerSale.updated_at).getFullYear() + '-' + String(refundLedgerSale.id).padStart(3, '0')"></p>
+                        </template>
+                    </div>
+                    <button type="button" @click="openRefundLedgerModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <template x-if="refundLedgerSale">
+                    <div class="space-y-5">
+                        {{-- Summary --}}
+                        <div class="bg-slate-50/80 rounded-xl border border-slate-200/80 p-4 text-xs font-medium text-slate-700">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Total Refund Amount</span>
+                                    <span class="font-extrabold text-slate-900 font-mono text-sm" x-text="fmt(getRefundDue(refundLedgerSale))"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Total Refunded</span>
+                                    <span class="font-extrabold text-teal-600 font-mono text-sm" x-text="fmt(getRefundPaid(refundLedgerSale))"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Balance Payable</span>
+                                    <span class="font-extrabold text-amber-600 font-mono text-sm" x-text="fmt(getRemainingRefund(refundLedgerSale))"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Status</span>
+                                    <span class="font-extrabold text-slate-900"
+                                          x-text="getRefundStatus(refundLedgerSale) === 'Partially Refunded' ? 'Partially Paid' : getRefundStatus(refundLedgerSale)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Ledger table --}}
+                        <div class="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-2xs">
+                            <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-100 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                                <span>Refund Payment History</span>
+                            </div>
+                            <table class="w-full text-xs">
+                                <thead class="bg-slate-800 text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                    <tr>
+                                        <th class="px-3 py-2.5 text-left">#</th>
+                                        <th class="px-3 py-2.5 text-left">Date</th>
+                                        <th class="px-3 py-2.5 text-left">Voucher No</th>
+                                        <th class="px-3 py-2.5 text-left">Payment Mode</th>
+                                        <th class="px-3 py-2.5 text-left">Paid From (Bank)</th>
+                                        <th class="px-3 py-2.5 text-right">Amount Paid</th>
+                                        <th class="px-3 py-2.5 text-right">Total Refunded</th>
+                                        <th class="px-3 py-2.5 text-right">Balance</th>
+                                        <!-- <th class="px-3 py-3.5 text-left">Remarks</th> -->
+                                        <!-- <th class="px-3 py-2.5 text-left">By</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <template x-for="row in getRefundLedgerRows(refundLedgerSale)" :key="row.voucher_id + '-' + row.sl">
+                                        <tr class="hover:bg-slate-50/60">
+                                            <td class="px-3 py-2.5 text-slate-500 font-bold" x-text="row.sl"></td>
+                                            <td class="px-3 py-2.5 text-slate-800 font-semibold whitespace-nowrap" x-text="formatDate(row.date)"></td>
+                                            <td class="px-3 py-2.5 font-mono text-[11px] text-[#8a7522] font-bold whitespace-nowrap" x-text="row.voucher_number"></td>
+                                            <td class="px-3 py-2.5 text-slate-800 font-semibold" x-text="row.payment_mode || '—'"></td>
+                                            <td class="px-3 py-2.5 text-slate-800 font-semibold" x-text="row.bank_name || '—'"></td>
+                                            <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600" x-text="fmt(row.amount)"></td>
+                                            <td class="px-3 py-2.5 text-right font-mono text-slate-700" x-text="fmt(row.cumulative)"></td>
+                                            <td class="px-3 py-2.5 text-right font-mono font-bold" :class="row.balance > 0 ? 'text-amber-600' : 'text-emerald-600'" x-text="fmt(row.balance)"></td>
+                                            <!-- <td class="px-3 py-3.5 text-slate-500 max-w-[200px] truncate" :title="row.remarks || ''" x-text="row.remarks || '—'"></td> -->
+                                            <!-- <td class="px-3 py-2.5 text-slate-500 whitespace-nowrap" x-text="row.processed_by || '—'"></td> -->
+                                        </tr>
+                                    </template>
+                                    <tr x-show="getRefundPayments(refundLedgerSale).length === 0">
+                                        <td colspan="10" class="px-3 py-8 text-center text-slate-400 italic">No refund payments have been made yet.</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot x-show="getRefundPayments(refundLedgerSale).length > 0" class="bg-slate-50 border-t-2 border-slate-200">
+                                    <tr>
+                                        <td colspan="5" class="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Total</td>
+                                        <td class="px-3 py-2.5 text-right font-mono font-extrabold text-emerald-700" x-text="fmt(getRefundPaid(refundLedgerSale))"></td>
+                                        <td></td>
+                                        <td class="px-3 py-2.5 text-right font-mono font-extrabold text-amber-700" x-text="fmt(getRemainingRefund(refundLedgerSale))"></td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
+                <button type="button" @click="openRefundLedgerModal = false"
+                        class="px-5 py-2.5 rounded-xl border border-slate-250 text-slate-700 text-xs font-extrabold uppercase hover:bg-slate-100 transition shadow-2xs">
+                    Close
+                </button>
+                <template x-if="refundLedgerSale && getRemainingRefund(refundLedgerSale) > 0">
+                    <button type="button" @click="openRefundLedgerModal = false; openCustomerRefund(refundLedgerSale)"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] text-white text-xs font-extrabold uppercase transition shadow-md shadow-[#a38c29]/25">
+                        Make Refund Payment
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+
     {{-- CUSTOMER REFUND MODAL DIALOG --}}
     <div x-show="openCustomerRefundModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] my-auto"
@@ -3027,6 +3192,40 @@
                 </div>
 
             </div>
+
+            {{-- Previous Refund Payments (history) --}}
+            <!-- <template x-if="refundModalSale && getRefundPayments(refundModalSale).length > 0">
+                <div class="px-6 py-3 border-t border-slate-100 bg-white shrink-0">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-800">Previous Refund Payments</span>
+                        <button type="button" @click="openCustomerRefundModal = false; openRefundLedger(refundModalSale)" class="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-800 underline">View Full Ledger</button>
+                    </div>
+                    <div class="max-h-32 overflow-y-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-[11px]">
+                            <thead class="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider sticky top-0">
+                                <tr>
+                                    <th class="px-3 py-1.5 text-left">#</th>
+                                    <th class="px-3 py-1.5 text-left">Date</th>
+                                    <th class="px-3 py-1.5 text-left">Mode</th>
+                                    <th class="px-3 py-1.5 text-right">Amount</th>
+                                    <th class="px-3 py-1.5 text-right">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="row in getRefundLedgerRows(refundModalSale)" :key="row.voucher_id + '-' + row.sl">
+                                    <tr>
+                                        <td class="px-3 py-1.5 text-slate-500" x-text="row.sl"></td>
+                                        <td class="px-3 py-1.5 text-slate-700" x-text="formatDate(row.date)"></td>
+                                        <td class="px-3 py-1.5 text-slate-700" x-text="row.payment_mode || '—'"></td>
+                                        <td class="px-3 py-1.5 text-right font-mono font-bold text-teal-600" x-text="fmt(row.amount)"></td>
+                                        <td class="px-3 py-1.5 text-right font-mono text-amber-600" x-text="fmt(row.balance)"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template> -->
 
             {{-- Modal Footer --}}
             <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
