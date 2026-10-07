@@ -242,11 +242,11 @@
     @endif
 
     {{-- Pay EMI Modal --}}
-    <div x-show="payModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payModalOpen = false"></div>
-        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[96vh] flex flex-col" @click.away="payModalOpen = false">
+    <div x-show="payModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="payModalOpen = false"></div>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none my-auto max-h-[96vh] flex flex-col z-10" @click.away="payModalOpen = false">
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden shrink-0">
                 <div class="flex items-center gap-3 relative z-10">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-sm font-black shadow-inner border border-[#a38c29]/30">
                         ₹
@@ -577,11 +577,11 @@
     </div>
 
     {{-- Prepayment & Reschedule Modal --}}
-    <div x-show="prepayModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="prepayModalOpen = false"></div>
-        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[96vh] flex flex-col" @click.away="prepayModalOpen = false">
+    <div x-show="prepayModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="prepayModalOpen = false"></div>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none my-auto max-h-[96vh] flex flex-col z-10" @click.away="prepayModalOpen = false">
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden shrink-0">
                 <div class="flex items-center gap-3 relative z-10">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-sm font-black shadow-inner border border-[#a38c29]/30">
                         ₹

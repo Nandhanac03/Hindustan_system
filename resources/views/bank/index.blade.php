@@ -40,31 +40,20 @@
 
     {{-- Banks Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-        <style>
-            #banks-table thead th {
-                border-color: #8a7522 !important;
-            }
-            #banks-tbody tr:nth-child(even) {
-                background-color: #F6F3E9 !important;
-            }
-            #banks-tbody tr:hover {
-                background-color: #ebe5d0 !important;
-            }
-        </style>
         <div class="overflow-x-auto">
             <table id="banks-table" class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">BANK NAME</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">IFSC CODE</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">STATUS</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
+                    <tr class="erp-table-header text-white border-b border-slate-700 text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">SL NO</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-left">BANK NAME</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-left">IFSC CODE</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">STATUS</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody id="banks-tbody" class="divide-y divide-[#EAE3CD] text-center">
+                <tbody id="banks-tbody" class="divide-y divide-slate-100 text-center bg-white">
                     @forelse($banks as $index => $bank)
-                        <tr class="hover:bg-[#ebe5d0] transition-colors text-xs font-semibold text-slate-700">
+                        <tr class="hover:bg-slate-50/80 transition-colors text-xs font-semibold text-slate-700">
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $index + 1 }}</td>
                             <td class="px-4 py-3.5 border text-left">
                                 <div class="flex items-center gap-3">
@@ -90,9 +79,6 @@
                                     </button>
                                     <button @click="openEditModal({{ $bank->id }}, '{{ addslashes($bank->bank_name) }}', '{{ addslashes($bank->ifsc_code) }}', '{{ $bank->status }}')" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Bank">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </button>
-                                    <button @click="openDeleteModal({{ $bank->id }}, '{{ addslashes($bank->bank_name) }}', '{{ addslashes($bank->ifsc_code) }}')" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Bank">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
                             </td>
@@ -301,63 +287,6 @@
         </div>
     </div>
 
-    {{-- Bank Delete Modal --}}
-    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
-        <div x-show="deleteModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="deleteModalOpen = false"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-
-        <div x-show="deleteModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-             class="relative w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-             @click.stop>
-            
-            {{-- Dark Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between">
-                    <div>
-                        <p class="text-rose-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Confirm Deletion</p>
-                        <h2 class="text-lg font-extrabold text-white">Delete Bank Account</h2>
-                    </div>
-                    <button @click="deleteModalOpen = false" class="text-slate-400 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white flex flex-col">
-                <div class="p-6">
-                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3">
-                        <div class="p-2 rounded-lg bg-rose-100 text-rose-600 flex-shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wide">Warning: Permanent Action</h4>
-                            <p class="text-xs text-rose-700 mt-1 leading-relaxed">
-                                You are about to delete <span class="font-bold text-slate-900 font-mono" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-800" x-text="deleteForm.ifsc_code"></span>). This action cannot be undone.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <form :action="deleteForm.action" method="POST">
-                    @csrf
-                    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
-                        <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-rose-600/30 uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            Delete Now
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
     </div>
 
 </div>
@@ -369,7 +298,6 @@ function bankApp() {
         addModalOpen: false,
         editModalOpen: false,
         viewModalOpen: false,
-        deleteModalOpen: false,
         addForm: {
             bank_name: '',
             ifsc_code: '',
@@ -385,20 +313,6 @@ function bankApp() {
             bank_name: '',
             ifsc_code: '',
             status: 'active'
-        },
-        deleteForm: {
-            action: '',
-            bank_name: '',
-            ifsc_code: ''
-        },
-
-        openDeleteModal(id, bankName, ifscCode) {
-            this.deleteForm = {
-                action: `{{ url('/bank') }}/${id}/delete`,
-                bank_name: bankName,
-                ifsc_code: ifscCode
-            };
-            this.deleteModalOpen = true;
         },
 
         openAddModal() {

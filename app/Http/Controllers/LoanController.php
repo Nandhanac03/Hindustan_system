@@ -21,36 +21,13 @@ class LoanController extends Controller
     public function index(Request $request): View
     {
         $projects = Project::orderBy('name')->get();
-        if (!$request->has('project_id') && !$request->filled('project_id') && $projects->isNotEmpty()) {
-            $request->merge(['project_id' => (string)$projects->first()->id]);
-        }
         
-        $query = Loan::with(['project', 'ledgerAccount', 'interestAccount', 'prepayments']);
-        
-        // Filters
-        if ($request->filled('loan_account_no')) {
-            $query->where('loan_account_no', 'like', '%' . $request->loan_account_no . '%');
-        }
-        if ($request->filled('lender_name')) {
-            $query->where('lender_name', 'like', '%' . $request->lender_name . '%');
-        }
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
-        }
-        if ($request->status === 'Overdue') {
-            $today = now()->startOfDay();
-            $query->where('status', 'Active')
-                ->whereHas('emiSchedules', function ($q) use ($today) {
-                    $q->where('status', '!=', 'Paid')
-                        ->where('due_date', '<', $today);
-                });
-        } elseif ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        
-        $loans = $query->latest()->paginate(50)->withQueryString();
+        $loans = Loan::with(['project', 'ledgerAccount', 'interestAccount', 'prepayments'])
+            ->latest()
+            ->get();
         
         // Calculate dynamic sums and fetch next pending EMI for the table row listings
+        $today = now()->startOfDay();
         foreach ($loans as $loan) {
             $paidSchedules = EmiSchedule::where('loan_id', $loan->id)->where('status', 'Paid')->get();
             $loan->paid_principal_to_date = $paidSchedules->sum('principal_component');

@@ -1440,13 +1440,13 @@
                                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Rate (₹)</label>
                                             <input type="number" step="0.01" name="amount" x-model="forms.rate.rate" placeholder="e.g. 5000"
                                                 class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-show="errors.rate" x-text="errors.rate[0]"></span>
+                                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-show="errors.rate" x-text="errors.rate ? (Array.isArray(errors.rate) ? errors.rate[0] : errors.rate) : ''"></span>
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Effective From</label>
                                             <input type="date" x-model="forms.rate.effective_from"
                                                 class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-show="errors.effective_from" x-text="errors.effective_from[0]"></span>
+                                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-show="errors.effective_from" x-text="errors.effective_from ? (Array.isArray(errors.effective_from) ? errors.effective_from[0] : errors.effective_from) : ''"></span>
                                         </div>
                                     </div>
                                     <input type="text" x-model="forms.rate.reason" placeholder="Reason for rate change..."

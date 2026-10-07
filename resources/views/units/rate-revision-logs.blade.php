@@ -327,7 +327,7 @@
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
                         @endforeach
                     </select>
-                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.project_id" x-text="errors.project_id[0]"></span>
+                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.project_id" x-text="errors.project_id ? (Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id) : ''"></span>
                 </div>
 
                 {{-- Unit Dropdown --}}
@@ -342,7 +342,7 @@
                             <option :value="u.id" x-text="`${u.door_no} | ${u.unit_type?.name || 'Unit'} | Current Rate: ₹${Number(u.expected_rate_per_sqft || 0).toLocaleString('en-IN')}`"></option>
                         </template>
                     </select>
-                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.unit_id" x-text="errors.unit_id[0]"></span>
+                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.unit_id" x-text="errors.unit_id ? (Array.isArray(errors.unit_id) ? errors.unit_id[0] : errors.unit_id) : ''"></span>
                 </div>
 
                 {{-- Unit Info Panel (Reactive) --}}
@@ -363,14 +363,14 @@
                             <span class="text-rose-500">*</span>
                         </label>
                         <input type="number" step="0.01" x-model="addForm.rate" placeholder="Enter new rate..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] rounded-xl outline-none transition-all">
-                        <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.rate" x-text="errors.rate[0]"></span>
+                        <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.rate" x-text="errors.rate ? (Array.isArray(errors.rate) ? errors.rate[0] : errors.rate) : ''"></span>
                     </div>
 
                     {{-- Effective Date --}}
                     <div class="space-y-1">
                         <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Effective From <span class="text-rose-500">*</span></label>
                         <input type="date" x-model="addForm.effective_from" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] rounded-xl outline-none transition-all cursor-pointer">
-                        <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.effective_from" x-text="errors.effective_from[0]"></span>
+                        <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.effective_from" x-text="errors.effective_from ? (Array.isArray(errors.effective_from) ? errors.effective_from[0] : errors.effective_from) : ''"></span>
                     </div>
                 </div>
 
@@ -378,7 +378,7 @@
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Update Reason / Remarks <span class="text-rose-500">*</span></label>
                     <textarea x-model="addForm.reason" rows="3" placeholder="Explain the rationale for this rate change..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] rounded-xl outline-none transition-all font-medium"></textarea>
-                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.reason" x-text="errors.reason[0]"></span>
+                    <span class="text-[10px] text-rose-500 font-bold block" x-show="errors.reason" x-text="errors.reason ? (Array.isArray(errors.reason) ? errors.reason[0] : errors.reason) : ''"></span>
                 </div>
 
                 {{-- Submit Buttons --}}

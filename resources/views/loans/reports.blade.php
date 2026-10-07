@@ -1,28 +1,6 @@
 <x-erp-layout title="Loan Outstanding Summary" headerTitle="Loan Outstanding Summary">
 
 <div class="max-w-[1800px] mx-auto space-y-6">
-    <style>
-        .reports-table thead th {
-            background-color: #a38c29 !important;
-            color: white !important;
-            border-color: #8a7522 !important;
-            font-size: 10px !important;
-            font-weight: 800 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
-            padding: 10px 16px !important;
-        }
-        .reports-table tbody tr:nth-child(even) {
-            background-color: #F6F3E9 !important;
-        }
-        .reports-table tbody tr:hover {
-            background-color: #ebe5d0 !important;
-        }
-        .reports-table tbody td {
-            border-color: #e2e8f0 !important;
-            padding: 10px 16px !important;
-        }
-    </style>
 
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
@@ -282,18 +260,18 @@
                 </span>
             </div>
             <div class="max-h-[320px] overflow-y-auto">
-                <table class="w-full text-xs text-left border-collapse reports-table">
+                <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522]">
-                            <th class="px-4 py-2.5 border text-center font-black">LOAN ACCOUNT</th>
-                            <th class="px-4 py-2.5 border text-center font-black">LENDING BANK</th>
-                            <th class="px-4 py-2.5 border text-center font-black">DUE AMOUNT</th>
-                            <th class="px-4 py-2.5 text-center font-black">ACTIONS</th>
+                        <tr class="erp-table-header text-white border-b border-slate-700">
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">LOAN ACCOUNT</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">LENDING BANK</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">DUE AMOUNT</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50 font-semibold text-slate-700">
+                    <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 bg-white">
                         @forelse($emiDueToday as $item)
-                            <tr>
+                            <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-4 py-3.5 border text-slate-900 font-bold font-mono text-center">{{ $item->loan->loan_account_no }}</td>
                                 <td class="px-4 py-3.5 border text-slate-700 text-center font-bold">{{ $item->loan->lender_name }}</td>
                                 <td class="px-4 py-3.5 border font-mono text-rose-700 font-extrabold text-center">₹{{ number_format($item->emi_amount - $item->amount_paid, 2) }}</td>
@@ -324,18 +302,18 @@
                 </span>
             </div>
             <div class="max-h-[320px] overflow-y-auto">
-                <table class="w-full text-xs text-left border-collapse reports-table">
+                <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522]">
-                            <th class="px-4 py-2.5 border text-center font-black">LOAN ACCOUNT</th>
-                            <th class="px-4 py-2.5 border text-center font-black">DUE DATE</th>
-                            <th class="px-4 py-2.5 border text-center font-black">DUE AMOUNT</th>
-                            <th class="px-4 py-2.5 text-center font-black">ACTIONS</th>
+                        <tr class="erp-table-header text-white border-b border-slate-700">
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">LOAN ACCOUNT</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">DUE DATE</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">DUE AMOUNT</th>
+                            <th class="px-4 py-2.5 border border-slate-600/50 sticky top-0 erp-table-header text-white text-center font-bold text-[10px] uppercase tracking-wider">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50 font-semibold text-slate-700">
+                    <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 bg-white">
                         @forelse($emiDueThisMonth as $item)
-                            <tr>
+                            <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-4 py-3.5 border text-slate-900 font-bold font-mono text-center">{{ $item->loan->loan_account_no }}</td>
                                 <td class="px-4 py-3.5 border text-slate-700 text-center">{{ $item->due_date ? \Carbon\Carbon::parse($item->due_date)->format('d M Y') : '—' }}</td>
                                 <td class="px-4 py-3.5 border font-mono text-slate-900 font-extrabold text-center">₹{{ number_format($item->emi_amount - $item->amount_paid, 2) }}</td>

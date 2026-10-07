@@ -1,5 +1,60 @@
 <x-erp-layout title="EMI & Interest Payment Release" headerTitle="EMI & Interest Payment Release Directory">
 
+@php
+    $loansListData = $loans->map(function($loan) {
+        $paymentStatus = 'PAID';
+        $statusColor = 'bg-emerald-50 border-emerald-100 text-emerald-700';
+        $isOverdue = false;
+        $currentEmi = 0;
+        $principalComp = 0;
+        $interestComp = 0;
+        $nextDueDate = null;
+        $nextDueDateFormatted = '—';
+
+        if ($loan->status === 'Closed') {
+            $paymentStatus = 'CLOSED';
+            $statusColor = 'bg-slate-100 border-slate-200 text-slate-500';
+        } elseif ($loan->next_emi) {
+            $currentEmi = max(0, (float)$loan->next_emi->emi_amount - (float)$loan->next_emi->amount_paid);
+            $principalComp = (float)$loan->next_emi->principal_component;
+            $interestComp = (float)$loan->next_emi->interest_component;
+            $nextDueDate = $loan->next_emi->due_date;
+            $dueDate = \Carbon\Carbon::parse($loan->next_emi->due_date);
+            $nextDueDateFormatted = $dueDate->format('d M Y');
+            
+            if ($dueDate->lt(now()->startOfDay())) {
+                $paymentStatus = 'OVERDUE';
+                $statusColor = 'bg-rose-50 border-rose-100 text-rose-700 animate-pulse';
+                $isOverdue = true;
+            } else {
+                $paymentStatus = 'DUE';
+                $statusColor = 'bg-amber-50 border-amber-100 text-amber-700';
+            }
+        }
+
+        return [
+            'id' => $loan->id,
+            'loan_account_no' => $loan->loan_account_no ?? '',
+            'project_id' => $loan->project_id,
+            'project_name' => $loan->project->name ?? '—',
+            'lender_name' => $loan->lender_name ?? '',
+            'principal_amount' => (float)$loan->principal_amount,
+            'current_emi' => $currentEmi,
+            'principal_component' => $principalComp,
+            'interest_component' => $interestComp,
+            'next_due_date' => $nextDueDate,
+            'next_due_date_formatted' => $nextDueDateFormatted,
+            'payment_status' => $paymentStatus,
+            'status_color' => $statusColor,
+            'status' => $loan->status,
+            'is_overdue' => $isOverdue,
+            'interest_rate' => (float)$loan->interest_rate,
+            'outstanding_balance' => (float)$loan->outstanding_balance,
+            'schedule_url' => route('loans.schedule', $loan->id),
+        ];
+    })->values();
+@endphp
+
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="loanApp()">
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -40,7 +95,7 @@
         
         {{-- Card 1: Total Outstanding --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)]">
-            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -50,7 +105,7 @@
                 <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/40 group-hover:text-[#8a7522] group-hover:bg-[#a38c29]/5">Outstanding</span>
             </div>
             
-            <div class="relative z-10 mt-2">
+            <div class="mt-2">
                 <span class="text-xl xl:text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Across {{ $activeLoansCount ?? 0 }} {{ ($activeLoansCount ?? 0) == 1 ? 'Loan' : 'Loans' }}</p>
             </div>
@@ -58,7 +113,7 @@
 
         {{-- Card 2: Active Loans --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#0D9488] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#0D9488]/40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(13,148,136,0.15)]">
-            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] border border-[#0D9488]/20 transition-all duration-300 group-hover:bg-[#0D9488] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -68,7 +123,7 @@
                 <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#0D9488]/40 group-hover:text-[#0D9488] group-hover:bg-[#0D9488]/5">Live</span>
             </div>
             
-            <div class="relative z-10 mt-2">
+            <div class="mt-2">
                 <span class="text-2xl xl:text-3xl font-black text-slate-800 font-sans tracking-tight block group-hover:text-[#0D9488] transition-colors duration-300">{{ $activeLoansCount ?? 0 }}</span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total active accounts.</p>
             </div>
@@ -76,7 +131,7 @@
 
         {{-- Card 3: Total Principal Paid --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
-            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -86,7 +141,7 @@
                 <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Cleared</span>
             </div>
             
-            <div class="relative z-10 mt-2">
+            <div class="mt-2">
                 <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidPrincipal ?? 0), 2) }}</span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Principal repaid.</p>
             </div>
@@ -94,7 +149,7 @@
 
         {{-- Card 4: Paid Interest Cost --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
-            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
@@ -104,7 +159,7 @@
                 <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Expense</span>
             </div>
             
-            <div class="relative z-10 mt-2">
+            <div class="mt-2">
                 <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidInterest ?? 0), 2) }}</span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Interest paid so far.</p>
             </div>
@@ -132,97 +187,65 @@
         </div>
     @endif
 
-    {{-- Filters --}}
+    {{-- Filters (Live In-Memory, Zero Page Reload) --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 py-4 px-4 shadow-xs mb-4 mt-4">
-        <form method="GET" action="{{ route('loans.index') }}" class="flex flex-wrap items-center gap-2.5 text-xs font-semibold w-full">
+        <div class="flex flex-wrap items-center gap-2.5 text-xs font-semibold w-full">
             
             {{-- Search Account / Loan No --}}
             <div class="relative flex-grow min-w-[200px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account / Loan No..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 transition-all shadow-2xs">
+                <input type="text" x-model="filters.search" placeholder="Search Account / Loan No / Project / Bank..." class="w-full erp-search-input pl-10 pr-8">
+                <template x-if="filters.search">
+                    <button type="button" @click="filters.search = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+                </template>
             </div>
 
             {{-- Lending Bank Search & Select Filter --}}
-            <div class="relative flex-grow min-w-[200px]"
-                 x-data="{
-                     open: false,
-                     search: '',
-                     selectedBank: @js(request('lender_name', '')),
-                     bankList: @js($banks->map(fn($b) => ['name' => $b->bank_name, 'ifsc' => $b->ifsc_code ?? ''])->values()),
-                     get filteredBanks() {
-                         if (!this.search.trim()) return this.bankList;
-                         const q = this.search.toLowerCase();
-                         return this.bankList.filter(b => b.name.toLowerCase().includes(q) || (b.ifsc && b.ifsc.toLowerCase().includes(q)));
-                     },
-                     selectBank(name) {
-                         this.selectedBank = name;
-                         this.open = false;
-                         this.search = '';
-                         this.$nextTick(() => {
-                             $el.closest('form').submit();
-                         });
-                     },
-                     clearBank(e) {
-                         e.stopPropagation();
-                         this.selectedBank = '';
-                         this.open = false;
-                         this.search = '';
-                         this.$nextTick(() => {
-                             $el.closest('form').submit();
-                         });
-                     }
-                 }"
-                 @click.outside="open = false">
-                
-                {{-- Hidden input for form submission --}}
-                <input type="hidden" name="lender_name" :value="selectedBank">
-
+            <div class="relative flex-grow min-w-[200px]" @click.outside="bankDropdownOpen = false">
                 {{-- Trigger Button --}}
-                <div @click="open = !open; if(open) $nextTick(() => $refs.lenderSearchInput?.focus())"
-                     class="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer flex items-center justify-between transition-all shadow-2xs select-none">
-                    
-                    {{-- Left Bank Icon --}}
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <button type="button" @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) $nextTick(() => $refs.bankSearchInput?.focus())"
+                     class="w-full erp-dropdown-trigger" :class="bankDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <span class="truncate" :class="filters.lender_name ? 'text-slate-900 font-extrabold' : 'text-slate-600 font-bold'" x-text="selectedBankLabel"></span>
                     </div>
 
-                    {{-- Display Name --}}
-                    <span class="truncate" :class="selectedBank ? 'text-slate-900 font-bold' : 'text-slate-600 font-semibold'" x-text="selectedBank || 'All Lending Banks'"></span>
-
-                    {{-- Right Icons (Clear if selected & Chevron) --}}
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1">
-                        <template x-if="selectedBank">
-                            <span @click="clearBank($event)" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear selection">
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.lender_name">
+                            <span @click.stop="selectBank('')" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear selection">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </span>
                         </template>
-                        <svg class="w-3.5 h-3.5 text-[#a38c29]/70 transition-transform pointer-events-none" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="bankDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
-                </div>
+                </button>
 
                 {{-- Dropdown Search Menu --}}
-                <div x-show="open" 
+                <div x-show="bankDropdownOpen" x-cloak
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 translate-y-1 scale-98"
                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                      x-transition:leave="transition ease-in duration-100"
                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                      x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-60 flex flex-col min-w-[240px]" 
+                     class="erp-dropdown-popover min-w-[240px]" 
                      style="display: none;">
                     
                     {{-- Search Input Header --}}
-                    <div class="p-2 border-b border-slate-100 bg-slate-50/90 sticky top-0">
+                    <div class="p-2 border-b border-slate-100 bg-slate-50/90 sticky top-0 z-10">
                         <div class="relative">
                             <input type="text" 
-                                   x-ref="lenderSearchInput" 
-                                   x-model="search" 
+                                   x-ref="bankSearchInput" 
+                                   x-model="bankSearch" 
                                    placeholder="Search bank name or IFSC..." 
-                                   @keydown.escape="open = false"
-                                   class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-250 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                   @keydown.escape="bankDropdownOpen = false"
+                                   class="w-full erp-search-input pl-8 pr-7 py-1.5 text-xs">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <template x-if="bankSearch">
+                                <button type="button" @click="bankSearch = ''; $refs.bankSearchInput?.focus()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                            </template>
                         </div>
                     </div>
 
@@ -230,27 +253,27 @@
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-48 text-xs font-semibold">
                         {{-- All Lending Banks Option --}}
                         <div @click="selectBank('')"
-                             class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between transition-colors"
-                             :class="!selectedBank ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'text-slate-700'">
+                             class="erp-dropdown-option"
+                             :class="!filters.lender_name ? 'selected-all' : ''">
                             <span>All Lending Banks</span>
-                            <template x-if="!selectedBank">
-                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <template x-if="!filters.lender_name">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             </template>
                         </div>
 
                         {{-- Filtered Bank Items --}}
                         <template x-for="b in filteredBanks" :key="b.name">
                             <div @click="selectBank(b.name)"
-                                 class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between transition-colors"
-                                 :class="selectedBank === b.name ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'text-slate-700'">
+                                 class="erp-dropdown-option"
+                                 :class="filters.lender_name === b.name ? 'selected' : ''">
                                 <div class="flex items-center gap-2 truncate">
                                     <span class="truncate" x-text="b.name"></span>
                                     <template x-if="b.ifsc">
                                         <span class="text-[9px] font-mono px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-normal" x-text="b.ifsc"></span>
                                     </template>
                                 </div>
-                                <template x-if="selectedBank === b.name">
-                                    <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <template x-if="filters.lender_name === b.name">
+                                    <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                 </template>
                             </div>
                         </template>
@@ -263,169 +286,232 @@
                 </div>
             </div>
 
-            {{-- Associated Project Select --}}
-            <div class="relative flex-grow min-w-[180px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
-                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                </div>
-                <select name="project_id" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
-                    <option value="">All Projects</option>
-                    @foreach($projects as $p)
-                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                    @endforeach
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            {{-- Associated Project Dropdown --}}
+            <div class="relative flex-grow min-w-[200px]" @click.outside="projectDropdownOpen = false">
+                {{-- Trigger Button --}}
+                <button type="button" @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) $nextTick(() => $refs.projectSearchInput?.focus())"
+                     class="w-full erp-dropdown-trigger" :class="projectDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <span class="truncate" :class="filters.project_id ? 'text-slate-900 font-extrabold' : 'text-slate-600 font-bold'" x-text="selectedProjectLabel"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.project_id">
+                            <span @click.stop="selectProject('')" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                {{-- Dropdown Search Menu --}}
+                <div x-show="projectDropdownOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                     class="erp-dropdown-popover min-w-[240px]" 
+                     style="display: none;">
+                    
+                    {{-- Search Input Header --}}
+                    <div class="p-2 border-b border-slate-100 bg-slate-50/90 sticky top-0 z-10">
+                        <div class="relative">
+                            <input type="text" 
+                                   x-ref="projectSearchInput" 
+                                   x-model="projectSearch" 
+                                   placeholder="Search project..." 
+                                   @keydown.escape="projectDropdownOpen = false"
+                                   class="w-full erp-search-input pl-8 pr-7 py-1.5 text-xs">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <template x-if="projectSearch">
+                                <button type="button" @click="projectSearch = ''; $refs.projectSearchInput?.focus()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- List of Projects --}}
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-48 text-xs font-semibold">
+                        {{-- All Projects Option --}}
+                        <div @click="selectProject('')"
+                             class="erp-dropdown-option"
+                             :class="!filters.project_id ? 'selected-all' : ''">
+                            <span>All Projects</span>
+                            <template x-if="!filters.project_id">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+
+                        {{-- Filtered Project Items --}}
+                        <template x-for="p in filteredProjects" :key="p.id">
+                            <div @click="selectProject(p.id)"
+                                 class="erp-dropdown-option"
+                                 :class="String(filters.project_id) === String(p.id) ? 'selected' : ''">
+                                <span class="truncate" x-text="p.name"></span>
+                                <template x-if="String(filters.project_id) === String(p.id)">
+                                    <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </template>
+                            </div>
+                        </template>
+
+                        {{-- Empty State --}}
+                        <template x-if="filteredProjects.length === 0">
+                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching projects found.</div>
+                        </template>
+                    </div>
                 </div>
             </div>
 
-            {{-- Loan Status Select --}}
-            <div class="relative flex-grow min-w-[150px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
-                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <select name="status" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
-                    <option value="">All Statuses</option>
-                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
-                    <option value="Overdue" {{ request('status') === 'Overdue' ? 'selected' : '' }}>Overdue</option>
-                    <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            {{-- Loan Status Dropdown --}}
+            <div class="relative flex-grow min-w-[160px]" @click.outside="statusDropdownOpen = false">
+                {{-- Trigger Button --}}
+                <button type="button" @click="statusDropdownOpen = !statusDropdownOpen"
+                     class="w-full erp-dropdown-trigger" :class="statusDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="truncate" :class="filters.status ? 'text-slate-900 font-extrabold' : 'text-slate-600 font-bold'" x-text="selectedStatusLabel"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.status">
+                            <span @click.stop="selectStatus('')" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                {{-- Dropdown Menu --}}
+                <div x-show="statusDropdownOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                     class="erp-dropdown-popover min-w-[180px]" 
+                     style="display: none;">
+                    
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-48 text-xs font-semibold">
+                        <div @click="selectStatus('')"
+                             class="erp-dropdown-option"
+                             :class="!filters.status ? 'selected-all' : ''">
+                            <span>All Statuses</span>
+                            <template x-if="!filters.status">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+
+                        <div @click="selectStatus('Active')"
+                             class="erp-dropdown-option"
+                             :class="filters.status === 'Active' ? 'selected' : ''">
+                            <span>Active</span>
+                            <template x-if="filters.status === 'Active'">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+
+                        <div @click="selectStatus('Overdue')"
+                             class="erp-dropdown-option"
+                             :class="filters.status === 'Overdue' ? 'selected' : ''">
+                            <span>Overdue</span>
+                            <template x-if="filters.status === 'Overdue'">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+
+                        <div @click="selectStatus('Closed')"
+                             class="erp-dropdown-option"
+                             :class="filters.status === 'Closed' ? 'selected' : ''">
+                            <span>Closed</span>
+                            <template x-if="filters.status === 'Closed'">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {{-- Hidden Submit for Enter Key --}}
-            <button type="submit" style="display: none;"></button>
-
-            {{-- Buttons --}}
+            {{-- Reset Button (Zero Page Reload) --}}
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('loans.index') }}" class="px-6 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs shrink-0 select-none">
+                <button type="button" @click="resetFilters()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-5 h-[38px] text-xs font-black text-white shadow-xs transition duration-200 uppercase tracking-wider shrink-0 select-none cursor-pointer active:scale-95">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                     RESET FILTERS
-                </a>
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 
     {{-- Loans List Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-        <style>
-            #loans-table thead th {
-                border-color: #8a7522 !important;
-            }
-            #loans-tbody tr:nth-child(even) {
-                background-color: #F6F3E9 !important;
-            }
-            #loans-tbody tr:hover {
-                background-color: #ebe5d0 !important;
-            }
-        </style>
         <div class="overflow-x-auto">
             <table id="loans-table" class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LENDING BANK</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LOAN AMOUNT</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">CURRENT EMI</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">PRINCIPAL</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">INTEREST</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">NEXT DUE DATE</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">PAYMENT STATUS</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
+                    <tr class="erp-table-header text-white border-b border-slate-700 text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">SL NO</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">LENDING BANK</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">LOAN AMOUNT</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">CURRENT EMI</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-right">PRINCIPAL</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-right">INTEREST</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">NEXT DUE DATE</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-center">PAYMENT STATUS</th>
+                        <th class="px-4 py-3 border border-slate-600/50 sticky top-0 erp-table-header text-white shadow-sm text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody id="loans-tbody" class="divide-y divide-[#EAE3CD] text-center font-semibold text-slate-700 bg-white">
-                    @forelse($loans as $idx => $loan)
-                        @php
-                            $paymentStatus = 'PAID';
-                            $statusColor = 'bg-emerald-50 border-emerald-100 text-emerald-700';
-
-                            if ($loan->status === 'Closed') {
-                                $paymentStatus = 'CLOSED';
-                                $statusColor = 'bg-slate-100 border-slate-200 text-slate-500';
-                            } elseif ($loan->next_emi) {
-                                $dueDate = \Carbon\Carbon::parse($loan->next_emi->due_date);
-                                if ($dueDate->lt(now()->startOfDay())) {
-                                    $paymentStatus = 'OVERDUE';
-                                    $statusColor = 'bg-rose-50 border-rose-100 text-rose-700 animate-pulse';
-                                } else {
-                                    $paymentStatus = 'DUE';
-                                    $statusColor = 'bg-amber-50 border-amber-100 text-amber-700';
-                                }
-                            }
-                        @endphp
-                        <tr onclick="window.location='{{ route('loans.schedule', $loan->id) }}'" 
-                            class="transition-colors text-xs cursor-pointer hover:bg-[#ebe5d0] select-none">
-                            <td class="px-4 py-3.5 border font-bold text-slate-400 text-center">{{ $loans->firstItem() + $idx }}</td>
+                <tbody id="loans-tbody" class="divide-y divide-slate-100 text-center font-semibold text-slate-700 bg-white">
+                    <template x-for="(loan, idx) in filteredLoans" :key="loan.id">
+                        <tr @click="window.location = loan.schedule_url" 
+                            class="transition-colors text-xs cursor-pointer hover:bg-slate-50/80 select-none">
+                            <td class="px-4 py-3.5 border font-bold text-slate-400 text-center" x-text="idx + 1"></td>
                             <td class="px-4 py-3.5 border text-left">
-                                <div class="font-bold text-slate-900 font-mono">{{ $loan->loan_account_no ?? '—' }}</div>
-                                <div class="text-[10px] text-slate-500 font-medium mt-0.5">{{ $loan->project->name ?? '—' }}</div>
+                                <div class="font-bold text-slate-900 font-mono" x-text="loan.loan_account_no || '—'"></div>
+                                <div class="text-[10px] text-slate-500 font-medium mt-0.5" x-text="loan.project_name || '—'"></div>
                             </td>
                             <td class="px-4 py-3.5 border text-slate-900 font-bold text-center">
-                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-105 border border-slate-200 text-[10px] uppercase tracking-wider shadow-sm">
-                                    {{ $loan->lender_name }}
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] uppercase tracking-wider shadow-sm" x-text="loan.lender_name">
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-extrabold">
-                                ₹{{ number_format((float)$loan->principal_amount, 2) }}
+                            <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-extrabold" x-text="'₹' + formatCurrency(loan.principal_amount)">
                             </td>
-                            <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-bold">
-                                @if($loan->next_emi && $loan->status === 'Active')
-                                    ₹{{ number_format((float)$loan->next_emi->emi_amount - (float)$loan->next_emi->amount_paid, 2) }}
-                                @else
-                                    —
-                                @endif
+                            <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-bold" x-text="loan.current_emi > 0 && loan.status === 'Active' ? '₹' + formatCurrency(loan.current_emi) : '—'">
                             </td>
-                            <td class="px-4 py-3.5 border text-right font-mono text-slate-600">
-                                @if($loan->next_emi && $loan->status === 'Active')
-                                    ₹{{ number_format((float)$loan->next_emi->principal_component, 2) }}
-                                @else
-                                    —
-                                @endif
+                            <td class="px-4 py-3.5 border text-right font-mono text-slate-600" x-text="loan.principal_component > 0 && loan.status === 'Active' ? '₹' + formatCurrency(loan.principal_component) : '—'">
                             </td>
-                            <td class="px-4 py-3.5 border text-right font-mono text-slate-600">
-                                @if($loan->next_emi && $loan->status === 'Active')
-                                    ₹{{ number_format((float)$loan->next_emi->interest_component, 2) }}
-                                @else
-                                    —
-                                @endif
+                            <td class="px-4 py-3.5 border text-right font-mono text-slate-600" x-text="loan.interest_component > 0 && loan.status === 'Active' ? '₹' + formatCurrency(loan.interest_component) : '—'">
                             </td>
-                            <td class="px-4 py-3.5 border text-center text-slate-650">
-                                @if($loan->next_emi && $loan->status === 'Active')
-                                    {{ \Carbon\Carbon::parse($loan->next_emi->due_date)->format('d M Y') }}
-                                @else
-                                    —
-                                @endif
+                            <td class="px-4 py-3.5 border text-center text-slate-600" x-text="loan.status === 'Active' ? loan.next_due_date_formatted : '—'">
                             </td>
                             <td class="px-4 py-3.5 border text-center">
-                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-[10px] font-extrabold uppercase tracking-wider shadow-xs {{ $statusColor }}">
-                                    {{ $paymentStatus }}
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-[10px] font-extrabold uppercase tracking-wider shadow-xs" :class="loan.status_color" x-text="loan.payment_status">
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 border text-right pr-4" onclick="event.stopPropagation()">
+                            <td class="px-4 py-3.5 border text-right pr-4" @click.stop="">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('loans.schedule', $loan->id) }}"
+                                    <a :href="loan.schedule_url"
                                        class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1"
                                        title="Repayment Schedule Ledger">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         Ledger
                                     </a>
 
-                                    @if($loan->status === 'Active')
-                                        <button @click.stop="openEditInterestModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', interest_rate: {{ $loan->interest_rate }} })" 
+                                    <template x-if="loan.status === 'Active'">
+                                        <button @click.stop="openEditInterestModal(loan)" 
                                                 class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shadow-xs active:scale-95 cursor-pointer" 
                                                 title="Edit Interest Rate">
                                             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                             Interest
                                         </button>
-                                    @endif
+                                    </template>
 
-                                    <button @click.stop="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
+                                    <button @click.stop="openInterestLogsModal(loan.loan_account_no)" 
                                             class="p-1.5 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] border border-[rgb(67,56,212)]/20 transition-all inline-flex items-center justify-center shadow-xs active:scale-95 cursor-pointer" 
                                             title="Interest Edit Log">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -433,102 +519,37 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                    </template>
+                    <template x-if="filteredLoans.length === 0">
                         <tr>
-                            <td colspan="10" class="px-6 py-10 text-center text-slate-400 italic">No loan records found. Please configure a bank loan.</td>
+                            <td colspan="10" class="px-6 py-10 text-center text-slate-400 italic">No matching loan records found.</td>
                         </tr>
-                    @endforelse
+                    </template>
                 </tbody>
             </table>
         </div>
 
-        {{-- Pagination Controls --}}
-        @if($loans instanceof \Illuminate\Pagination\AbstractPaginator && $loans->hasPages())
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    Showing <span class="text-slate-900">{{ $loans->firstItem() }}</span> to 
-                    <span class="text-slate-900">{{ $loans->lastItem() }}</span> of 
-                    <span class="text-slate-900">{{ number_format($loans->total()) }}</span> Loans
-                </div>
-                <div class="flex items-center gap-1.5">
-                    {{-- Previous Page Link --}}
-                    @if ($loans->onFirstPage())
-                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
-                            Prev
-                        </span>
-                    @else
-                        <a href="{{ $loans->previousPageUrl() }}" 
-                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
-                            Prev
-                        </a>
-                    @endif
-
-                    {{-- Page Numbers --}}
-                    @php
-                        $currentPage = $loans->currentPage();
-                        $lastPage = $loans->lastPage();
-                        $start = max(1, $currentPage - 2);
-                        $end = min($lastPage, $currentPage + 2);
-                    @endphp
-
-                    @if ($start > 1)
-                        <a href="{{ $loans->url(1) }}" 
-                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
-                            1
-                        </a>
-                        @if ($start > 2)
-                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
-                        @endif
-                    @endif
-
-                    @for ($page = $start; $page <= $end; $page++)
-                        @if ($page == $currentPage)
-                            <span class="px-2.5 py-1 bg-primary text-white border border-primary rounded-lg text-[10px] font-bold">
-                                {{ $page }}
-                            </span>
-                        @else
-                            <a href="{{ $loans->url($page) }}" 
-                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
-                                {{ $page }}
-                            </a>
-                        @endif
-                    @endfor
-
-                    @if ($end < $lastPage)
-                        @if ($end < $lastPage - 1)
-                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
-                        @endif
-                        <a href="{{ $loans->url($lastPage) }}" 
-                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
-                            {{ $lastPage }}
-                        </a>
-                    @endif
-
-                    {{-- Next Page Link --}}
-                    @if ($loans->hasMorePages())
-                        <a href="{{ $loans->nextPageUrl() }}" 
-                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
-                            Next
-                        </a>
-                    @else
-                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
-                            Next
-                        </span>
-                    @endif
-                </div>
+        {{-- Table Summary Counter Footer --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                Showing <span class="text-slate-900" x-text="filteredLoans.length"></span> of 
+                <span class="text-slate-900" x-text="allLoans.length"></span> Loans
             </div>
-        @endif
+            <div class="text-[10px] text-slate-400 font-semibold" x-show="filters.search || filters.lender_name || filters.project_id || filters.status">
+                (Filtered in-memory)
+            </div>
+        </div>
     </div>
 
     {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
     <div>
 
     {{-- Payoff / Foreclosure Modal --}}
-    <div x-show="payoffModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payoffModalOpen = false"></div>
-        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[96vh] flex flex-col" @click.away="payoffModalOpen = false">
+    <div x-show="payoffModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="payoffModalOpen = false"></div>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none my-auto max-h-[96vh] flex flex-col z-10" @click.away="payoffModalOpen = false">
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden shrink-0">
                 <div class="flex items-center gap-3 relative z-10">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-sm font-black shadow-inner border border-[#a38c29]/30">
                         ₹
@@ -810,13 +831,11 @@
                 </form>
             </div>
         </div>
-    </div>
-
-    {{-- Prepayment Logs Modal --}}
-    <div x-show="logsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="logsModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+    </div>    {{-- Prepayment Logs Modal --}}
+    <div x-show="logsModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="logsModalOpen = false"></div>
+        <div class="relative w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none z-10">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="'Prepayment Logs: ' + activeAccountNo"></h3>
@@ -825,7 +844,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-6 max-h-[60vh] overflow-y-auto">
+            <div class="p-6 max-h-[60vh] overflow-y-auto bg-white">
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-55 border-b border-slate-100 text-center font-bold text-slate-650 uppercase tracking-wider text-[10px]">
@@ -849,17 +868,17 @@
                     </tbody>
                 </table>
             </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end rounded-b-2xl">
                 <button type="button" @click="logsModalOpen = false" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-800 transition">Close</button>
             </div>
         </div>
     </div>
 
     {{-- Interest Edit Logs Modal --}}
-    <div x-show="interestLogsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="interestLogsModalOpen = false"></div>
-        <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col max-h-[85vh]">
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+    <div x-show="interestLogsModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="interestLogsModalOpen = false"></div>
+        <div class="relative w-full max-w-3xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none flex flex-col max-h-[85vh] z-10">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -871,7 +890,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-6 overflow-y-auto grow">
+            <div class="p-6 overflow-y-auto grow bg-white">
                 @if($interestLogs->isEmpty())
                     <div class="py-12 text-center">
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">No interest rate modifications recorded yet.</p>
@@ -880,7 +899,7 @@
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                <tr class="bg-slate-55 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="px-4 py-3 border-r">Date / Time</th>
                                     <th class="px-4 py-3 border-r">Loan A/C</th>
                                     <th class="px-4 py-3 border-r">Old Rate</th>
@@ -905,17 +924,17 @@
                     </div>
                 @endif
             </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0">
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0 rounded-b-2xl">
                 <button type="button" @click="interestLogsModalOpen = false" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl text-xs font-bold uppercase tracking-wide transition">Close</button>
             </div>
         </div>
     </div>
 
     {{-- Edit Interest Rate Modal --}}
-    <div x-show="editInterestModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="editInterestModalOpen = false"></div>
-        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+    <div x-show="editInterestModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="editInterestModalOpen = false"></div>
+        <div class="relative w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none z-10">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="editLoan ? 'Edit Interest Rate: A/C ' + editLoan.loan_account_no : 'Edit Interest Rate'"></h3>
@@ -924,7 +943,7 @@
                     </button>
                 </div>
             </div>
-            <form @submit.prevent="submitEditInterestForm">
+            <form @submit.prevent="submitEditInterestForm" class="bg-white rounded-b-2xl">
                 <div class="p-6 space-y-4">
                     <div class="bg-indigo-50 border border-indigo-150 rounded-xl p-3.5 text-xs text-indigo-850">
                         <strong class="font-bold">Important Notice:</strong> Modifying the interest rate will automatically recalculate the interest and principal components for all remaining unpaid installments of this loan.
@@ -952,7 +971,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 rounded-b-2xl">
                     <button type="button" @click="editInterestModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Update Interest Rate</button>
                 </div>
@@ -961,11 +980,11 @@
     </div>
 
     {{-- Pay EMI Modal --}}
-    <div x-show="payModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payModalOpen = false"></div>
-        <div class="relative w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[92vh] flex flex-col" @click.away="payModalOpen = false">
+    <div x-show="payModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="payModalOpen = false"></div>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none my-auto max-h-[92vh] flex flex-col z-10" @click.away="payModalOpen = false">
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden shrink-0">
                 <div class="flex items-center gap-3 relative z-10">
                     <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
                         ₹
@@ -1223,11 +1242,11 @@
     </div>
 
     {{-- Create Loan Modal --}}
-    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+    <div x-show="addModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
+        <div class="fixed inset-0" @click="addModalOpen = false"></div>
+        <div class="relative w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none z-10">
             {{-- Dark Header --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -1240,7 +1259,7 @@
                 </div>
             </div>
 
-            <form @submit.prevent="submitAddForm($event)" novalidate>
+            <form @submit.prevent="submitAddForm($event)" class="bg-white rounded-b-2xl" novalidate>
                 <div class="p-6 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div class="col-span-2">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Associated Project <span class="text-rose-500">*</span></label>
@@ -1360,6 +1379,114 @@
 <script>
 function loanApp() {
     return {
+        allLoans: @js($loansListData),
+        banksList: @js($banks->map(fn($b) => ['name' => $b->bank_name, 'ifsc' => $b->ifsc_code ?? ''])->values()),
+        projectsList: @js($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values()),
+        
+        defaultProjectId: @js($projects->first()?->id ?? ''),
+        
+        // Filter states
+        filters: {
+            search: '',
+            lender_name: '',
+            project_id: @js($projects->first()?->id ?? ''),
+            status: ''
+        },
+        
+        // Dropdowns state
+        bankDropdownOpen: false,
+        bankSearch: '',
+        
+        projectDropdownOpen: false,
+        projectSearch: '',
+        
+        statusDropdownOpen: false,
+        
+        get selectedBankLabel() {
+            return this.filters.lender_name || 'All Lending Banks';
+        },
+        get selectedProjectLabel() {
+            if (!this.filters.project_id) return 'All Projects';
+            const p = this.projectsList.find(x => String(x.id) === String(this.filters.project_id));
+            return p ? p.name : 'All Projects';
+        },
+        get selectedStatusLabel() {
+            return this.filters.status || 'All Statuses';
+        },
+
+        get filteredBanks() {
+            if (!this.bankSearch.trim()) return this.banksList;
+            const q = this.bankSearch.toLowerCase();
+            return this.banksList.filter(b => b.name.toLowerCase().includes(q) || (b.ifsc && b.ifsc.toLowerCase().includes(q)));
+        },
+        get filteredProjects() {
+            if (!this.projectSearch.trim()) return this.projectsList;
+            const q = this.projectSearch.toLowerCase();
+            return this.projectsList.filter(p => p.name.toLowerCase().includes(q));
+        },
+
+        selectBank(name) {
+            this.filters.lender_name = name;
+            this.bankDropdownOpen = false;
+            this.bankSearch = '';
+        },
+        selectProject(id) {
+            this.filters.project_id = id;
+            this.projectDropdownOpen = false;
+            this.projectSearch = '';
+        },
+        selectStatus(status) {
+            this.filters.status = status;
+            this.statusDropdownOpen = false;
+        },
+        resetFilters() {
+            this.filters.search = '';
+            this.filters.lender_name = '';
+            this.filters.project_id = this.defaultProjectId;
+            this.filters.status = '';
+            this.bankSearch = '';
+            this.projectSearch = '';
+        },
+
+        get filteredLoans() {
+            return this.allLoans.filter(loan => {
+                if (this.filters.search.trim()) {
+                    const q = this.filters.search.toLowerCase().trim();
+                    const accMatch = (loan.loan_account_no || '').toLowerCase().includes(q);
+                    const projMatch = (loan.project_name || '').toLowerCase().includes(q);
+                    const bankMatch = (loan.lender_name || '').toLowerCase().includes(q);
+                    if (!accMatch && !projMatch && !bankMatch) return false;
+                }
+
+                if (this.filters.lender_name) {
+                    if ((loan.lender_name || '').toLowerCase() !== this.filters.lender_name.toLowerCase()) {
+                        return false;
+                    }
+                }
+
+                if (this.filters.project_id) {
+                    if (String(loan.project_id) !== String(this.filters.project_id)) {
+                        return false;
+                    }
+                }
+
+                if (this.filters.status) {
+                    if (this.filters.status === 'Overdue') {
+                        if (!loan.is_overdue) return false;
+                    } else {
+                        if (loan.status !== this.filters.status) return false;
+                    }
+                }
+
+                return true;
+            });
+        },
+
+        formatCurrency(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
         companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},
         paymentModes: {!! json_encode($paymentModes ?? []) !!},
         errors: {},

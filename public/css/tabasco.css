@@ -1189,3 +1189,13 @@ select option:hover {
     background-color: rgba(163, 140, 41, 0.15) !important;
     color: #7c691c !important;
 }
+
+/* --------------------------------------------------------------------------
+   Global ERP Modal Backdrops & Overlays - Guaranteed Z-Index Stacking
+   -------------------------------------------------------------------------- */
+.fixed.inset-0[x-show],
+.fixed.inset-0[style*="rgba(10, 15, 29"],
+.erp-modal-backdrop,
+.erp-modal-overlay {
+    z-index: 99999 !important;
+}

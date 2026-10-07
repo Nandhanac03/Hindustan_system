@@ -811,8 +811,8 @@
                     {{-- Gold shimmer top stripe --}}
                     <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
 
-                    {{-- Dark header --}}
-                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5">
+                    {{-- Dark header (Solid Opaque Background) --}}
+                    <div class="relative overflow-hidden px-6 py-5 bg-slate-900" style="background-color: #0f172a;">
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                         <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -921,7 +921,7 @@
                         <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
                             style="animation: successModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">
                             <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
-                            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5">
+                            <div class="relative overflow-hidden px-6 py-5 bg-slate-900" style="background-color: #0f172a;">
                                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                                 <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
                                 <div class="relative z-10 flex items-start justify-between gap-4">

@@ -3,513 +3,7 @@
 @section('title', 'Site Expenses Dashboard')
 
 @section('content')
-<div x-data="{ 
-    filterSearch: '{{ request('search', '') }}',
-    filterProjectId: '{{ request('project_id', $projects->count() === 1 ? ($projects->first()->id ?? '') : '') }}',
-    filterCategoryCode: '{{ request('category_code', '') }}',
-    filterPaymentSource: '{{ request('payment_source', '') }}',
-    filterPaymentMode: '{{ request('payment_mode', '') }}',
-    filterStatusTab: '{{ request('status', 'all') }}',
-    projectFilterOpen: false,
-    categoryFilterOpen: false,
-    sourceFilterOpen: false,
-    modeFilterOpen: false,
-    projectNames: {{ json_encode($projects->pluck('name', 'id')) }},
-    categoryNames: {{ json_encode($expenseCategories) }},
-    bankSourceNames: {{ json_encode($bankAccounts->mapWithKeys(fn($b) => [$b->id => $b->bank_name . ($b->account_name ? ' ('.$b->account_name.')' : '')])) }},
-    counts: {
-        all: {{ $tabCounts['all'] ?? count($siteExpenses) }},
-        draft: {{ $tabCounts['draft'] ?? 0 }},
-        pending: {{ $tabCounts['pending'] ?? 0 }},
-        approved: {{ $tabCounts['approved'] ?? 0 }},
-        rejected: {{ $tabCounts['rejected'] ?? 0 }},
-        posted: {{ $tabCounts['posted'] ?? 0 }},
-    },
-
-    selectProjectFilter(id) {
-        this.filterProjectId = id;
-        this.projectFilterOpen = false;
-        this.applyExpenseFilters();
-    },
-    getProjectFilterLabel() {
-        if (!this.filterProjectId) return 'All Projects';
-        return (this.projectNames && this.projectNames[this.filterProjectId]) ? this.projectNames[this.filterProjectId] : 'Project';
-    },
-
-    selectCategoryFilter(code) {
-        this.filterCategoryCode = code;
-        this.categoryFilterOpen = false;
-        this.applyExpenseFilters();
-    },
-    getCategoryFilterLabel() {
-        if (!this.filterCategoryCode) return 'All Categories';
-        return (this.categoryNames && this.categoryNames[this.filterCategoryCode]) ? this.categoryNames[this.filterCategoryCode] : 'Category';
-    },
-
-    selectSourceFilter(id) {
-        this.filterPaymentSource = id;
-        this.sourceFilterOpen = false;
-        this.applyExpenseFilters();
-    },
-    getSourceFilterLabel() {
-        if (!this.filterPaymentSource) return 'All Sources';
-        return (this.bankSourceNames && this.bankSourceNames[this.filterPaymentSource]) ? this.bankSourceNames[this.filterPaymentSource] : 'Source';
-    },
-
-    selectModeFilter(mode) {
-        this.filterPaymentMode = mode;
-        this.modeFilterOpen = false;
-        this.applyExpenseFilters();
-    },
-    getModeFilterLabel() {
-        if (!this.filterPaymentMode) return 'All Modes';
-        return this.filterPaymentMode;
-    },
-
-    init() {
-        this.$nextTick(() => {
-            this.applyExpenseFilters();
-        });
-    },
-
-    applyExpenseFilters() {
-        const search = (this.filterSearch || '').trim().toLowerCase();
-        const projId = (this.filterProjectId || '').toString().trim();
-        const catCode = (this.filterCategoryCode || '').toString().trim();
-        const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
-            ? this.categoryNames[catCode].toLowerCase().trim() 
-            : '';
-        const sourceId = (this.filterPaymentSource || '').toString().trim();
-        const mode = (this.filterPaymentMode || '').trim().toLowerCase();
-        const statusTab = (this.filterStatusTab || 'all').toLowerCase();
-
-        const rows = document.querySelectorAll('.expense-table-row');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const rowStatus = (row.dataset.status || '').toLowerCase();
-            const rowProj = (row.dataset.projectId || '').toString();
-            const rowCat = (row.dataset.categoryCode || '').toString();
-            const rowCatName = (row.dataset.categoryName || '').toLowerCase().trim();
-            const rowSource = (row.dataset.paymentSource || '').toString();
-            const rowMode = (row.dataset.paymentMode || '').toLowerCase();
-            const rowSearch = (row.dataset.search || '').toLowerCase();
-
-            let matchesStatus = true;
-            if (statusTab === 'draft') matchesStatus = (rowStatus === 'draft');
-            else if (statusTab === 'pending') matchesStatus = (rowStatus === 'pending');
-            else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (rowStatus === 'approved' || rowStatus === 'posted');
-            else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
-
-            const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
-            const matchesCat = !catCode || (rowCat === catCode && (!expectedCatName || rowCatName === expectedCatName || rowCatName.includes(expectedCatName) || expectedCatName.includes(rowCatName)));
-            const matchesSource = !sourceId || rowSource === sourceId;
-            const matchesMode = !mode || rowMode === mode;
-            const matchesSearch = !search || rowSearch.includes(search);
-
-            if (matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        const noRows = document.getElementById('no-expenses-row');
-        if (noRows) {
-            noRows.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
-        }
-
-        const showingText = document.getElementById('showing-entries-text');
-        if (showingText) {
-            showingText.textContent = `Showing ${visibleCount} of ${rows.length} entries`;
-        }
-
-        try {
-            const url = new URL(window.location.href);
-            if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
-            if (projId) url.searchParams.set('project_id', projId); else url.searchParams.delete('project_id');
-            if (catCode) url.searchParams.set('category_code', catCode); else url.searchParams.delete('category_code');
-            if (sourceId) url.searchParams.set('payment_source', sourceId); else url.searchParams.delete('payment_source');
-            if (mode) url.searchParams.set('payment_mode', mode); else url.searchParams.delete('payment_mode');
-            if (statusTab && statusTab !== 'all') url.searchParams.set('status', statusTab); else url.searchParams.delete('status');
-            window.history.replaceState({}, '', url.toString());
-        } catch(e) {}
-    },
-
-    resetExpenseFilters() {
-        this.filterSearch = '';
-        this.filterProjectId = '{{ $projects->count() === 1 ? ($projects->first()->id ?? '') : '' }}';
-        this.filterCategoryCode = '';
-        this.filterPaymentSource = '';
-        this.filterPaymentMode = '';
-        this.filterStatusTab = 'all';
-        this.projectFilterOpen = false;
-        this.categoryFilterOpen = false;
-        this.sourceFilterOpen = false;
-        this.modeFilterOpen = false;
-        this.applyExpenseFilters();
-    },
-
-    showCreateModal: {{ request()->has('create') ? 'true' : 'false' }},
-    showViewModal: false,
-    selectedExpense: null,
-    projectId: '{{ old('project_id', $projects->first()?->id ?? '') }}',
-    voucherDate: '{{ old('voucher_date', date('Y-m-d')) }}',
-    expenseCategoryCode: '{{ old('expense_category_code', '') }}',
-    paymentSourceType: 'bank',
-    companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
-    bankAccountsData: {{ json_encode($bankAccounts->keyBy('id')) }},
-    bankAccountsList: {{ json_encode($bankAccounts->values()) }},
-    bankOpen: false,
-    bankSearch: '',
-    get filteredBankAccounts() {
-        const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
-        if (!this.bankSearch) return list;
-        const q = this.bankSearch.toLowerCase().trim();
-        return list.filter(b => 
-            (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
-            (b.account_name && b.account_name.toLowerCase().includes(q)) ||
-            (b.account_number && b.account_number.toLowerCase().includes(q)) ||
-            (b.branch_name && b.branch_name.toLowerCase().includes(q))
-        );
-    },
-    payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
-    payeesData: {{ json_encode($payees->keyBy('id')) }},
-    vendorId: '{{ old('vendor_id', $vendors->first()?->id ?? '') }}',
-    vendorsData: {{ json_encode($vendors->keyBy('id')) }},
-    casualPayeeName: '{{ old('casual_payee_name', '') }}',
-    selectedVendorGstin: '',
-    transactionRef: '{{ old('transaction_reference_no', '') }}',
-    billDate: '{{ old('bill_date', date('Y-m-d')) }}',
-    dueDate: '{{ old('due_date', '') }}',
-    gross: '{{ old('gross_amount', '') }}',
-    gstPct: '',
-    narration: '{{ old('narration', '') }}',
-    uploadedFile: null,
-    fileName: '',
-    fileSize: '',
-
-    showConfirmModal: false,
-    confirmType: 'reject',
-    confirmExpenseId: null,
-    confirmVoucherNumber: '',
-    confirmActionUrl: '',
-    hasAttemptedExpenseSubmit: false,
-
-    disburseModalOpen: false,
-    disburseExpense: null,
-    disbursePaymentDate: '{{ date("Y-m-d") }}',
-    disbursePaidAmount: '',
-    disbursePaymentMode: 'Cheque',
-    disburseRefNo: '',
-    disburseSourceType: 'bank',
-    disburseBankId: '{{ $bankAccounts->first()?->id ?? "" }}',
-    disburseLoanId: '',
-    disburseBankOpen: false,
-    disburseBankSearch: '',
-    hasAttemptedDisburseSubmit: false,
-
-    get disburseSelectedAccount() {
-        if (!this.disburseBankId) return null;
-        return (this.bankAccountsData && this.bankAccountsData[this.disburseBankId]) ? this.bankAccountsData[this.disburseBankId] : null;
-    },
-    get filteredDisburseBankAccounts() {
-        const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
-        if (!this.disburseBankSearch) return list;
-        const q = this.disburseBankSearch.toLowerCase().trim();
-        return list.filter(b => 
-            (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
-            (b.account_name && b.account_name.toLowerCase().includes(q)) ||
-            (b.account_number && b.account_number.toLowerCase().includes(q)) ||
-            (b.branch_name && b.branch_name.toLowerCase().includes(q))
-        );
-    },
-    openDisburseModal(exp) {
-        this.disburseExpense = exp;
-        this.disbursePaidAmount = '';
-        this.disbursePaymentDate = '{{ date("Y-m-d") }}';
-        this.disbursePaymentMode = 'Cheque';
-        this.disburseRefNo = '';
-        this.disburseSourceType = (exp && exp.payment_source_type) ? exp.payment_source_type : 'bank';
-        this.disburseBankId = (exp && exp.company_bank_account_id) ? exp.company_bank_account_id : '{{ $bankAccounts->first()?->id ?? "" }}';
-        this.disburseLoanId = (exp && exp.loan_id) ? exp.loan_id : '';
-        this.hasAttemptedDisburseSubmit = false;
-        this.disburseModalOpen = true;
-        this.$nextTick(() => {
-            if (this.$refs.disbursePaidAmountRef) {
-                this.$refs.disbursePaidAmountRef.focus();
-            }
-        });
-    },
-    validateDisburse() {
-        this.hasAttemptedDisburseSubmit = true;
-        if (!this.disbursePaymentDate || !this.disbursePaidAmount || parseFloat(this.disbursePaidAmount) <= 0 || !this.disbursePaymentMode || !this.disburseRefNo) {
-            return false;
-        }
-        if (this.disburseExpense && parseFloat(this.disbursePaidAmount) > parseFloat(this.disburseExpense.balance_amount)) {
-            return false;
-        }
-        if (this.disburseSourceType === 'bank' && !this.disburseBankId) {
-            return false;
-        }
-        if (this.disburseSourceType === 'loan' && !this.disburseLoanId) {
-            return false;
-        }
-        return true;
-    },
-    getDisburseBankBalance() {
-        if (!this.disburseBankId || !this.bankAccountsData || !this.bankAccountsData[this.disburseBankId]) return 0;
-        return parseFloat(this.bankAccountsData[this.disburseBankId].current_balance) || 0;
-    },
-    getDisbursePostBankBalance() {
-        const current = this.getDisburseBankBalance();
-        const paid = parseFloat(this.disbursePaidAmount) || 0;
-        return current - paid;
-    },
-    isDisburseBankSufficient() {
-        if (this.disburseSourceType !== 'bank') return true;
-        return this.getDisbursePostBankBalance() >= 0;
-    },
-    getDisburseRemaining() {
-        const bal = parseFloat(this.disburseExpense?.balance_amount || this.disburseExpense?.raw_balance_amount) || 0;
-        const paid = parseFloat(this.disbursePaidAmount) || 0;
-        return Math.max(0, bal - paid);
-    },
-    getDisburseShortfall() {
-        const paid = parseFloat(this.disbursePaidAmount) || 0;
-        const current = this.getDisburseBankBalance();
-        return Math.max(0, paid - current);
-    },
-
-    validateExpense() {
-        this.hasAttemptedExpenseSubmit = true;
-        if (!this.projectId || !this.expenseCategoryCode || !this.voucherDate || !this.companyBankAccountId || 
-            (this.payeeType === 'registered' && !this.vendorId) || 
-            (this.payeeType === 'one_time' && !this.casualPayeeName) || 
-            !this.gross || parseFloat(this.gross) <= 0) {
-            return false;
-        }
-        return true;
-    },
-
-    openConfirmModal(type, id, voucherNumber) {
-        this.confirmType = type;
-        this.confirmExpenseId = id;
-        this.confirmVoucherNumber = voucherNumber || 'EXP-VOUCHER';
-        this.showConfirmModal = true;
-    },
-
-    openViewModal(exp) {
-        this.selectedExpense = exp;
-        this.showViewModal = true;
-    },
-
-    openCreateModal() {
-        this.hasAttemptedExpenseSubmit = false;
-        this.selectedExpense = null;
-        this.projectId = '{{ $projects->first()?->id ?? '' }}';
-        this.voucherDate = '{{ date('Y-m-d') }}';
-        this.expenseCategoryCode = '';
-        this.payeeType = 'registered';
-        this.payeeId = '{{ $payees->first()?->id ?? '' }}';
-        this.vendorId = '{{ $vendors->first()?->id ?? '' }}';
-        this.casualPayeeName = '';
-        this.companyBankAccountId = '{{ $bankAccounts->first()?->id ?? '1' }}';
-        this.transactionRef = '';
-        this.billDate = '{{ date('Y-m-d') }}';
-        this.dueDate = '';
-        this.gross = '';
-        this.gstPct = '';
-        this.narration = '';
-        this.uploadedFile = null;
-        this.fileName = '';
-        this.fileSize = '';
-        this.onPayeeChange();
-        this.showCreateModal = true;
-    },
-
-    openEditModal(exp) {
-        this.hasAttemptedExpenseSubmit = false;
-        this.selectedExpense = exp;
-        if (exp.project_id) this.projectId = exp.project_id;
-        if (exp.voucher_date || exp.raw_voucher_date) this.voucherDate = exp.voucher_date || exp.raw_voucher_date;
-        if (exp.expense_category_code) this.expenseCategoryCode = exp.expense_category_code;
-        if (exp.company_bank_account_id) this.companyBankAccountId = exp.company_bank_account_id;
-        if (exp.payee_type || exp.raw_payee_type) {
-            let pType = (exp.raw_payee_type || exp.payee_type || 'registered').toLowerCase();
-            this.payeeType = pType.includes('one') ? 'one_time' : 'registered';
-        }
-        if (exp.payee_id) this.payeeId = exp.payee_id;
-        if (exp.vendor_id) this.vendorId = exp.vendor_id;
-        if (exp.casual_payee_name) this.casualPayeeName = exp.casual_payee_name;
-        this.transactionRef = (exp.transaction_ref && exp.transaction_ref !== '-') ? exp.transaction_ref : '';
-        if (exp.bill_date) this.billDate = exp.bill_date;
-        if (exp.due_date) this.dueDate = exp.due_date;
-        if (exp.gross_raw !== undefined && exp.gross_raw !== null && exp.gross_raw !== '') {
-            this.gross = parseFloat(exp.gross_raw) || 0;
-        }
-        if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '' && parseFloat(exp.gst_rate) > 0) {
-            this.gstPct = parseFloat(exp.gst_rate);
-        } else if (exp.net_raw && exp.gross_raw && parseFloat(exp.gross_raw) > 0 && parseFloat(exp.net_raw) > parseFloat(exp.gross_raw)) {
-            this.gstPct = Math.round(((parseFloat(exp.net_raw) - parseFloat(exp.gross_raw)) / parseFloat(exp.gross_raw)) * 100);
-        } else if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '') {
-            this.gstPct = parseFloat(exp.gst_rate) || 0;
-        } else {
-            this.gstPct = 0;
-        }
-        this.narration = (exp.narration && exp.narration !== '-') ? exp.narration : '';
-        this.fileName = exp.attachment_name || '';
-        this.uploadedFile = null;
-        this.onPayeeChange();
-        this.showCreateModal = true;
-    },
-
-    get gstAmount() { 
-        return (parseFloat(this.gross) || 0) * (parseFloat(this.gstPct) || 0) / 100; 
-    },
-    get netTotal() { 
-        return (parseFloat(this.gross) || 0) + this.gstAmount; 
-    },
-    inWords(n) {
-        let num = Math.floor(parseFloat(n) || 0);
-        if (!num || num <= 0) return 'Rupees Zero Only';
-        const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-        function convertChunk(num) {
-            if (num < 20) return a[num];
-            let digit = num % 10;
-            return b[Math.floor(num / 10)] + (digit ? ' ' + a[digit] : '');
-        }
-        let str = '';
-        let crore = Math.floor(num / 10000000);
-        num %= 10000000;
-        let lakh = Math.floor(num / 100000);
-        num %= 100000;
-        let thousand = Math.floor(num / 1000);
-        num %= 1000;
-        let hundred = Math.floor(num / 100);
-        num %= 100;
-        if (crore) str += convertChunk(crore) + ' Crore ';
-        if (lakh) str += convertChunk(lakh) + ' Lakh ';
-        if (thousand) str += convertChunk(thousand) + ' Thousand ';
-        if (hundred) str += convertChunk(hundred) + ' Hundred ';
-        if (num) {
-            if (str !== '') str += 'and ';
-            str += convertChunk(num) + ' ';
-        }
-        return str.trim() + ' Rupees Only';
-    },
-    get amountInWords() {
-        return this.inWords(this.netTotal);
-    },
-    numberToWords(val) {
-        let num = parseFloat(val) || 0;
-        if (num <= 0) return '';
-        let integerPart = Math.floor(num);
-        let decimalPart = Math.round((num - integerPart) * 100);
-
-        const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-        function toWords(n) {
-            if (n < 20) return a[n];
-            let digit = n % 10;
-            return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
-        }
-
-        let str = '';
-        let crore = Math.floor(integerPart / 10000000);
-        integerPart %= 10000000;
-        let lakh = Math.floor(integerPart / 100000);
-        integerPart %= 100000;
-        let thousand = Math.floor(integerPart / 1000);
-        integerPart %= 1000;
-        let hundred = Math.floor(integerPart / 100);
-        let rest = integerPart % 100;
-
-        if (crore > 0) str += toWords(crore) + ' Crore ';
-        if (lakh > 0) str += toWords(lakh) + ' Lakh ';
-        if (thousand > 0) str += toWords(thousand) + ' Thousand ';
-        if (hundred > 0) str += toWords(hundred) + ' Hundred ';
-        if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
-
-        let res = str.trim() ? str.trim() + ' Rupees' : '';
-        if (decimalPart > 0) {
-            let paiseStr = toWords(decimalPart) + ' Paise';
-            res = res ? res + ' and ' + paiseStr : paiseStr;
-        }
-        return res ? res + ' Only' : '';
-    },
-    onPayeeChange() {
-        if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
-            let v = this.vendorsData[this.vendorId];
-            this.selectedVendorGstin = v.gstin || '';
-        } else if (this.payeeType === 'registered' && this.payeeId && this.payeesData && this.payeesData[this.payeeId]) {
-            let p = this.payeesData[this.payeeId];
-            this.selectedVendorGstin = p.gstin || '';
-        }
-    },
-    get selectedVendor() {
-        if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
-            return this.vendorsData[this.vendorId];
-        }
-        return null;
-    },
-    get selectedBankAccount() {
-        if (this.companyBankAccountId && this.bankAccountsData && this.bankAccountsData[this.companyBankAccountId]) {
-            return this.bankAccountsData[this.companyBankAccountId];
-        }
-        return null;
-    },
-    onVendorChange() {
-        this.onPayeeChange();
-    },
-    handleFileUpload(event) {
-        let file = event.target.files[0];
-        if (file) {
-            this.uploadedFile = file;
-            this.fileName = file.name;
-            this.fileSize = (file.size / 1024).toFixed(0) + ' KB';
-        }
-    },
-    formatCurrency(val) {
-        let n = parseFloat(val) || 0;
-        return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
-    getBankBalance() {
-        if (!this.selectedBankAccount) return 0;
-        return parseFloat(this.selectedBankAccount.current_balance) || 0;
-    },
-    getPostBankBalance() {
-        const current = this.getBankBalance();
-        const paid = parseFloat(this.netTotal) || 0;
-        return current - paid;
-    },
-    isBankSufficient() {
-        return this.getPostBankBalance() >= 0;
-    },
-    getShortfall() {
-        const paid = parseFloat(this.netTotal) || 0;
-        const current = this.getBankBalance();
-        return Math.max(0, paid - current);
-    },
-    numberFormat(val) {
-        return (parseFloat(val) || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-}" x-init="
-    onPayeeChange();
-    if (window.location.hash === '#add-site-expense-form' || window.location.search.includes('create=1')) {
-        openCreateModal();
-    }
-    window.addEventListener('hashchange', () => {
-        if (window.location.hash === '#add-site-expense-form') {
-            openCreateModal();
-        }
-    });
-" class="max-w-[1800px] mx-auto space-y-6 text-slate-800">
+<div x-data="siteExpensesDashboard()" class="max-w-[1800px] mx-auto space-y-6 text-slate-800">
 
     {{-- Top Flash Messages --}}
     @if(session('success'))
@@ -1938,15 +1432,15 @@
                     <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
                         <div class="border-r border-slate-200/80 pr-2">
                             <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">VOUCHER NO.</span>
-                            <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="disburseExpense ? disburseExpense.voucher_number : ''"></span>
+                            <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="disburseExpense?.voucher_number || ''"></span>
                         </div>
                         <div class="border-r border-slate-200/80 pr-2">
                             <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
-                            <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense.net_amount) : ''"></span>
+                            <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense?.net_amount || 0) : ''"></span>
                         </div>
                         <div>
                             <span class="block text-[9.5px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
-                            <span class="text-xs font-mono font-extrabold text-rose-700 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense.balance_amount) : ''"></span>
+                            <span class="text-xs font-mono font-extrabold text-rose-700 mt-0.5 block" x-text="disburseExpense ? '₹' + numberFormat(disburseExpense?.balance_amount || 0) : ''"></span>
                         </div>
                     </div>
 
@@ -1970,9 +1464,9 @@
                             </div>
                             <input type="number" step="0.01" min="0.01" name="paid_amount" x-ref="disbursePaidAmountRef" x-model="disbursePaidAmount" :max="disburseExpense ? disburseExpense.balance_amount : null" placeholder="Enter amount to pay (e.g. 50000)..." required
                                    class="w-full px-3 py-2 border rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
-                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (disburseExpense && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense.balance_amount)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (disburseExpense && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense?.balance_amount || 0)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             <p x-show="hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The amount field is required.</p>
-                            <p x-show="disburseExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense.balance_amount)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(disburseExpense.balance_amount)"></span>.</p>
+                            <p x-show="disburseExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(disburseExpense?.balance_amount || 0)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(disburseExpense?.balance_amount || 0)"></span>.</p>
                             
                             {{-- Amount in Words Under Input Box --}}
                             <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs"
@@ -2271,4 +1765,516 @@
     </div>
 
 </div>
+
+<script>
+function siteExpensesDashboard() {
+    return {
+        filterSearch: '{{ request('search', '') }}',
+        filterProjectId: '{{ request('project_id', $projects->first()?->id ?? '') }}',
+        filterCategoryCode: '{{ request('category_code', '') }}',
+        filterPaymentSource: '{{ request('payment_source', '') }}',
+        filterPaymentMode: '{{ request('payment_mode', '') }}',
+        filterStatusTab: '{{ request('status', 'all') }}',
+        projectFilterOpen: false,
+        categoryFilterOpen: false,
+        sourceFilterOpen: false,
+        modeFilterOpen: false,
+        projectNames: @json($projects->pluck('name', 'id')),
+        categoryNames: @json($expenseCategories),
+        bankSourceNames: @json($bankAccounts->mapWithKeys(fn($b) => [$b->id => $b->bank_name . ($b->account_name ? ' ('.$b->account_name.')' : '')])),
+        counts: {
+            all: {{ $tabCounts['all'] ?? count($siteExpenses) }},
+            draft: {{ $tabCounts['draft'] ?? 0 }},
+            pending: {{ $tabCounts['pending'] ?? 0 }},
+            approved: {{ $tabCounts['approved'] ?? 0 }},
+            rejected: {{ $tabCounts['rejected'] ?? 0 }},
+            posted: {{ $tabCounts['posted'] ?? 0 }},
+        },
+
+        selectProjectFilter(id) {
+            this.filterProjectId = id;
+            this.projectFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+        getProjectFilterLabel() {
+            if (!this.filterProjectId) return 'All Projects';
+            return (this.projectNames && this.projectNames[this.filterProjectId]) ? this.projectNames[this.filterProjectId] : 'Project';
+        },
+
+        selectCategoryFilter(code) {
+            this.filterCategoryCode = code;
+            this.categoryFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+        getCategoryFilterLabel() {
+            if (!this.filterCategoryCode) return 'All Categories';
+            return (this.categoryNames && this.categoryNames[this.filterCategoryCode]) ? this.categoryNames[this.filterCategoryCode] : 'Category';
+        },
+
+        selectSourceFilter(id) {
+            this.filterPaymentSource = id;
+            this.sourceFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+        getSourceFilterLabel() {
+            if (!this.filterPaymentSource) return 'All Sources';
+            return (this.bankSourceNames && this.bankSourceNames[this.filterPaymentSource]) ? this.bankSourceNames[this.filterPaymentSource] : 'Source';
+        },
+
+        selectModeFilter(mode) {
+            this.filterPaymentMode = mode;
+            this.modeFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+        getModeFilterLabel() {
+            if (!this.filterPaymentMode) return 'All Modes';
+            return this.filterPaymentMode;
+        },
+
+        init() {
+            this.onPayeeChange();
+            if (window.location.hash === '#add-site-expense-form' || window.location.search.includes('create=1')) {
+                this.openCreateModal();
+            }
+            window.addEventListener('hashchange', () => {
+                if (window.location.hash === '#add-site-expense-form') {
+                    this.openCreateModal();
+                }
+            });
+            this.$nextTick(() => {
+                this.applyExpenseFilters();
+            });
+        },
+
+        applyExpenseFilters() {
+            const search = (this.filterSearch || '').trim().toLowerCase();
+            const projId = (this.filterProjectId || '').toString().trim();
+            const catCode = (this.filterCategoryCode || '').toString().trim();
+            const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
+                ? this.categoryNames[catCode].toLowerCase().trim() 
+                : '';
+            const sourceId = (this.filterPaymentSource || '').toString().trim();
+            const mode = (this.filterPaymentMode || '').trim().toLowerCase();
+            const statusTab = (this.filterStatusTab || 'all').toLowerCase();
+
+            const rows = document.querySelectorAll('.expense-table-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowStatus = (row.dataset.status || '').toLowerCase();
+                const rowProj = (row.dataset.projectId || '').toString();
+                const rowCat = (row.dataset.categoryCode || '').toString();
+                const rowCatName = (row.dataset.categoryName || '').toLowerCase().trim();
+                const rowSource = (row.dataset.paymentSource || '').toString();
+                const rowMode = (row.dataset.paymentMode || '').toLowerCase();
+                const rowSearch = (row.dataset.search || '').toLowerCase();
+
+                let matchesStatus = true;
+                if (statusTab === 'draft') matchesStatus = (rowStatus === 'draft');
+                else if (statusTab === 'pending') matchesStatus = (rowStatus === 'pending');
+                else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (rowStatus === 'approved' || rowStatus === 'posted');
+                else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
+
+                const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
+                const matchesCat = !catCode || (rowCat === catCode && (!expectedCatName || rowCatName === expectedCatName || rowCatName.includes(expectedCatName) || expectedCatName.includes(rowCatName)));
+                const matchesSource = !sourceId || rowSource === sourceId;
+                const matchesMode = !mode || rowMode === mode;
+                const matchesSearch = !search || rowSearch.includes(search);
+
+                if (matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noRows = document.getElementById('no-expenses-row');
+            if (noRows) {
+                noRows.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+            }
+
+            const showingText = document.getElementById('showing-entries-text');
+            if (showingText) {
+                showingText.textContent = `Showing ${visibleCount} of ${rows.length} entries`;
+            }
+
+            try {
+                const url = new URL(window.location.href);
+                if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
+                if (projId) url.searchParams.set('project_id', projId); else url.searchParams.delete('project_id');
+                if (catCode) url.searchParams.set('category_code', catCode); else url.searchParams.delete('category_code');
+                if (sourceId) url.searchParams.set('payment_source', sourceId); else url.searchParams.delete('payment_source');
+                if (mode) url.searchParams.set('payment_mode', mode); else url.searchParams.delete('payment_mode');
+                if (statusTab && statusTab !== 'all') url.searchParams.set('status', statusTab); else url.searchParams.delete('status');
+                window.history.replaceState({}, '', url.toString());
+            } catch(e) {}
+        },
+
+        resetExpenseFilters() {
+            this.filterSearch = '';
+            this.filterProjectId = '';
+            this.filterCategoryCode = '';
+            this.filterPaymentSource = '';
+            this.filterPaymentMode = '';
+            this.filterStatusTab = 'all';
+            this.projectFilterOpen = false;
+            this.categoryFilterOpen = false;
+            this.sourceFilterOpen = false;
+            this.modeFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+
+        showCreateModal: {{ request()->has('create') ? 'true' : 'false' }},
+        showViewModal: false,
+        selectedExpense: null,
+        projectId: '{{ old('project_id', $projects->first()?->id ?? '') }}',
+        voucherDate: '{{ old('voucher_date', date('Y-m-d')) }}',
+        expenseCategoryCode: '{{ old('expense_category_code', '') }}',
+        paymentSourceType: 'bank',
+        companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
+        bankAccountsData: @json($bankAccounts->keyBy('id')),
+        bankAccountsList: @json($bankAccounts->values()),
+        bankOpen: false,
+        bankSearch: '',
+        get filteredBankAccounts() {
+            const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
+            if (!this.bankSearch) return list;
+            const q = this.bankSearch.toLowerCase().trim();
+            return list.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+        payeeType: '{{ old('payee_type', 'registered') }}',
+        payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
+        payeesData: @json($payees->keyBy('id')),
+        vendorId: '{{ old('vendor_id', $vendors->first()?->id ?? '') }}',
+        vendorsData: @json($vendors->keyBy('id')),
+        casualPayeeName: '{{ old('casual_payee_name', '') }}',
+        selectedVendorGstin: '',
+        transactionRef: '{{ old('transaction_reference_no', '') }}',
+        billDate: '{{ old('bill_date', date('Y-m-d')) }}',
+        dueDate: '{{ old('due_date', '') }}',
+        gross: '{{ old('gross_amount', '') }}',
+        gstPct: '',
+        narration: '{{ old('narration', '') }}',
+        uploadedFile: null,
+        fileName: '',
+        fileSize: '',
+
+        showConfirmModal: false,
+        confirmType: 'reject',
+        confirmExpenseId: null,
+        confirmVoucherNumber: '',
+        confirmActionUrl: '',
+        hasAttemptedExpenseSubmit: false,
+
+        disburseModalOpen: false,
+        disburseExpense: null,
+        disbursePaymentDate: '{{ date("Y-m-d") }}',
+        disbursePaidAmount: '',
+        disbursePaymentMode: 'Cheque',
+        disburseRefNo: '',
+        disburseSourceType: 'bank',
+        disburseBankId: '{{ $bankAccounts->first()?->id ?? "" }}',
+        disburseLoanId: '',
+        disburseBankOpen: false,
+        disburseBankSearch: '',
+        hasAttemptedDisburseSubmit: false,
+
+        get disburseSelectedAccount() {
+            if (!this.disburseBankId) return null;
+            return (this.bankAccountsData && this.bankAccountsData[this.disburseBankId]) ? this.bankAccountsData[this.disburseBankId] : null;
+        },
+        get filteredDisburseBankAccounts() {
+            const list = this.bankAccountsList || Object.values(this.bankAccountsData || {});
+            if (!this.disburseBankSearch) return list;
+            const q = this.disburseBankSearch.toLowerCase().trim();
+            return list.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+        openDisburseModal(exp) {
+            this.disburseExpense = exp;
+            this.disbursePaidAmount = '';
+            this.disbursePaymentDate = '{{ date("Y-m-d") }}';
+            this.disbursePaymentMode = 'Cheque';
+            this.disburseRefNo = '';
+            this.disburseSourceType = (exp && exp.payment_source_type) ? exp.payment_source_type : 'bank';
+            this.disburseBankId = (exp && exp.company_bank_account_id) ? exp.company_bank_account_id : '{{ $bankAccounts->first()?->id ?? "" }}';
+            this.disburseLoanId = (exp && exp.loan_id) ? exp.loan_id : '';
+            this.hasAttemptedDisburseSubmit = false;
+            this.disburseModalOpen = true;
+            this.$nextTick(() => {
+                if (this.$refs.disbursePaidAmountRef) {
+                    this.$refs.disbursePaidAmountRef.focus();
+                }
+            });
+        },
+        validateDisburse() {
+            this.hasAttemptedDisburseSubmit = true;
+            if (!this.disbursePaymentDate || !this.disbursePaidAmount || parseFloat(this.disbursePaidAmount) <= 0 || !this.disbursePaymentMode || !this.disburseRefNo) {
+                return false;
+            }
+            if (this.disburseExpense && parseFloat(this.disbursePaidAmount) > parseFloat(this.disburseExpense.balance_amount)) {
+                return false;
+            }
+            if (this.disburseSourceType === 'bank' && !this.disburseBankId) {
+                return false;
+            }
+            if (this.disburseSourceType === 'loan' && !this.disburseLoanId) {
+                return false;
+            }
+            return true;
+        },
+        getDisburseBankBalance() {
+            if (!this.disburseBankId || !this.bankAccountsData || !this.bankAccountsData[this.disburseBankId]) return 0;
+            return parseFloat(this.bankAccountsData[this.disburseBankId].current_balance) || 0;
+        },
+        getDisbursePostBankBalance() {
+            const current = this.getDisburseBankBalance();
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            return current - paid;
+        },
+        isDisburseBankSufficient() {
+            if (this.disburseSourceType !== 'bank') return true;
+            return this.getDisbursePostBankBalance() >= 0;
+        },
+        getDisburseRemaining() {
+            const bal = parseFloat(this.disburseExpense?.balance_amount || this.disburseExpense?.raw_balance_amount) || 0;
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            return Math.max(0, bal - paid);
+        },
+        getDisburseShortfall() {
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            const current = this.getDisburseBankBalance();
+            return Math.max(0, paid - current);
+        },
+
+        validateExpense() {
+            this.hasAttemptedExpenseSubmit = true;
+            if (!this.projectId || !this.expenseCategoryCode || !this.voucherDate || !this.companyBankAccountId || 
+                (this.payeeType === 'registered' && !this.vendorId) || 
+                (this.payeeType === 'one_time' && !this.casualPayeeName) || 
+                !this.gross || parseFloat(this.gross) <= 0) {
+                return false;
+            }
+            return true;
+        },
+
+        openConfirmModal(type, id, voucherNumber) {
+            this.confirmType = type;
+            this.confirmExpenseId = id;
+            this.confirmVoucherNumber = voucherNumber || 'EXP-VOUCHER';
+            this.showConfirmModal = true;
+        },
+
+        openViewModal(exp) {
+            this.selectedExpense = exp;
+            this.showViewModal = true;
+        },
+
+        openCreateModal() {
+            this.hasAttemptedExpenseSubmit = false;
+            this.selectedExpense = null;
+            this.projectId = '{{ $projects->first()?->id ?? '' }}';
+            this.voucherDate = '{{ date('Y-m-d') }}';
+            this.expenseCategoryCode = '';
+            this.payeeType = 'registered';
+            this.payeeId = '{{ $payees->first()?->id ?? '' }}';
+            this.vendorId = '{{ $vendors->first()?->id ?? '' }}';
+            this.casualPayeeName = '';
+            this.companyBankAccountId = '{{ $bankAccounts->first()?->id ?? '1' }}';
+            this.transactionRef = '';
+            this.billDate = '{{ date('Y-m-d') }}';
+            this.dueDate = '';
+            this.gross = '';
+            this.gstPct = '';
+            this.narration = '';
+            this.uploadedFile = null;
+            this.fileName = '';
+            this.fileSize = '';
+            this.onPayeeChange();
+            this.showCreateModal = true;
+        },
+
+        openEditModal(exp) {
+            this.hasAttemptedExpenseSubmit = false;
+            this.selectedExpense = exp;
+            if (exp.project_id) this.projectId = exp.project_id;
+            if (exp.voucher_date || exp.raw_voucher_date) this.voucherDate = exp.voucher_date || exp.raw_voucher_date;
+            if (exp.expense_category_code) this.expenseCategoryCode = exp.expense_category_code;
+            if (exp.company_bank_account_id) this.companyBankAccountId = exp.company_bank_account_id;
+            if (exp.payee_type || exp.raw_payee_type) {
+                let pType = (exp.raw_payee_type || exp.payee_type || 'registered').toLowerCase();
+                this.payeeType = pType.includes('one') ? 'one_time' : 'registered';
+            }
+            if (exp.payee_id) this.payeeId = exp.payee_id;
+            if (exp.vendor_id) this.vendorId = exp.vendor_id;
+            if (exp.casual_payee_name) this.casualPayeeName = exp.casual_payee_name;
+            this.transactionRef = (exp.transaction_ref && exp.transaction_ref !== '-') ? exp.transaction_ref : '';
+            if (exp.bill_date) this.billDate = exp.bill_date;
+            if (exp.due_date) this.dueDate = exp.due_date;
+            if (exp.gross_raw !== undefined && exp.gross_raw !== null && exp.gross_raw !== '') {
+                this.gross = parseFloat(exp.gross_raw) || 0;
+            }
+            if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '' && parseFloat(exp.gst_rate) > 0) {
+                this.gstPct = parseFloat(exp.gst_rate);
+            } else if (exp.net_raw && exp.gross_raw && parseFloat(exp.gross_raw) > 0 && parseFloat(exp.net_raw) > parseFloat(exp.gross_raw)) {
+                this.gstPct = Math.round(((parseFloat(exp.net_raw) - parseFloat(exp.gross_raw)) / parseFloat(exp.gross_raw)) * 100);
+            } else if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '') {
+                this.gstPct = parseFloat(exp.gst_rate) || 0;
+            } else {
+                this.gstPct = 0;
+            }
+            this.narration = (exp.narration && exp.narration !== '-') ? exp.narration : '';
+            this.fileName = exp.attachment_name || '';
+            this.uploadedFile = null;
+            this.onPayeeChange();
+            this.showCreateModal = true;
+        },
+
+        get gstAmount() { 
+            return (parseFloat(this.gross) || 0) * (parseFloat(this.gstPct) || 0) / 100; 
+        },
+        get netTotal() { 
+            return (parseFloat(this.gross) || 0) + this.gstAmount; 
+        },
+        inWords(n) {
+            let num = Math.floor(parseFloat(n) || 0);
+            if (!num || num <= 0) return 'Rupees Zero Only';
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function convertChunk(num) {
+                if (num < 20) return a[num];
+                let digit = num % 10;
+                return b[Math.floor(num / 10)] + (digit ? ' ' + a[digit] : '');
+            }
+            let str = '';
+            let crore = Math.floor(num / 10000000);
+            num %= 10000000;
+            let lakh = Math.floor(num / 100000);
+            num %= 100000;
+            let thousand = Math.floor(num / 1000);
+            num %= 1000;
+            let hundred = Math.floor(num / 100);
+            num %= 100;
+            if (crore) str += convertChunk(crore) + ' Crore ';
+            if (lakh) str += convertChunk(lakh) + ' Lakh ';
+            if (thousand) str += convertChunk(thousand) + ' Thousand ';
+            if (hundred) str += convertChunk(hundred) + ' Hundred ';
+            if (num) {
+                if (str !== '') str += 'and ';
+                str += convertChunk(num) + ' ';
+            }
+            return str.trim() + ' Rupees Only';
+        },
+        get amountInWords() {
+            return this.inWords(this.netTotal);
+        },
+        numberToWords(val) {
+            let num = parseFloat(val) || 0;
+            if (num <= 0) return '';
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function toWords(n) {
+                if (n < 20) return a[n];
+                let digit = n % 10;
+                return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
+            }
+
+            let str = '';
+            let crore = Math.floor(integerPart / 10000000);
+            integerPart %= 10000000;
+            let lakh = Math.floor(integerPart / 100000);
+            integerPart %= 100000;
+            let thousand = Math.floor(integerPart / 1000);
+            integerPart %= 1000;
+            let hundred = Math.floor(integerPart / 100);
+            let rest = integerPart % 100;
+
+            if (crore > 0) str += toWords(crore) + ' Crore ';
+            if (lakh > 0) str += toWords(lakh) + ' Lakh ';
+            if (thousand > 0) str += toWords(thousand) + ' Thousand ';
+            if (hundred > 0) str += toWords(hundred) + ' Hundred ';
+            if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
+
+            let res = str.trim() ? str.trim() + ' Rupees' : '';
+            if (decimalPart > 0) {
+                let paiseStr = toWords(decimalPart) + ' Paise';
+                res = res ? res + ' and ' + paiseStr : paiseStr;
+            }
+            return res ? res + ' Only' : '';
+        },
+        onPayeeChange() {
+            if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
+                let v = this.vendorsData[this.vendorId];
+                this.selectedVendorGstin = v.gstin || '';
+            } else if (this.payeeType === 'registered' && this.payeeId && this.payeesData && this.payeesData[this.payeeId]) {
+                let p = this.payeesData[this.payeeId];
+                this.selectedVendorGstin = p.gstin || '';
+            }
+        },
+        get selectedVendor() {
+            if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
+                return this.vendorsData[this.vendorId];
+            }
+            return null;
+        },
+        get selectedBankAccount() {
+            if (this.companyBankAccountId && this.bankAccountsData && this.bankAccountsData[this.companyBankAccountId]) {
+                return this.bankAccountsData[this.companyBankAccountId];
+            }
+            return null;
+        },
+        onVendorChange() {
+            this.onPayeeChange();
+        },
+        handleFileUpload(event) {
+            let file = event.target.files[0];
+            if (file) {
+                this.uploadedFile = file;
+                this.fileName = file.name;
+                this.fileSize = (file.size / 1024).toFixed(0) + ' KB';
+            }
+        },
+        formatCurrency(val) {
+            let n = parseFloat(val) || 0;
+            return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getBankBalance() {
+            if (!this.selectedBankAccount) return 0;
+            return parseFloat(this.selectedBankAccount.current_balance) || 0;
+        },
+        getPostBankBalance() {
+            const current = this.getBankBalance();
+            const paid = parseFloat(this.netTotal) || 0;
+            return current - paid;
+        },
+        isBankSufficient() {
+            return this.getPostBankBalance() >= 0;
+        },
+        getShortfall() {
+            const paid = parseFloat(this.netTotal) || 0;
+            const current = this.getBankBalance();
+            return Math.max(0, paid - current);
+        },
+        numberFormat(val) {
+            return (parseFloat(val) || 0).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+    };
+}
+</script>
 @endsection
