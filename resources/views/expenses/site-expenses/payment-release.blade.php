@@ -107,8 +107,7 @@
     </div>
 
     <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
-    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
-    <div class="erp-filter-card mb-6 relative" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+    <div class="erp-filter-card mb-6 relative">
         <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="erp-filter-container">
             <input type="hidden" name="vendor_id" :value="filterVendorId">
             <input type="hidden" name="project_id" :value="filterProjectId">
@@ -493,7 +492,18 @@
                                 <!-- Column 9: Action -->
                                 <td class="px-3 py-3 text-center whitespace-nowrap align-middle">
                                     @if(!$isCleared)
-                                        <button type="button" @click="openDisburseModal({{ json_encode($expense) }})"
+                                        <button type="button" @click="openDisburseModal({
+                                                    id: {{ $expense->id }},
+                                                    voucher_number: '{{ addslashes($expense->voucher_number) }}',
+                                                    payee_display_name: '{{ addslashes($expense->payee_display_name) }}',
+                                                    net_amount: {{ (float) $expense->net_amount }},
+                                                    paid_amount: {{ (float) $expense->paid_amount }},
+                                                    balance_amount: {{ (float) $expense->balance_amount }},
+                                                    payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
+                                                    vendor_id: '{{ $expense->vendor_id ?? '' }}',
+                                                    payee_id: '{{ $expense->payee_id ?? '' }}',
+                                                    casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}'
+                                                })"
                                                 class="w-7 h-7 inline-flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer group"
                                                 title="Disburse Payment">
                                             <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -661,9 +671,9 @@
                             <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : null" placeholder="Enter amount to pay (e.g. 50000)..." required
                                    oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)"
                                    class="w-full px-3 py-2 border rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
-                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (selectedExpense && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense.balance_amount)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
+                                   :class="(hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0 || (selectedExpense && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense?.balance_amount || 0)))) ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 hover:bg-white focus:bg-white border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'">
                             <p x-show="hasAttemptedDisburseSubmit && (!disbursePaidAmount || parseFloat(disbursePaidAmount) <= 0)" class="mt-1 text-[10px] font-bold text-rose-600">The amount field is required.</p>
-                            <p x-show="selectedExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense.balance_amount)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(selectedExpense.balance_amount)"></span>.</p>
+                            <p x-show="selectedExpense && disbursePaidAmount && parseFloat(disbursePaidAmount) > parseFloat(selectedExpense.balance_amount)" class="mt-1 text-[10px] font-bold text-rose-600">Amount cannot exceed outstanding balance of ₹<span x-text="numberFormat(selectedExpense?.balance_amount || 0)"></span>.</p>
                             
                             {{-- Amount in Words Under Input Box --}}
                             <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs"
@@ -904,10 +914,10 @@
 
 <script>
 function siteExpensePaymentRelease() {
-    const projectNames = {{ json_encode($projects->pluck('name', 'id')) }};
-    const vendorNames = {{ json_encode($vendors->pluck('name', 'id')) }};
-    const payeeNames = {{ json_encode($payees->pluck('name', 'id')) }};
-    const categoryNames = {{ json_encode($expenseCategories) }};
+    const projectNames = @json($projects->pluck('name', 'id'));
+    const vendorNames = @json($vendors->pluck('name', 'id'));
+    const payeeNames = @json($payees->pluck('name', 'id'));
+    const categoryNames = @json($expenseCategories);
 
     return {
         disburseModalOpen: false,
@@ -923,7 +933,7 @@ function siteExpensePaymentRelease() {
         bankSearch: '',
         
         filterVendorId: '{{ request('vendor_id', '') }}',
-        filterProjectId: '{{ request('project_id', '') }}',
+        filterProjectId: '{{ $selectedProjectId ?? "" }}',
         filterCategoryCode: '{{ request('category_code', '') }}',
         filterPaymentStatus: '{{ request('payment_status', '') }}',
         searchQuery: '{{ request('search', '') }}',
@@ -984,7 +994,7 @@ function siteExpensePaymentRelease() {
 
         resetFilters() {
             this.filterVendorId = '';
-            this.filterProjectId = '';
+            this.filterProjectId = '{{ $defaultProjectId ?? "" }}';
             this.filterCategoryCode = '';
             this.filterPaymentStatus = '';
             this.searchQuery = '';
@@ -1031,6 +1041,9 @@ function siteExpensePaymentRelease() {
                 const currentTable = document.querySelector('#table-container');
                 if (currentTable && newTable) {
                     currentTable.innerHTML = newTable.innerHTML;
+                    if (window.Alpine) {
+                        Alpine.initTree(currentTable);
+                    }
                 }
                 
                 // Replace dashboard stats
@@ -1038,6 +1051,9 @@ function siteExpensePaymentRelease() {
                 const currentDashboard = document.querySelector('#dashboard-stats');
                 if (currentDashboard && newDashboard) {
                     currentDashboard.innerHTML = newDashboard.innerHTML;
+                    if (window.Alpine) {
+                        Alpine.initTree(currentDashboard);
+                    }
                 }
             } catch (error) {
                 console.error('Filter error', error);

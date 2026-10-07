@@ -602,9 +602,11 @@ class SiteExpenseController extends Controller
         $projects = Project::where('is_active', true)->orderBy('name')->get();
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
         $expenseCategories = $this->getExpenseCategories();
+        $defaultProjectId = $projects->first()?->id ?? null;
+        $selectedProjectId = $request->has('project_id') ? $request->project_id : $defaultProjectId;
 
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
+        if (!empty($selectedProjectId)) {
+            $query->where('project_id', $selectedProjectId);
         }
 
         if ($request->filled('vendor_id')) {
@@ -643,8 +645,8 @@ class SiteExpenseController extends Controller
 
         // Summary KPI Calculations
         $allApproved = SiteExpense::where('status', 'Approved');
-        if ($request->filled('project_id')) {
-            $allApproved->where('project_id', $request->project_id);
+        if (!empty($selectedProjectId)) {
+            $allApproved->where('project_id', $selectedProjectId);
         }
         if ($request->filled('vendor_id')) {
             $allApproved->where('vendor_id', $request->vendor_id);
@@ -684,6 +686,8 @@ class SiteExpenseController extends Controller
         return view('expenses.site-expenses.payment-release', compact(
             'siteExpenses',
             'projects',
+            'defaultProjectId',
+            'selectedProjectId',
             'vendors',
             'payees',
             'expenseCategories',
