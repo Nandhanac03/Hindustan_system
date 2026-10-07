@@ -757,12 +757,15 @@ class BrokerController extends Controller
 
                 if ($broker && $totalPaid > 0) {
                     $bankAccount = CompanyBankAccount::lockForUpdate()->findOrFail($validated['company_bank_account_id']);
-                    if ((float) $bankAccount->current_balance < $totalPaid) {
+                    $isHistorical = $request->boolean('is_historical');
+                    if (!$isHistorical && (float) $bankAccount->current_balance < $totalPaid) {
                         throw new \Exception("Insufficient balance in the selected bank account. Available: " . $bankAccount->formatted_balance);
                     }
 
-                    // Decrement bank balance
-                    $bankAccount->decrement('current_balance', $totalPaid);
+                    // Decrement bank balance (skip for historical entries)
+                    if (!$isHistorical) {
+                        $bankAccount->decrement('current_balance', $totalPaid);
+                    }
 
                     $paymentMode = $request->input('payment_mode', 'Bank Transfer');
                     $customRefNo = $request->input('reference_no');
@@ -770,6 +773,9 @@ class BrokerController extends Controller
                     $payoutDate = $request->input('date') ?: now()->toDateString();
                     $customRemarks = $request->input('remarks');
                     $fullNarration = ($customRemarks ?: ($narration ?: 'Broker commission payout')) . " [Mode: {$paymentMode}]";
+                    if ($isHistorical) {
+                        $fullNarration .= ' [Historical]';
+                    }
 
                     // Post Payment Voucher to ledger
                     $voucher = \App\Models\Voucher::create([

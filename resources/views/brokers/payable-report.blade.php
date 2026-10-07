@@ -787,6 +787,19 @@
                     </div>
                 </div>
 
+                {{-- Is Historical --}}
+                <div class="space-y-1.5">
+                    <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition w-fit pr-6">
+                        <div class="pt-0.5">
+                            <input type="checkbox" name="is_historical" x-model="modalData.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
+                            <span class="text-[10px] text-slate-500 font-medium">Check if recording a past payout. Voucher will be created but the company bank balance will not be updated.</span>
+                        </div>
+                    </label>
+                </div>
+
                 {{-- Live Error Banner --}}
                 <template x-if="modalErrorMessage">
                     <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-700 text-xs font-bold shadow-2xs">
@@ -972,7 +985,8 @@ function brokerPayoutApp() {
             payment_mode: 'Bank Transfer (NEFT / RTGS / IMPS)',
             reference_no: '',
             date: new Date().toISOString().split('T')[0],
-            remarks: ''
+            remarks: '',
+            is_historical: false
         },
 
         getDefaultPaymentMode() {
@@ -1118,7 +1132,8 @@ function brokerPayoutApp() {
                 payment_mode: defaultPayMode,
                 reference_no: '',
                 date: new Date().toISOString().split('T')[0],
-                remarks: ''
+                remarks: '',
+                is_historical: false
             };
 
             this.modalData.amount = selectedBroker ? this.modalMaxPayable : 0;
@@ -1266,6 +1281,9 @@ function brokerPayoutApp() {
         },
 
         get modalBankBalanceAfterPayout() {
+            if (this.modalData.is_historical) {
+                return this.modalSelectedBankBalance;
+            }
             return this.modalSelectedBankBalance - (Number(this.modalData.amount) || 0);
         },
 
@@ -1278,6 +1296,7 @@ function brokerPayoutApp() {
         },
 
         get isBankInsufficient() {
+            if (this.modalData.is_historical) return false;
             if (!this.modalSelectedBankAccount) return false;
             return this.modalPayoutAmount > 0 && this.modalPayoutAmount > this.modalSelectedBankBalance;
         },

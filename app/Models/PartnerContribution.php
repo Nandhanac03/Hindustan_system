@@ -25,6 +25,7 @@ class PartnerContribution extends Model
         'reference_no',
         'remarks',
         'status',
+        'is_historical',
         'created_by',
     ];
 

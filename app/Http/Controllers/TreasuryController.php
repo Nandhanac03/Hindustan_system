@@ -57,8 +57,12 @@ class TreasuryController extends Controller
                 ->where('realization_status', 'realized')
                 ->sum('amount');
 
-            $pcCount = \App\Models\PartnerContribution::where('company_bank_account_id', $account->id)->count();
-            $pcSum = (float) \App\Models\PartnerContribution::where('company_bank_account_id', $account->id)->sum('amount');
+            $pcBase = \App\Models\PartnerContribution::where('company_bank_account_id', $account->id)
+                ->where(function ($q) {
+                    $q->where('is_historical', false)->orWhereNull('is_historical');
+                });
+            $pcCount = (clone $pcBase)->count();
+            $pcSum = (float) (clone $pcBase)->sum('amount');
 
             $account->realized_count = $rcptCount + $pcCount;
             $account->realized_sum = $rcptSum + $pcSum;
@@ -118,6 +122,9 @@ class TreasuryController extends Controller
         // Inward Credit: Partner Contributions
         $allPartnerContributions = \App\Models\PartnerContribution::with(['partner', 'project', 'companyBankAccount', 'paymentMode'])
             ->whereNotNull('company_bank_account_id')
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
             ->orderByDesc('contribution_date')
             ->orderByDesc('id')
             ->get();
@@ -345,6 +352,7 @@ class TreasuryController extends Controller
 
         // Outward Debits: Payment Vouchers (Bank Loan EMIs, Prepayments, Broker Commission, Partner Distributions, Customer Refunds, etc.)
         $allPaymentVouchers = \App\Models\Voucher::where('type', 'Payment')
+            ->where('narration', 'not like', '%[Historical]%')
             ->where(function ($q) {
                 $q->whereNotNull('company_bank_account_id')
                   ->orWhere('voucher_number', 'LIKE', 'PY-REF-%')

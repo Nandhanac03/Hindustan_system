@@ -133,6 +133,7 @@ class PartnerContributionController extends Controller
             $validated['system_id']  = auth()->user()->system_id ?? 1;
             $validated['created_by'] = auth()->id();
             $validated['status']     = 'Posted';
+            $validated['is_historical'] = $request->boolean('is_historical');
 
             $contribution = PartnerContribution::create($validated);
 
