@@ -21,7 +21,6 @@
                 <p class="text-xs text-slate-500 font-medium mt-0.5">Comprehensive project profitability, cash flow matrix, revenue stream breakdown, and partner equity analysis.</p>
             </div>
         </div>
-
     </div>
 
     {{-- PROJECT MARGIN REPORT CONTENT LOOP --}}
@@ -150,25 +149,25 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left data-matrix-table">
-                    <thead>
-                        <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                            <th class="w-4/12 px-5 py-3.5 text-left text-white font-black tracking-wider">EXPENSE CATEGORY</th>
-                            <th class="w-2/12 px-5 py-3.5 text-right text-white font-black tracking-wider">
+                <table class="w-full text-xs text-left data-matrix-table border-collapse">
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="w-4/12 px-5 py-3.5 erp-table-header border-r border-slate-600 text-left text-white font-extrabold tracking-wider">EXPENSE CATEGORY</th>
+                            <th class="w-2/12 px-5 py-3.5 erp-table-header border-r border-slate-600 text-right text-white font-extrabold tracking-wider">
                                 <div>TOTAL INCURRED COST</div>
-                                <div class="text-[9px] text-amber-100/90 font-medium lowercase tracking-normal">(total billed cost)</div>
+                                <div class="text-[9px] text-amber-200/90 font-medium lowercase tracking-normal">(total billed cost)</div>
                             </th>
-                            <th class="w-2/12 px-5 py-3.5 text-right text-white font-black tracking-wider">
+                            <th class="w-2/12 px-5 py-3.5 erp-table-header border-r border-slate-600 text-right text-white font-extrabold tracking-wider">
                                 <div>CASH PAID OUT</div>
-                                <div class="text-[9px] text-emerald-100/90 font-medium lowercase tracking-normal">(total paid out)</div>
+                                <div class="text-[9px] text-emerald-300 font-medium lowercase tracking-normal">(total paid out)</div>
                             </th>
-                            <th class="w-2/12 px-5 py-3.5 text-right text-white font-black tracking-wider">
+                            <th class="w-2/12 px-5 py-3.5 erp-table-header border-r border-slate-600 text-right text-white font-extrabold tracking-wider">
                                 <div>PENDING PAYABLE</div>
-                                <div class="text-[9px] text-rose-100/90 font-medium lowercase tracking-normal">(liability balance)</div>
+                                <div class="text-[9px] text-rose-300 font-medium lowercase tracking-normal">(liability balance)</div>
                             </th>
-                            <th class="w-2/12 px-5 py-3.5 text-right text-white font-black tracking-wider">
+                            <th class="w-2/12 px-5 py-3.5 erp-table-header border-r border-slate-600 text-right text-white font-extrabold tracking-wider">
                                 <div>COST / SQ.FT.</div>
-                                <div class="text-[9px] text-amber-100/90 font-medium lowercase tracking-normal">(rs./sq.ft.)</div>
+                                <div class="text-[9px] text-amber-200/90 font-medium lowercase tracking-normal">(rs./sq.ft.)</div>
                             </th>
                         </tr>
                     </thead>

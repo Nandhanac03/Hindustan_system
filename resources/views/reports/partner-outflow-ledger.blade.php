@@ -1,75 +1,7 @@
 <x-erp-layout title="Partner Statement Ledger & Capital Outflows" headerTitle="Business Reports Center">
 
 <div class="max-w-[1800px] mx-auto space-y-6 font-sans print:p-0 print:m-0" 
-     x-data="{
-        activeTab: 'summary',
-        searchQuery: '',
-
-        setDatePreset(preset) {
-            const fromInput = document.getElementById('filter_from_date');
-            const toInput = document.getElementById('filter_to_date');
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            const todayStr = `${yyyy}-${mm}-${dd}`;
-
-            if (preset === 'all') {
-                if (fromInput) fromInput.value = '';
-                if (toInput) toInput.value = '';
-            } else if (preset === 'this_month') {
-                if (fromInput) fromInput.value = `${yyyy}-${mm}-01`;
-                if (toInput) toInput.value = todayStr;
-            } else if (preset === 'this_fy') {
-                const fyStartYear = today.getMonth() >= 3 ? yyyy : yyyy - 1;
-                if (fromInput) fromInput.value = `${fyStartYear}-04-01`;
-                if (toInput) toInput.value = todayStr;
-            }
-            document.getElementById('partnerOutflowFilterForm').submit();
-        },
-
-        exportExcel() {
-            const table = document.getElementById('partnerOutflowExcelTable');
-            if (!table) return;
-            const html = table.outerHTML;
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Partner_Capital_Outflow_Ledger_${new Date().toISOString().slice(0,10)}.xls`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        },
-
-        exportCSV() {
-            let csv = [];
-            const rows = document.querySelectorAll('#summaryTable tbody tr:not(.empty-row)');
-            csv.push(['Partner Entity', 'Associated Project', 'Description Memo', 'Transaction Count', 'Last Date', 'Allocated Outflow (INR)', 'Share %'].join(','));
-            
-            rows.forEach(row => {
-                const partner = row.querySelector('.partner-name')?.innerText.trim() || '';
-                const project = row.querySelector('.project-name')?.innerText.trim() || '';
-                const memo = (row.querySelector('.description-memo')?.innerText.trim() || '').replace(/,/g, ' ');
-                const count = row.querySelector('.trans-count')?.innerText.trim() || '0';
-                const lastDate = row.querySelector('.last-date')?.innerText.trim() || '—';
-                const amount = (row.querySelector('.allocated-amount')?.innerText.trim() || '').replace(/[₹,]/g, '');
-                const pct = (row.querySelector('.share-pct')?.innerText.trim() || '').replace(/%/g, '');
-                csv.push([`\"${partner}\"`, `\"${project}\"`, `\"${memo}\"`, count, `\"${lastDate}\"`, amount, pct].join(','));
-            });
-
-            const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Partner_Outflow_Summary_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-     }">
+     x-data="partnerOutflowLedgerApp()">
 
     {{-- ── 1. BREADCRUMBS & TOP BANNER BOX ── --}}
     <div class="space-y-2 print:hidden">
@@ -293,22 +225,237 @@
 
     </div>
 
+    {{-- ── 2. STANDARDIZED ERP FILTER BAR (CUSTOM POPOVERS & LIVE SEARCH) ── --}}
+    <div class="erp-filter-card">
+        <div class="erp-filter-container">
+            <div class="erp-filter-grid-5">
+                
+                {{-- 1. Live Instant Search Input --}}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" x-model="filters.search" placeholder="Search partner, memo..." autocomplete="off"
+                           class="w-full erp-search-input pl-10 pr-9">
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filters.search && filters.search.length > 0" style="display: none;">
+                        <button type="button" @click="filters.search = ''" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 2. Project Filter (Custom Popover) --}}
+                <div class="relative w-full" 
+                     x-data="{ 
+                        open: false, 
+                        search: '',
+                        select(id) {
+                            filters.project_id = id;
+                            this.open = false;
+                            this.search = '';
+                        },
+                        clear() {
+                            filters.project_id = defaultProjectId;
+                            this.open = false;
+                            this.search = '';
+                        }
+                     }" 
+                     @click.outside="open = false">
+                    <button type="button"
+                            @click="open = !open; if(open) { $nextTick(() => $refs.projSearch?.focus()); }"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filters.project_id && filters.project_id !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getProjectName(filters.project_id)"></span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filters.project_id && String(filters.project_id) !== String(defaultProjectId)">
+                                <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Reset to default project">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" 
+                         style="display: none;">
+                        
+                        {{-- Search Input inside Popover --}}
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="projectsList && projectsList.length > 5">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="search" x-ref="projSearch" placeholder="Search project..." 
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="open = false">
+                            </div>
+                        </div>
+
+                        {{-- All Projects Option --}}
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="select('all')" 
+                                 class="erp-dropdown-option"
+                                 :class="filters.project_id === 'all' || !filters.project_id ? 'selected-all' : ''">
+                                <span>— All Projects —</span>
+                            </div>
+                            <template x-for="proj in (search ? projectsList.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase())) : projectsList)" :key="proj.id">
+                                <div @click="select(proj.id)" 
+                                     class="erp-dropdown-option"
+                                     :class="String(filters.project_id) === String(proj.id) ? 'selected' : ''">
+                                    <span class="truncate" x-text="proj.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. Partner Filter (Custom Popover) --}}
+                <div class="relative w-full" 
+                     x-data="{ 
+                        open: false, 
+                        search: '',
+                        select(id) {
+                            filters.partner_id = (id === 'all' ? '' : id);
+                            this.open = false;
+                            this.search = '';
+                        },
+                        clear() {
+                            filters.partner_id = '';
+                            this.open = false;
+                            this.search = '';
+                        }
+                     }" 
+                     @click.outside="open = false">
+                    <button type="button"
+                            @click="open = !open; if(open) { $nextTick(() => $refs.partSearch?.focus()); }"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="filters.partner_id && filters.partner_id !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getPartnerName(filters.partner_id)"></span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filters.partner_id && filters.partner_id !== 'all'">
+                                <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" 
+                         style="display: none;">
+                        
+                        {{-- Search Input inside Popover --}}
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="partnersList && partnersList.length > 5">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="search" x-ref="partSearch" placeholder="Search partner..." 
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="open = false">
+                            </div>
+                        </div>
+
+                        {{-- All Partners Option --}}
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="select('all')" 
+                                 class="erp-dropdown-option"
+                                 :class="!filters.partner_id || filters.partner_id === 'all' ? 'selected-all' : ''">
+                                <span>— All Partners —</span>
+                            </div>
+                            <template x-for="p in (search ? partnersList.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase())) : partnersList)" :key="p.id">
+                                <div @click="select(p.id)" 
+                                     class="erp-dropdown-option"
+                                     :class="String(filters.partner_id) === String(p.id) ? 'selected' : ''">
+                                    <span class="truncate" x-text="p.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. From Date Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <input type="date" x-model="filters.from_date" id="filter_from_date"
+                           title="From Date"
+                           class="w-full erp-input erp-date-input">
+                </div>
+
+                {{-- 5. To Date Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <input type="date" x-model="filters.to_date" id="filter_to_date"
+                           title="To Date"
+                           class="w-full erp-input erp-date-input">
+                </div>
+
+            </div>
+
+            {{-- Signature Gold RESET FILTERS Button --}}
+            <div class="shrink-0 flex items-center">
+                <button type="button" @click="resetFilters()"
+                   class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer text-white no-underline border-0">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>RESET FILTERS</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- ── 5. DATA TABLE CARD (MATCHING REQUESTED DESIGN) ── --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white text-[10.5px] font-black uppercase tracking-wider text-left border-b border-[#8a7522]">
-                        <th class="px-5 py-4 w-52">PARTNER ENTITY</th>
-                        <th class="px-5 py-4">ASSOCIATED PROJECT</th>
-                        <th class="px-5 py-4">DESCRIPTION MEMO</th>
-                        <th class="px-5 py-4 text-right w-44">ALLOCATED OUTFLOW</th>
-                        <th class="px-5 py-4 text-center w-40">ACTIONS</th>
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-xs text-left border-collapse table-auto">
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 w-52 whitespace-nowrap">PARTNER ENTITY</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">ASSOCIATED PROJECT</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">DESCRIPTION MEMO</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right w-44 whitespace-nowrap">ALLOCATED OUTFLOW</th>
+                        <th class="px-5 py-3.5 erp-table-header text-center w-40 whitespace-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200 text-slate-800">
+                <tbody class="divide-y divide-slate-200 text-slate-800 font-semibold">
                     @forelse($outflowList as $row)
-                        <tr class="hover:bg-slate-50/80 transition-colors font-semibold">
+                        <tr class="hover:bg-slate-50/80 transition-colors"
+                            x-show="isRowVisible('{{ $row->partner_id }}', '{{ addslashes($row->partner_name) }}', '{{ addslashes($row->project_name) }}', '{{ addslashes($row->description) }}')">
                             <td class="px-5 py-4 font-extrabold text-slate-900 whitespace-nowrap">
                                 <span class="inline-flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
@@ -329,7 +476,7 @@
                                     <a href="{{ url('/reports/partner-statements?partner_id=' . $row->partner_id) }}" 
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#8a7522] hover:text-white rounded-xl font-extrabold text-[11px] transition-all duration-150 shadow-2xs group border border-[#a38c29]/30">
                                         <svg class="w-3.5 h-3.5 text-[#a38c29] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                         <span>Partner Statement</span>
                                     </a>
@@ -579,6 +726,120 @@
         const shareChart = new ApexCharts(document.querySelector("#partnerShareChart"), shareOptions);
         shareChart.render();
     });
+
+    function partnerOutflowLedgerApp() {
+        const projectsList = @json($projects);
+        const partnersList = @json($allPartners);
+        const firstProjId = projectsList.length > 0 ? String(projectsList[0].id) : '';
+
+        return {
+            activeTab: 'summary',
+            projectsList: projectsList,
+            partnersList: partnersList,
+            defaultProjectId: firstProjId,
+            filters: {
+                search: '',
+                project_id: firstProjId,
+                partner_id: '',
+                from_date: '{{ $fromDate ?? '' }}',
+                to_date: '{{ $toDate ?? '' }}'
+            },
+
+            getProjectName(id) {
+                if (!id || id === 'all') return '— All Projects —';
+                const p = this.projectsList.find(x => String(x.id) === String(id));
+                return p ? p.name : '— All Projects —';
+            },
+
+            getPartnerName(id) {
+                if (!id || id === 'all') return '— All Partners —';
+                const p = this.partnersList.find(x => String(x.id) === String(id));
+                return p ? p.name : '— All Partners —';
+            },
+
+            isRowVisible(partnerId, partnerName, projectName, description) {
+                if (this.filters.partner_id && this.filters.partner_id !== 'all' && String(partnerId) !== String(this.filters.partner_id)) {
+                    return false;
+                }
+                if (this.filters.search && this.filters.search.trim()) {
+                    const q = this.filters.search.toLowerCase().trim();
+                    const str = `${partnerName || ''} ${projectName || ''} ${description || ''}`.toLowerCase();
+                    if (!str.includes(q)) return false;
+                }
+                return true;
+            },
+
+            resetFilters() {
+                this.filters.search = '';
+                this.filters.project_id = this.defaultProjectId;
+                this.filters.partner_id = '';
+                this.filters.from_date = '';
+                this.filters.to_date = '';
+            },
+
+            setDatePreset(preset) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                if (preset === 'all') {
+                    this.filters.from_date = '';
+                    this.filters.to_date = '';
+                } else if (preset === 'this_month') {
+                    this.filters.from_date = `${yyyy}-${mm}-01`;
+                    this.filters.to_date = todayStr;
+                } else if (preset === 'this_fy') {
+                    const fyStartYear = today.getMonth() >= 3 ? yyyy : yyyy - 1;
+                    this.filters.from_date = `${fyStartYear}-04-01`;
+                    this.filters.to_date = todayStr;
+                }
+            },
+
+            exportExcel() {
+                const table = document.getElementById('partnerOutflowExcelTable');
+                if (!table) return;
+                const html = table.outerHTML;
+                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Partner_Capital_Outflow_Ledger_${new Date().toISOString().slice(0,10)}.xls`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            exportCSV() {
+                let csv = [];
+                const rows = document.querySelectorAll('#summaryTable tbody tr:not(.empty-row)');
+                csv.push(['Partner Entity', 'Associated Project', 'Description Memo', 'Transaction Count', 'Last Date', 'Allocated Outflow (INR)', 'Share %'].join(','));
+                
+                rows.forEach(row => {
+                    const partner = row.querySelector('.partner-name')?.innerText.trim() || '';
+                    const project = row.querySelector('.project-name')?.innerText.trim() || '';
+                    const memo = (row.querySelector('.description-memo')?.innerText.trim() || '').replace(/,/g, ' ');
+                    const count = row.querySelector('.trans-count')?.innerText.trim() || '0';
+                    const lastDate = row.querySelector('.last-date')?.innerText.trim() || '—';
+                    const amount = (row.querySelector('.allocated-amount')?.innerText.trim() || '').replace(/[₹,]/g, '');
+                    const pct = (row.querySelector('.share-pct')?.innerText.trim() || '').replace(/%/g, '');
+                    csv.push([`\"${partner}\"`, `\"${project}\"`, `\"${memo}\"`, count, `\"${lastDate}\"`, amount, pct].join(','));
+                });
+
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Partner_Outflow_Summary_${new Date().toISOString().slice(0,10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        };
+    }
 </script>
 
 </x-erp-layout>

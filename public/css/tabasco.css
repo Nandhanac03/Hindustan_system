@@ -157,6 +157,29 @@ tr.sales-desk-table-header th {
     padding-right: 2rem !important;
 }
 
+/* Dedicated date input with icon spacing */
+.erp-date-input,
+.erp-filter-input.erp-date-input,
+input[type="date"].erp-input,
+input[type="date"].erp-filter-input {
+    padding-left: 2.35rem !important; /* Ensures calendar icon on the left never overlaps the date digits */
+    padding-right: 0.625rem !important;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+    padding-left: 0.2rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.65;
+    transition: opacity 0.2s ease-in-out;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
 .erp-input:hover,
 .erp-select:hover,
 .erp-filter-input:hover,
@@ -276,6 +299,127 @@ tr.sales-desk-table-header th {
 .erp-filter-option.selected-all {
     background-color: #a38c29 !important;
     color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   Standardized Filter Bar Layout Grid System (Guaranteed Cross-Device Layout)
+   -------------------------------------------------------------------------- */
+.erp-filter-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.erp-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .erp-filter-container {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.erp-filter-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+    flex: 1 1 0%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .erp-filter-grid-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .erp-filter-grid-5 {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.erp-filter-grid-6 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+    flex: 1 1 0%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .erp-filter-grid-6 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .erp-filter-grid-6 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    .erp-filter-grid-6 {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+.erp-filter-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+    flex: 1 1 0%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .erp-filter-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .erp-filter-grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.erp-filter-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+    flex: 1 1 0%;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .erp-filter-grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.erp-filter-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+    flex: 1 1 0%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .erp-filter-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 /* 🎨 Unified Filter & Dropdown Theme Styling */

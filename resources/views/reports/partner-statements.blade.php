@@ -148,90 +148,294 @@
         </div>
 
         {{-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (NO PAGE REFRESH NEEDED) ── --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 flex-1">
+        <div class="erp-filter-card">
+            <div class="erp-filter-container">
+                <div class="erp-filter-grid-6">
                     
-                    {{-- 1. Partner Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    {{-- 1. Live Instant Search Input --}}
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
                         </div>
-                        <select x-model="filters.partner_id" @change="currentPage = 1"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Partners</option>
-                            @foreach($partners as $p)
-                                <option value="{{ $p->id }}">{{ $p->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
-
-                    {{-- 2. Project Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        </div>
-                        <select x-model="filters.project_id" @change="currentPage = 1"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Projects</option>
-                            @foreach($projects as $proj)
-                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <input type="text" x-model="filters.search" @input="currentPage = 1" placeholder="Search ref, partner, memo..." autocomplete="off"
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filters.search && filters.search.length > 0" style="display: none;">
+                            <button type="button" @click="filters.search = ''; currentPage = 1" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
                     </div>
 
-                    {{-- 3. Date Range Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                        <select x-model="filters.date_range" @change="handleDateRangeChange()"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="inception">Project Inception to Date</option>
-                            <option value="this_month">This Month</option>
-                            <option value="this_quarter">This Quarter</option>
-                            <option value="this_fy">This Financial Year</option>
-                            <option value="custom">Custom Date Range</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    {{-- 2. Partner Filter (Custom Popover) --}}
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            search: '',
+                            getSelectedName() {
+                                if (!filters.partner_id) return '— All Partners —';
+                                const part = partners.find(x => String(x.id) === String(filters.partner_id));
+                                return part ? part.name : '— All Partners —';
+                            },
+                            getFilteredList() {
+                                if (!this.search) return partners;
+                                const s = this.search.toLowerCase();
+                                return partners.filter(p => p.name.toLowerCase().includes(s));
+                            },
+                            select(id) {
+                                filters.partner_id = id;
+                                currentPage = 1;
+                                this.open = false;
+                                this.search = '';
+                            },
+                            clear() {
+                                filters.partner_id = '';
+                                currentPage = 1;
+                                this.open = false;
+                                this.search = '';
+                            }
+                         }" 
+                         @click.outside="open = false">
+                        <button type="button"
+                                @click="open = !open; if(open) { $nextTick(() => $refs.partSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.partner_id ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedName()">— All Partners —</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.partner_id">
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" 
+                             style="display: none;">
+                            
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="partners.length > 5">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="search" x-ref="partSearchInput" placeholder="Search partner..." 
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="open = false">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.partSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- All Partners Option --}}
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="clear()" 
+                                     class="erp-dropdown-option"
+                                     :class="!filters.partner_id ? 'selected-all' : ''">
+                                    <span>— All Partners —</span>
+                                </div>
+                                <template x-for="p in getFilteredList()" :key="p.id">
+                                    <div @click="select(p.id)" 
+                                         class="erp-dropdown-option"
+                                         :class="String(filters.partner_id) === String(p.id) ? 'selected' : ''">
+                                        <span class="truncate" x-text="p.name"></span>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 4. From Date --}}
+                    {{-- 3. Project Filter (Custom Popover) --}}
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            search: '',
+                            getSelectedName() {
+                                if (!filters.project_id) return '— All Projects —';
+                                const proj = projects.find(x => String(x.id) === String(filters.project_id));
+                                return proj ? proj.name : '— All Projects —';
+                            },
+                            getFilteredList() {
+                                if (!this.search) return projects;
+                                const s = this.search.toLowerCase();
+                                return projects.filter(p => p.name.toLowerCase().includes(s));
+                            },
+                            select(id) {
+                                filters.project_id = id;
+                                currentPage = 1;
+                                this.open = false;
+                                this.search = '';
+                            },
+                            clear() {
+                                filters.project_id = '';
+                                currentPage = 1;
+                                this.open = false;
+                                this.search = '';
+                            }
+                         }" 
+                         @click.outside="open = false">
+                        <button type="button"
+                                @click="open = !open; if(open) { $nextTick(() => $refs.projSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.project_id ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedName()">— All Projects —</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.project_id">
+                                    <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" 
+                             style="display: none;">
+                            
+                            {{-- Search Input inside Popover --}}
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="projects.length > 5">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="search" x-ref="projSearchInput" placeholder="Search project..." 
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="open = false">
+                                    <template x-if="search">
+                                        <button type="button" @click="search = ''; $refs.projSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- All Projects Option --}}
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="clear()" 
+                                     class="erp-dropdown-option"
+                                     :class="!filters.project_id ? 'selected-all' : ''">
+                                    <span>— All Projects —</span>
+                                </div>
+                                <template x-for="p in getFilteredList()" :key="p.id">
+                                    <div @click="select(p.id)" 
+                                         class="erp-dropdown-option"
+                                         :class="String(filters.project_id) === String(p.id) ? 'selected' : ''">
+                                        <span class="truncate" x-text="p.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Date Range Filter (Custom Popover) --}}
+                    <div class="relative w-full" 
+                         x-data="{ 
+                            open: false, 
+                            getRangeLabel() {
+                                if (filters.date_range === 'this_month') return 'This Month';
+                                if (filters.date_range === 'this_quarter') return 'This Quarter';
+                                if (filters.date_range === 'this_fy') return 'This Financial Year';
+                                if (filters.date_range === 'custom') return 'Custom Date Range';
+                                return 'Project Inception to Date';
+                            },
+                            select(val) {
+                                filters.date_range = val;
+                                handleDateRangeChange();
+                                this.open = false;
+                            }
+                         }" 
+                         @click.outside="open = false">
+                        <button type="button" @click="open = !open"
+                                class="erp-dropdown-trigger"
+                                :class="open ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold text-slate-800" x-text="getRangeLabel()">Project Inception to Date</span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <div x-show="open" x-cloak class="erp-dropdown-popover">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="select('inception')" class="erp-dropdown-option" :class="filters.date_range === 'inception' || !filters.date_range ? 'selected-all' : ''">
+                                    <span>Project Inception to Date</span>
+                                </div>
+                                <div @click="select('this_month')" class="erp-dropdown-option" :class="filters.date_range === 'this_month' ? 'selected' : ''">
+                                    <span>This Month</span>
+                                </div>
+                                <div @click="select('this_quarter')" class="erp-dropdown-option" :class="filters.date_range === 'this_quarter' ? 'selected' : ''">
+                                    <span>This Quarter</span>
+                                </div>
+                                <div @click="select('this_fy')" class="erp-dropdown-option" :class="filters.date_range === 'this_fy' ? 'selected' : ''">
+                                    <span>This Financial Year</span>
+                                </div>
+                                <div @click="select('custom')" class="erp-dropdown-option" :class="filters.date_range === 'custom' ? 'selected' : ''">
+                                    <span>Custom Date Range</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 5. From Date --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <input type="date" x-model="filters.from_date" @change="filters.date_range = 'custom'; currentPage = 1"
                                title="From Date"
-                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer">
+                               class="w-full erp-input erp-date-input">
                     </div>
 
-                    {{-- 5. To Date --}}
+                    {{-- 6. To Date --}}
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <input type="date" x-model="filters.to_date" @change="filters.date_range = 'custom'; currentPage = 1"
                                title="To Date"
-                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer">
+                               class="w-full erp-input erp-date-input">
                     </div>
 
                 </div>
 
-                {{-- Single Reset Filters Button (No Refresh, No Apply Button) --}}
+                {{-- Signature Gold RESET FILTERS Button --}}
                 <div class="shrink-0 flex items-center">
                     <button type="button" @click="resetFilters()"
-                            class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group">
-                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            class="theme-btn h-[38px] px-5 py-2 text-xs font-extrabold flex items-center justify-center gap-2 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>RESET FILTERS</span>
                     </button>
                 </div>
@@ -251,18 +455,18 @@
                 <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Transaction Date</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Partner Name</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Reference / Voucher No.</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Description / Transaction Type</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Profit Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Payout Released<br><span class="text-[9px] font-normal text-white/80">(Debit - Rs.)</span></th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Running Payable Balance<br><span class="text-[9px] font-normal text-white/80">(Rs.)</span></th>
-                            <th class="px-4 py-3.5 text-center text-white font-extrabold w-24">Actions</th>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-xs text-left border-collapse table-auto">
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Transaction Date</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Reference / Voucher No.</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">Description / Transaction Type</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Profit Share Allocated<br><span class="text-[9px] font-normal opacity-80">(Credit - Rs.)</span></th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Released<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Running Payable Balance<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-4 py-3.5 erp-table-header text-center w-24 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
@@ -365,18 +569,18 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Partner Name</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Role / Entity Type</th>
-                            <th class="px-5 py-3.5 text-center text-white font-extrabold border-r border-[#8e7a23]">Agreed Share (%)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Allocated Net Profit (Rs.)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Capital Contributions (Rs.)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Payouts Released (Rs.)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Current Net Balance Owed (Rs.)</th>
-                            <th class="px-4 py-3.5 text-center text-white font-extrabold">Action</th>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-xs text-left border-collapse table-auto">
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Role / Entity Type</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Agreed Share (%)</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Total Allocated Net Profit (Rs.)</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Capital Contributions (Rs.)</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Total Payouts Released (Rs.)</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Current Net Balance Owed (Rs.)</th>
+                            <th class="px-4 py-3.5 erp-table-header text-center whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
@@ -772,10 +976,11 @@ function partnerStatementApp() {
         showPayoutModal: false,
         filters: {
             partner_id: '{{ request('partner_id', '') }}',
-            project_id: '{{ request('project_id', '') }}',
+            project_id: '{{ request('project_id', $projects->first()?->id ?? '') }}',
             date_range: '{{ request('date_range', 'inception') }}',
             from_date: '{{ $dateFrom ?? '' }}',
             to_date: '{{ $dateTo ?? '' }}',
+            search: '{{ request('search', '') }}',
         },
         pageSize: 10,
         currentPage: 1,
@@ -995,6 +1200,16 @@ function partnerStatementApp() {
                 list = list.filter(r => r.date <= this.filters.to_date);
             }
 
+            if (this.filters.search && this.filters.search.trim()) {
+                const q = this.filters.search.toLowerCase().trim();
+                list = list.filter(r => 
+                    (r.partner_name && String(r.partner_name).toLowerCase().includes(q)) ||
+                    (r.ref_no && String(r.ref_no).toLowerCase().includes(q)) ||
+                    (r.description && String(r.description).toLowerCase().includes(q)) ||
+                    (r.date && String(r.date).toLowerCase().includes(q))
+                );
+            }
+
             // Recalculate running balance live
             let bal = 0;
             return list.map(item => {
@@ -1036,8 +1251,18 @@ function partnerStatementApp() {
         },
 
         get filteredMatrixList() {
-            if (!this.filters.partner_id) return this.matrixList;
-            return this.matrixList.filter(p => String(p.id) === String(this.filters.partner_id));
+            let list = this.matrixList;
+            if (this.filters.partner_id) {
+                list = list.filter(p => String(p.id) === String(this.filters.partner_id));
+            }
+            if (this.filters.search && this.filters.search.trim()) {
+                const q = this.filters.search.toLowerCase().trim();
+                list = list.filter(p => 
+                    (p.name && String(p.name).toLowerCase().includes(q)) ||
+                    (p.role && String(p.role).toLowerCase().includes(q))
+                );
+            }
+            return list;
         },
 
         get totalMatrixAgreedPct() {
@@ -1085,10 +1310,11 @@ function partnerStatementApp() {
 
         resetFilters() {
             this.filters.partner_id = '';
-            this.filters.project_id = '';
+            this.filters.project_id = '{{ $projects->first()?->id ?? '' }}';
             this.filters.date_range = 'inception';
             this.filters.from_date = '';
             this.filters.to_date = '';
+            this.filters.search = '';
             this.currentPage = 1;
         },
 

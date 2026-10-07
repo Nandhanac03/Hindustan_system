@@ -108,14 +108,14 @@
 
     <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
     <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm mb-6 transition-all relative" :class="{ 'opacity-50 pointer-events-none': isLoading }">
-        <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+    <div class="erp-filter-card mb-6 relative" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+        <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="erp-filter-container">
             <input type="hidden" name="vendor_id" :value="filterVendorId">
             <input type="hidden" name="project_id" :value="filterProjectId">
             <input type="hidden" name="category_code" :value="filterCategoryCode">
             <input type="hidden" name="payment_status" :value="filterPaymentStatus">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-1">
+            <div class="erp-filter-grid-5">
                 
                 {{-- 1. Vendor / Payee Filter (Custom Gold Searchable Popover) --}}
                 <div class="relative w-full" @click.outside="vendorFilterOpen = false">
