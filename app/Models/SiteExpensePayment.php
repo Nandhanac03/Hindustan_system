@@ -26,6 +26,7 @@ class SiteExpensePayment extends Model
         'reference_no',
         'voucher_id',
         'status',
+        'is_historical',
         'remarks',
         'created_by',
     ];

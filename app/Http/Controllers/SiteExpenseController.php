@@ -719,11 +719,13 @@ class SiteExpenseController extends Controller
             'payment_mode'            => 'required|string|max:50',
             'reference_no'            => 'nullable|string|max:100',
             'remarks'                 => 'nullable|string|max:1000',
+            'is_historical'           => 'nullable|boolean',
         ], [
             'paid_amount.max' => 'The disbursement amount cannot exceed the outstanding balance of ₹' . number_format($balance, 2),
         ]);
 
         $paidAmount = (float) $validated['paid_amount'];
+        $isHistorical = $request->boolean('is_historical');
 
         DB::beginTransaction();
         try {
@@ -738,7 +740,7 @@ class SiteExpenseController extends Controller
                     'type'           => 'Payment',
                     'date'           => $validated['payment_date'],
                     'status'         => 'Posted',
-                    'narration'      => $validated['remarks'] ?? "Site Expense Payment Release for #{$siteExpense->voucher_number} - {$siteExpense->expense_category_name}",
+                    'narration'      => ($validated['remarks'] ?? "Site Expense Payment Release for #{$siteExpense->voucher_number} - {$siteExpense->expense_category_name}") . ($isHistorical ? ' [Historical]' : ''),
                     'reference_no'   => $validated['reference_no'] ?? null,
                     'created_by'     => Auth::id() ?? 1,
                 ]);
@@ -757,12 +759,15 @@ class SiteExpenseController extends Controller
                 'reference_no'            => $validated['reference_no'] ?? null,
                 'voucher_id'              => $voucher?->id,
                 'status'                  => 'paid',
+                'is_historical'           => $isHistorical,
                 'remarks'                 => $validated['remarks'] ?? null,
                 'created_by'              => Auth::id(),
             ]);
 
-            // 3. Balance deduction from bank / loan
-            if ($validated['payment_source_type'] === 'bank' && !empty($validated['company_bank_account_id'])) {
+            // 3. Balance deduction from bank / loan (skip for historical entries)
+            if ($isHistorical) {
+                // Historical: keep balances unchanged
+            } elseif ($validated['payment_source_type'] === 'bank' && !empty($validated['company_bank_account_id'])) {
                 $bankAccount = CompanyBankAccount::find($validated['company_bank_account_id']);
                 if ($bankAccount) {
                     $bankAccount->decrement('current_balance', $paidAmount);

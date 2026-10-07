@@ -2094,7 +2094,17 @@
                             <p x-show="hasAttemptedDisburseSubmit && !disburseRefNo" class="mt-1 text-[10px] font-bold text-rose-600">The reference number field is required.</p>
                         </div>
                     </div>
-
+                    <div>
+                        <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                            <div class="pt-0.5">
+                                <input type="checkbox" name="is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
+                                <span class="text-[10px] text-slate-500 font-medium">Check if recording a past payment. Voucher is created but the company bank balance is not updated and it will not reflect on the Treasury.</span>
+                            </div>
+                        </label>
+                    </div>
                     <!-- ── LIVE BANK BALANCE & EXPENSE OUTFLOW ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
                     <div x-show="disburseSourceType === 'bank'" class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
                         <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">

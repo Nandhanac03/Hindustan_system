@@ -207,6 +207,9 @@ class TreasuryController extends Controller
         // Outward Debits: Site Expense Payments
         $allSiteExpenses = \App\Models\SiteExpensePayment::with(['companyBankAccount'])
             ->whereNotNull('company_bank_account_id')
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
             ->orderByDesc('payment_date')
             ->orderByDesc('id')
             ->get();
@@ -568,6 +571,9 @@ class TreasuryController extends Controller
         // 3. OUTFLOW: Site Expense Payments
         $sepPayments = \App\Models\SiteExpensePayment::with('companyBankAccount')
             ->whereNotNull('company_bank_account_id')
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
             ->get();
 
         foreach ($sepPayments as $sep) {
