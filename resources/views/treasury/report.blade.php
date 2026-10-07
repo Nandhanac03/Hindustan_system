@@ -185,7 +185,7 @@
         break-after: avoid !important;
     }
     table#treasuryReportTable thead th {
-        background-color: #a38c29 !important;
+        background-color: var(--erp-table-header-bg, #534E47) !important;
         color: #ffffff !important;
         font-size: 6.8pt !important;
         font-weight: 800 !important;
@@ -777,19 +777,6 @@
 
     {{-- ── 4. Comprehensive Transactions Ledger Table Card ── --}}
     <div class="treasury-table-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mt-6 print:mt-0">
-        <style>
-            #treasuryReportTable thead th {
-                border-color: #8a7522 !important;
-                background-color: #a38c29 !important;
-                color: #ffffff !important;
-            }
-            #treasuryReportTbody tr:nth-child(even) {
-                background-color: #F6F3E9 !important;
-            }
-            #treasuryReportTbody tr:hover {
-                background-color: #ebe5d0 !important;
-            }
-        </style>
 
         {{-- Table Header Bar (Integrated with Dynamic Showing Info) --}}
         <div class="treasury-table-header-box px-6 py-4 bg-slate-50/60 border-b border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -843,8 +830,8 @@
                         <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Date & Voucher</th>
                         <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Bank Account</th>
                         <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-left">Transaction Particulars</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap text-emerald-300">Inflow (₹)</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap text-rose-300">Outflow (₹)</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Inflow (₹)</th>
+                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Outflow (₹)</th>
                         <th class="py-3.5 px-3.5 erp-table-header text-right whitespace-nowrap">Running Bal (₹)</th>
                     </tr>
                 </thead>

@@ -313,13 +313,13 @@
                 {{-- Search Input with Gold Icon --}}
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
                     <input type="text" x-model="searchQuery" @input="filterRows()"
-                           placeholder="Search by Code or Account Name..." 
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           placeholder="Search by Code or Account Name..." autocomplete="off"
+                           class="w-full erp-search-input pl-10 pr-9">
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="searchQuery" style="display: none;">
                         <button type="button" @click="searchQuery = ''; filterRows()"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
@@ -328,52 +328,117 @@
                     </div>
                 </div>
 
-                {{-- Account Head Name Filter Dropdown with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
-                        </svg>
-                    </div>
-                    <select x-model="selectedAccountFilter" @change="filterRows()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Account Head Names</option>
-                        @foreach($accounts as $accountItem)
-                            <option value="{{ $accountItem->id }}">
-                                {{ $accountItem->account_code }} - {{ $accountItem->account_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Account Head Name Filter (Searchable Custom Popover) --}}
+                <div class="relative w-full" @click.outside="accountDropdownOpen = false">
+                    <button type="button"
+                            @click="accountDropdownOpen = !accountDropdownOpen; if(accountDropdownOpen) { $nextTick(() => $refs.accSearchInput?.focus()); }"
+                            class="erp-dropdown-trigger"
+                            :class="accountDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="selectedAccountFilter ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedAccountName()">— All Account Head Names —</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedAccountFilter">
+                                <span @click.stop="clearAccountFilter()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="accountDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="accountDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" style="display: none;">
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="accountDropdownSearch" x-ref="accSearchInput" placeholder="Search account..."
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="accountDropdownOpen = false">
+                                <template x-if="accountDropdownSearch">
+                                    <button type="button" @click="accountDropdownSearch = ''; $refs.accSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="clearAccountFilter()" class="erp-dropdown-option" :class="!selectedAccountFilter ? 'selected-all' : ''">
+                                <span>— All Account Head Names —</span>
+                            </div>
+                            <template x-for="a in getFilteredAccountsList()" :key="a.id">
+                                <div @click="selectAccountFilter(a.id)" class="erp-dropdown-option" :class="String(selectedAccountFilter) === String(a.id) ? 'selected' : ''">
+                                    <span class="truncate" x-text="a.account_code + ' - ' + a.account_name"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Status Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
-                        </svg>
-                    </div>
-                    <select x-model="balanceStatusFilter" @change="filterRows()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="all">All Statuses</option>
-                        <option value="configured">Configured (> 0)</option>
-                        <option value="zero">Zero (0.00)</option>
-                        <option value="locked">Locked Balances</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Status Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="statusDropdownOpen = false">
+                    <button type="button"
+                            @click="statusDropdownOpen = !statusDropdownOpen"
+                            class="erp-dropdown-trigger"
+                            :class="statusDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="balanceStatusFilter !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="balanceStatusFilter === 'configured' ? 'Configured (> 0)' : (balanceStatusFilter === 'zero' ? 'Zero (0.00)' : (balanceStatusFilter === 'locked' ? 'Locked Balances' : '— All Statuses —'))">— All Statuses —</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="balanceStatusFilter !== 'all'">
+                                <span @click.stop="selectStatusFilter('all')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="statusDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectStatusFilter('all')" class="erp-dropdown-option" :class="balanceStatusFilter === 'all' ? 'selected-all' : ''">
+                                <span>— All Statuses —</span>
+                            </div>
+                            <div @click="selectStatusFilter('configured')" class="erp-dropdown-option" :class="balanceStatusFilter === 'configured' ? 'selected' : ''">
+                                <span>Configured (> 0)</span>
+                            </div>
+                            <div @click="selectStatusFilter('zero')" class="erp-dropdown-option" :class="balanceStatusFilter === 'zero' ? 'selected' : ''">
+                                <span>Zero (0.00)</span>
+                            </div>
+                            <div @click="selectStatusFilter('locked')" class="erp-dropdown-option" :class="balanceStatusFilter === 'locked' ? 'selected' : ''">
+                                <span>Locked Balances</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Reset Filters Button (Gold gradient matching picture) --}}
+            {{-- Reset Filters Button --}}
             <button type="button" @click="resetAllFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset Filters</span>
+                <span>RESET FILTERS</span>
             </button>
         </div>
     </div>
@@ -386,7 +451,7 @@
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-xs text-left border-collapse min-w-[980px]">
                     <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[10px] font-black uppercase tracking-wider">
+                        <tr class="erp-table-header bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider">
                             <th class="px-3.5 py-3 w-12 text-center">SL NO</th>
                             <th class="px-3.5 py-3 w-28 text-center">ACCOUNT CODE</th>
                             <th class="px-4 py-3 min-w-[180px] text-left">ACCOUNT HEAD NAME</th>
@@ -1087,6 +1152,42 @@ function openingBalanceMasterApp() {
         selectedAccountFilter: '',
         showBankSubAccounts: false,
         is1001RowVisible: true,
+        accountDropdownOpen: false,
+        accountDropdownSearch: '',
+        statusDropdownOpen: false,
+        allAccountsList: @json($accounts->map(fn($a) => ['id' => $a->id, 'account_code' => $a->account_code, 'account_name' => $a->account_name])),
+
+        getSelectedAccountName() {
+            if (!this.selectedAccountFilter) return '— All Account Head Names —';
+            const a = this.allAccountsList.find(x => String(x.id) === String(this.selectedAccountFilter));
+            return a ? (a.account_code + ' - ' + a.account_name) : '— All Account Head Names —';
+        },
+
+        getFilteredAccountsList() {
+            if (!this.accountDropdownSearch) return this.allAccountsList;
+            const s = this.accountDropdownSearch.toLowerCase();
+            return this.allAccountsList.filter(a => (a.account_code || '').toLowerCase().includes(s) || (a.account_name || '').toLowerCase().includes(s));
+        },
+
+        selectAccountFilter(id) {
+            this.selectedAccountFilter = id;
+            this.accountDropdownOpen = false;
+            this.accountDropdownSearch = '';
+            this.filterRows();
+        },
+
+        clearAccountFilter() {
+            this.selectedAccountFilter = '';
+            this.accountDropdownOpen = false;
+            this.accountDropdownSearch = '';
+            this.filterRows();
+        },
+
+        selectStatusFilter(val) {
+            this.balanceStatusFilter = val;
+            this.statusDropdownOpen = false;
+            this.filterRows();
+        },
 
         bankAccountsData: {
             @if(isset($companyBankAccounts))
@@ -1104,6 +1205,9 @@ function openingBalanceMasterApp() {
             this.activeTypeFilter = '';
             this.balanceStatusFilter = 'all';
             this.selectedAccountFilter = '';
+            this.accountDropdownOpen = false;
+            this.accountDropdownSearch = '';
+            this.statusDropdownOpen = false;
             this.is1001RowVisible = true;
             this.filterRows();
         },

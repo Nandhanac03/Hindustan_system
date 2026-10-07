@@ -52,9 +52,9 @@
         </div>
 
         {{-- Ultra-Clean Modern Search & Filter Panel (Live Instant Filter) --}}
-        <div class="erp-filter-card">
-            <div class="erp-filter-container">
-                <div class="erp-filter-grid-5">
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all erp-filter-card">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 erp-filter-container">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-1 erp-filter-grid-5">
                     
                     {{-- 1. Live Instant Search Input --}}
                     <div class="relative group">
@@ -497,7 +497,7 @@
                                                    x-ref="modalBankSearchInput"
                                                    placeholder="Search bank name, account no, branch..." 
                                                    class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                                            <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 0 0114 0z"/></svg>
+                                            <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                         </div>
                                     </div>
 
@@ -615,7 +615,7 @@
                     <button type="button" @click="openViewModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-sm cursor-pointer">✕</button>
                 </div>
 
-                <div class="p-6 space-y-4 text-xs" x-if="selectedContribution">
+                <div class="p-6 space-y-4 text-xs" x-show="selectedContribution">
                     <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div>
                             <span class="text-slate-400 font-semibold block uppercase text-[10px]">Date</span>

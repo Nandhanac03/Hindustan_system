@@ -142,54 +142,107 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm transition-all">
             <div @submit.prevent="" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
-                    
-                    <!-- Search Input with Icon -->
+                                       <!-- Search Input with Icon -->
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 11-14 0 0114 0z"/>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
-                        <input type="text" placeholder="Search Voucher No, Ref, Narration..." x-model="filters.search" @input="currentPage = 1"
-                               class="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        <input type="text" placeholder="Search Voucher No, Ref, Narration..." x-model="filters.search" @input="currentPage = 1" autocomplete="off"
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div x-show="filters.search" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
+                            <button type="button" @click="filters.search = ''; currentPage = 1"
+                                    class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Voucher Type Filter with Icon -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/></svg>
-                        </div>
-                        <select x-model="filters.voucher_type_id" @change="currentPage = 1"
-                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="">All Voucher Types</option>
-                            @foreach($voucherTypes as $vt)
-                                <option value="{{ $vt->id }}">{{ $vt->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <!-- Voucher Type Filter (Custom Gold Popover) -->
+                    <div class="relative w-full" @click.outside="vtDropdownOpen = false">
+                        <button type="button"
+                                @click="vtDropdownOpen = !vtDropdownOpen; if(vtDropdownOpen) { $nextTick(() => $refs.vtSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="vtDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.voucher_type_id ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedVoucherTypeName()">— All Voucher Types —</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.voucher_type_id">
+                                    <span @click.stop="clearVoucherType()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="vtDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+                        <div x-show="vtDropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" style="display: none;">
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="voucherTypesList.length > 5">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="vtDropdownSearch" x-ref="vtSearchInput" placeholder="Search voucher type..."
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="vtDropdownOpen = false">
+                                    <template x-if="vtDropdownSearch">
+                                        <button type="button" @click="vtDropdownSearch = ''; $refs.vtSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="clearVoucherType()" class="erp-dropdown-option" :class="!filters.voucher_type_id ? 'selected-all' : ''">
+                                    <span>— All Voucher Types —</span>
+                                </div>
+                                <template x-for="vt in getFilteredVoucherTypes()" :key="vt.id">
+                                    <div @click="selectVoucherType(vt.id)" class="erp-dropdown-option" :class="String(filters.voucher_type_id) === String(vt.id) ? 'selected' : ''">
+                                        <span class="truncate" x-text="vt.name"></span>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
                     <!-- From Date -->
-                    <div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
                         <input type="date" x-model="filters.from_date" @change="currentPage = 1"
-                               class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                               title="From Date"
+                               class="w-full erp-input erp-date-input">
                     </div>
 
                     <!-- To Date -->
-                    <div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
                         <input type="date" x-model="filters.to_date" @change="currentPage = 1"
-                               class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                               title="To Date"
+                               class="w-full erp-input erp-date-input">
                     </div>
 
                 </div>
 
                 <!-- Reset Filters Button (No Page Reload) -->
                 <button type="button" @click="resetFilters()"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
                     <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Reset Filters</span>
+                    <span>RESET FILTERS</span>
                 </button>
             </div>
         </div>
@@ -199,7 +252,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider">
+                        <tr class="erp-table-header bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider">
                             <th class="px-4 py-3.5 text-center w-12">#</th>
                             <th class="px-4 py-3.5">VOUCHER NO</th>
                             <th class="px-4 py-3.5">DATE</th>
@@ -365,7 +418,7 @@
                             <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
                                 <table id="journal-entries-table" class="w-full text-left border-collapse">
                                     <thead>
-                                        <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                                        <tr class="bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider">
                                             <th class="px-3.5 py-3 w-4/12">Account Head *</th>
                                             <th class="px-3.5 py-3 text-right w-2/12">Debit (DR)</th>
                                             <th class="px-3.5 py-3 text-right w-2/12">Credit (CR)</th>
@@ -570,7 +623,7 @@
 
                         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-[#a38c29] text-white font-bold uppercase text-[10px]">
+                                <thead class="erp-table-header bg-[#17365D] text-white font-black uppercase text-[10px] tracking-wider">
                                     <tr>
                                         <th class="px-4 py-2.5">Account Head</th>
                                         <th class="px-4 py-2.5 text-right">Debit (₹)</th>
@@ -642,6 +695,31 @@
                     rows: {},
                     bankRows: {},
                     pettyRows: {}
+                },
+                voucherTypesList: @json($voucherTypes),
+                vtDropdownOpen: false,
+                vtDropdownSearch: '',
+                getSelectedVoucherTypeName() {
+                    if (!this.filters.voucher_type_id) return '— All Voucher Types —';
+                    const vt = this.voucherTypesList.find(x => String(x.id) === String(this.filters.voucher_type_id));
+                    return vt ? vt.name : '— All Voucher Types —';
+                },
+                getFilteredVoucherTypes() {
+                    if (!this.vtDropdownSearch) return this.voucherTypesList;
+                    const s = this.vtDropdownSearch.toLowerCase();
+                    return this.voucherTypesList.filter(vt => (vt.name || '').toLowerCase().includes(s) || (vt.code || '').toLowerCase().includes(s) || (vt.prefix || '').toLowerCase().includes(s));
+                },
+                selectVoucherType(id) {
+                    this.filters.voucher_type_id = String(id);
+                    this.currentPage = 1;
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
+                },
+                clearVoucherType() {
+                    this.filters.voucher_type_id = '';
+                    this.currentPage = 1;
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
                 },
                 filters: {
                     search: '',
@@ -803,6 +881,8 @@
                         from_date: '',
                         to_date: ''
                     };
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
                     this.currentPage = 1;
                 },
 

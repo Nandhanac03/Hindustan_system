@@ -2723,7 +2723,8 @@ class ReportController extends Controller
         }
 
         // Filters
-        $selectedProjectId = $request->input('project_id', 'all');
+        $firstProjectId = $allProjects->first()?->id ?? 'all';
+        $selectedProjectId = $request->input('project_id', $firstProjectId);
         $periodType = $request->input('period_type', 'fy');
         $viewMode = $request->input('view_mode', 'detailed'); // 'detailed' | 'summary'
         $hideZero = $request->boolean('hide_zero', false);
@@ -3011,13 +3012,11 @@ class ReportController extends Controller
                 'is_zero'         => $isZero,
             ];
 
-            if (!$hideZero || !$isZero) {
-                $groupsData[$groupKey]['accounts'][] = $accountRow;
-                $groupsData[$groupKey]['opening_balance'] += $openingBalance;
-                $groupsData[$groupKey]['period_debit']    += $periodDr;
-                $groupsData[$groupKey]['period_credit']   += $periodCr;
-                $groupsData[$groupKey]['closing_balance'] += ($closingSide === ($type === 'ASSET' || $type === 'EXPENSE' ? 'Dr' : 'Cr') ? $closingNet : -$closingNet);
-            }
+            $groupsData[$groupKey]['accounts'][] = $accountRow;
+            $groupsData[$groupKey]['opening_balance'] += $openingBalance;
+            $groupsData[$groupKey]['period_debit']    += $periodDr;
+            $groupsData[$groupKey]['period_credit']   += $periodCr;
+            $groupsData[$groupKey]['closing_balance'] += ($closingSide === ($type === 'ASSET' || $type === 'EXPENSE' ? 'Dr' : 'Cr') ? $closingNet : -$closingNet);
         }
 
         // Format group closing sides

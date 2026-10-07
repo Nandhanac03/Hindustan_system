@@ -13,52 +13,27 @@ class ChartOfAccountController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = ChartOfAccount::orderBy('account_code');
-
-        if ($request->filled('search')) {
-            $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('account_code', 'like', "%{$search}%")
-                  ->orWhere('account_name', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('account_type')) {
-            $query->where('account_type', $request->input('account_type'));
-        }
-
-        if ($request->filled('status')) {
-            $status = $request->input('status');
-            if ($status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($status === 'inactive') {
-                $query->where('is_active', false);
-            }
-        }
-
-        $accounts = $query->paginate(20)->withQueryString();
-
-        $all = ChartOfAccount::all();
+        $all = ChartOfAccount::orderBy('account_code')->get();
         $totalAccounts   = $all->count();
         $assetCount      = $all->where('account_type', 'ASSET')->count();
         $liabilityCount  = $all->where('account_type', 'LIABILITY')->count();
         $revenueCount    = $all->where('account_type', 'REVENUE')->count();
         $expenseCount    = $all->where('account_type', 'EXPENSE')->count();
-        $equityCount    = $all->where('account_type', 'EQUITY')->count();
-        
+        $equityCount     = $all->where('account_type', 'EQUITY')->count();
 
         $isLocked = \App\Models\AccountingSetting::isOpeningBalanceLocked();
 
-        return view('chart-of-accounts.index', compact(
-            'accounts',
-            'totalAccounts',
-            'assetCount',
-            'liabilityCount',
-            'revenueCount',
-            'expenseCount',
-            'equityCount',
-            'isLocked'
-        ));
+        return view('chart-of-accounts.index', [
+            'accounts'       => $all,
+            'allAccounts'    => $all,
+            'totalAccounts'  => $totalAccounts,
+            'assetCount'     => $assetCount,
+            'liabilityCount' => $liabilityCount,
+            'revenueCount'   => $revenueCount,
+            'expenseCount'   => $expenseCount,
+            'equityCount'    => $equityCount,
+            'isLocked'       => $isLocked,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

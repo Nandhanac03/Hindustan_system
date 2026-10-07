@@ -225,111 +225,194 @@ function gstReportApp() {
         </div>
     </div>
 
-    {{-- 3. Ultra-Clean Modern Search & Filter Panel (Matching Units page style with icons & fonts) --}}
+    {{-- 3. Ultra-Clean Modern Search & Filter Panel (ERP Global Design System) --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 flex-1">
             {{-- Search Input --}}
             <div class="relative group col-span-1 sm:col-span-2 xl:col-span-1">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input type="text" placeholder="Search Invoice, Customer, Entity..." 
+                <input type="text" placeholder="Search Invoice, Customer, Entity..." autocomplete="off"
                        x-model="filters.search"
-                       class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                       class="w-full erp-search-input pl-10 pr-9">
                 
                 {{-- Clear Button --}}
                 <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                    <button type="button" x-show="filters.search" @click="filters.search = ''"
-                            class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                    <button type="button" x-show="filters.search" @click="filters.search = ''" style="display: none;"
+                            class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
             {{-- Financial Year Filter --}}
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-                <select x-model="filters.fy"
-                        :class="filters.fy ? 'border-[#a38c29] ring-2 ring-[#a38c29]/20' : 'border-slate-250'"
-                        class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                    <option value="2026-2027">FY: 2026-2027</option>
-                    <option value="2025-2026">FY: 2025-2026</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <div class="relative w-full" x-data="{
+                open: false,
+                selectOption(val) {
+                    filters.fy = val;
+                    this.open = false;
+                }
+            }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span x-text="filters.fy ? 'FY: ' + filters.fy : 'Select FY'" class="truncate text-xs font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover w-full" style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                        <div @click="selectOption('2026-2027')" class="erp-dropdown-option" :class="filters.fy === '2026-2027' ? 'selected' : ''">
+                            <span>FY: 2026-2027</span>
+                        </div>
+                        <div @click="selectOption('2025-2026')" class="erp-dropdown-option" :class="filters.fy === '2025-2026' ? 'selected' : ''">
+                            <span>FY: 2025-2026</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {{-- From Date --}}
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <input type="date" x-model="filters.date_from"
-                       class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                       class="w-full erp-input erp-date-input">
             </div>
 
             {{-- To Date --}}
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <input type="date" x-model="filters.date_to"
-                       class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs">
+                       class="w-full erp-input erp-date-input">
             </div>
 
             {{-- Return Filing Period Filter --}}
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <select x-model="filters.filing_period"
-                        class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                    <option value="">All Filing Periods</option>
-                    <option value="August - 2026">August - 2026</option>
-                    <option value="July - 2026">July - 2026</option>
-                    <option value="June - 2026">June - 2026</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <div class="relative w-full" x-data="{
+                open: false,
+                selectOption(val) {
+                    filters.filing_period = val;
+                    this.open = false;
+                }
+            }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="filters.filing_period || 'All Filing Periods'" class="truncate text-xs font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.filing_period">
+                            <span @click.stop="filters.filing_period = ''; open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover w-full" style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                        <div @click="selectOption('')" class="erp-dropdown-option" :class="!filters.filing_period ? 'selected-all' : ''">
+                            <span>All Filing Periods</span>
+                        </div>
+                        <div @click="selectOption('August - 2026')" class="erp-dropdown-option" :class="filters.filing_period === 'August - 2026' ? 'selected' : ''">
+                            <span>August - 2026</span>
+                        </div>
+                        <div @click="selectOption('July - 2026')" class="erp-dropdown-option" :class="filters.filing_period === 'July - 2026' ? 'selected' : ''">
+                            <span>July - 2026</span>
+                        </div>
+                        <div @click="selectOption('June - 2026')" class="erp-dropdown-option" :class="filters.filing_period === 'June - 2026' ? 'selected' : ''">
+                            <span>June - 2026</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {{-- Report Type Filter --}}
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                    </svg>
-                </div>
-                <select x-model="filters.section"
-                        class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                    <option value="all">Summary (All Sections)</option>
-                    <option value="sales">Output Tax (Sales)</option>
-                    <option value="suppliers">Input Tax Credit (ITC)</option>
-                    <option value="extra_works">Extra Works</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <div class="relative w-full" x-data="{
+                open: false,
+                getLabel() {
+                    if (filters.section === 'sales') return 'Output Tax (Sales)';
+                    if (filters.section === 'suppliers') return 'Input Tax Credit (ITC)';
+                    if (filters.section === 'extra_works') return 'Extra Works';
+                    return 'Summary (All Sections)';
+                },
+                selectOption(val) {
+                    filters.section = val;
+                    this.open = false;
+                }
+            }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
+                    <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        <span x-text="getLabel()" class="truncate text-xs font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.section && filters.section !== 'all'">
+                            <span @click.stop="filters.section = 'all'; open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover w-full" style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                        <div @click="selectOption('all')" class="erp-dropdown-option" :class="filters.section === 'all' || !filters.section ? 'selected-all' : ''">
+                            <span>Summary (All Sections)</span>
+                        </div>
+                        <div @click="selectOption('sales')" class="erp-dropdown-option" :class="filters.section === 'sales' ? 'selected' : ''">
+                            <span>Output Tax (Sales)</span>
+                        </div>
+                        <div @click="selectOption('suppliers')" class="erp-dropdown-option" :class="filters.section === 'suppliers' ? 'selected' : ''">
+                            <span>Input Tax Credit (ITC)</span>
+                        </div>
+                        <div @click="selectOption('extra_works')" class="erp-dropdown-option" :class="filters.section === 'extra_works' ? 'selected' : ''">
+                            <span>Extra Works</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         {{-- Reset Filters Button --}}
         <button type="button" @click="resetFilters()"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] px-6 py-2.5 text-xs font-black text-white shadow-sm transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-6 py-2.5 text-xs font-black text-white shadow-xs transition duration-200 flex-shrink-0 uppercase tracking-wider group cursor-pointer active:scale-95 whitespace-nowrap">
             <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span>RESET FILTERS</span>
         </button>
@@ -384,7 +467,7 @@ function gstReportApp() {
         <div x-show="tab === 'summary'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
             <table class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                    <tr class="erp-table-header text-white border-b-2 border-slate-700 text-[10px] font-black uppercase tracking-widest shadow-xs">
                         <th class="px-5 py-3.5 text-white font-extrabold">Tax Type</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Taxable Value (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">CGST (₹)</th>
@@ -424,7 +507,7 @@ function gstReportApp() {
         <div x-show="tab !== 'summary'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
             <table id="reportsTable" class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                    <tr class="erp-table-header text-white border-b-2 border-slate-700 text-[10px] font-black uppercase tracking-widest shadow-xs">
                         <th class="px-4 py-3 text-white font-extrabold">Tax Nature / Section</th>
                         <th class="px-4 py-3 text-white font-extrabold">Invoice No</th>
                         <th class="px-4 py-3 text-center text-white font-extrabold">Date</th>

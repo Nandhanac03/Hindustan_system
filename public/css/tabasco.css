@@ -135,15 +135,18 @@ tr.sales-desk-table-header th {
 .erp-select,
 .erp-filter-input,
 .erp-search-input,
-.erp-border-input {
+.erp-border-input,
+.erp-date-input {
     width: 100%;
     height: 38px !important;
     padding: 0 0.875rem;
     border: 1px solid var(--erp-border-idle) !important;
     background-color: #f8fafc;
     color: #1e293b;
-    border-radius: 0.75rem !important; /* rounded-xl */
-    font-size: 0.75rem;     /* text-xs */
+    border-radius: 0.75rem !important;
+    /* rounded-xl */
+    font-size: 0.75rem;
+    /* text-xs */
     font-weight: 600;
     transition: all 0.2s ease-in-out;
     outline: none !important;
@@ -153,7 +156,8 @@ tr.sales-desk-table-header th {
 /* Dedicated search input with icon spacing */
 .erp-search-input,
 .erp-filter-input.erp-search-input {
-    padding-left: 2.25rem !important; /* 36px padding-left ensures icon never overlaps placeholder text */
+    padding-left: 2.25rem !important;
+    /* 36px padding-left ensures icon never overlaps placeholder text */
     padding-right: 2rem !important;
 }
 
@@ -161,8 +165,10 @@ tr.sales-desk-table-header th {
 .erp-date-input,
 .erp-filter-input.erp-date-input,
 input[type="date"].erp-input,
-input[type="date"].erp-filter-input {
-    padding-left: 2.35rem !important; /* Ensures calendar icon on the left never overlaps the date digits */
+input[type="date"].erp-filter-input,
+input[type="date"].erp-date-input {
+    padding-left: 2.35rem !important;
+    /* Ensures calendar icon on the left never overlaps the date digits */
     padding-right: 0.625rem !important;
 }
 
@@ -184,7 +190,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .erp-select:hover,
 .erp-filter-input:hover,
 .erp-search-input:hover,
-.erp-border-input:hover {
+.erp-border-input:hover,
+.erp-date-input:hover {
     background-color: #ffffff;
     border-color: var(--erp-border-hover) !important;
 }
@@ -194,11 +201,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .erp-filter-input:focus,
 .erp-search-input:focus,
 .erp-border-input:focus,
+.erp-date-input:focus,
 .erp-input:focus-visible,
 .erp-select:focus-visible,
 .erp-filter-input:focus-visible,
 .erp-search-input:focus-visible,
-.erp-border-input:focus-visible {
+.erp-border-input:focus-visible,
+.erp-date-input:focus-visible {
     background-color: #ffffff !important;
     border-color: var(--erp-border-focus) !important;
     box-shadow: 0 0 0 3px var(--erp-focus-ring) !important;

@@ -64,44 +64,71 @@
                 {{-- Search Input with Icon --}}
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" x-model="search" placeholder="Search by Code, Display Name, Prefix, or Description..." 
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                    <input type="text" x-model="search" placeholder="Search by Code, Display Name, Prefix, or Description..." autocomplete="off"
+                           class="w-full erp-search-input pl-10 pr-9">
                     <div x-show="search" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
                         <button type="button" @click="search = ''"
-                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
 
-                {{-- Status Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
-                        </svg>
-                    </div>
-                    <select x-model="statusFilter"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                {{-- Status Filter (Custom Gold Popover) --}}
+                <div class="relative w-full" x-data="{ open: false }" @click.outside="open = false">
+                    <button type="button"
+                            @click="open = !open"
+                            class="erp-dropdown-trigger"
+                            :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="statusFilter ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="statusFilter === 'active' ? 'Active Types' : (statusFilter === 'inactive' ? 'Inactive Types' : '— All Statuses —')">— All Statuses —</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="statusFilter">
+                                <span @click.stop="statusFilter = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="statusFilter = ''; open = false" class="erp-dropdown-option" :class="!statusFilter ? 'selected-all' : ''">
+                                <span>— All Statuses —</span>
+                            </div>
+                            <div @click="statusFilter = 'active'; open = false" class="erp-dropdown-option" :class="statusFilter === 'active' ? 'selected' : ''">
+                                <span>Active Types</span>
+                            </div>
+                            <div @click="statusFilter = 'inactive'; open = false" class="erp-dropdown-option" :class="statusFilter === 'inactive' ? 'selected' : ''">
+                                <span>Inactive Types</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Reset Filters Button --}}
             <button type="button" @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset Filters</span>
+                <span>RESET FILTERS</span>
             </button>
         </div>
     </div>
@@ -111,7 +138,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
+                    <tr class="erp-table-header bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider text-left">
                         <th class="px-4 py-3.5">ID</th>
                         <th class="px-4 py-3.5">CODE</th>
                         <th class="px-4 py-3.5">DISPLAY NAME</th>

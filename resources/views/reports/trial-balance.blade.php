@@ -1,14 +1,6 @@
 <x-erp-layout title="Trial Balance Workspace" headerTitle="Accounting & Financial Reports">
 
-<div class="w-full space-y-6" x-data="{
-    collapsedGroups: {},
-    toggleGroup(code) {
-        this.collapsedGroups[code] = !this.collapsedGroups[code];
-    },
-    isGroupCollapsed(code) {
-        return !!this.collapsedGroups[code];
-    }
-}">
+<div class="w-full space-y-6" x-data="trialBalanceApp()">
 
     <!-- ── 1. HEADER & BREADCRUMBS ── -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
@@ -51,87 +43,194 @@
         </div>
     </div>
 
-    {{-- PILL STYLE FILTER BAR (EXACT PROFIT & LOSS STYLE) --}}
-    <form id="trialBalanceForm" action="{{ route('reports.trial_balance') }}" method="GET" class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs relative">
-        <div class="flex flex-wrap items-center gap-3">
-            
-            {{-- 1. Project (Default First) --}}
-            <div class="flex-1 min-w-[170px] relative">
-                <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-slate-400 pointer-events-none z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </span>
-                    <select name="project_id" onchange="this.form.submit()" class="w-full bg-[#F5F4F0] hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl pl-9 pr-8 py-2.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs relative z-0">
-                        @foreach($allProjects as $proj)
-                            <option value="{{ $proj->id }}" {{ (string)$selectedProjectId === (string)$proj->id ? 'selected' : '' }}>{{ $proj->name }}</option>
-                        @endforeach
-                        <option value="all" {{ (string)$selectedProjectId === 'all' ? 'selected' : '' }}>All Projects</option>
-                    </select>
+    <!-- ── 2. ULTRA-CLEAN MODERN SEARCH & FILTER PANEL (MATCHING COMMON ERP THEME) ── -->
+    <form id="trialBalanceForm" action="{{ route('reports.trial_balance') }}" method="GET" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 flex-1">
+                
+                {{-- 1. Search Account Code / Name (Instant in-memory filtering) --}}
+                <div class="relative group col-span-1 sm:col-span-2 lg:col-span-1">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" placeholder="Search Code, Account..." x-model="searchQuery" autocomplete="off"
+                           class="w-full erp-search-input pl-10 pr-9">
+                    <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
+                        <button type="button" @click="searchQuery = ''"
+                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
+
+                {{-- 2. Project Filter (Custom Gold Popover with Search, Default First) --}}
+                <div class="relative w-full" @click.outside="projectDropdownOpen = false">
+                    <input type="hidden" name="project_id" :value="selectedProjectId">
+                    <button type="button"
+                            @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { $nextTick(() => $refs.projSearchInput?.focus()); }"
+                            class="erp-dropdown-trigger"
+                            :class="projectDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="selectedProjectId && selectedProjectId !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="selectedProjectName">All Projects</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedProjectId && selectedProjectId !== 'all'">
+                                <span @click.stop="selectProject('all', 'All Projects')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="projectDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[240px]" style="display: none;">
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="projectSearch" x-ref="projSearchInput" placeholder="Search project..."
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="projectDropdownOpen = false">
+                                <template x-if="projectSearch">
+                                    <button type="button" @click="projectSearch = ''; $refs.projSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-56">
+                            <div @click="selectProject('all', 'All Projects')" 
+                                 x-show="!projectSearch || 'All Projects'.toLowerCase().includes(projectSearch.toLowerCase())"
+                                 class="erp-dropdown-option" :class="selectedProjectId === 'all' ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($allProjects as $proj)
+                                <div @click="selectProject('{{ $proj->id }}', '{{ addslashes($proj->name) }}')"
+                                     x-show="!projectSearch || '{{ strtolower(addslashes($proj->name)) }}'.includes(projectSearch.toLowerCase())"
+                                     class="erp-dropdown-option" :class="String(selectedProjectId) === '{{ (string)$proj->id }}' ? 'selected' : ''">
+                                    <span class="truncate">{{ $proj->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. Period Type Dropdown --}}
+                <div class="relative w-full" @click.outside="periodDropdownOpen = false">
+                    <input type="hidden" name="period_type" :value="periodType">
+                    <button type="button" @click="periodDropdownOpen = !periodDropdownOpen" class="erp-dropdown-trigger" :class="periodDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="truncate text-xs font-bold text-slate-900" x-text="periodTypeLabel">Financial Year</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="periodDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="periodDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover w-full" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectPeriodType('fy', 'Financial Year')" class="erp-dropdown-option" :class="periodType === 'fy' ? 'selected-all' : ''">
+                                <span>Financial Year</span>
+                            </div>
+                            <div @click="selectPeriodType('quarter', 'Quarter')" class="erp-dropdown-option" :class="periodType === 'quarter' ? 'selected' : ''">
+                                <span>Quarter</span>
+                            </div>
+                            <div @click="selectPeriodType('month', 'Month')" class="erp-dropdown-option" :class="periodType === 'month' ? 'selected' : ''">
+                                <span>Month</span>
+                            </div>
+                            <div @click="selectPeriodType('custom', 'Custom Date Range')" class="erp-dropdown-option" :class="periodType === 'custom' ? 'selected' : ''">
+                                <span>Custom Date Range</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. From Date --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <input type="date" name="from_date" id="fromDateInput" x-model="fromDate" @change="submitPeriodDates()"
+                           title="From Date"
+                           class="w-full erp-input erp-date-input">
+                </div>
+
+                {{-- 5. To Date --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <input type="date" name="to_date" id="toDateInput" x-model="toDate" @change="submitPeriodDates()"
+                           title="To Date"
+                           class="w-full erp-input erp-date-input">
+                </div>
+
+                {{-- 6. Report Level / View Mode (Instant In-Memory Toggle) --}}
+                <div class="relative w-full" @click.outside="viewModeDropdownOpen = false">
+                    <input type="hidden" name="view_mode" :value="viewMode">
+                    <button type="button" @click="viewModeDropdownOpen = !viewModeDropdownOpen" class="erp-dropdown-trigger" :class="viewModeDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            <span class="truncate text-xs font-bold text-slate-900" x-text="viewMode === 'detailed' ? 'Detailed View' : 'Summary View'">Detailed View</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="viewModeDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="viewModeDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover w-full" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectViewMode('detailed')" class="erp-dropdown-option" :class="viewMode === 'detailed' ? 'selected-all' : ''">
+                                <span>Detailed View</span>
+                            </div>
+                            <div @click="selectViewMode('summary')" class="erp-dropdown-option" :class="viewMode === 'summary' ? 'selected' : ''">
+                                <span>Summary View</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            {{-- 2. Period Type --}}
-            <div class="flex-1 min-w-[150px] relative">
-                <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-[#a38c29] pointer-events-none z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </span>
-                    <select name="period_type" id="periodTypeSelect" onchange="onPeriodTypeChange(this.value)" class="w-full bg-[#F5F4F0] hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl pl-9 pr-8 py-2.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs relative z-0">
-                        <option value="fy" {{ $periodType === 'fy' ? 'selected' : '' }}>Financial Year</option>
-                        <option value="quarter" {{ $periodType === 'quarter' ? 'selected' : '' }}>Quarter</option>
-                        <option value="month" {{ $periodType === 'month' ? 'selected' : '' }}>Month</option>
-                        <option value="custom" {{ $periodType === 'custom' ? 'selected' : '' }}>Custom Date Range</option>
-                    </select>
-                </div>
-            </div>
-
-            {{-- 3. From Date --}}
-            <div class="flex-1 min-w-[140px] relative">
-                <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-slate-400 pointer-events-none z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </span>
-                    <input type="date" name="from_date" id="fromDateInput" value="{{ $fromDate }}" onchange="this.form.submit()" class="w-full bg-[#F5F4F0] hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs relative z-0">
-                </div>
-            </div>
-
-            {{-- 4. To Date --}}
-            <div class="flex-1 min-w-[140px] relative">
-                <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-slate-400 pointer-events-none z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </span>
-                    <input type="date" name="to_date" id="toDateInput" value="{{ $toDate }}" onchange="this.form.submit()" class="w-full bg-[#F5F4F0] hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs relative z-0">
-                </div>
-            </div>
-
-            {{-- 5. Report Level / View Mode --}}
-            <div class="flex-1 min-w-[150px] relative">
-                <div class="relative flex items-center">
-                    <span class="absolute left-3.5 text-slate-400 pointer-events-none z-10">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                    </span>
-                    <select name="view_mode" onchange="this.form.submit()" class="w-full bg-[#F5F4F0] hover:bg-white focus:bg-white border border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl pl-9 pr-8 py-2.5 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs relative z-0">
-                        <option value="detailed" {{ $viewMode === 'detailed' ? 'selected' : '' }}>Detailed</option>
-                        <option value="summary" {{ $viewMode === 'summary' ? 'selected' : '' }}>Summary</option>
-                    </select>
-                </div>
-            </div>
-
-            {{-- 6. Hide Zero Balance Toggle Pill --}}
-            <div class="bg-[#F5F4F0] hover:bg-white border border-slate-200 hover:border-[#a38c29] rounded-xl px-3.5 py-2 flex items-center h-[38px] transition shrink-0 shadow-2xs">
-                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                    <input type="checkbox" name="hide_zero" value="1" {{ $hideZero ? 'checked' : '' }} onchange="document.getElementById('trialBalanceForm').submit()" class="w-3.5 h-3.5 rounded text-[#a38c29] border-slate-300 focus:ring-[#a38c29] cursor-pointer">
+            <div class="flex items-center gap-3 shrink-0">
+                {{-- 7. Hide Zero Balance Checkbox (Instant In-Memory Toggle) --}}
+                <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-[#a38c29] h-[38px] transition cursor-pointer select-none">
+                    <input type="checkbox" x-model="hideZero" class="w-4 h-4 rounded text-[#a38c29] border-slate-300 focus:ring-[#a38c29] cursor-pointer">
                     <span class="text-xs font-bold text-slate-700 whitespace-nowrap">Hide Zero</span>
                 </label>
+
+                {{-- 8. Signature Gold RESET FILTERS Button --}}
+                <button type="button" @click="resetFilters()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>RESET FILTERS</span>
+                </button>
             </div>
-
-            {{-- 7. RESET FILTERS BUTTON (EXACT P&L STYLE) --}}
-            <a href="{{ route('reports.trial_balance') }}" class="px-5 py-2.5 bg-[#8C7A2E] hover:bg-[#786826] text-white text-xs font-extrabold rounded-xl transition shadow-xs flex items-center gap-2 uppercase tracking-wider shrink-0 cursor-pointer hover:-translate-y-0.5 active:scale-95" title="Reset Filters">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>RESET FILTERS</span>
-            </a>
-
         </div>
     </form>
 
@@ -184,7 +283,7 @@
         <div class="overflow-x-auto">
             <table id="trialBalanceTable" class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a741f] text-[10.5px] font-black uppercase tracking-widest shadow-xs">
+                    <tr class="erp-table-header bg-[#17365D] text-white border-b-2 border-slate-700 text-[10.5px] font-black uppercase tracking-widest shadow-xs">
                         <th class="px-5 py-3.5 w-36 text-white font-extrabold tracking-wider">ACCOUNT CODE</th>
                         <th class="px-5 py-3.5 text-white font-extrabold tracking-wider">ACCOUNT NAME / GROUP</th>
                         <th class="px-5 py-3.5 text-right w-44 text-white font-extrabold tracking-wider">OPENING BALANCE (₹)</th>
@@ -202,11 +301,12 @@
 
                         <!-- Group Header Row (Rich Gold/Amber Themed) -->
                         <tr class="bg-amber-50/60 hover:bg-amber-100/60 transition-colors font-bold border-t-2 border-b border-amber-200/70 cursor-pointer select-none"
+                            x-show="isGroupVisible('{{ $grp['code'] }}')"
                             @click="toggleGroup('{{ $grp['code'] }}')">
                             
                             <td class="px-5 py-3 font-mono font-black text-slate-900 text-xs">
                                 <div class="flex items-center gap-2">
-                                    @if($viewMode === 'detailed' && $hasAccounts)
+                                    <template x-if="viewMode === 'detailed' && {{ $hasAccounts ? 'true' : 'false' }}">
                                         <div class="w-5 h-5 rounded-md bg-white border border-amber-300 text-[#a38c29] flex items-center justify-center shrink-0 shadow-2xs">
                                             <svg class="w-3 h-3 transition-transform duration-200"
                                                  :class="isGroupCollapsed('{{ $grp['code'] }}') ? '-rotate-90' : 'rotate-0'"
@@ -214,7 +314,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                             </svg>
                                         </div>
-                                    @endif
+                                    </template>
                                     <span class="px-2.5 py-0.5 bg-[#a38c29] text-white rounded-md text-[11px] font-mono font-black shadow-2xs">
                                         {{ $grp['code'] }}
                                     </span>
@@ -250,9 +350,9 @@
                         </tr>
 
                         <!-- Sub-Accounts (Detailed View) -->
-                        @if($viewMode === 'detailed' && $hasAccounts)
+                        @if($hasAccounts)
                             @foreach($grp['accounts'] as $acc)
-                            <tr x-show="!isGroupCollapsed('{{ $grp['code'] }}')"
+                            <tr x-show="viewMode === 'detailed' && !isGroupCollapsed('{{ $grp['code'] }}') && isAccountVisible({{ $acc['is_zero'] ? 'true' : 'false' }}, '{{ $acc['code'] }}', '{{ addslashes($acc['name']) }}')"
                                 class="hover:bg-amber-50/30 transition-colors bg-white">
                                 
                                 <td class="px-5 py-2.5 font-mono text-slate-500 pl-12 text-[11px] font-bold">
@@ -318,49 +418,112 @@
         </div>
     </div>
 
-    <!-- ── 5. INFORMATIONAL FOOTNOTE (ERP BRAND ACCENT) ── -->
-    <!-- <div class="p-4 rounded-xl bg-amber-50/50 border border-amber-200/80 flex items-center gap-3 text-xs text-slate-700 font-medium shadow-2xs">
-        <div class="w-7 h-7 rounded-lg bg-amber-100/80 text-[#8a7522] border border-amber-200 flex items-center justify-center shrink-0 font-black text-sm">
-            ℹ
-        </div>
-         <p>
-            <strong class="text-slate-900 font-bold">Audit Note:</strong> Figures are dynamically aggregated based on all posted vouchers across the ERP system for the selected period. Click on any account name to inspect its detailed general ledger statement.
-        </p> 
-    </div> -->
-
 </div>
 
-<!-- ── SCRIPTS FOR PERIOD PRESETS & EXCEL EXPORT ── -->
+<!-- ── SCRIPTS FOR PERIOD PRESETS, ALPINE APP & EXCEL EXPORT ── -->
 <script>
-function onPeriodTypeChange(type) {
-    const today = new Date();
-    const fromInput = document.getElementById('fromDateInput');
-    const toInput = document.getElementById('toDateInput');
+function trialBalanceApp() {
+    return {
+        collapsedGroups: {},
+        searchQuery: '',
+        viewMode: '{{ $viewMode }}',
+        hideZero: {{ $hideZero ? 'true' : 'false' }},
+        selectedProjectId: '{{ (string)$selectedProjectId }}',
+        selectedProjectName: '{{ (string)$selectedProjectId === 'all' ? 'All Projects' : addslashes($allProjects->firstWhere('id', $selectedProjectId)?->name ?? 'Select Project') }}',
+        projectDropdownOpen: false,
+        projectSearch: '',
+        periodType: '{{ $periodType }}',
+        periodTypeLabel: '{{ $periodType === 'fy' ? 'Financial Year' : ($periodType === 'quarter' ? 'Quarter' : ($periodType === 'month' ? 'Month' : 'Custom Date Range')) }}',
+        periodDropdownOpen: false,
+        viewModeDropdownOpen: false,
+        fromDate: '{{ $fromDate }}',
+        toDate: '{{ $toDate }}',
+        groups: @json(array_values($groupsData)),
 
-    if (type === 'fy') {
-        fromInput.value = '2025-04-01';
-        toInput.value = '2026-03-31';
-    } else if (type === 'quarter') {
-        const curMonth = today.getMonth();
-        const qStartMonth = Math.floor(curMonth / 3) * 3;
-        const qStart = new Date(today.getFullYear(), qStartMonth, 1);
-        const qEnd = new Date(today.getFullYear(), qStartMonth + 3, 0);
-        fromInput.value = formatDateYmd(qStart);
-        toInput.value = formatDateYmd(qEnd);
-    } else if (type === 'month') {
-        const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const mEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        fromInput.value = formatDateYmd(mStart);
-        toInput.value = formatDateYmd(mEnd);
-    }
-    document.getElementById('trialBalanceForm').submit();
-}
-
-function formatDateYmd(d) {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+        toggleGroup(code) {
+            this.collapsedGroups[code] = !this.collapsedGroups[code];
+        },
+        isGroupCollapsed(code) {
+            return !!this.collapsedGroups[code];
+        },
+        selectProject(id, name) {
+            this.selectedProjectId = id;
+            this.selectedProjectName = name;
+            this.projectDropdownOpen = false;
+            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
+        },
+        selectPeriodType(type, label) {
+            this.periodType = type;
+            this.periodTypeLabel = label;
+            this.periodDropdownOpen = false;
+            const today = new Date();
+            if (type === 'fy') {
+                this.fromDate = '2025-04-01';
+                this.toDate = '2026-03-31';
+            } else if (type === 'quarter') {
+                const curMonth = today.getMonth();
+                const qStartMonth = Math.floor(curMonth / 3) * 3;
+                const qStart = new Date(today.getFullYear(), qStartMonth, 1);
+                const qEnd = new Date(today.getFullYear(), qStartMonth + 3, 0);
+                this.fromDate = this.formatDateYmd(qStart);
+                this.toDate = this.formatDateYmd(qEnd);
+            } else if (type === 'month') {
+                const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                const mEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                this.fromDate = this.formatDateYmd(mStart);
+                this.toDate = this.formatDateYmd(mEnd);
+            }
+            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
+        },
+        submitPeriodDates() {
+            this.periodType = 'custom';
+            this.periodTypeLabel = 'Custom Date Range';
+            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
+        },
+        formatDateYmd(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
+        selectViewMode(mode) {
+            this.viewMode = mode;
+            this.viewModeDropdownOpen = false;
+        },
+        isAccountVisible(isZero, code, name) {
+            if (this.hideZero && isZero) return false;
+            if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase().trim();
+                const matchCode = String(code).toLowerCase().includes(q);
+                const matchName = String(name).toLowerCase().includes(q);
+                if (!matchCode && !matchName) return false;
+            }
+            return true;
+        },
+        isGroupVisible(grpCode) {
+            const grp = this.groups.find(g => String(g.code) === String(grpCode));
+            if (!grp) return true;
+            if (!this.searchQuery && !this.hideZero) return true;
+            const matchingAccounts = (grp.accounts || []).filter(a => this.isAccountVisible(a.is_zero, a.code, a.name));
+            if (matchingAccounts.length > 0) return true;
+            if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase().trim();
+                if (String(grp.code).toLowerCase().includes(q) || String(grp.name).toLowerCase().includes(q)) {
+                    return true;
+                }
+            }
+            return !this.hideZero && !this.searchQuery;
+        },
+        resetFilters() {
+            this.searchQuery = '';
+            this.viewMode = 'detailed';
+            this.hideZero = false;
+            this.projectDropdownOpen = false;
+            this.periodDropdownOpen = false;
+            this.viewModeDropdownOpen = false;
+            this.projectSearch = '';
+        }
+    };
 }
 
 function exportTrialBalanceToExcel() {
