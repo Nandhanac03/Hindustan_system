@@ -45,7 +45,7 @@
 
         <div class="flex items-center gap-3">
             {{-- Project Selector --}}
-            <form method="GET" action="{{ route('unit-types.index') }}" class="flex items-center gap-2">
+            <!-- <form method="GET" action="{{ route('unit-types.index') }}" class="flex items-center gap-2">
                 <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Filter Project:</label>
                 <select name="project_id" onchange="this.form.submit()" class="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-300 bg-white shadow-sm text-slate-800 focus:ring-2 focus:ring-[#a38c29]/50">
                     <option value="">All Projects (Global & Scoped)</option>
@@ -55,7 +55,7 @@
                         </option>
                     @endforeach
                 </select>
-            </form>
+            </form> -->
 
             <button @click="openAddModal({{ $selectedProjectId ?? ($projects->first()?->id ?? 'null') }})" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -75,15 +75,15 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
-                        <th class="px-4 py-3.5 border border-[#8a7522]">SL NO</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">PROJECT / SCOPE</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">UNIT TYPE NAME</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">CATEGORY</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">LINKED UNITS</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522] text-center">STATUS</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522] text-right">ACTIONS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 w-16 text-center">SL NO</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">PROJECT / SCOPE</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">UNIT TYPE NAME</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">CATEGORY</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">LINKED UNITS</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">STATUS</th>
+                        <th class="px-4 py-3.5 erp-table-header text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-center">
@@ -154,10 +154,9 @@
         </div>
     </div>
 
-    <div>
     {{-- Add Modal --}}
     <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showAddModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showAddModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -222,7 +221,7 @@
 
     {{-- Edit Modal --}}
     <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showEditModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showEditModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -287,7 +286,7 @@
 
     {{-- View Modal --}}
     <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showViewModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showViewModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -337,8 +336,6 @@
                 </div>
             </div>
         </div>
-    </div>    </div>
-
     </div>
 
 </div>

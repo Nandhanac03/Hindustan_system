@@ -45,7 +45,7 @@
 
         <div class="flex items-center gap-3">
             {{-- Project Selector --}}
-            <form method="GET" action="{{ route('floors.index') }}" class="flex items-center gap-2">
+            <!-- <form method="GET" action="{{ route('floors.index') }}" class="flex items-center gap-2">
                 <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Filter Project:</label>
                 <select name="project_id" onchange="this.form.submit()" class="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-300 bg-white shadow-sm text-slate-800 focus:ring-2 focus:ring-[#a38c29]/50">
                     <option value="">All Projects</option>
@@ -55,7 +55,7 @@
                         </option>
                     @endforeach
                 </select>
-            </form>
+            </form> -->
 
             <button @click="openAddModal({{ $selectedProjectId ?? ($projects->first()?->id ?? 'null') }})" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -75,14 +75,14 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
-                        <th class="px-4 py-3.5 border border-[#8a7522]">SL NO</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">PROJECT NAME</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">FLOOR NUMBER</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">FLOOR NAME / LABEL</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">ASSIGNED UNITS</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522] text-right">ACTIONS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 w-16 text-center">SL NO</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">PROJECT NAME</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">FLOOR NUMBER</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">FLOOR NAME / LABEL</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">ASSIGNED UNITS</th>
+                        <th class="px-4 py-3.5 erp-table-header text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-center">
@@ -138,12 +138,9 @@
         </div>
     </div>
 
-    {{-- Modals Wrapper --}}
-    <div>
-
     {{-- Add Floor Modal --}}
     <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showAddModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showAddModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -177,8 +174,8 @@
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
                         <input type="number" name="floor_number" x-model="addForm.floor_number" @input="autoName()" required placeholder="e.g. 0 for Ground, -1 for Basement"
-                               :class="errors.floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                :class="errors.floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                         <template x-if="errors.floor_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.floor_number) ? errors.floor_number[0] : errors.floor_number"></p></template>
                         <p class="text-[9px] text-slate-400 mt-1.5 font-bold">Use negative numbers for basements (-1, -2) and 0 for Ground Floor.</p>
                     </div>
@@ -186,8 +183,8 @@
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
                         <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Ground Floor, Basement 1, Floor 1"
-                               :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                         <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                     </div>
                 </div>
@@ -202,7 +199,7 @@
 
     {{-- Edit Floor Modal --}}
     <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showEditModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showEditModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -224,16 +221,16 @@
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
                         <input type="number" name="floor_number" x-model="editForm.floor_number" required
-                               :class="errors.edit_floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                :class="errors.edit_floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                         <template x-if="errors.edit_floor_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_floor_number) ? errors.edit_floor_number[0] : errors.edit_floor_number"></p></template>
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
                         <input type="text" name="name" x-model="editForm.name" required
-                               :class="errors.edit_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                :class="errors.edit_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                         <template x-if="errors.edit_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_name) ? errors.edit_name[0] : errors.edit_name"></p></template>
                     </div>
                 </div>
@@ -248,7 +245,7 @@
 
     {{-- View Modal --}}
     <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" @click.away="showViewModal = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="showViewModal = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>

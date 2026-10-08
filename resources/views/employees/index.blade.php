@@ -1,43 +1,134 @@
 <x-erp-layout title="Employee Master">
-<div class="space-y-6 p-6" x-data="{
-    openAddModal: false,
-    openEditModal: false,
-    openDeleteModal: false,
-    openViewModal: false,
-    viewEmployee: { id: null, employee_id: '', name: '', designation: '', department: '', phone: '', email: '', joining_date: '', salary: '', status: 'active' },
-    editEmployee: { id: null, employee_id: '', name: '', designation: '', department: '', phone: '', email: '', joining_date: '', salary: '', status: 'active' },
-    deleteEmployee: { id: null, name: '' },
-    initView(emp) {
-        this.viewEmployee = { ...emp };
-        this.openViewModal = true;
-    },
-    initEdit(emp) {
-        this.editEmployee = { ...emp };
-        if (emp.joining_date) {
-            this.editEmployee.joining_date = String(emp.joining_date).substring(0, 10);
+<script>
+function employeeMasterComponent() {
+    return {
+        openAddModal: false,
+        openEditModal: false,
+        openDeleteModal: false,
+        openViewModal: false,
+        search: '',
+        selectedDept: '',
+        selectedDesig: '',
+        selectedStatus: '',
+        deptOpen: false,
+        desigOpen: false,
+        statusOpen: false,
+        existingDepartments: @json($existingDepartments),
+        existingDesignations: @json($existingDesignations),
+        employees: @json($employeesArray),
+        
+        currentPage: 1,
+        perPage: 15,
+
+        viewEmployee: { id: null, employee_id: '', name: '', designation: '', department: '', phone: '', email: '', joining_date: '', salary: '', status: 'active' },
+        editEmployee: { id: null, employee_id: '', name: '', designation: '', department: '', phone: '', email: '', joining_date: '', salary: '', status: 'active' },
+        deleteEmployee: { id: null, name: '' },
+
+        get filteredEmployees() {
+            const s = (this.search || '').toLowerCase().trim();
+            const dept = (this.selectedDept || '').trim();
+            const desig = (this.selectedDesig || '').trim();
+            const status = (this.selectedStatus || '').trim();
+
+            return this.employees.filter(emp => {
+                const matchSearch = !s || 
+                    (emp.name && emp.name.toLowerCase().includes(s)) ||
+                    (emp.employee_id && emp.employee_id.toLowerCase().includes(s)) ||
+                    (emp.designation && emp.designation.toLowerCase().includes(s)) ||
+                    (emp.department && emp.department.toLowerCase().includes(s)) ||
+                    (emp.phone && emp.phone.toLowerCase().includes(s)) ||
+                    (emp.email && emp.email.toLowerCase().includes(s));
+
+                const matchDept = !dept || emp.department === dept;
+                const matchDesig = !desig || emp.designation === desig;
+                const matchStatus = !status || emp.status === status;
+
+                return matchSearch && matchDept && matchDesig && matchStatus;
+            });
+        },
+
+        get totalFiltered() {
+            return this.filteredEmployees.length;
+        },
+
+        get totalPages() {
+            return Math.max(1, Math.ceil(this.totalFiltered / this.perPage));
+        },
+
+        get paginatedEmployees() {
+            if (this.currentPage > this.totalPages) {
+                this.currentPage = this.totalPages;
+            }
+            const start = (this.currentPage - 1) * this.perPage;
+            return this.filteredEmployees.slice(start, start + this.perPage);
+        },
+
+        get selectedDeptName() {
+            return this.selectedDept || 'All Departments';
+        },
+
+        get selectedDesigName() {
+            return this.selectedDesig || 'All Designations';
+        },
+
+        get selectedStatusName() {
+            if (this.selectedStatus === 'active') return 'Active';
+            if (this.selectedStatus === 'inactive') return 'Inactive';
+            return 'All Statuses';
+        },
+
+        resetFilters() {
+            this.search = '';
+            this.selectedDept = '';
+            this.selectedDesig = '';
+            this.selectedStatus = '';
+            this.deptOpen = false;
+            this.desigOpen = false;
+            this.statusOpen = false;
+            this.currentPage = 1;
+        },
+
+        goToPage(p) {
+            if (p >= 1 && p <= this.totalPages) {
+                this.currentPage = p;
+            }
+        },
+
+        initView(emp) {
+            this.viewEmployee = { ...emp };
+            this.openViewModal = true;
+        },
+        initEdit(emp) {
+            this.editEmployee = { ...emp };
+            if (emp.joining_date) {
+                this.editEmployee.joining_date = String(emp.joining_date).substring(0, 10);
+            }
+            this.editEmployee.salary = emp.salary ? Math.round(parseFloat(emp.salary)) : '';
+            this.openEditModal = true;
+        },
+        initDelete(emp) {
+            this.deleteEmployee = { ...emp };
+            this.openDeleteModal = true;
+        },
+        formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const parts = String(dateStr).substring(0, 10).split('-');
+            if (parts.length === 3) {
+                return parts[2] + '/' + parts[1] + '/' + parts[0];
+            }
+            return dateStr;
+        },
+        formatCurrency(val) {
+            return Number(parseFloat(val || 0).toFixed(2)).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
-        this.editEmployee.salary = emp.salary ? Math.round(parseFloat(emp.salary)) : '';
-        this.openEditModal = true;
-    },
-    initDelete(emp) {
-        this.deleteEmployee = { ...emp };
-        this.openDeleteModal = true;
-    },
-    formatDate(dateStr) {
-        if (!dateStr) return '—';
-        const parts = String(dateStr).substring(0, 10).split('-');
-        if (parts.length === 3) {
-            return parts[2] + '/' + parts[1] + '/' + parts[0];
-        }
-        return dateStr;
-    },
-    formatCurrency(val) {
-        return Number(parseFloat(val || 0).toFixed(2)).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-}">
+    };
+}
+</script>
+
+<div class="space-y-6 p-6" x-data="employeeMasterComponent()">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
@@ -111,175 +202,242 @@
         </div>
     </div>
 
-    {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
-        <form method="GET" action="{{ route('employees.index') }}" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+    {{-- Global Filter Panel (Zero Page Refresh) --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
-                {{-- Search Input with Icon --}}
+                {{-- Search Input with Global Search Style --}}
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Code, Name, Phone, Email..." 
-                           class="w-full pl-10 @if(request('search')) pr-10 @else pr-4 @endif py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
-                    @if(request('search'))
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                        <a href="{{ route('employees.index', request()->except('search')) }}"
-                           class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                    <input type="text" x-model="search" @input="currentPage = 1" placeholder="Search Code, Name, Phone, Email..." 
+                           class="erp-search-input w-full"
+                           @keydown.escape="search = ''; currentPage = 1">
+                    <template x-if="search">
+                        <button type="button" @click="search = ''; currentPage = 1" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-rose-500 cursor-pointer" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </a>
-                    </div>
-                    @endif
+                        </button>
+                    </template>
                 </div>
 
-                {{-- Department Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
-                        </svg>
+                {{-- Department Dropdown Filter (Custom Popover) --}}
+                <div class="relative" @click.outside="deptOpen = false">
+                    <div @click="deptOpen = !deptOpen; desigOpen = false; statusOpen = false"
+                         class="erp-dropdown-trigger cursor-pointer"
+                         :class="deptOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                            </svg>
+                            <span class="truncate font-bold text-slate-800" x-text="selectedDeptName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="deptOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
-                    <select name="department" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Departments</option>
-                        @foreach($existingDepartments as $dept)
-                            <option value="{{ $dept }}" {{ request('department') === $dept ? 'selected' : '' }}>{{ $dept }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
-
-                {{-- Designation Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </div>
-                    <select name="designation" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Designations</option>
-                        @foreach($existingDesignations as $desig)
-                            <option value="{{ $desig }}" {{ request('designation') === $desig ? 'selected' : '' }}>{{ $desig }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <div x-show="deptOpen" x-cloak class="erp-dropdown-popover" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedDept = ''; deptOpen = false; currentPage = 1"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="!selectedDept ? 'selected-all' : ''">
+                                <span>All Departments</span>
+                            </div>
+                            <template x-for="dept in existingDepartments" :key="dept">
+                                <div @click="selectedDept = dept; deptOpen = false; currentPage = 1"
+                                     class="erp-dropdown-option cursor-pointer"
+                                     :class="selectedDept === dept ? 'selected' : ''">
+                                    <span x-text="dept"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Status Filter with Icon --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
-                        </svg>
+                {{-- Designation Dropdown Filter (Custom Popover) --}}
+                <div class="relative" @click.outside="desigOpen = false">
+                    <div @click="desigOpen = !desigOpen; deptOpen = false; statusOpen = false"
+                         class="erp-dropdown-trigger cursor-pointer"
+                         :class="desigOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="truncate font-bold text-slate-800" x-text="selectedDesigName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="desigOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
-                    <select name="status" onchange="this.form.submit()"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Statuses</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <div x-show="desigOpen" x-cloak class="erp-dropdown-popover" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedDesig = ''; desigOpen = false; currentPage = 1"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="!selectedDesig ? 'selected-all' : ''">
+                                <span>All Designations</span>
+                            </div>
+                            <template x-for="desig in existingDesignations" :key="desig">
+                                <div @click="selectedDesig = desig; desigOpen = false; currentPage = 1"
+                                     class="erp-dropdown-option cursor-pointer"
+                                     :class="selectedDesig === desig ? 'selected' : ''">
+                                    <span x-text="desig"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Status Dropdown Filter (Custom Popover) --}}
+                <div class="relative" @click.outside="statusOpen = false">
+                    <div @click="statusOpen = !statusOpen; deptOpen = false; desigOpen = false"
+                         class="erp-dropdown-trigger cursor-pointer"
+                         :class="statusOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/>
+                            </svg>
+                            <span class="truncate font-bold text-slate-800" x-text="selectedStatusName"></span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="statusOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                    <div x-show="statusOpen" x-cloak class="erp-dropdown-popover" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedStatus = ''; statusOpen = false; currentPage = 1"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="!selectedStatus ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="selectedStatus = 'active'; statusOpen = false; currentPage = 1"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="selectedStatus === 'active' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="selectedStatus = 'inactive'; statusOpen = false; currentPage = 1"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="selectedStatus === 'inactive' ? 'selected' : ''">
+                                <span>Inactive</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- Reset Filters Button --}}
-            <a href="{{ route('employees.index') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0">
-                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset Filters</span>
-            </a>
-        </form>
+        {{-- Reset Filters Button (Zero Page Refresh) --}}
+        <button type="button" @click="resetFilters()"
+           class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+            <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Reset Filters</span>
+        </button>
     </div>
 
-    <!-- Data Table -->
+    <!-- Data Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
-                        <th class="px-4 py-3.5">ID</th>
-                        <th class="px-4 py-3.5">EMPLOYEE CODE</th>
-                        <th class="px-4 py-3.5">FULL NAME</th>
-                        <th class="px-4 py-3.5">DESIGNATION</th>
-                        <th class="px-4 py-3.5">DEPARTMENT</th>
-                        <th class="px-4 py-3.5">CONTACT</th>
-                        <th class="px-4 py-3.5">JOINING DATE</th>
-                        <th class="px-4 py-3.5 text-right">MONTHLY SALARY</th>
-                        <th class="px-4 py-3.5 text-center">STATUS</th>
-                        <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
+                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="erp-table-header border-b border-slate-700 text-left">
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 w-14 text-center">ID</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">EMPLOYEE CODE</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">FULL NAME</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">DESIGNATION</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">DEPARTMENT</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">CONTACT</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">JOINING DATE</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-right">MONTHLY SALARY</th>
+                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">STATUS</th>
+                        <th class="px-4 py-3.5 erp-table-header text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
-                    @forelse($employees as $emp)
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="px-4 py-3.5 font-bold text-slate-400 font-mono">#{{ $emp->id }}</td>
-                        <td class="px-4 py-3.5 font-bold font-mono text-[#a38c29]">{{ $emp->employee_id }}</td>
-                        <td class="px-4 py-3.5 font-bold text-slate-900">{{ $emp->name }}</td>
-                        <td class="px-4 py-3.5 font-semibold text-slate-800">{{ $emp->designation }}</td>
-                        <td class="px-4 py-3.5">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                {{ $emp->department ?: 'General' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3.5">
-                            <div class="font-semibold text-slate-700">{{ $emp->phone ?: '—' }}</div>
-                            <div class="text-[10px] text-slate-400 truncate max-w-[140px]">{{ $emp->email ?: '' }}</div>
-                        </td>
-                        <td class="px-4 py-3.5 font-mono text-slate-600" x-text="formatDate('{{ $emp->joining_date }}')"></td>
-                        <td class="px-4 py-3.5 text-right font-mono font-extrabold text-slate-900">₹{{ number_format((float) $emp->salary, 2) }}</td>
-                        <td class="px-4 py-3.5 text-center">
-                            @if($emp->status === 'active')
-                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
-                            @else
-                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">Inactive</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3.5 text-right pr-4 whitespace-nowrap">
-                            <div class="inline-flex items-center justify-end gap-1.5">
-                                {{-- View Trigger --}}
-                                <button type="button" @click="initView({{ json_encode($emp) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Details">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                </button>
-                                
-                                {{-- Edit Trigger --}}
-                                <button type="button" @click="initEdit({{ json_encode($emp) }})" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Edit Employee">
-                                    <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                </button>
+                    <template x-for="emp in paginatedEmployees" :key="emp.id">
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-4 py-3.5 font-bold text-slate-400 font-mono text-center" x-text="'#' + emp.id"></td>
+                            <td class="px-4 py-3.5 font-bold font-mono text-[#a38c29]" x-text="emp.employee_id"></td>
+                            <td class="px-4 py-3.5 font-bold text-slate-900" x-text="emp.name"></td>
+                            <td class="px-4 py-3.5 font-semibold text-slate-800" x-text="emp.designation"></td>
+                            <td class="px-4 py-3.5">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" x-text="emp.department || 'General'">
+                                </span>
+                            </td>
+                            <td class="px-4 py-3.5">
+                                <div class="font-semibold text-slate-700" x-text="emp.phone || '—'"></div>
+                                <div class="text-[10px] text-slate-400 truncate max-w-[140px]" x-text="emp.email || ''"></div>
+                            </td>
+                            <td class="px-4 py-3.5 font-mono text-slate-600" x-text="formatDate(emp.joining_date)"></td>
+                            <td class="px-4 py-3.5 text-right font-mono font-extrabold text-slate-900" x-text="'₹' + formatCurrency(emp.salary)"></td>
+                            <td class="px-4 py-3.5 text-center">
+                                <template x-if="emp.status === 'active'">
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
+                                </template>
+                                <template x-if="emp.status !== 'active'">
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">Inactive</span>
+                                </template>
+                            </td>
+                            <td class="px-4 py-3.5 text-right pr-4 whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    {{-- View Trigger --}}
+                                    <button type="button" @click="initView(emp)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                    
+                                    {{-- Edit Trigger --}}
+                                    <button type="button" @click="initEdit(emp)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Edit Employee">
+                                        <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
 
-                                {{-- Delete Trigger --}}
-                                <button type="button" @click="initDelete({{ json_encode($emp) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Delete Employee">
-                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No employee records configured.</td>
-                    </tr>
-                    @endforelse
+                                    {{-- Delete Trigger --}}
+                                    <button type="button" @click="initDelete(emp)" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Delete Employee">
+                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
+                    <template x-if="paginatedEmployees.length === 0">
+                        <tr>
+                            <td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No employee records match the selected filters.</td>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
-        @if(method_exists($employees, 'hasPages') && $employees->hasPages())
-        <div class="px-4 py-3 border-t border-slate-200 bg-slate-50">
-            {{ $employees->links() }}
+
+        {{-- Dynamic Client Pagination Bar --}}
+        <div x-show="totalFiltered > 0" class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 font-medium">
+                Showing <span class="font-bold text-slate-800" x-text="((currentPage - 1) * perPage) + 1"></span> to 
+                <span class="font-bold text-slate-800" x-text="Math.min(currentPage * perPage, totalFiltered)"></span> of 
+                <span class="font-bold text-slate-800" x-text="totalFiltered"></span> employees
+            </div>
+
+            <div class="flex items-center gap-1.5" x-show="totalPages > 1">
+                <button type="button" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
+                        :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 text-slate-700 cursor-pointer'"
+                        class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition bg-white">
+                    Previous
+                </button>
+
+                <template x-for="page in totalPages" :key="page">
+                    <button type="button" @click="goToPage(page)"
+                            :class="currentPage === page ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'"
+                            class="w-8 h-8 rounded-lg border text-xs font-bold transition flex items-center justify-center cursor-pointer"
+                            x-text="page">
+                    </button>
+                </template>
+
+                <button type="button" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
+                        :class="currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 text-slate-700 cursor-pointer'"
+                        class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition bg-white">
+                    Next
+                </button>
+            </div>
         </div>
-        @endif
     </div>
 
     <!-- View Modal -->
     <div x-show="openViewModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.outside="openViewModal = false">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openViewModal = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMPLOYEE MASTER</span>
@@ -333,7 +491,7 @@
 
     <!-- Add Modal -->
     <div x-show="openAddModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.outside="openAddModal = false">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openAddModal = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMPLOYEE MASTER</span>
@@ -388,7 +546,7 @@
 
     <!-- Edit Modal -->
     <div x-show="openEditModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.outside="openEditModal = false">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openEditModal = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMPLOYEE MASTER</span>
@@ -451,7 +609,7 @@
 
     <!-- Delete Modal -->
     <div x-show="openDeleteModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.outside="openDeleteModal = false">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openDeleteModal = false">
             <div class="bg-rose-950 p-5 text-white flex items-center justify-between border-b border-rose-900">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-rose-900/40 text-rose-200 text-[9px] font-black uppercase tracking-wider rounded border border-rose-800 mb-1">CONFIRMATION</span>
@@ -473,15 +631,15 @@
 
     {{-- Datalists populated ONLY from existing database records --}}
     <datalist id="empDesignationOptions">
-        @foreach($existingDesignations as $desig)
-            <option value="{{ $desig }}">
-        @endforeach
+        <template x-for="desig in existingDesignations" :key="desig">
+            <option :value="desig"></option>
+        </template>
     </datalist>
 
     <datalist id="empDepartmentOptions">
-        @foreach($existingDepartments as $dept)
-            <option value="{{ $dept }}">
-        @endforeach
+        <template x-for="dept in existingDepartments" :key="dept">
+            <option :value="dept"></option>
+        </template>
     </datalist>
 </div>
 </x-erp-layout>

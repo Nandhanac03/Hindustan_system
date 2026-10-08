@@ -99,13 +99,13 @@
             <!-- Table -->
             <div class="overflow-x-auto min-h-[400px]">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr>
-                            <th class="px-5 py-3 w-16 text-center">ID</th>
-                            <th class="px-5 py-3">Name</th>
-                            <th class="px-5 py-3">Color Code</th>
-                            <th class="px-5 py-3">Status</th>
-                            <th class="px-5 py-3 text-right w-28">Actions</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 w-16 text-center">ID</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">NAME</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">COLOR CODE</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center">STATUS</th>
+                            <th class="px-5 py-3.5 erp-table-header text-right pr-5 w-28">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -168,7 +168,7 @@
              
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModal()"></div>
 
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden"
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden border-0 ring-0 outline-none"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-8 scale-95"
                  x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -231,7 +231,7 @@
              
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeDeleteModal()"></div>
 
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden"
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden border-0 ring-0 outline-none"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-8 scale-95"
                  x-transition:enter-end="opacity-100 translate-y-0 scale-100"

@@ -14,48 +14,35 @@ class EngineerController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Engineer::with('project')->orderBy('engineer_code');
-
-        if ($request->filled('search')) {
-            $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('engineer_code', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('designation', 'like', "%{$search}%")
-                  ->orWhere('specialization', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->input('project_id'));
-        }
-
-        if ($request->filled('status')) {
-            $status = $request->input('status');
-            if ($status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($status === 'inactive') {
-                $query->where('is_active', false);
-            }
-        }
-
-        $engineers = $query->paginate(20)->withQueryString();
+        $engineers = Engineer::with('project')->orderBy('id', 'desc')->get();
         $projects  = Project::orderBy('name')->get();
 
-        $all = Engineer::all();
-        $totalEngineers  = $all->count();
-        $activeEngineers = $all->where('is_active', true)->count();
-        $assignedCount   = $all->whereNotNull('project_id')->count();
+        $totalEngineers  = $engineers->count();
+        $activeEngineers = $engineers->where('is_active', true)->count();
+        $assignedCount   = $engineers->whereNotNull('project_id')->count();
 
-        return view('engineers.index', compact(
-            'engineers',
-            'projects',
-            'totalEngineers',
-            'activeEngineers',
-            'assignedCount'
-        ));
+        return view('engineers.index', [
+            'engineers' => $engineers,
+            'engineersArray' => $engineers->map(function ($eng) {
+                return [
+                    'id' => $eng->id,
+                    'engineer_code' => $eng->engineer_code,
+                    'name' => $eng->name,
+                    'email' => $eng->email ?? '',
+                    'phone' => $eng->phone ?? '',
+                    'designation' => $eng->designation,
+                    'specialization' => $eng->specialization ?? '',
+                    'project_id' => $eng->project_id ? (string)$eng->project_id : '',
+                    'project_name' => $eng->project->name ?? 'Unassigned (Global)',
+                    'is_active' => (bool) $eng->is_active,
+                ];
+            })->values()->toArray(),
+            'projects' => $projects,
+            'projectsArray' => $projects->map(fn($p) => ['id' => (string)$p->id, 'name' => $p->name])->values()->toArray(),
+            'totalEngineers' => $totalEngineers,
+            'activeEngineers' => $activeEngineers,
+            'assignedCount' => $assignedCount,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

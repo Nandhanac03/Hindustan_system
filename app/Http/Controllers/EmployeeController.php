@@ -15,68 +15,41 @@ class EmployeeController extends Controller
         $user = Auth::user();
         $systemId = $user->system_id;
 
-        $query = Employee::where('system_id', $systemId);
+        $allEmployees = Employee::where('system_id', $systemId)->orderBy('id', 'desc')->get();
 
-        if ($request->filled('search')) {
-            $s = trim($request->search);
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('employee_id', 'like', "%{$s}%")
-                  ->orWhere('designation', 'like', "%{$s}%")
-                  ->orWhere('department', 'like', "%{$s}%")
-                  ->orWhere('phone', 'like', "%{$s}%")
-                  ->orWhere('email', 'like', "%{$s}%");
-            });
-        }
+        $totalCount = $allEmployees->count();
+        $activeCount = $allEmployees->where('status', 'active')->count();
+        $inactiveCount = $allEmployees->where('status', 'inactive')->count();
+        $totalPayroll = (float) $allEmployees->where('status', 'active')->sum('salary');
 
-        if ($request->filled('department')) {
-            $query->where('department', $request->department);
-        }
-
-        if ($request->filled('designation')) {
-            $query->where('designation', $request->designation);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $totalCount = Employee::where('system_id', $systemId)->count();
-        $activeCount = Employee::where('system_id', $systemId)->where('status', 'active')->count();
-        $inactiveCount = Employee::where('system_id', $systemId)->where('status', 'inactive')->count();
-        $totalPayroll = (float) Employee::where('system_id', $systemId)->where('status', 'active')->sum('salary');
-
-        $employees = $query->orderBy('id', 'desc')->paginate(15)->withQueryString();
-
-        $existingDesignations = Employee::where('system_id', $systemId)
-            ->whereNotNull('designation')
-            ->where('designation', '!=', '')
-            ->distinct()
+        $existingDesignations = $allEmployees
             ->pluck('designation')
+            ->filter(fn($val) => !empty(trim((string)$val)))
+            ->unique()
             ->values();
 
-        $existingDepartments = Employee::where('system_id', $systemId)
-            ->whereNotNull('department')
-            ->where('department', '!=', '')
-            ->distinct()
+        $existingDepartments = $allEmployees
             ->pluck('department')
+            ->filter(fn($val) => !empty(trim((string)$val)))
+            ->unique()
             ->values();
 
         // Calculate system-generated employee code
-        $lastEmp = Employee::where('system_id', $systemId)->orderBy('id', 'desc')->first();
-        $nextNum = $lastEmp ? ((int) preg_replace('/[^0-9]/', '', $lastEmp->employee_id) + 1) : 1001;
+        $lastEmp = $allEmployees->first();
+        $nextNum = $lastEmp ? ((int) preg_replace('/[^0-9]/', '', (string)$lastEmp->employee_id) + 1) : 1001;
         $nextEmpId = 'EMP-' . $nextNum;
 
-        return view('employees.index', compact(
-            'employees',
-            'totalCount',
-            'activeCount',
-            'inactiveCount',
-            'totalPayroll',
-            'nextEmpId',
-            'existingDesignations',
-            'existingDepartments'
-        ));
+        return view('employees.index', [
+            'employees' => $allEmployees,
+            'employeesArray' => $allEmployees->values()->toArray(),
+            'totalCount' => $totalCount,
+            'activeCount' => $activeCount,
+            'inactiveCount' => $inactiveCount,
+            'totalPayroll' => $totalPayroll,
+            'nextEmpId' => $nextEmpId,
+            'existingDesignations' => $existingDesignations,
+            'existingDepartments' => $existingDepartments,
+        ]);
     }
 
     public function store(Request $request)

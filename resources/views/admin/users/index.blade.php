@@ -46,14 +46,14 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in-up">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-widest">
-                            <th class="px-6 py-4 text-white">Employee &amp; Name</th>
-                            <th class="px-6 py-4 text-white">Associated System</th>
-                            <th class="px-6 py-4 text-white">Role Assignment</th>
-                            <th class="px-6 py-4 text-white">Account Status</th>
-                            <th class="px-6 py-4 text-white">Registered Date</th>
-                            <th class="px-6 py-4 text-white text-right">Actions</th>
+                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                        <tr class="erp-table-header border-b border-slate-700 text-left">
+                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Employee &amp; Name</th>
+                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Associated System</th>
+                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Role Assignment</th>
+                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Account Status</th>
+                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Registered Date</th>
+                            <th class="px-6 py-3.5 erp-table-header text-white text-right pr-6">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
@@ -139,8 +139,8 @@
                                     </div>
 
                                      {{-- View Modal --}}
-                                     <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left whitespace-normal" style="display: none;" x-transition.opacity>
-                                         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openView = false">
+                                     <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity text-left whitespace-normal" style="display: none;" x-transition.opacity>
+                                         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none" @click.away="openView = false">
                                               {{-- Header --}}
                                               <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
                                                   <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -206,8 +206,8 @@
                                      </div>
 
                                      {{-- Confirm Status Modal --}}
-                                     <div x-show="showConfirmStatus" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left" style="display: none;" x-transition.opacity>
-                                         <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showConfirmStatus = false">
+                                     <div x-show="showConfirmStatus" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity text-left" style="display: none;" x-transition.opacity>
+                                         <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none" @click.away="showConfirmStatus = false">
                                              <div class="p-6 text-center space-y-4">
                                                  <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-[#a38c29] flex items-center justify-center mx-auto text-lg">
                                                      ⚠️
