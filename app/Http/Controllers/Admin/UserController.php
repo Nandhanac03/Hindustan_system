@@ -21,9 +21,11 @@ class UserController extends Controller
     {
         // SystemScope global scope automatically filters queries to the user's system 
         // unless they are an Owner.
-        $users = User::with('roles', 'system')->paginate(10);
+        $users = User::with('roles', 'system')->latest()->paginate(15);
+        $roles = Role::all();
+        $systems = System::where('is_active', true)->get();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'roles', 'systems'));
     }
 
     public function create(): View
