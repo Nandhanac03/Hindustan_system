@@ -31,6 +31,738 @@
     }
 @endphp
 
+<script>
+window.getUnitActiveSale = function(unit) {
+    if (!unit) return null;
+    if (unit.sale) return unit.sale;
+    if (unit.sale_units && unit.sale_units.length > 0) {
+        const activeSaleUnit = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
+        if (activeSaleUnit && activeSaleUnit.sale) {
+            return activeSaleUnit.sale;
+        }
+    }
+    return null;
+};
+
+window.getStatusBadgeClass = function(status) {
+    switch((status || '').toLowerCase()) {
+        case 'available': return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+        case 'blocked': return 'bg-amber-50 text-amber-700 border border-amber-100';
+        case 'booked': return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+        case 'sold': return 'bg-rose-50 text-rose-700 border border-rose-100';
+        default: return 'bg-slate-50 text-slate-700 border border-slate-200';
+    }
+};
+
+function unitMatrixApp() {
+    return {
+        // App states
+        projectId: {{ $project->id }},
+        unitTypeMap: @js($unitTypes->keyBy('id')->map(fn($t) => ['name' => $t->name, 'category' => $t->category])),
+        allUnits: @js($allUnits),
+        selectedStatus: '{{ $selectedStatus ?? '' }}',
+        editProjectModal: false,
+        imagePreview: null,
+        units: [],
+        pagination: {
+            current_page: 1,
+            last_page: 1,
+            total: 0,
+            per_page: 50
+        },
+        customerList: @js($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'email' => $c->email]; })),
+        localSelectedIds: @js(is_array(request('customer_id')) ? request('customer_id') : (request('customer_id') ? [request('customer_id')] : [])),
+        filters: {
+            search: '',
+            floor_id: '',
+            unit_type_id: '',
+            status: ''
+        },
+        permissions: {
+            manage: {{ auth()->user()->can('units.manage') ? 'true' : 'false' }},
+            rateManage: {{ auth()->user()->can('units.rate.manage') ? 'true' : 'false' }}
+        },
+        modals: {
+            add: { open: false },
+            edit: { open: false },
+            bulk: { open: false },
+            delete: { open: false },
+            view: { open: false },
+            rateHistory: { open: false },
+            viewSale: { open: false }
+        },
+        viewTarget: null,
+        activeSale: {},
+        loadingSaleDetails: false,
+        rateHistoryTarget: null,
+        rateHistoryLogs: [],
+        loadingRateHistory: false,
+        forms: {
+            add: {
+                floor_id: '',
+                unit_type_id: '',
+                door_no: '',
+                built_up_area: '',
+                carpet_area: '',
+                expected_rate_per_sqft: '',
+                expected_sale_amount: ''
+            },
+            edit: {
+                floor_id: '',
+                unit_type_id: '',
+                door_no: '',
+                built_up_area: '',
+                carpet_area: '',
+                expected_sale_amount: ''
+            },
+            bulk: {
+                floor_id: '',
+                unit_type_id: '',
+                unit_prefix: '',
+                start_number: 1,
+                count: 10,
+                built_up_area: '',
+                carpet_area: '',
+                expected_rate_per_sqft: '',
+                expected_sale_amount: ''
+            },
+            status: {
+                status: '',
+                reason: '',
+                is_resale: false
+            },
+            rate: {
+                rate: '',
+                effective_from: new Date().toISOString().split('T')[0],
+                reason: ''
+            }
+        },
+        activeUnit: {},
+        allowedTransitions: [],
+        errors: {},
+        toast: {
+            open: false,
+            message: '',
+            type: 'success'
+        },
+        statusError: '',
+
+        getFilteredCustomersList(search = '') {
+            const q = (search || '').toLowerCase().trim();
+            if (!q) return this.customerList;
+            return this.customerList.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) || 
+                (c.phone && c.phone.toLowerCase().includes(q))
+            );
+        },
+        get selectedCustomers() {
+            return this.customerList.filter(c => this.localSelectedIds.includes(c.id.toString()));
+        },
+        toggleCustomer(id) {
+            const strId = id.toString();
+            const idx = this.localSelectedIds.indexOf(strId);
+            if (idx > -1) {
+                this.localSelectedIds.splice(idx, 1);
+            } else {
+                this.localSelectedIds.push(strId);
+            }
+            this.$nextTick(() => {
+                const form = document.getElementById('unitsCustomerFilterForm');
+                if (form) form.submit();
+            });
+        },
+        getUnitActiveSale(unit) {
+            return window.getUnitActiveSale(unit);
+        },
+
+        init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('status'))       this.filters.status       = urlParams.get('status');
+            if (urlParams.get('floor_id'))     this.filters.floor_id     = urlParams.get('floor_id');
+            if (urlParams.get('search'))       this.filters.search       = urlParams.get('search');
+            if (urlParams.get('unit_type_id')) this.filters.unit_type_id = urlParams.get('unit_type_id');
+            this.fetchUnits();
+        },
+
+        fetchUnits(page = 1) {
+            let params = new URLSearchParams();
+            params.append('page', page);
+            if (this.projectId) params.append('project_id', this.projectId);
+            if (this.filters.search) params.append('search', this.filters.search);
+            if (this.filters.floor_id) params.append('floor_id', this.filters.floor_id);
+            if (this.filters.unit_type_id) params.append('unit_type_id', this.filters.unit_type_id);
+            if (this.filters.status) params.append('status', this.filters.status);
+            if (this.localSelectedIds && this.localSelectedIds.length > 0) {
+                this.localSelectedIds.forEach(id => {
+                    params.append('customer_id[]', id);
+                });
+            }
+
+            fetch('{{ route('units.index') }}?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.units = data.units || [];
+                if(data.pagination) {
+                    this.pagination = data.pagination;
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching units:', err);
+                this.showToast('Failed to fetch units list.', 'error');
+            });
+        },
+
+        getPageNumbers() {
+            let current = this.pagination.current_page;
+            let last = this.pagination.last_page;
+            let delta = 2;
+            let left = current - delta;
+            let right = current + delta + 1;
+            let range = [];
+            let rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= last; i++) {
+                if (i === 1 || i === last || (i >= left && i < right)) {
+                    range.push(i);
+                }
+            }
+
+            for (let i of range) {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l > 2) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            }
+
+            return rangeWithDots;
+        },
+
+        isParking(typeId) {
+            if (!typeId || !this.unitTypeMap[typeId]) return false;
+            const info = this.unitTypeMap[typeId];
+            return (info.name || '').toLowerCase() === 'parking' || (info.category || '').toLowerCase() === 'parking';
+        },
+
+        resetFilters() {
+            this.filters.search = '';
+            this.filters.floor_id = '';
+            this.filters.unit_type_id = '';
+            this.filters.status = '';
+            this.fetchUnits();
+        },
+
+        groupedUnits() {
+            let groups = [];
+            let currentFloorId = null;
+            let currentGroup = null;
+            for (let unit of this.units) {
+                let floorId = unit.floor ? unit.floor.id : null;
+                if (floorId !== currentFloorId) {
+                    currentFloorId = floorId;
+                    currentGroup = {
+                        floor_id: floorId,
+                        floor_name: unit.floor ? unit.floor.name : '-',
+                        units: []
+                    };
+                    groups.push(currentGroup);
+                }
+                currentGroup.units.push(unit);
+            }
+            return groups;
+        },
+
+        getStatusBadgeClass(status) {
+            return window.getStatusBadgeClass(status);
+        },
+
+        isStatusMatching(unitStatus) {
+            if (!this.selectedStatus || this.selectedStatus === 'all' || this.selectedStatus === '') return true;
+            return (unitStatus || '').toLowerCase() === this.selectedStatus.toLowerCase();
+        },
+
+        exportAvailabilityReport() {
+            if (typeof window.exportAvailabilityReport === 'function') {
+                window.exportAvailabilityReport();
+            }
+        },
+
+        showToast(message, type = 'success') {
+            this.toast.message = message;
+            this.toast.type = type;
+            this.toast.open = true;
+            setTimeout(() => {
+                this.toast.open = false;
+            }, 3000);
+        },
+
+        openAddModal() {
+            this.errors = {};
+            this.forms.add = {
+                floor_id: '',
+                unit_type_id: '',
+                door_no: '',
+                built_up_area: '',
+                carpet_area: '',
+                expected_rate_per_sqft: ''
+            };
+            this.modals.add.open = true;
+        },
+        closeAddModal() {
+            this.modals.add.open = false;
+        },
+
+        openViewModal(unit) {
+            this.viewTarget = unit;
+            this.modals.view.open = true;
+        },
+
+        openViewSaleModal(saleId) {
+            if (!saleId) return;
+            this.loadingSaleDetails = true;
+            fetch(`{{ url('sales') }}/${saleId}/json`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.activeSale = data.sale || data;
+                this.modals.viewSale.open = true;
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Failed to load sale details.', 'error');
+            })
+            .finally(() => {
+                this.loadingSaleDetails = false;
+            });
+        },
+        closeViewSaleModal() {
+            this.modals.viewSale.open = false;
+        },
+        formatSaleDate(val) {
+            if (!val) return '—';
+            try {
+                const clean = val.replace('Z', '').split('T')[0];
+                const parts = clean.split('-');
+                if (parts.length === 3) {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const yr = parts[0];
+                    const mo = months[parseInt(parts[1], 10) - 1];
+                    const dy = parts[2];
+                    return `${dy} ${mo} ${yr}`;
+                }
+                return clean;
+            } catch(e) {
+                return val.split('T')[0];
+            }
+        },
+        fmtSale(value) {
+            return '₹' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        openRateHistoryModal(unit) {
+            this.rateHistoryTarget = unit;
+            this.rateHistoryLogs = unit.rate_logs || [];
+            this.modals.rateHistory.open = true;
+            this.loadingRateHistory = true;
+
+            fetch(`{{ url('units') }}/${unit.id}/json`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.unit && data.unit.rate_logs) {
+                    this.rateHistoryLogs = data.unit.rate_logs;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            })
+            .finally(() => {
+                this.loadingRateHistory = false;
+            });
+        },
+
+        parseLogDate(log) {
+            let raw = log.created_at || log.effective_from;
+            if (!raw) return new Date();
+            if (typeof raw === 'string' && !raw.includes('Z') && !raw.match(/[+-]\d{2}:?\d{2}$/)) {
+                raw = raw.replace(' ', 'T') + 'Z';
+            }
+            let dt = new Date(raw);
+            return isNaN(dt.getTime()) ? new Date() : dt;
+        },
+
+        formatDate(log) {
+            try {
+                const dt = this.parseLogDate(log);
+                return new Intl.DateTimeFormat('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(dt);
+            } catch (e) {
+                return (log.created_at || log.effective_from || '');
+            }
+        },
+
+        openEditModal(unitId) {
+            this.errors = {};
+            this.forms.status = { status: '', reason: '', is_resale: false };
+            this.forms.rate = { rate: '', effective_from: new Date().toISOString().split('T')[0], reason: '' };
+
+            fetch(`{{ url('units') }}/${unitId}/json`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    this.showToast(data.error, 'error');
+                    return;
+                }
+                this.activeUnit = data.unit;
+                this.allowedTransitions = data.allowed_transitions;
+
+                this.forms.edit = {
+                    floor_id: this.activeUnit.floor_id,
+                    unit_type_id: this.activeUnit.unit_type_id,
+                    door_no: this.activeUnit.door_no,
+                    built_up_area: this.activeUnit.built_up_area,
+                    carpet_area: this.activeUnit.carpet_area,
+                    expected_sale_amount: this.activeUnit.expected_sale_amount
+                };
+
+                this.modals.edit.open = true;
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Failed to load unit details.', 'error');
+            });
+        },
+        closeEditModal() {
+            this.modals.edit.open = false;
+        },
+
+        openBulkModal() {
+            this.errors = {};
+            this.forms.bulk = {
+                floor_id: '',
+                unit_type_id: '',
+                unit_prefix: '',
+                start_number: 1,
+                count: 10,
+                built_up_area: '',
+                carpet_area: '',
+                expected_rate_per_sqft: '',
+                expected_sale_amount: ''
+            };
+            this.modals.bulk.open = true;
+        },
+        closeBulkModal() {
+            this.modals.bulk.open = false;
+        },
+
+        confirmDelete(unit) {
+            if (unit.status !== 'available') {
+                this.showToast('Only available units can be deleted.', 'error');
+                return;
+            }
+            this.activeUnit = unit;
+            this.modals.delete.open = true;
+        },
+        closeDeleteModal() {
+            this.modals.delete.open = false;
+        },
+
+        submitAddUnit() {
+            let clientErrors = {};
+            if (!this.forms.add.floor_id) clientErrors.floor_id = ['The floor field is required.'];
+            if (!this.forms.add.unit_type_id) clientErrors.unit_type_id = ['The unit type field is required.'];
+            if (!this.forms.add.door_no || !this.forms.add.door_no.trim()) clientErrors.door_no = ['The door number field is required.'];
+
+            const isParking = this.isParking(this.forms.add.unit_type_id);
+            if (isParking) {
+                if (!this.forms.add.expected_sale_amount && this.forms.add.expected_sale_amount !== 0) {
+                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
+                }
+            } else {
+                if (!this.forms.add.expected_rate_per_sqft && this.forms.add.expected_rate_per_sqft !== 0) {
+                    clientErrors.expected_rate_per_sqft = ['The expected rate per sq ft field is required.'];
+                }
+            }
+
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+
+            let payload = {
+                project_id: this.projectId,
+                ...this.forms.add
+            };
+
+            fetch('{{ route('units.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (res.status === 422) {
+                    this.errors = data.errors || {};
+                } else if (!res.ok) {
+                    this.showToast(data.error || 'Server error occurred.', 'error');
+                } else {
+                    this.showToast('Unit added successfully.');
+                    this.closeAddModal();
+                    this.resetFilters();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred.', 'error');
+            });
+        },
+
+        submitEditUnit() {
+            let clientErrors = {};
+            if (!this.forms.edit.floor_id) clientErrors.floor_id = ['The floor field is required.'];
+            if (!this.forms.edit.unit_type_id) clientErrors.unit_type_id = ['The unit type field is required.'];
+            if (!this.forms.edit.door_no || !this.forms.edit.door_no.trim()) clientErrors.door_no = ['The door number field is required.'];
+
+            const isParking = this.isParking(this.forms.edit.unit_type_id);
+            if (isParking) {
+                if (!this.forms.edit.expected_sale_amount && this.forms.edit.expected_sale_amount !== 0) {
+                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
+                }
+            }
+
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+
+            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            let payload = {
+                ...this.forms.edit,
+                _token: csrfToken,
+                _method: 'PUT'
+            };
+
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async res => {
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Non-JSON response:', text);
+                }
+
+                if (res.status === 422) {
+                    this.errors = data.errors || {};
+                } else if (!res.ok) {
+                    this.showToast(data.error || data.message || ('Server error when updating unit (HTTP ' + res.status + ').'), 'error');
+                } else {
+                    this.showToast('Unit details updated successfully.');
+                    this.fetchUnits();
+                    this.closeEditModal();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred.', 'error');
+            });
+        },
+
+        submitBulkAdd() {
+            let clientErrors = {};
+            if (!this.forms.bulk.floor_id) clientErrors.floor_id = ['The floor field is required.'];
+            if (!this.forms.bulk.unit_type_id) clientErrors.unit_type_id = ['The unit type field is required.'];
+            if (!this.forms.bulk.start_number && this.forms.bulk.start_number !== 0) clientErrors.start_number = ['The starting number is required.'];
+            if (!this.forms.bulk.count) clientErrors.count = ['The count is required.'];
+
+            const isParking = this.isParking(this.forms.bulk.unit_type_id);
+            if (isParking) {
+                if (!this.forms.bulk.expected_sale_amount && this.forms.bulk.expected_sale_amount !== 0) {
+                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
+                }
+            } else {
+                if (!this.forms.bulk.expected_rate_per_sqft && this.forms.bulk.expected_rate_per_sqft !== 0) {
+                    clientErrors.expected_rate_per_sqft = ['The expected rate per sq ft field is required.'];
+                }
+            }
+
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+
+            let payload = {
+                project_id: this.projectId,
+                ...this.forms.bulk
+            };
+
+            fetch('{{ route('units.bulk-store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (res.status === 422) {
+                    this.errors = data.errors || {};
+                } else if (!res.ok) {
+                    this.showToast(data.error || 'Server error occurred.', 'error');
+                } else {
+                    this.showToast(`Bulk created ${data.count} units successfully.`);
+                    this.closeBulkModal();
+                    this.resetFilters();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred.', 'error');
+            });
+        },
+
+        submitDelete() {
+            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    _token: csrfToken
+                })
+            })
+            .then(async res => {
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Non-JSON response from server:', text);
+                }
+
+                if (!res.ok) {
+                    this.showToast(data.error || data.message || ('Server error (HTTP ' + res.status + ').'), 'error');
+                } else {
+                    this.showToast('Unit deleted successfully.');
+                    this.closeDeleteModal();
+                    this.fetchUnits();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred while connecting to server.', 'error');
+            });
+        },
+
+        transitionStatus(targetState) {
+            this.statusError = '';
+            let payload = {
+                status: targetState,
+                reason: this.forms.status.reason,
+                is_resale: this.forms.status.is_resale ? 1 : 0
+            };
+
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (!res.ok) {
+                    this.statusError = data.error || 'Failed to update status.';
+                } else {
+                    this.statusError = '';
+                    this.showToast(`Transitioned status to ${targetState} successfully.`);
+                    this.fetchUnits();
+                    this.openEditModal(this.activeUnit.id);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.statusError = 'Network error occurred.';
+            });
+        },
+
+        submitUpdateRate() {
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/rate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.forms.rate)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (!res.ok) {
+                    this.showToast(data.error || 'Failed to update base rate.', 'error');
+                } else {
+                    this.showToast('Base rate updated successfully.');
+                    this.fetchUnits();
+                    this.closeEditModal();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred.', 'error');
+            });
+        }
+    };
+}
+window.unitsApp = unitMatrixApp;
+window.unitMatrixApp = unitMatrixApp;
+</script>
+
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="unitMatrixApp()">
 
     {{-- Notification Toast --}}
@@ -199,6 +931,17 @@
                  hoveredEl: null,
                  mouseX: 0,
                  mouseY: 0,
+                 getUnitActiveSale(unit) {
+                     if (!unit) return null;
+                     if (unit.sale) return unit.sale;
+                     if (unit.sale_units && unit.sale_units.length > 0) {
+                         const activeSaleUnit = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
+                         if (activeSaleUnit && activeSaleUnit.sale) {
+                             return activeSaleUnit.sale;
+                         }
+                     }
+                     return null;
+                 },
                  fetchUnit(unitId) {
                      this.loading = true;
                      this.panelOpen = true;
@@ -1400,880 +2143,6 @@
 
 </div>
 
-{{-- -------------------------------------------
-     ALPINE.JS LOGIC CODE
-------------------------------------------- --}}
-<script>
-function unitsApp() {
-    return {
-        // App states
-        projectId: {{ $project->id }},
-        unitTypeMap: {!! json_encode($unitTypes->keyBy('id')->map(fn($t) => ['name' => $t->name, 'category' => $t->category])) !!},
-        editProjectModal: false,
-        imagePreview: null,
-        units: [],
-        pagination: {
-            current_page: 1,
-            last_page: 1,
-            total: 0,
-            per_page: 50
-        },
-        customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'email' => $c->email]; })) !!},
-        localSelectedIds: @js(is_array(request('customer_id')) ? request('customer_id') : (request('customer_id') ? [request('customer_id')] : [])),
-        filters: {
-            search: '',
-            floor_id: '',
-            unit_type_id: '',
-            status: ''
-        },
-        permissions: {
-            manage: {{ auth()->user()->hasPermissionTo('units.manage') ? 'true' : 'false' }},
-            rateManage: {{ auth()->user()->hasPermissionTo('units.rate.manage') ? 'true' : 'false' }}
-        },
-        modals: {
-            add: { open: false },
-            edit: { open: false },
-            bulk: { open: false },
-            delete: { open: false },
-            view: { open: false },
-            rateHistory: { open: false },
-            viewSale: { open: false }
-        },
-        viewTarget: null,
-        activeSale: {},
-        loadingSaleDetails: false,
-        rateHistoryTarget: null,
-        rateHistoryLogs: [],
-        loadingRateHistory: false,
-        forms: {
-            add: {
-                floor_id: '',
-                unit_type_id: '',
-                door_no: '',
-                built_up_area: '',
-                carpet_area: '',
-                expected_rate_per_sqft: '',
-                expected_sale_amount: ''
-            },
-            edit: {
-                floor_id: '',
-                unit_type_id: '',
-                door_no: '',
-                built_up_area: '',
-                carpet_area: '',
-                expected_sale_amount: ''
-            },
-            bulk: {
-                floor_id: '',
-                unit_type_id: '',
-                unit_prefix: '',
-                start_number: 1,
-                count: 10,
-                built_up_area: '',
-                carpet_area: '',
-                expected_rate_per_sqft: '',
-                expected_sale_amount: ''
-            },
-            status: {
-                status: '',
-                reason: '',
-                is_resale: false
-            },
-            rate: {
-                rate: '',
-                effective_from: new Date().toISOString().split('T')[0],
-                reason: ''
-            }
-        },
-        activeUnit: {},
-        allowedTransitions: [],
-        errors: {},
-        toast: {
-            open: false,
-            message: '',
-            type: 'success'
-        },
-        statusError: '',
-
-        getFilteredCustomersList(search = '') {
-            const q = (search || '').toLowerCase().trim();
-            if (!q) return this.customerList;
-            return this.customerList.filter(c => 
-                (c.name && c.name.toLowerCase().includes(q)) || 
-                (c.phone && c.phone.toLowerCase().includes(q))
-            );
-        },
-        get selectedCustomers() {
-            return this.customerList.filter(c => this.localSelectedIds.includes(c.id.toString()));
-        },
-        toggleCustomer(id) {
-            const strId = id.toString();
-            const idx = this.localSelectedIds.indexOf(strId);
-            if (idx > -1) {
-                this.localSelectedIds.splice(idx, 1);
-            } else {
-                this.localSelectedIds.push(strId);
-            }
-            this.$nextTick(() => {
-                const form = document.getElementById('unitsCustomerFilterForm');
-                if (form) form.submit();
-            });
-        },
-        getUnitActiveSale(unit) {
-            if (!unit) return null;
-            if (unit.sale) return unit.sale;
-            if (unit.sale_units && unit.sale_units.length > 0) {
-                const activeSaleUnit = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
-                if (activeSaleUnit && activeSaleUnit.sale) {
-                    return activeSaleUnit.sale;
-                }
-            }
-            return null;
-        },
-
-        init() {
-            // Pre-populate filters from URL query parameters (e.g. ?status=sold from dashboard)
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('status'))       this.filters.status       = urlParams.get('status');
-            if (urlParams.get('floor_id'))     this.filters.floor_id     = urlParams.get('floor_id');
-            if (urlParams.get('search'))       this.filters.search       = urlParams.get('search');
-            if (urlParams.get('unit_type_id')) this.filters.unit_type_id = urlParams.get('unit_type_id');
-            // handled via localSelectedIds array from server
-            this.fetchUnits();
-        },
-
-        // Fetch Listings
-        fetchUnits(page = 1) {
-            let params = new URLSearchParams();
-            params.append('page', page);
-            if (this.projectId) params.append('project_id', this.projectId);
-            if (this.filters.search) params.append('search', this.filters.search);
-            if (this.filters.floor_id) params.append('floor_id', this.filters.floor_id);
-            if (this.filters.unit_type_id) params.append('unit_type_id', this.filters.unit_type_id);
-            if (this.filters.status) params.append('status', this.filters.status);
-            if (this.localSelectedIds && this.localSelectedIds.length > 0) {
-                this.localSelectedIds.forEach(id => {
-                    params.append('customer_id[]', id);
-                });
-            }
-
-            fetch('{{ route('units.index') }}?' + params.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.units = data.units;
-                if(data.pagination) {
-                    this.pagination = data.pagination;
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching units:', err);
-                this.showToast('Failed to fetch units list.', 'error');
-            });
-        },
-
-        getPageNumbers() {
-            let current = this.pagination.current_page;
-            let last = this.pagination.last_page;
-            let delta = 2;
-            let left = current - delta;
-            let right = current + delta + 1;
-            let range = [];
-            let rangeWithDots = [];
-            let l;
-
-            for (let i = 1; i <= last; i++) {
-                if (i === 1 || i === last || (i >= left && i < right)) {
-                    range.push(i);
-                }
-            }
-
-            for (let i of range) {
-                if (l) {
-                    if (i - l === 2) {
-                        rangeWithDots.push(l + 1);
-                    } else if (i - l > 2) {
-                        rangeWithDots.push('...');
-                    }
-                }
-                rangeWithDots.push(i);
-                l = i;
-            }
-
-            return rangeWithDots;
-        },
-
-        isParking(typeId) {
-            if (!typeId || !this.unitTypeMap[typeId]) return false;
-            const info = this.unitTypeMap[typeId];
-            return (info.name || '').toLowerCase() === 'parking' || (info.category || '').toLowerCase() === 'parking';
-        },
-
-        resetFilters() {
-            this.filters.search = '';
-            this.filters.floor_id = '';
-            this.filters.unit_type_id = '';
-            this.filters.status = '';
-            this.fetchUnits();
-        },
-
-        // Group units by floor for rowspan rendering
-        groupedUnits() {
-            let groups = [];
-            let currentFloorId = null;
-            let currentGroup = null;
-            for (let unit of this.units) {
-                let floorId = unit.floor ? unit.floor.id : null;
-                if (floorId !== currentFloorId) {
-                    currentFloorId = floorId;
-                    currentGroup = {
-                        floor_id: floorId,
-                        floor_name: unit.floor ? unit.floor.name : '-',
-                        units: []
-                    };
-                    groups.push(currentGroup);
-                }
-                currentGroup.units.push(unit);
-            }
-            return groups;
-        },
-
-        // Render units table with rowspan floor grouping via direct DOM injection
-        renderUnitsTable() {
-            const tbody = document.getElementById('units-tbody');
-            if (!tbody) return;
-            if (!tbody) return;
-
-            if (this.units.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td></tr>`;
-                return;
-            }
-
-            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
-            const fmtMoney = (v) => {
-                if (v == null || v === '') return 'N/A';
-                const num = Number(v);
-                if (isNaN(num)) return v;
-                if (num < 0) {
-                    return '₹ -' + Math.abs(num).toLocaleString('en-IN');
-                }
-                return '₹' + num.toLocaleString('en-IN');
-            };
-            const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
-            const statusBadge = (s) => {
-                const cls = {
-                    'available': 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-                    'blocked': 'bg-amber-50 text-amber-700 border border-amber-100',
-                    'booked': 'bg-indigo-50 text-indigo-700 border border-indigo-100',
-                    'sold': 'bg-rose-50 text-rose-700 border border-rose-100',
-                }[s] || 'bg-slate-50 text-slate-700 border border-slate-200';
-                return `<span class="badge-pill ${cls}">${s}</span>`;
-            };
-            const canManage = this.permissions.manage;
-            const actionsBtns = (unit) => {
-                if (!canManage) return '';
-                const disabledDel = unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : '';
-                return `<div class="inline-flex items-center justify-end gap-1.5">
-                    <button data-action="view" data-id="${unit.id}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    </button>
-                    <button data-action="rate-history" data-id="${unit.id}" class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate History">
-                        <svg class="w-4 h-4" style="color:rgb(67 56 212)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </button>
-                    <button data-action="edit" data-id="${unit.id}" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
-                        <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </button>
-                    <button data-action="delete" data-id="${unit.id}" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 transition inline-flex items-center justify-center shadow-sm ${disabledDel}" title="Delete Unit" ${unit.status !== 'available' ? 'disabled' : ''}>
-                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </button>
-                </div>`;
-            };
-
-            let html = '';
-            const groups = this.groupedUnits();
-            for (const group of groups) {
-                group.units.forEach((unit, ui) => {
-                    html += `<tr class="unit-table-row transition-colors cursor-pointer text-center text-xs font-semibold text-slate-700" data-unit-id="${unit.id}">`;
-                    if (ui === 0) {
-                        html += `<td rowspan="${group.units.length}" class="border text-slate-900 font-extrabold text-[11px] uppercase bg-[#a38c29]/10 select-none" style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);min-width:38px;padding:14px 8px;text-align:center;vertical-align:middle;letter-spacing:0.13em;">${group.floor_name}</td>`;
-                    }
-                    const isParkingUnit = unit.unit_type && (unit.unit_type.name.toLowerCase() === 'parking' || (unit.unit_type.category || '').toLowerCase() === 'parking');
-                    const expRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
-                    const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
-
-                    let saleAmountDisp = fmtMoney(unit.sale_amount);
-                    let saleCellAttrs = 'class="px-3 py-3 border font-bold"';
-                    if (unit.status === 'sold') {
-                        const activeSale = this.getUnitActiveSale(unit);
-                        if (activeSale) {
-                            saleCellAttrs = `class="px-3 py-3 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
-                            if (activeSale.customer) {
-                                saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2.5 py-1 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap text-emerald-700">Sold To: ${activeSale.customer.name}</span></div>`;
-                            }
-                        }
-                    }
-
-                    html += `
-                        <td class="px-3 py-3 border font-extrabold text-slate-800 whitespace-nowrap">${unit.floor ? unit.floor.name : ''}</td>
-                        <td class="px-3 py-3 border text-slate-600">${unit.unit_type ? unit.unit_type.name : ''}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${unit.door_no}</td>
-                        <td class="px-3 py-3 border">${fmtArea(unit.built_up_area)}</td>
-                        <td class="px-3 py-3 border">${fmtArea(unit.carpet_area)}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${expRateDisp}</td>
-                        <td class="px-3 py-3 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
-                        <td class="px-3 py-3 border font-bold text-slate-900">${saleRateDisp}</td>
-                        <td ${saleCellAttrs}>${saleAmountDisp}</td>
-                        <td class="px-3 py-3 border font-bold">${fmtMoney(unit.difference)}</td>
-                        <td class="px-3 py-3 border">${statusBadge(unit.status)}</td>
-                        <td class="px-3 py-3 border text-right">${actionsBtns(unit)}</td>
-                    </tr>`;
-                });
-            }
-            tbody.innerHTML = html;
-
-            // Attach click handlers via delegation
-            const self = this;
-            tbody.querySelectorAll('[data-action]').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const id = parseInt(this.dataset.id);
-                    const unit = self.units.find(u => u.id === id);
-                    if (this.dataset.action === 'view') self.openViewModal(unit);
-                    else if (this.dataset.action === 'rate-history') self.openRateHistoryModal(unit);
-                    else if (this.dataset.action === 'edit') self.openEditModal(id);
-                    else if (this.dataset.action === 'delete') self.confirmDelete(unit);
-                });
-            });
-            tbody.querySelectorAll('.unit-table-row').forEach(row => {
-                const id = parseInt(row.dataset.unitId);
-                row.addEventListener('click', function() {
-                    const unit = self.units.find(u => u.id === id);
-                    if (unit) {
-                        self.openViewModal(unit);
-                    }
-                });
-            });
-            tbody.querySelectorAll('[data-sale-id]').forEach(el => {
-                el.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    self.openViewSaleModal(this.dataset.saleId);
-                });
-            });
-        },
-
-        // Helper Status Colors
-        getStatusBadgeClass(status) {
-            switch(status) {
-                case 'available': return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
-                case 'blocked': return 'bg-amber-50 text-amber-700 border border-amber-100';
-                case 'booked': return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
-                case 'sold': return 'bg-rose-50 text-rose-700 border border-rose-100';
-                default: return 'bg-slate-50 text-slate-700 border border-slate-200';
-            }
-        },
-
-        // Toast Messages
-        showToast(message, type = 'success') {
-            this.toast.message = message;
-            this.toast.type = type;
-            this.toast.open = true;
-            setTimeout(() => {
-                this.toast.open = false;
-            }, 3000);
-        },
-
-        // Modal triggers
-        openAddModal() {
-            this.errors = {};
-            this.forms.add = {
-                floor_id: '',
-                unit_type_id: '',
-                door_no: '',
-                built_up_area: '',
-                carpet_area: '',
-                expected_rate_per_sqft: ''
-            };
-            this.modals.add.open = true;
-        },
-        closeAddModal() {
-            this.modals.add.open = false;
-        },
-
-        openViewModal(unit) {
-            this.viewTarget = unit;
-            this.modals.view.open = true;
-        },
-
-        openViewSaleModal(saleId) {
-            if (!saleId) return;
-            this.loadingSaleDetails = true;
-            fetch(`{{ url('sales') }}/${saleId}/json`, {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.activeSale = data.sale || data;
-                this.modals.viewSale.open = true;
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Failed to load sale details.', 'error');
-            })
-            .finally(() => {
-                this.loadingSaleDetails = false;
-            });
-        },
-        closeViewSaleModal() {
-            this.modals.viewSale.open = false;
-        },
-        formatSaleDate(val) {
-            if (!val) return '�';
-            try {
-                const clean = val.replace('Z', '').split('T')[0];
-                const parts = clean.split('-');
-                if (parts.length === 3) {
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const yr = parts[0];
-                    const mo = months[parseInt(parts[1], 10) - 1];
-                    const dy = parts[2];
-                    return `${dy} ${mo} ${yr}`;
-                }
-                return clean;
-            } catch(e) {
-                return val.split('T')[0];
-            }
-        },
-        fmtSale(value) {
-            return '\u20B9' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        },
-
-        openRateHistoryModal(unit) {
-            this.rateHistoryTarget = unit;
-            this.rateHistoryLogs = unit.rate_logs || [];
-            this.modals.rateHistory.open = true;
-            this.loadingRateHistory = true;
-
-            fetch(`{{ url('units') }}/${unit.id}/json`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.unit && data.unit.rate_logs) {
-                    this.rateHistoryLogs = data.unit.rate_logs;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-            })
-            .finally(() => {
-                this.loadingRateHistory = false;
-            });
-        },
-
-        parseLogDate(log) {
-            let raw = log.created_at || log.effective_from;
-            if (!raw) return new Date();
-            
-            if (typeof raw === 'string' && !raw.includes('Z') && !raw.match(/[+-]\d{2}:?\d{2}$/)) {
-                // Replace space with T and append Z to force UTC parsing for Laravel timestamps
-                raw = raw.replace(' ', 'T') + 'Z';
-            }
-            
-            let dt = new Date(raw);
-            return isNaN(dt.getTime()) ? new Date() : dt;
-        },
-
-        formatDate(log) {
-            try {
-                const dt = this.parseLogDate(log);
-                return new Intl.DateTimeFormat('en-IN', {
-                    timeZone: 'Asia/Kolkata',
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                }).format(dt);
-            } catch (e) {
-                return (log.created_at || log.effective_from || '');
-            }
-        },
-
-        openEditModal(unitId) {
-            this.errors = {};
-            this.forms.status = { status: '', reason: '', is_resale: false };
-            this.forms.rate = { rate: '', effective_from: new Date().toISOString().split('T')[0], reason: '' };
-
-            fetch(`{{ url('units') }}/${unitId}/json`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    this.showToast(data.error, 'error');
-                    return;
-                }
-                this.activeUnit = data.unit;
-                this.allowedTransitions = data.allowed_transitions;
-
-                // Prefill Form
-                this.forms.edit = {
-                    floor_id: this.activeUnit.floor_id,
-                    unit_type_id: this.activeUnit.unit_type_id,
-                    door_no: this.activeUnit.door_no,
-                    built_up_area: this.activeUnit.built_up_area,
-                    carpet_area: this.activeUnit.carpet_area,
-                    expected_sale_amount: this.activeUnit.expected_sale_amount
-                };
-
-                this.modals.edit.open = true;
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Failed to load unit details.', 'error');
-            });
-        },
-        closeEditModal() {
-            this.modals.edit.open = false;
-        },
-
-        openBulkModal() {
-            this.errors = {};
-            this.forms.bulk = {
-                floor_id: '',
-                unit_type_id: '',
-                unit_prefix: '',
-                start_number: 1,
-                count: 10,
-                built_up_area: '',
-                carpet_area: '',
-                expected_rate_per_sqft: '',
-                expected_sale_amount: ''
-            };
-            this.modals.bulk.open = true;
-        },
-        closeBulkModal() {
-            this.modals.bulk.open = false;
-        },
-
-        // Deletions
-        confirmDelete(unit) {
-            if (unit.status !== 'available') {
-                this.showToast('Only available units can be deleted.', 'error');
-                return;
-            }
-            this.activeUnit = unit;
-            this.modals.delete.open = true;
-        },
-        closeDeleteModal() {
-            this.modals.delete.open = false;
-        },
-
-        // POST/AJAX Actions
-        submitAddUnit() {
-            // Client-side required field validation
-            let clientErrors = {};
-            if (!this.forms.add.floor_id) {
-                clientErrors.floor_id = ['The floor field is required.'];
-            }
-            if (!this.forms.add.unit_type_id) {
-                clientErrors.unit_type_id = ['The unit type field is required.'];
-            }
-            if (!this.forms.add.door_no || !this.forms.add.door_no.trim()) {
-                clientErrors.door_no = ['The door number field is required.'];
-            }
-
-            const isParking = this.isParking(this.forms.add.unit_type_id);
-            if (isParking) {
-                if (!this.forms.add.expected_sale_amount && this.forms.add.expected_sale_amount !== 0) {
-                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
-                }
-            } else {
-                if (!this.forms.add.expected_rate_per_sqft && this.forms.add.expected_rate_per_sqft !== 0) {
-                    clientErrors.expected_rate_per_sqft = ['The expected rate per sq ft field is required.'];
-                }
-            }
-
-            if (Object.keys(clientErrors).length > 0) {
-                this.errors = clientErrors;
-                return;
-            }
-
-            let payload = {
-                project_id: this.projectId,
-                ...this.forms.add
-            };
-
-            fetch('{{ route('units.store') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(async res => {
-                let data = await res.json();
-                if (res.status === 422) {
-                    this.errors = data.errors || {};
-                } else if (!res.ok) {
-                    this.showToast(data.error || 'Server error occurred.', 'error');
-                } else {
-                    this.showToast('Unit added successfully.');
-                    this.closeAddModal();
-                    this.resetFilters();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Network error occurred.', 'error');
-            });
-        },
-
-        submitEditUnit() {
-            // Client-side required field validation
-            let clientErrors = {};
-            if (!this.forms.edit.floor_id) {
-                clientErrors.floor_id = ['The floor field is required.'];
-            }
-            if (!this.forms.edit.unit_type_id) {
-                clientErrors.unit_type_id = ['The unit type field is required.'];
-            }
-            if (!this.forms.edit.door_no || !this.forms.edit.door_no.trim()) {
-                clientErrors.door_no = ['The door number field is required.'];
-            }
-
-            const isParking = this.isParking(this.forms.edit.unit_type_id);
-            if (isParking) {
-                if (!this.forms.edit.expected_sale_amount && this.forms.edit.expected_sale_amount !== 0) {
-                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
-                }
-            }
-
-            if (Object.keys(clientErrors).length > 0) {
-                this.errors = clientErrors;
-                return;
-            }
-
-            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-            let payload = {
-                ...this.forms.edit,
-                _token: csrfToken,
-                _method: 'PUT'
-            };
-
-            fetch(`{{ url('units') }}/${this.activeUnit.id}/update`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(async res => {
-                let text = await res.text();
-                let data = {};
-                try {
-                    data = JSON.parse(text);
-                } catch(e) {
-                    console.error('Non-JSON response:', text);
-                }
-
-                if (res.status === 422) {
-                    this.errors = data.errors || {};
-                } else if (!res.ok) {
-                    this.showToast(data.error || data.message || ('Server error when updating unit (HTTP ' + res.status + ').'), 'error');
-                } else {
-                    this.showToast('Unit details updated successfully.');
-                    this.fetchUnits();
-                    this.closeEditModal();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Network error occurred.', 'error');
-            });
-        },
-
-        submitBulkAdd() {
-            // Client-side required field validation
-            let clientErrors = {};
-            if (!this.forms.bulk.floor_id) {
-                clientErrors.floor_id = ['The floor field is required.'];
-            }
-            if (!this.forms.bulk.unit_type_id) {
-                clientErrors.unit_type_id = ['The unit type field is required.'];
-            }
-            if (!this.forms.bulk.start_number && this.forms.bulk.start_number !== 0) {
-                clientErrors.start_number = ['The starting number is required.'];
-            }
-            if (!this.forms.bulk.count) {
-                clientErrors.count = ['The count is required.'];
-            }
-
-            const isParking = this.isParking(this.forms.bulk.unit_type_id);
-            if (isParking) {
-                if (!this.forms.bulk.expected_sale_amount && this.forms.bulk.expected_sale_amount !== 0) {
-                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
-                }
-            } else {
-                if (!this.forms.bulk.expected_rate_per_sqft && this.forms.bulk.expected_rate_per_sqft !== 0) {
-                    clientErrors.expected_rate_per_sqft = ['The expected rate per sq ft field is required.'];
-                }
-            }
-
-            if (Object.keys(clientErrors).length > 0) {
-                this.errors = clientErrors;
-                return;
-            }
-
-            let payload = {
-                project_id: this.projectId,
-                ...this.forms.bulk
-            };
-
-            fetch('{{ route('units.bulk-store') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(async res => {
-                let data = await res.json();
-                if (res.status === 422) {
-                    this.errors = data.errors || {};
-                } else if (!res.ok) {
-                    this.showToast(data.error || 'Server error occurred.', 'error');
-                } else {
-                    this.showToast(`Bulk created ${data.count} units successfully.`);
-                    this.closeBulkModal();
-                    this.resetFilters();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Network error occurred.', 'error');
-            });
-        },
-
-        submitDelete() {
-            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-            fetch(`{{ url('units') }}/${this.activeUnit.id}/remove`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    _token: csrfToken
-                })
-            })
-            .then(async res => {
-                let text = await res.text();
-                let data = {};
-                try {
-                    data = JSON.parse(text);
-                } catch(e) {
-                    console.error('Non-JSON response from server:', text);
-                }
-
-                if (!res.ok) {
-                    this.showToast(data.error || data.message || ('Server error (HTTP ' + res.status + ').'), 'error');
-                } else {
-                    this.showToast('Unit deleted successfully.');
-                    this.closeDeleteModal();
-                    this.fetchUnits();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Network error occurred while connecting to server.', 'error');
-            });
-        },
-
-        // Status Transition Handler
-        transitionStatus(targetState) {
-            this.statusError = ''; // clear previous inline error
-            let payload = {
-                status: targetState,
-                reason: this.forms.status.reason,
-                is_resale: this.forms.status.is_resale ? 1 : 0
-            };
-
-            fetch(`{{ url('units') }}/${this.activeUnit.id}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(async res => {
-                let data = await res.json();
-                if (!res.ok) {
-                    // Show error inline inside the modal, not behind it
-                    this.statusError = data.error || 'Failed to update status.';
-                } else {
-                    this.statusError = '';
-                    this.showToast(`Transitioned status to ${targetState} successfully.`);
-                    this.fetchUnits();
-                    this.openEditModal(this.activeUnit.id);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.statusError = 'Network error occurred.';
-            });
-        },
-
-        // Rate History Handler
-        submitUpdateRate() {
-            fetch(`{{ url('units') }}/${this.activeUnit.id}/rate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(this.forms.rate)
-            })
-            .then(async res => {
-                let data = await res.json();
-                if (!res.ok) {
-                    this.showToast(data.error || 'Failed to update base rate.', 'error');
-                } else {
-                    this.showToast('Base rate updated successfully.');
-                    this.fetchUnits();
-                    this.closeEditModal();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                this.showToast('Network error occurred.', 'error');
-            });
-        }
-    };
-}
-</script>
-
 <div class="hidden" style="display: none;">
     <table id="salesExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
         <colgroup>
@@ -2562,24 +2431,7 @@ function unitsApp() {
 <script>
     let isExportingAvailability = false;
 
-    function unitMatrixApp() {
-        return {
-            selectedStatus: '{{ strtolower($selectedStatus ?? "") }}',
-            allUnits: @json($allUnits ?? []),
-            isExportingAvailability: false,
-            toast: { open: false, message: '', type: 'success' },
-            showToast(msg, type = 'success') {
-                this.toast.message = msg;
-                this.toast.type = type;
-                this.toast.open = true;
-                setTimeout(() => { this.toast.open = false; }, 4000);
-            },
-            isStatusMatching(unitStatus) {
-                if (!this.selectedStatus || this.selectedStatus === 'all' || this.selectedStatus === '') return true;
-                return (unitStatus || '').toLowerCase() === this.selectedStatus.toLowerCase();
-            }
-        };
-    }
+
 
     function buildUnitsWorksheet(workbook, sheetName, bannerTitle, sheetUnits, appData) {
         if (!sheetUnits || sheetUnits.length === 0) return;
@@ -3174,6 +3026,8 @@ function unitsApp() {
             window.URL.revokeObjectURL(url);
         });
     }
+    window.exportAvailabilityReport = exportAvailabilityReport;
+    window.exportCurrentTable = exportCurrentTable;
 </script>
 
 </x-erp-layout>

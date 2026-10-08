@@ -1,14 +1,35 @@
 <x-erp-layout title="Rate Revision Logs" headerTitle="Rate Revision Engine">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="rateRevisionApp()">
+<script>
+window.rateRevisionInitialData = {
+    projectId: '{{ $projectId ?? '' }}',
+    unitTypeId: '{{ request('unit_type_id') }}',
+    floorId: '{{ request('floor_id') }}',
+    projects: @json($projects->map(fn($p) => ['id' => (string)$p->id, 'name' => $p->name])),
+    unitTypes: @json($unitTypes->map(fn($t) => ['id' => (string)$t->id, 'name' => $t->name])),
+    floors: @json($floors->map(fn($f) => ['id' => (string)$f->id, 'name' => $f->name])),
+    logs: @json($mappedLogs),
+    pagination: {
+        current_page: {{ $logs->currentPage() }},
+        last_page: {{ $logs->lastPage() }},
+        total: {{ $logs->total() }},
+        first_item: {{ $logs->firstItem() ?? 0 }},
+        last_item: {{ $logs->lastItem() ?? 0 }}
+    },
+    kpis: {
+        totalRevisions: {{ $totalRevisions }},
+        activeUnits: {{ $activeUnits }},
+        lastRevisionDate: '{{ $lastRevisionDate ? \Carbon\Carbon::parse($lastRevisionDate)->format('d M Y') : 'Never' }}'
+    }
+};
+</script>
+
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="rateRevisionApp(window.rateRevisionInitialData)">
     
     {{-- Breadcrumb and Title Row --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                <!-- <span>Rate Revision Engine</span>
-                <span>&rsaquo;</span> -->
-                <!-- <span class="text-slate-600">Rate Revision Logs</span> -->
             </div>
             <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase mt-1">Rate Revision Logs</h1>
             <p class="text-xs text-slate-500 mt-0.5">Track, audit, and manage all rate and price changes applied to units.</p>
@@ -28,7 +49,9 @@
          style="display: none;">
         <span x-text="toast.message"></span>
         <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
-    </div>    {{-- KPI Cards Grid with Animated Hover Effects --}}
+    </div>
+
+    {{-- KPI Cards Grid with Animated Hover Effects --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Card 1: Total Rate Revisions -->
@@ -46,7 +69,7 @@
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
-                    {{ $totalRevisions }} <span class="text-base font-sans font-bold text-slate-500">Logs</span>
+                    <span x-text="kpis.totalRevisions"></span> <span class="text-base font-sans font-bold text-slate-500">Logs</span>
                 </span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total historical price adjustments tracked</p>
             </div>
@@ -67,7 +90,7 @@
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
-                    {{ $activeUnits }} <span class="text-base font-sans font-bold text-slate-500">Units</span>
+                    <span x-text="kpis.activeUnits"></span> <span class="text-base font-sans font-bold text-slate-500">Units</span>
                 </span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Distinct units with recorded price changes</p>
             </div>
@@ -87,8 +110,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
-                    {{ $lastRevisionDate ? \Carbon\Carbon::parse($lastRevisionDate)->format('d M Y') : 'Never' }}
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="kpis.lastRevisionDate">
                 </span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Date of most recent rate adjustment</p>
             </div>
@@ -97,18 +119,14 @@
     </div>
 
     {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all"
-         x-data="rateRevisionFilter(window.rateRevisionFilterData)">
-        <form id="rateRevisionFilterForm" method="GET" action="{{ route('rate-revision.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 flex-1">
-            <input type="hidden" name="project_id" :value="projectId">
-            <input type="hidden" name="unit_type_id" :value="unitTypeId">
-            <input type="hidden" name="floor_id" :value="floorId">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 flex-1">
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
                 {{-- Project Filter (Custom Gold Popover) --}}
                 <div class="relative" @click.outside="projectOpen = false">
                     <div @click="projectOpen = !projectOpen; unitTypeOpen = false; floorOpen = false;"
-                         class="erp-dropdown-trigger"
+                         class="erp-dropdown-trigger cursor-pointer"
                          :class="projectOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 truncate">
                             <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,13 +144,18 @@
                          class="erp-dropdown-popover"
                          style="display: none;">
                         <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                            @foreach($projects as $p)
-                                <div @click="selectProject('{{ $p->id }}')"
-                                     class="erp-dropdown-option"
-                                     :class="String(projectId) === '{{ $p->id }}' ? 'selected' : ''">
-                                    <span>{{ $p->name }}</span>
+                            <div @click="selectProject('')"
+                                 class="erp-dropdown-option cursor-pointer"
+                                 :class="!projectId ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            <template x-for="p in projects" :key="p.id">
+                                <div @click="selectProject(p.id)"
+                                     class="erp-dropdown-option cursor-pointer"
+                                     :class="String(projectId) === String(p.id) ? 'selected' : ''">
+                                    <span x-text="p.name"></span>
                                 </div>
-                            @endforeach
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -140,7 +163,7 @@
                 {{-- Unit Type Filter (Custom Gold Popover) --}}
                 <div class="relative" @click.outside="unitTypeOpen = false">
                     <div @click="unitTypeOpen = !unitTypeOpen; projectOpen = false; floorOpen = false;"
-                         class="erp-dropdown-trigger"
+                         class="erp-dropdown-trigger cursor-pointer"
                          :class="unitTypeOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 truncate">
                             <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,17 +182,17 @@
                          style="display: none;">
                         <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                             <div @click="selectUnitType('')"
-                                 class="erp-dropdown-option"
+                                 class="erp-dropdown-option cursor-pointer"
                                  :class="!unitTypeId ? 'selected-all' : ''">
                                 <span>All Types</span>
                             </div>
-                            @foreach($unitTypes as $ut)
-                                <div @click="selectUnitType('{{ $ut->id }}')"
-                                     class="erp-dropdown-option"
-                                     :class="String(unitTypeId) === '{{ $ut->id }}' ? 'selected' : ''">
-                                    <span>{{ $ut->name }}</span>
+                            <template x-for="ut in unitTypes" :key="ut.id">
+                                <div @click="selectUnitType(ut.id)"
+                                     class="erp-dropdown-option cursor-pointer"
+                                     :class="String(unitTypeId) === String(ut.id) ? 'selected' : ''">
+                                    <span x-text="ut.name"></span>
                                 </div>
-                            @endforeach
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -177,7 +200,7 @@
                 {{-- Floor Filter (Custom Gold Popover) --}}
                 <div class="relative" @click.outside="floorOpen = false">
                     <div @click="floorOpen = !floorOpen; projectOpen = false; unitTypeOpen = false;"
-                         class="erp-dropdown-trigger"
+                         class="erp-dropdown-trigger cursor-pointer"
                          :class="floorOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 truncate">
                             <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,29 +219,30 @@
                          style="display: none;">
                         <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                             <div @click="selectFloor('')"
-                                 class="erp-dropdown-option"
+                                 class="erp-dropdown-option cursor-pointer"
                                  :class="!floorId ? 'selected-all' : ''">
                                 <span>All Floors</span>
                             </div>
-                            @foreach($floors as $fl)
-                                <div @click="selectFloor('{{ $fl->id }}')"
-                                     class="erp-dropdown-option"
-                                     :class="String(floorId) === '{{ $fl->id }}' ? 'selected' : ''">
-                                    <span>{{ $fl->name }}</span>
+                            <template x-for="fl in floors" :key="fl.id">
+                                <div @click="selectFloor(fl.id)"
+                                     class="erp-dropdown-option cursor-pointer"
+                                     :class="String(floorId) === String(fl.id) ? 'selected' : ''">
+                                    <span x-text="fl.name"></span>
                                 </div>
-                            @endforeach
+                            </template>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Reset Filters Button --}}
-            <a href="{{ route('rate-revision.index') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
+            {{-- Reset Filters Button (Zero Page Refresh) --}}
+            <button type="button"
+                    @click="resetFilters()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
-            </a>
-        </form>
+            </button>
+        </div>
     </div>
 
     {{-- Revisions Table Card --}}
@@ -237,69 +261,93 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 bg-white text-center">
-                    @forelse($logs as $log)
-                        @php
-                            $rateDiff = (float)$log->rate - (float)$log->previous_rate;
-                        @endphp
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="px-5 py-4 text-left font-sans">
-                                <div class="font-extrabold text-slate-800 truncate max-w-[300px]" title="{{ $log->unit?->project?->name }}">{{ $log->unit?->project?->name }}</div>
-                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">
-                                    {{ $log->unit?->door_no }} | Floor: {{ $log->unit?->floor?->name ?? '—' }} | Type: {{ $log->unit?->unitType?->name ?? '—' }}
+                    
+                    {{-- Loading skeleton / spinner row --}}
+                    <template x-if="loadingLogs">
+                        <tr>
+                            <td colspan="7" class="px-5 py-16 text-center text-slate-400 font-bold animate-pulse">
+                                <div class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-5 w-5 text-[#a38c29]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    <span>Loading rate revision logs...</span>
                                 </div>
-                            </td>
-                            <td class="px-5 py-4 text-right font-mono font-extrabold text-slate-500">
-                                @if($log->previous_rate > 0)
-                                    ₹{{ number_format($log->previous_rate, 2) }}
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-5 py-4 text-right font-mono font-extrabold text-slate-850">
-                                ₹{{ number_format($log->rate, 2) }}
-                            </td>
-                            <td class="px-5 py-4 text-right font-mono font-extrabold">
-                                @if($rateDiff > 0)
-                                    <span class="text-emerald-600">+₹{{ number_format($rateDiff, 2) }}</span>
-                                @elseif($rateDiff < 0)
-                                    <span class="text-rose-600">-₹{{ number_format(abs($rateDiff), 2) }}</span>
-                                @else
-                                    <span class="text-slate-400">₹0.00</span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-4 text-slate-505 font-sans">
-                                {{ $log->effective_from ? \Carbon\Carbon::parse($log->effective_from)->format('d M Y') : '—' }}
-                            </td>
-                            <td class="px-5 py-4 text-left font-sans">
-                                <div class="font-bold text-slate-800">{{ $log->user?->name ?? 'System' }}</div>
-                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-                                    {{ $log->user?->role ?? 'User' }}
-                                </div>
-                            </td>
-                            <td class="px-5 py-4 text-left font-sans text-slate-500 max-w-[200px] truncate" title="{{ $log->reason ?? '—' }}">
-                                {{ $log->reason ?? '—' }}
                             </td>
                         </tr>
-                    @empty
+                    </template>
+
+                    {{-- Empty state --}}
+                    <template x-if="!loadingLogs && logs.length === 0">
                         <tr>
                             <td colspan="7" class="px-5 py-16 text-center text-slate-400 italic">No rate logs found for the current filter parameters.</td>
                         </tr>
-                    @endforelse
+                    </template>
+
+                    {{-- Log rows --}}
+                    <template x-if="!loadingLogs">
+                        <template x-for="log in logs" :key="log.id">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-5 py-4 text-left font-sans">
+                                    <div class="font-extrabold text-slate-800 truncate max-w-[300px]" :title="log.project_name" x-text="log.project_name"></div>
+                                    <div class="text-[10px] text-slate-500 font-semibold mt-0.5" x-text="`${log.door_no} | Floor: ${log.floor_name} | Type: ${log.unit_type_name}`"></div>
+                                </td>
+                                <td class="px-5 py-4 text-right font-mono font-extrabold text-slate-500" x-text="log.previous_rate_formatted"></td>
+                                <td class="px-5 py-4 text-right font-mono font-extrabold text-slate-850" x-text="log.rate_formatted"></td>
+                                <td class="px-5 py-4 text-right font-mono font-extrabold">
+                                    <span :class="{
+                                        'text-emerald-600': log.rate_diff_type === 'positive',
+                                        'text-rose-600': log.rate_diff_type === 'negative',
+                                        'text-slate-400': log.rate_diff_type === 'zero'
+                                    }" x-text="log.rate_diff_formatted"></span>
+                                </td>
+                                <td class="px-5 py-4 text-slate-505 font-sans" x-text="log.effective_from"></td>
+                                <td class="px-5 py-4 text-left font-sans">
+                                    <div class="font-bold text-slate-800" x-text="log.user_name"></div>
+                                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wide" x-text="log.user_role"></div>
+                                </td>
+                                <td class="px-5 py-4 text-left font-sans text-slate-500 max-w-[200px] truncate" :title="log.reason" x-text="log.reason"></td>
+                            </tr>
+                        </template>
+                    </template>
+
                 </tbody>
             </table>
         </div>
         
         {{-- Pagination footer --}}
-        @if($logs->hasPages())
-            <div class="px-6 py-4 border-t border-slate-150 flex items-center justify-between bg-slate-50/50">
+        <template x-if="pagination.total > 0">
+            <div class="px-6 py-4 border-t border-slate-150 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
                 <div class="text-xs text-slate-500 font-semibold">
-                    Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} Revisions
+                    Showing <span x-text="pagination.first_item"></span> to <span x-text="pagination.last_item"></span> of <span x-text="pagination.total"></span> Revisions
                 </div>
-                <div>
-                    {{ $logs->links() }}
-                </div>
+                <template x-if="pagination.last_page > 1">
+                    <div class="inline-flex items-center gap-1">
+                        <button type="button" @click="goToPage(pagination.current_page - 1)" :disabled="pagination.current_page === 1"
+                                class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white text-slate-700 cursor-pointer">
+                            Previous
+                        </button>
+                        <template x-for="p in getPageNumbers()" :key="p">
+                            <span>
+                                <template x-if="p === '...'">
+                                    <span class="px-2 py-1.5 text-xs text-slate-400 font-bold">...</span>
+                                </template>
+                                <template x-if="p !== '...'">
+                                    <button type="button" @click="goToPage(p)"
+                                            :class="pagination.current_page === p ? 'bg-[#a38c29] text-white border-[#a38c29] font-black shadow-xs' : 'bg-white text-slate-700 border-slate-200 font-bold hover:bg-slate-100'"
+                                            class="w-8 h-8 rounded-lg border text-xs flex items-center justify-center transition cursor-pointer"
+                                            x-text="p"></button>
+                                </template>
+                            </span>
+                        </template>
+                        <button type="button" @click="goToPage(pagination.current_page + 1)" :disabled="pagination.current_page === pagination.last_page"
+                                class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white text-slate-700 cursor-pointer">
+                            Next
+                        </button>
+                    </div>
+                </template>
             </div>
-        @endif
+        </template>
     </div>
 
     {{-- MODAL: Create New Rate Revision --}}
@@ -348,10 +396,10 @@
                 {{-- Unit Info Panel (Reactive) --}}
                 <div x-show="selectedUnitDetails" class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2" style="display: none;">
                     <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-bold">
-                        <div>BUILT-UP AREA: <span class="text-slate-800" x-text="`${selectedUnitDetails.built_up_area || 0} sqft`"></span></div>
-                        <div>CURRENT RATE/SQFT: <span class="text-slate-800" x-text="`₹${Number(selectedUnitDetails.expected_rate_per_sqft || 0).toLocaleString('en-IN')}`"></span></div>
-                        <div>CARPET AREA: <span class="text-slate-800" x-text="`${selectedUnitDetails.carpet_area || 0} sqft`"></span></div>
-                        <div>CURRENT VALUE: <span class="text-slate-800" x-text="`₹${Number(selectedUnitDetails.expected_sale_amount || 0).toLocaleString('en-IN')}`"></span></div>
+                        <div>BUILT-UP AREA: <span class="text-slate-800" x-text="`${selectedUnitDetails?.built_up_area || 0} sqft`"></span></div>
+                        <div>CURRENT RATE/SQFT: <span class="text-slate-800" x-text="`₹${Number(selectedUnitDetails?.expected_rate_per_sqft || 0).toLocaleString('en-IN')}`"></span></div>
+                        <div>CARPET AREA: <span class="text-slate-800" x-text="`${selectedUnitDetails?.carpet_area || 0} sqft`"></span></div>
+                        <div>CURRENT VALUE: <span class="text-slate-800" x-text="`₹${Number(selectedUnitDetails?.expected_sale_amount || 0).toLocaleString('en-IN')}`"></span></div>
                     </div>
                 </div>
 
@@ -395,60 +443,30 @@
 </div>
 
 <script>
-window.rateRevisionFilterData = {
-    projectId: '{{ $projectId }}',
-    unitTypeId: '{{ request('unit_type_id') }}',
-    floorId: '{{ request('floor_id') }}',
-    projects: @json($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])),
-    unitTypes: @json($unitTypes->map(fn($t) => ['id' => $t->id, 'name' => $t->name])),
-    floors: @json($floors->map(fn($f) => ['id' => $f->id, 'name' => $f->name]))
-};
-
-function rateRevisionFilter(config) {
+function rateRevisionApp(config = window.rateRevisionInitialData || {}) {
     return {
+        // Dropdown popover states
         projectOpen: false,
         unitTypeOpen: false,
         floorOpen: false,
-        projectId: config.projectId || '',
-        unitTypeId: config.unitTypeId || '',
-        floorId: config.floorId || '',
+
+        // Filters
+        projectId: config.projectId ? String(config.projectId) : '',
+        unitTypeId: config.unitTypeId ? String(config.unitTypeId) : '',
+        floorId: config.floorId ? String(config.floorId) : '',
+
+        // Lookups
         projects: config.projects || [],
         unitTypes: config.unitTypes || [],
         floors: config.floors || [],
-        get selectedProjectName() {
-            const found = this.projects.find(p => String(p.id) === String(this.projectId));
-            return found ? found.name : 'Select Project';
-        },
-        get selectedUnitTypeName() {
-            if (!this.unitTypeId) return 'All Types';
-            const found = this.unitTypes.find(t => String(t.id) === String(this.unitTypeId));
-            return found ? found.name : 'All Types';
-        },
-        get selectedFloorName() {
-            if (!this.floorId) return 'All Floors';
-            const found = this.floors.find(f => String(f.id) === String(this.floorId));
-            return found ? found.name : 'All Floors';
-        },
-        selectProject(id) {
-            this.projectId = id;
-            this.projectOpen = false;
-            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
-        },
-        selectUnitType(id) {
-            this.unitTypeId = id;
-            this.unitTypeOpen = false;
-            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
-        },
-        selectFloor(id) {
-            this.floorId = id;
-            this.floorOpen = false;
-            this.$nextTick(() => document.getElementById('rateRevisionFilterForm').submit());
-        }
-    };
-}
 
-function rateRevisionApp() {
-    return {
+        // Table & KPI states
+        logs: config.logs || [],
+        pagination: config.pagination || { current_page: 1, last_page: 1, total: 0, first_item: 0, last_item: 0 },
+        kpis: config.kpis || { totalRevisions: 0, activeUnits: 0, lastRevisionDate: 'Never' },
+        loadingLogs: false,
+
+        // Modal states
         addModalOpen: false,
         loadingUnits: false,
         projectUnits: [],
@@ -467,6 +485,133 @@ function rateRevisionApp() {
             message: '',
             type: 'success'
         },
+
+        get selectedProjectName() {
+            if (!this.projectId) return 'All Projects';
+            const found = this.projects.find(p => String(p.id) === String(this.projectId));
+            return found ? found.name : 'All Projects';
+        },
+        get selectedUnitTypeName() {
+            if (!this.unitTypeId) return 'All Types';
+            const found = this.unitTypes.find(t => String(t.id) === String(this.unitTypeId));
+            return found ? found.name : 'All Types';
+        },
+        get selectedFloorName() {
+            if (!this.floorId) return 'All Floors';
+            const found = this.floors.find(f => String(f.id) === String(this.floorId));
+            return found ? found.name : 'All Floors';
+        },
+
+        selectProject(id) {
+            this.projectId = id ? String(id) : '';
+            this.projectOpen = false;
+            this.floorId = ''; // Reset floor filter when changing project
+            this.fetchLogs(1);
+        },
+        selectUnitType(id) {
+            this.unitTypeId = id ? String(id) : '';
+            this.unitTypeOpen = false;
+            this.fetchLogs(1);
+        },
+        selectFloor(id) {
+            this.floorId = id ? String(id) : '';
+            this.floorOpen = false;
+            this.fetchLogs(1);
+        },
+        resetFilters() {
+            this.projectId = '';
+            this.unitTypeId = '';
+            this.floorId = '';
+            this.projectOpen = false;
+            this.unitTypeOpen = false;
+            this.floorOpen = false;
+            this.fetchLogs(1);
+        },
+        goToPage(page) {
+            if (page < 1 || page > this.pagination.last_page || page === this.pagination.current_page) return;
+            this.fetchLogs(page);
+        },
+        getPageNumbers() {
+            let current = this.pagination.current_page;
+            let last = this.pagination.last_page;
+            let delta = 2;
+            let left = current - delta;
+            let right = current + delta + 1;
+            let range = [];
+            let rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= last; i++) {
+                if (i === 1 || i === last || (i >= left && i < right)) {
+                    range.push(i);
+                }
+            }
+
+            for (let i of range) {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l > 2) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            }
+
+            return rangeWithDots;
+        },
+
+        fetchLogs(page = 1) {
+            this.loadingLogs = true;
+            let params = new URLSearchParams();
+            params.append('page', page);
+            if (this.projectId) {
+                params.append('project_id', this.projectId);
+            } else {
+                params.append('project_id', '');
+            }
+            if (this.unitTypeId) {
+                params.append('unit_type_id', this.unitTypeId);
+            }
+            if (this.floorId) {
+                params.append('floor_id', this.floorId);
+            }
+
+            // Update browser URL without refreshing the page
+            const cleanUrl = params.toString() ? `{{ route('rate-revision.index') }}?${params.toString()}` : `{{ route('rate-revision.index') }}`;
+            window.history.pushState(null, '', cleanUrl);
+
+            fetch(`{{ route('rate-revision.index') }}?${params.toString()}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.logs = data.logs || [];
+                    this.pagination = data.pagination || { current_page: 1, last_page: 1, total: 0, first_item: 0, last_item: 0 };
+                    this.kpis = {
+                        totalRevisions: data.totalRevisions || 0,
+                        activeUnits: data.activeUnits || 0,
+                        lastRevisionDate: data.lastRevisionDate || 'Never'
+                    };
+                    if (data.floors) {
+                        this.floors = data.floors;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Failed to fetch rate logs.', 'error');
+            })
+            .finally(() => {
+                this.loadingLogs = false;
+            });
+        },
+
         showToast(msg, type = 'success') {
             this.toast.message = msg;
             this.toast.type = type;
@@ -476,7 +621,7 @@ function rateRevisionApp() {
         openAddModal() {
             this.errors = {};
             this.addForm = {
-                project_id: '{{ request('project_id') ?? ($projects->first()->id ?? '') }}',
+                project_id: this.projectId || '{{ $projects->first()->id ?? '' }}',
                 unit_id: '',
                 effective_from: new Date().toISOString().split('T')[0],
                 rate: '',
@@ -537,7 +682,6 @@ function rateRevisionApp() {
         },
         submitAddForm() {
             this.errors = {};
-            // Set revision type as default for backwards compatibility
             const payload = {
                 ...this.addForm,
                 revision_type: 'Base Price Adjustment'
@@ -561,7 +705,7 @@ function rateRevisionApp() {
                 } else {
                     this.showToast('Unit rate revised and logged successfully.');
                     this.addModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1200);
+                    this.fetchLogs(1);
                 }
             })
             .catch(err => {

@@ -660,7 +660,7 @@ class UnitController extends Controller
         }
     }
 
-    public function rateRevisionIndex(Request $request): View
+    public function rateRevisionIndex(Request $request): View|JsonResponse
     {
         $user = Auth::user();
         if (!$this->canManageRates($user)) {
@@ -672,11 +672,15 @@ class UnitController extends Controller
         $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
         
         $defaultProject = Project::orderBy('name')->first();
-        $projectId = $request->input('project_id', $defaultProject ? $defaultProject->id : null);
+        $projectId = $request->has('project_id')
+            ? ($request->filled('project_id') ? $request->input('project_id') : null)
+            : ($defaultProject ? $defaultProject->id : null);
 
         $floors = [];
         if ($projectId) {
             $floors = \App\Models\Floor::where('project_id', $projectId)->orderBy('floor_number')->get();
+        } else {
+            $floors = \App\Models\Floor::orderBy('name')->get();
         }
 
         $firstLogIdsSubquery = function ($q) {
@@ -730,11 +734,54 @@ class UnitController extends Controller
         $activeUnits = (clone $kpiQuery)->distinct('unit_id')->count('unit_id');
         $lastRevisionDate = (clone $kpiQuery)->orderBy('id', 'desc')->value('effective_from');
 
+        $mappedLogs = collect($logs->items())->map(function ($log) {
+            $rateDiff = (float)$log->rate - (float)$log->previous_rate;
+            return [
+                'id' => $log->id,
+                'project_name' => $log->unit?->project?->name ?? '—',
+                'door_no' => $log->unit?->door_no ?? '—',
+                'floor_name' => $log->unit?->floor?->name ?? '—',
+                'unit_type_name' => $log->unit?->unitType?->name ?? '—',
+                'previous_rate' => (float)$log->previous_rate,
+                'previous_rate_formatted' => $log->previous_rate > 0 ? '₹' . number_format($log->previous_rate, 2) : '—',
+                'rate' => (float)$log->rate,
+                'rate_formatted' => '₹' . number_format($log->rate, 2),
+                'rate_diff' => $rateDiff,
+                'rate_diff_formatted' => $rateDiff > 0 ? '+₹' . number_format($rateDiff, 2) : ($rateDiff < 0 ? '-₹' . number_format(abs($rateDiff), 2) : '₹0.00'),
+                'rate_diff_type' => $rateDiff > 0 ? 'positive' : ($rateDiff < 0 ? 'negative' : 'zero'),
+                'effective_from' => $log->effective_from ? \Carbon\Carbon::parse($log->effective_from)->format('d M Y') : '—',
+                'user_name' => $log->user?->name ?? 'System',
+                'user_role' => $log->user?->role ?? 'User',
+                'reason' => $log->reason ?? '—',
+            ];
+        });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'logs' => $mappedLogs,
+                'pagination' => [
+                    'current_page' => $logs->currentPage(),
+                    'last_page' => $logs->lastPage(),
+                    'total' => $logs->total(),
+                    'first_item' => $logs->firstItem() ?? 0,
+                    'last_item' => $logs->lastItem() ?? 0,
+                ],
+                'floors' => $floors->map(fn($f) => ['id' => $f->id, 'name' => $f->name]),
+                'totalRevisions' => $totalRevisions,
+                'activeUnits' => $activeUnits,
+                'lastRevisionDate' => $lastRevisionDate ? \Carbon\Carbon::parse($lastRevisionDate)->format('d M Y') : 'Never',
+                'priceIncrease' => $priceIncrease,
+                'priceDecrease' => $priceDecrease,
+            ]);
+        }
+
         return view('units.rate-revision-logs', compact(
             'projects',
             'unitTypes',
             'floors',
             'logs',
+            'mappedLogs',
             'totalRevisions',
             'priceIncrease',
             'priceDecrease',

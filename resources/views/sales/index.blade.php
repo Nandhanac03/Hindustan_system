@@ -2064,7 +2064,7 @@ function salesApp() {
         perPage: 10,
         projectDropdownOpen: false,
         statusDropdownOpen: false,
-        projectsList: {!! json_encode($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])) !!},
+        projectsList: @js($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name])),
         filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
         get selectedFilterProjectName() {
             if (!this.filters.project_id) return 'All Projects';
@@ -2081,9 +2081,9 @@ function salesApp() {
         confirmDeactivateModal: { open: false, saleId: null, saleNumber: '', doorNo: '', hasEmis: false, hasReceipts: false },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
-        customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone]; })) !!},
-        brokerList: {!! json_encode($brokers->map(function($b) { return ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null]; })) !!},
-        bankAccountsList: {!! json_encode($bankAccounts->map(function($ba) { return ['id' => $ba->id, 'name' => $ba->bank_name]; })) !!},
+        customerList: @js($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone]; })),
+        brokerList: @js($brokers->map(function($b) { return ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null]; })),
+        bankAccountsList: @js($bankAccounts->map(function($ba) { return ['id' => $ba->id, 'name' => $ba->bank_name]; })),
         quickCustomer: { name: '', email: '', phone: '' },
         quickCustomerErrors: {},
         customerSearch: '',
@@ -2136,14 +2136,14 @@ function salesApp() {
         newReturnSaleId: '',
         newReturnSale: null,
         isEditReturn: false,
-        isCancellationTab: {{ request('tab') === 'cancellations' ? 'true' : 'false' }},
+        isCancellationTab: {{ (request('tab') === 'cancellations' || request('tab') === 'sale-return') ? 'true' : 'false' }},
         openNewExchangeModal: false,
         newExchangeStep: 1,
         newExchangeSaleId: '',
         openViewExchangeModal: false,
         viewExchangeSale: null,
-        companyBankAccountsList: {!! json_encode(($companyBankAccounts ?? \App\Models\CompanyBankAccount::where('status', 'active')->orderBy('bank_name')->get())->map(function($ba) { return ['id' => $ba->id, 'bank_name' => $ba->bank_name, 'account_name' => $ba->account_name, 'account_number' => $ba->account_number, 'account_type' => $ba->account_type, 'ifsc_code' => $ba->ifsc_code, 'current_balance' => (float)($ba->current_balance ?? 0)]; })) !!},
-        paymentModesList: {!! json_encode(($paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get())->map(function($pm) { return ['id' => $pm->id, 'name' => $pm->name]; })) !!},
+        companyBankAccountsList: @js(($companyBankAccounts ?? \App\Models\CompanyBankAccount::where('status', 'active')->orderBy('bank_name')->get())->map(function($ba) { return ['id' => $ba->id, 'bank_name' => $ba->bank_name, 'account_name' => $ba->account_name, 'account_number' => $ba->account_number, 'account_type' => $ba->account_type, 'ifsc_code' => $ba->ifsc_code, 'current_balance' => (float)($ba->current_balance ?? 0)]; })),
+        paymentModesList: @js(($paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get())->map(function($pm) { return ['id' => $pm->id, 'name' => $pm->name]; })),
         openCustomerRefundModal: false,
         refundModalSale: null,
         openRefundLedgerModal: false,
@@ -2487,6 +2487,53 @@ function salesApp() {
             if (paid > 0) return 'Partially Refunded';
             return 'Pending';
         },
+        fmtIndian(value) {
+            let num = Number(value || 0);
+            if (isNaN(num)) return '₹0.00';
+            if (num >= 10000000) {
+                return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+            } else if (num >= 100000) {
+                return '₹' + (num / 100000).toFixed(2) + ' L';
+            }
+            return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getPaidTillDate(sale) {
+            if (!sale) return 0;
+            if (sale.total_paid != null) return Number(sale.total_paid);
+            if (sale.receipts && Array.isArray(sale.receipts)) {
+                return sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            }
+            return Number(sale.paid_amount || 0);
+        },
+        calculateApprovedRefund(sale) {
+            const paid = this.getPaidTillDate(sale);
+            const fee = Number(this.returnForm.cancellation_fee) || 0;
+            const additional = Number(this.returnForm.additional_refund_amount) || 0;
+            return Math.max(0, paid - fee + additional);
+        },
+        getExchangeStats() {
+            let salesList = this.sales.filter(s => s.status === 'exchanged');
+            if (this.exchangeFilters && this.exchangeFilters.project_id) {
+                salesList = salesList.filter(s => s.project_id == this.exchangeFilters.project_id);
+            }
+            let totalExchanges = salesList.length;
+            let totalDiff = 0;
+            let payableByCustomer = 0;
+            let refundableToCustomer = 0;
+            let completedExchanges = salesList.filter(s => s.status === 'exchanged').length;
+            salesList.forEach(sale => {
+                const newVal = typeof this.getNewUnitValue === 'function' ? this.getNewUnitValue(sale) : 0;
+                const oldVal = parseFloat(sale.total_amount || 0);
+                const diff = newVal - oldVal;
+                totalDiff += Math.abs(diff);
+                if (diff > 0) {
+                    payableByCustomer += diff;
+                } else if (diff < 0) {
+                    refundableToCustomer += Math.abs(diff);
+                }
+            });
+            return { totalExchanges, totalDiff, payableByCustomer, refundableToCustomer, completedExchanges };
+        },
         getReturnStats() {
             let salesList = this.sales.filter(s => s.status === 'cancelled' || s.status === 'returned');
             if (this.returnFilters && this.returnFilters.project_id) {
@@ -2675,14 +2722,14 @@ function salesApp() {
             return this.sales.find(s => s.notes && (s.notes.includes('Exchanged from sale ' + sale.sale_number) || s.notes.includes('Exchanged from ' + sale.sale_number)));
         },
         getNewUnitDoorNo(sale) {
-            if (sale.status !== 'exchanged') return '—';
+            if (!sale || sale.status !== 'exchanged') return '—';
             const newSale = this.getNewUnit(sale);
             if (!newSale) return '—';
             if (newSale.sale_units && newSale.sale_units.length) return this.formatSaleUnits(newSale);
             return newSale.unit ? this.formatUnitDisplay(newSale.unit) : '—';
         },
         getNewUnitValue(sale) {
-            if (sale.status !== 'exchanged') return 0;
+            if (!sale || sale.status !== 'exchanged') return 0;
             const newSale = this.getNewUnit(sale);
             return newSale ? parseFloat(newSale.total_amount || 0) : 0;
         },
@@ -2702,10 +2749,6 @@ function salesApp() {
         getDifferenceAmount(sale) {
             if (!sale || sale.status !== 'exchanged') return 0;
             return Math.abs(this.getExchangeNetDue(sale));
-        },
-        fmtIndian(value) {
-            let num = Number(value || 0);
-            return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
         getUnitsDisplay(sale) {
             if (!sale) return 'N/A';
@@ -4451,5 +4494,16 @@ function salesApp() {
         }
     };
 }
+window.salesApp = salesApp;
+window.fmtIndian = function(value) {
+    let num = Number(value || 0);
+    if (isNaN(num)) return '₹0.00';
+    if (num >= 10000000) {
+        return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+    } else if (num >= 100000) {
+        return '₹' + (num / 100000).toFixed(2) + ' L';
+    }
+    return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 </script>
 </x-erp-layout>

@@ -507,7 +507,7 @@
                                     </div>
                                     <div class="border-l border-slate-100 pl-4" x-show="selectedReturnSale && Number(selectedReturnSale.additional_refund_amount) > 0">
                                         <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Additional Refund (Owner Approved)</div>
-                                        <div class="text-sm font-extrabold text-emerald-600 font-mono" x-text="'+ ' + fmt(selectedReturnSale.additional_refund_amount)"></div>
+                                        <div class="text-sm font-extrabold text-emerald-600 font-mono" x-text="selectedReturnSale ? ('+ ' + fmt(selectedReturnSale.additional_refund_amount || 0)) : ''"></div>
                                     </div>
                                     <div class="border-l border-slate-100 pl-4">
                                         <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Approved Refund Amount</div>
@@ -2184,9 +2184,9 @@
                                         </template>
                                         <template x-if="selectedExchangeSale && (!selectedExchangeSale.sale_units || selectedExchangeSale.sale_units.length === 0)">
                                             <div>
-                                                <span x-text="selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : ''"></span> 
-                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale.unit && selectedExchangeSale.unit.unit_type ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span> — 
-                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale.unit && selectedExchangeSale.unit.floor ? selectedExchangeSale.unit.floor.name : ''"></span>
+                                                <span x-text="selectedExchangeSale?.unit ? selectedExchangeSale.unit.door_no : ''"></span> 
+                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.unit_type ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span> — 
+                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.floor ? selectedExchangeSale.unit.floor.name : ''"></span>
                                             </div>
                                         </template>
                                     </div>
@@ -2926,29 +2926,29 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return No.</span>
-                                <span class="font-extrabold text-slate-900" x-text="'RET-' + new Date(refundModalSale.cancelled_at || refundModalSale.updated_at).getFullYear() + '-' + String(refundModalSale.id).padStart(3, '0')"></span>
+                                <span class="font-extrabold text-slate-900" x-text="refundModalSale ? ('RET-' + new Date(refundModalSale.cancelled_at || refundModalSale.updated_at || Date.now()).getFullYear() + '-' + String(refundModalSale.id || '').padStart(3, '0')) : ''"></span>
                             </div>
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Unit</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale.unit ? formatUnitDisplay(refundModalSale.unit) : 'N/A'"></span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale?.unit ? formatUnitDisplay(refundModalSale.unit) : 'N/A'"></span>
                             </div>
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Date</span>
-                                <span class="font-bold text-slate-800" x-text="formatDate(refundModalSale.cancelled_at || refundModalSale.updated_at)"></span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale ? formatDate(refundModalSale.cancelled_at || refundModalSale.updated_at) : ''"></span>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-200/60">
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Project</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale.project ? refundModalSale.project.name : 'N/A'"></span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale?.project ? refundModalSale.project.name : 'N/A'"></span>
                             </div>
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="refundModalSale.customer ? refundModalSale.customer.name : 'N/A'"></span>
+                                <span class="font-bold text-slate-900" x-text="refundModalSale?.customer ? refundModalSale.customer.name : 'N/A'"></span>
                             </div>
                             <div>
                                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Type</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale.status === 'cancelled' ? 'Cancellation' : 'Return'"></span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale?.status === 'cancelled' ? 'Cancellation' : 'Return'"></span>
                             </div>
                         </div>
                     </div>
