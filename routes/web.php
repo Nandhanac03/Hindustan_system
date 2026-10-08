@@ -404,7 +404,6 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/loans/{loan}/pay-emi/{installment}', [\App\Http\Controllers\LoanController::class, 'payEmi'])->name('loans.pay-emi');
     Route::post('/loans/{loan}/prepay', [\App\Http\Controllers\LoanController::class, 'prepay'])->name('loans.prepay');
     Route::post('/loans/{loan}/update-interest', [\App\Http\Controllers\LoanController::class, 'updateInterest'])->name('loans.update-interest');
-    Route::post('/loans/{loan}/recalculate-schedule', [\App\Http\Controllers\LoanController::class, 'recalculateSchedule'])->name('loans.recalculate-schedule');
 
     // Site Expenses Module (Dedicated Direct Operational Expenses & Workflow)
     Route::get('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'index'])->name('site-expenses.index');

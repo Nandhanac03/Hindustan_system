@@ -369,18 +369,6 @@ class LoanController extends Controller
         }
     }
 
-    public function recalculateSchedule(Request $request, Loan $loan): JsonResponse
-    {
-        DB::transaction(function () use ($loan) {
-            $this->reamortizeUnpaidInstallments($loan);
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Loan repayment schedule has been recalculated and synchronized successfully.'
-        ]);
-    }
-
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
     {
         $validated = $request->validate([
