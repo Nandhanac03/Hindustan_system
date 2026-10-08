@@ -434,18 +434,9 @@
         </div>
 
         <!-- New Expense Modal -->
-        <div x-show="showExpenseModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
-            <div x-show="showExpenseModal" 
-                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
-                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
-                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
-                 @click="showExpenseModal = false" aria-hidden="true"></div>
-
-            <div x-show="showExpenseModal" 
-                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" 
-                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" 
-                 class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto z-10"
-                 @click.stop>
+        <div x-show="showExpenseModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak x-transition.opacity>
+            <div class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border-0 ring-0 outline-none"
+                 @click.away="showExpenseModal = false">
             
             <form id="newExpenseForm" action="{{ route('petty-cash.store-expense') }}" method="POST" enctype="multipart/form-data" novalidate @submit.prevent="submitExpenseForm('save_post')" class="flex flex-col h-full overflow-hidden">
                 @csrf
@@ -746,18 +737,9 @@
     </div>
 
     <!-- View Details Modal -->
-    <div x-show="showViewModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
-        <div x-show="showViewModal" 
-             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
-             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
-             @click="showViewModal = false"></div>
-        
-        <div x-show="showViewModal" 
-             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" 
-             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" 
-             class="relative w-full max-w-2xl bg-white rounded-2xl text-left overflow-hidden shadow-2xl my-auto z-10"
-             @click.stop>
+    <div x-show="showViewModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak x-transition.opacity>
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl text-left overflow-hidden shadow-2xl my-auto border-0 ring-0 outline-none"
+             @click.away="showViewModal = false">
             
             <!-- Header -->
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-[#a38c29]/10 rounded-t-2xl">
@@ -844,18 +826,9 @@
     </div>
 
     <!-- Edit Expense Modal -->
-    <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
-        <div x-show="showEditModal" 
-             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
-             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
-             @click="showEditModal = false"></div>
-
-        <div x-show="showEditModal" 
-             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" 
-             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" 
-             class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto z-10"
-             @click.stop>
+    <div x-show="showEditModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak x-transition.opacity>
+        <div class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border-0 ring-0 outline-none"
+             @click.away="showEditModal = false">
             
             <form :action="updateUrl" method="POST" enctype="multipart/form-data" novalidate @submit.prevent="submitEditForm($event)" class="flex flex-col h-full overflow-hidden">
                 @csrf
