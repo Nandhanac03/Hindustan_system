@@ -2604,159 +2604,351 @@
     <div x-show="openViewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openViewExchangeModal = false"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden animate-fade-in">
                 
                 {{-- Header Combo --}}
-                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/10">
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4">
                     <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between gap-4">
                         <div>
-                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
                                 <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchanged</span>
-                                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchange Details</span>
+                                <!-- <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Audit Trail</span> -->
                             </div>
-                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Exchange Details</h2>
-                            <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="viewExchangeSale"
-                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' • Sale No: ' + viewExchangeSale.sale_number : ''"></p>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white tracking-wider uppercase">EXCHANGE DETAILS</h2>
                         </div>
                         <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                     </div>
                 </div>
                 
-                <div class="p-6 space-y-4 max-h-[78vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                    <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3 text-xs font-bold text-slate-650 space-y-1">
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer Name</span>
-                            <span class="text-slate-800 text-sm font-extrabold" x-text="viewExchangeSale ? (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') : ''"></span>
+                <div class="p-3.5 sm:p-4 space-y-2.5 font-sans text-xs bg-slate-50/50">
+                    
+                    {{-- Primary Customer & Transaction Details Overview Grid --}}
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            {{-- Customer Name --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Customer</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="viewExchangeSale && viewExchangeSale.customer ? viewExchangeSale.customer.name : '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="viewExchangeSale && viewExchangeSale.customer && viewExchangeSale.customer.phone" x-text="viewExchangeSale && viewExchangeSale.customer ? viewExchangeSale.customer.phone : ''"></span>
+                                </div>
+                            </div>
+
+                            {{-- Sale Reference --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Sale Ref</span>
+                                    <span class="text-slate-800 font-mono text-xs font-bold truncate block mt-0.5" x-text="viewExchangeSale ? viewExchangeSale.sale_number : '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block" x-show="viewExchangeSale && viewExchangeSale.booking_date" x-text="viewExchangeSale ? viewExchangeSale.booking_date : ''"></span>
+                                </div>
+                            </div>
+
+                            {{-- Project --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Project</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="viewExchangeSale && viewExchangeSale.project ? (viewExchangeSale.project.name || viewExchangeSale.project.code) : '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="viewExchangeSale && viewExchangeSale.project && viewExchangeSale.project.code" x-text="'Code: ' + (viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.code : '')"></span>
+                                </div>
+                            </div>
+
+                            {{-- Unit / Door --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Unit / Door</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="viewExchangeSale && viewExchangeSale.unit ? ('Door ' + viewExchangeSale.unit.door_no) : '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="viewExchangeSale && viewExchangeSale.unit && (viewExchangeSale.unit.unit_type_name || viewExchangeSale.unit.type)" x-text="viewExchangeSale && viewExchangeSale.unit ? (viewExchangeSale.unit.unit_type_name || viewExchangeSale.unit.type || '') + (viewExchangeSale.unit.floor_name ? ' • ' + viewExchangeSale.unit.floor_name : '') : ''"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
-                        <div class="bg-slate-50/50 border border-slate-200 rounded-2xl p-4 space-y-2">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-1">Old Unit (Cancelled)</h4>
-                            <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'"></span></p>
-                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : '—'"></span></p>
-                                <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span></p>
-                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span></p>
+                    {{-- Horizontal Notes / Narration Bar --}}
+                    <div class="bg-white border border-slate-200/90 rounded-xl px-4 py-2 text-xs flex items-center gap-2 shadow-2xs">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest shrink-0">NOTES / NARRATION:</span>
+                        <span class="text-slate-800 font-semibold truncate" x-text="viewExchangeSale ? (viewExchangeSale.cancellation_reason || 'sale') : '—'"></span>
+                    </div>
+
+                    {{-- Old vs New Unit Comparison Cards (2-Column Grid Format) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
+                        {{-- Old Unit (Cancelled) --}}
+                        <div class="bg-rose-50/40 border border-rose-200/60 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                            <h4 class="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider flex items-center gap-1.5 pb-0.5">
+                                <span>✕</span>
+                                <span>OLD UNIT (CANCELLED)</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PROJECT</span>
+                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">UNIT DETAILS</span>
+                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">ORIGINAL VALUE</span>
+                                    <span class="text-rose-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PAID AMOUNT</span>
+                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="bg-blue-50/10 border border-blue-150 rounded-2xl p-4 space-y-2">
-                            <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-wider border-b border-blue-200/30 pb-1">New Unit (Booked)</h4>
-                            <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))) ? ((viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project ? (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project.name : '—') : '—'"></span></p>
-                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="getNewUnitDoorNo(viewExchangeSale)"></span></p>
-                                <p class="text-slate-500">New Value: <span class="text-slate-850 font-bold font-mono" x-text="fmt(getNewUnitValue(viewExchangeSale))"></span></p>
+                        {{-- New Unit (Booked) --}}
+                        <div class="bg-emerald-50/40 border border-emerald-200/60 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                            <h4 class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5 pb-0.5">
+                                <span>✓</span>
+                                <span>NEW UNIT (BOOKED)</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PROJECT</span>
+                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="viewExchangeSale && (getNewUnit(viewExchangeSale) ? (getNewUnit(viewExchangeSale).project ? getNewUnit(viewExchangeSale).project.name : (viewExchangeSale.project ? viewExchangeSale.project.name : '—')) : (viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'))"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">UNIT DETAILS</span>
+                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="getNewUnitDoorNo(viewExchangeSale)"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">NEW VALUE</span>
+                                    <span class="text-emerald-700 font-extrabold font-mono text-xs block" x-text="fmt(getNewUnitValue(viewExchangeSale))"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">TRANSFERRED EQUITY</span>
+                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="fmt(getPaidTillDate(viewExchangeSale))"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Financial calculations --}}
-                    <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
+                    <div class="bg-white border border-slate-200/90 rounded-xl p-3 grid grid-cols-3 gap-3 divide-x divide-slate-100 shadow-2xs">
                         <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
-                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAID AMOUNT</p>
+                            <p class="text-sm font-extrabold text-emerald-600 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center px-2">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Net Balance Due</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NET BALANCE DUE</p>
                             <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payable / Refundable</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAYABLE / REFUNDABLE</p>
                             <p class="text-xs font-extrabold mt-1 uppercase" 
                                :class="viewExchangeSale && getExchangeNetDue(viewExchangeSale) > 0 ? 'text-orange-600' : (viewExchangeSale && getExchangeNetDue(viewExchangeSale) < 0 ? 'text-teal-600' : 'text-slate-600')"
-                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
+                                x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
                         </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Notes / Narration Details</label>
-                        <div class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 min-h-12"
-                             x-text="viewExchangeSale ? (viewExchangeSale.cancellation_reason || 'No notes entered.') : ''"></div>
                     </div>
 
                     {{-- ARCHIVED LOG SNAPSHOT CARD --}}
                     <template x-if="getExchangeSnapshot(viewExchangeSale)">
-                        <div class="bg-white border border-blue-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                        <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 space-y-3 shadow-2xs">
                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <h4 class="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                    <span>Archived Unit Exchange Log & Sourcable Snapshot</span>
+                                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    <span>ARCHIVED UNIT EXCHANGE LOG & SOURCABLE SNAPSHOT</span>
                                 </h4>
-                                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[8px] font-bold uppercase font-mono"
-                                      x-text="'Archived ' + (getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_at : '')"></span>
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[8px] font-bold uppercase font-mono"
+                                      x-text="'ARCHIVED ' + (getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_at : '')"></span>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
-                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1">
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Old Unit & Agreement Info</span>
-                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : '—'"></span></p>
-                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : '—'"></span></p>
-                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' • ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
-                                    <p class="text-slate-600">Old Contract Value: <span class="font-extrabold text-slate-800 font-mono" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_amount : 0)"></span></p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                {{-- Box 1: Old Unit & Agreement Info --}}
+                                <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs space-y-2.5">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
+                                        <span>OLD UNIT & AGREEMENT INFO</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">SALE NO</span>
+                                            <span class="font-bold text-slate-800 font-mono text-xs block truncate" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">DOOR / UNIT</span>
+                                            <span class="font-bold text-slate-800 text-xs block truncate" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">UNIT TYPE & FLOOR</span>
+                                            <span class="font-bold text-slate-800 text-xs block truncate" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' • ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">OLD CONTRACT VALUE</span>
+                                            <span class="font-extrabold text-slate-900 font-mono text-xs block truncate" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_amount : 0)"></span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-200/80 space-y-1">
-                                    <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-widest block">Transferred Financials & Receipts</span>
-                                    <p class="text-slate-600">Total Paid Amount: <span class="font-extrabold text-emerald-700 font-mono text-xs" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_paid : 0)"></span></p>
-                                    <p class="text-slate-600">Receipts History Count: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).receipts ? getExchangeSnapshot(viewExchangeSale).receipts.length : 0"></span></p>
-                                    <p class="text-slate-600">Carried Forward Status: <span class="font-bold text-emerald-700 uppercase text-[10px]" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta && getExchangeSnapshot(viewExchangeSale).exchange_meta.carry_forward ? 'Yes (Equity Transferred)' : 'No'"></span></p>
-                                    <p class="text-slate-600">Processed By User: <span class="font-bold text-slate-700" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_by_user : 'System'"></span></p>
+                                {{-- Box 2: Transferred Financials & Receipts --}}
+                                <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs space-y-2.5">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>TRANSFERRED FINANCIALS & RECEIPTS</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">TOTAL PAID AMOUNT</span>
+                                            <span class="font-extrabold text-emerald-600 font-mono text-xs block truncate" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_paid : 0)"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">RECEIPTS COUNT</span>
+                                            <span class="font-bold text-slate-800 font-mono text-xs block truncate" x-text="getExchangeSnapshot(viewExchangeSale).receipts ? getExchangeSnapshot(viewExchangeSale).receipts.length : 0"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">CARRIED FORWARD</span>
+                                            <span class="font-bold text-emerald-600 text-[10px] uppercase font-mono block truncate" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta && getExchangeSnapshot(viewExchangeSale).exchange_meta.carry_forward ? 'YES (EQUITY TRANSFERRED)' : 'No'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PROCESSED BY</span>
+                                            <span class="font-bold text-slate-800 text-xs block truncate" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_by_user : 'Owner'"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             {{-- Collapsible Archived Receipts & EMI Schedule details --}}
                             <div x-data="{ openTables: false }" class="pt-1">
                                 <button type="button" @click="openTables = !openTables"
-                                        class="text-[9px] font-extrabold text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
-                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
-                                    <svg class="w-3 h-3 transition-transform" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-50/90 via-amber-100/50 to-amber-50/90 hover:from-amber-100 hover:to-amber-100/80 border border-amber-300 text-amber-950 font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-all shadow-2xs cursor-pointer">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-[#a38c29] animate-pulse" x-show="!openTables"></span>
+                                        <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : 'Expand Full Receipts & EMI Schedule Audit Log'"></span>
+                                    </span>
+                                    <div class="flex items-center gap-1.5 text-[#a38c29] font-extrabold text-[11px]">
+                                        <span x-text="openTables ? 'COLLAPSE' : 'VIEW DETAILS'"></span>
+                                        <svg class="w-4 h-4 transition-transform duration-200" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </div>
                                 </button>
 
-                                <div x-show="openTables" class="mt-2 space-y-3">
-                                    {{-- Archived Receipts Table --}}
-                                    <div class="space-y-1">
-                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Archived Receipts History</span>
-                                        <div class="max-h-36 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50 divide-y divide-slate-100">
-                                            <template x-for="r in getExchangeSnapshot(viewExchangeSale).receipts" :key="r.id">
-                                                <div class="px-3 py-1.5 text-[10px] flex items-center justify-between">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="font-bold text-slate-800 font-mono" x-text="r.receipt_number"></span>
-                                                        <span class="text-slate-400 font-mono" x-text="r.receipt_date"></span>
-                                                        <span class="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[8px] font-bold uppercase" x-text="r.payment_mode"></span>
-                                                    </div>
-                                                    <span class="font-bold text-emerald-700 font-mono" x-text="fmt(r.amount)"></span>
-                                                </div>
-                                            </template>
-                                            <template x-if="!getExchangeSnapshot(viewExchangeSale).receipts || getExchangeSnapshot(viewExchangeSale).receipts.length === 0">
-                                                <div class="px-3 py-2 text-[10px] text-slate-400 italic text-center">No receipts recorded prior to exchange</div>
-                                            </template>
+                                <div x-show="openTables" x-collapse x-transition.duration.300ms class="mt-3 space-y-3" x-data="{ activeAuditTab: 'installments' }">
+                                    {{-- Sub-tabs --}}
+                                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @click="activeAuditTab = 'installments'"
+                                                    :class="activeAuditTab === 'installments' ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                                                    class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                                                <span>EMI Schedule</span>
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-mono"
+                                                      :class="activeAuditTab === 'installments' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'"
+                                                      x-text="getExchangeSnapshot(viewExchangeSale).installments ? getExchangeSnapshot(viewExchangeSale).installments.length : 0"></span>
+                                            </button>
+
+                                            <button type="button" @click="activeAuditTab = 'receipts'"
+                                                    :class="activeAuditTab === 'receipts' ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                                                    class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                                                <span>Receipts History</span>
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-mono"
+                                                      :class="activeAuditTab === 'receipts' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'"
+                                                      x-text="getExchangeSnapshot(viewExchangeSale).receipts ? getExchangeSnapshot(viewExchangeSale).receipts.length : 0"></span>
+                                            </button>
+                                        </div>
+
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">Archived Agreement Data</span>
+                                    </div>
+
+                                    {{-- Tab 1: EMI Installments Schedule --}}
+                                    <div x-show="activeAuditTab === 'installments'" class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-left text-xs border-collapse">
+                                                <thead>
+                                                    <tr class="bg-slate-100/90 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
+                                                        <th class="py-2.5 px-3.5 text-center w-12">#</th>
+                                                        <th class="py-2.5 px-3.5">Installment Label</th>
+                                                        <th class="py-2.5 px-3.5">Due Date</th>
+                                                        <th class="py-2.5 px-3.5 text-center">Status</th>
+                                                        <th class="py-2.5 px-3.5 text-right">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100">
+                                                    <template x-for="inst in getExchangeSnapshot(viewExchangeSale).installments" :key="inst.id">
+                                                        <tr class="hover:bg-amber-50/30 transition-colors">
+                                                            <td class="py-2 px-3.5 text-center">
+                                                                <span class="w-5 h-5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-bold font-mono inline-flex items-center justify-center" x-text="inst.installment_no"></span>
+                                                            </td>
+                                                            <td class="py-2 px-3.5">
+                                                                <span class="font-bold text-slate-800" x-text="inst.label || ('EMI ' + inst.installment_no)"></span>
+                                                            </td>
+                                                            <td class="py-2 px-3.5 font-mono text-slate-600 text-[11px]" x-text="inst.due_date"></td>
+                                                            <td class="py-2 px-3.5 text-center">
+                                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                                                                      :class="inst.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (inst.status === 'overdue' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200')">
+                                                                    <span class="w-1.5 h-1.5 rounded-full"
+                                                                          :class="inst.status === 'paid' ? 'bg-emerald-500' : (inst.status === 'overdue' ? 'bg-rose-500' : 'bg-slate-400')"></span>
+                                                                    <span x-text="inst.status"></span>
+                                                                </span>
+                                                            </td>
+                                                            <td class="py-2 px-3.5 text-right font-extrabold text-slate-900 font-mono text-xs" x-text="fmt(inst.amount)"></td>
+                                                        </tr>
+                                                    </template>
+                                                    <template x-if="!getExchangeSnapshot(viewExchangeSale).installments || getExchangeSnapshot(viewExchangeSale).installments.length === 0">
+                                                        <tr>
+                                                            <td colspan="5" class="py-8 text-center text-slate-400 italic text-xs">
+                                                                <div class="flex flex-col items-center justify-center gap-1">
+                                                                    <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                                    <span>No EMI schedule configured prior to exchange</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
 
-                                    {{-- Archived Installments Schedule Table --}}
-                                    <div class="space-y-1">
-                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Archived EMI Installments Schedule</span>
-                                        <div class="max-h-36 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50 divide-y divide-slate-100">
-                                            <template x-for="inst in getExchangeSnapshot(viewExchangeSale).installments" :key="inst.id">
-                                                <div class="px-3 py-1.5 text-[10px] flex items-center justify-between">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 text-[8px] font-bold flex items-center justify-center font-mono" x-text="inst.installment_no"></span>
-                                                        <span class="font-semibold text-slate-700" x-text="inst.label"></span>
-                                                        <span class="text-slate-400 font-mono" x-text="inst.due_date"></span>
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase"
-                                                              :class="inst.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'"
-                                                              x-text="inst.status"></span>
-                                                        <span class="font-bold text-slate-800 font-mono" x-text="fmt(inst.amount)"></span>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                            <template x-if="!getExchangeSnapshot(viewExchangeSale).installments || getExchangeSnapshot(viewExchangeSale).installments.length === 0">
-                                                <div class="px-3 py-2 text-[10px] text-slate-400 italic text-center">No EMI schedule configured prior to exchange</div>
-                                            </template>
+                                    {{-- Tab 2: Receipts History --}}
+                                    <div x-show="activeAuditTab === 'receipts'" class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-left text-xs border-collapse">
+                                                <thead>
+                                                    <tr class="bg-slate-100/90 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
+                                                        <th class="py-2.5 px-3.5">Receipt No</th>
+                                                        <th class="py-2.5 px-3.5">Payment Date</th>
+                                                        <th class="py-2.5 px-3.5 text-center">Payment Mode</th>
+                                                        <th class="py-2.5 px-3.5 text-right">Amount Paid</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100">
+                                                    <template x-for="r in getExchangeSnapshot(viewExchangeSale).receipts" :key="r.id">
+                                                        <tr class="hover:bg-amber-50/30 transition-colors">
+                                                            <td class="py-2 px-3.5 font-bold font-mono text-slate-800" x-text="r.receipt_number"></td>
+                                                            <td class="py-2 px-3.5 font-mono text-slate-600 text-[11px]" x-text="r.receipt_date"></td>
+                                                            <td class="py-2 px-3.5 text-center">
+                                                                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[9px] font-bold uppercase tracking-wider border border-slate-200" x-text="r.payment_mode"></span>
+                                                            </td>
+                                                            <td class="py-2 px-3.5 text-right font-extrabold text-emerald-600 font-mono text-xs" x-text="fmt(r.amount)"></td>
+                                                        </tr>
+                                                    </template>
+                                                    <template x-if="!getExchangeSnapshot(viewExchangeSale).receipts || getExchangeSnapshot(viewExchangeSale).receipts.length === 0">
+                                                        <tr>
+                                                            <td colspan="4" class="py-8 text-center text-slate-400 italic text-xs">
+                                                                <div class="flex flex-col items-center justify-center gap-1">
+                                                                    <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                                    <span>No receipts recorded prior to exchange</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -2764,10 +2956,11 @@
                         </div>
                     </template>
 
-                    <div class="flex items-center justify-end pt-4 border-t border-slate-100">
+                    <div class="flex items-center justify-end pt-1">
                         <button type="button" @click="openViewExchangeModal = false"
-                                class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
-                            Close
+                                class="px-4 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase flex items-center gap-1.5 cursor-pointer">
+                            <span>✕</span>
+                            <span>CLOSE</span>
                         </button>
                     </div>
                 </div>

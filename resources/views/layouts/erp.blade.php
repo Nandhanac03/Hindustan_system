@@ -35,6 +35,28 @@
         @page {
             margin: 0mm;
         }
+        #sidebar-nav,
+        #sidebar-nav a,
+        #sidebar-nav button,
+        #sidebar-nav span,
+        #sidebar-nav p,
+        #sidebar-nav div {
+            font-weight: 500 !important;
+            color: #000000 !important;
+        }
+        #sidebar-nav a.active,
+        #sidebar-nav a[class*="bg-[#a38c29]"],
+        #sidebar-nav a.active span,
+        #sidebar-nav a[class*="bg-[#a38c29]"] span {
+            color: #ffffff !important;
+        }
+        #sidebar-nav svg {
+            color: #000000;
+        }
+        #sidebar-nav a.active svg,
+        #sidebar-nav a[class*="bg-[#a38c29]"] svg {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="h-full bg-slate-50 text-slate-900" 
