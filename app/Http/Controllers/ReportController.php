@@ -2724,15 +2724,17 @@ class ReportController extends Controller
 
         // Filters
         $firstProjectId = $allProjects->first()?->id ?? 'all';
-        $selectedProjectId = $request->input('project_id', $firstProjectId);
+        $selectedProjectId = $request->input('project_id', 'all');
         $periodType = $request->input('period_type', 'fy');
         $viewMode = $request->input('view_mode', 'detailed'); // 'detailed' | 'summary'
         $hideZero = $request->boolean('hide_zero', false);
 
         // Date Calculations based on period type
         $today = Carbon::today();
-        $defaultFrom = '2025-04-01';
-        $defaultTo = '2026-03-31';
+        // Dynamic current Financial Year (Apr 01 -> Mar 31)
+        $fyStartYear = ((int) $today->format('n')) >= 4 ? (int) $today->format('Y') : ((int) $today->format('Y')) - 1;
+        $defaultFrom = sprintf('%04d-04-01', $fyStartYear);
+        $defaultTo = sprintf('%04d-03-31', $fyStartYear + 1);
 
         if ($periodType === 'fy') {
             $fromDate = $request->input('from_date', $defaultFrom);
@@ -2803,6 +2805,7 @@ class ReportController extends Controller
 
         $allVl = $vlQuery->select(
             'accounts.code as acc_code',
+            'accounts.name as acc_name',
             'voucher_lines.debit',
             'voucher_lines.credit',
             'vouchers.date as voucher_date'
@@ -2810,37 +2813,65 @@ class ReportController extends Controller
 
         // Map Account Code to standard COA Code
         // Dynamic Resolver: Map database Account codes to standard Chart of Accounts (COA) codes
-        $resolveCoaCode = function(string $accCode) use ($coas): string {
+        $resolveCoaCode = function (string $accCode, string $accName = '') use ($coas): string {
             if ($coas->contains('account_code', $accCode)) {
                 return $accCode;
             }
             $upper = strtoupper(trim($accCode));
-            if (str_starts_with($upper, 'BANK-') || str_starts_with($upper, 'BK-') || $upper === '1071') {
+            $name  = strtoupper(trim($accName));
+
+            // Loan interest must be checked before generic BANK / EXP matching
+            if (str_contains($name, 'LOAN INTEREST') || str_contains($upper, 'LOAN-INT') || str_contains($upper, 'EXP-LOAN')) {
+                return '2202'; // Bank Loan Interest
+            }
+            if (str_starts_with($upper, 'LOAN-') || str_contains($name, 'LOAN ACCOUNT') || str_contains($name, 'CONSTRUCTION LOAN')) {
+                return '2201'; // Bank Construction Loans / Project Credit Limits
+            }
+            if (str_starts_with($upper, 'BANK-') || str_starts_with($upper, 'BK-') || $upper === '1071' || str_contains($name, 'BANK')) {
                 return '1001'; // Bank Accounts
             }
-            if (str_starts_with($upper, 'CASH-') || str_contains($upper, 'PETTY')) {
+            if (str_starts_with($upper, 'CASH-') || str_contains($upper, 'PETTY') || str_contains($name, 'CASH')) {
                 return '1002'; // Cash in Hand / Petty Cash
             }
-            if (str_starts_with($upper, 'CUST-')) {
+            if (str_starts_with($upper, 'CUST-') || str_contains($name, 'RECEIV')) {
                 return '1010'; // Customer Receivables
+            }
+            if (str_starts_with($upper, 'BRK-') || str_contains($name, 'BROKER') || str_contains($name, 'COMMISSION')) {
+                return '2003'; // Broker Commissions Payable
             }
             if (str_starts_with($upper, 'SUP-') || str_starts_with($upper, 'VND-') || str_starts_with($upper, 'CONT-')) {
                 return '2002'; // Contractor / Supplier Payables
             }
-            if (str_starts_with($upper, 'BRK-')) {
-                return '2003'; // Broker Commissions Payable
-            }
-            if (str_starts_with($upper, 'LOAN-')) {
-                return '2010'; // Bank Loans
-            }
-            if (str_starts_with($upper, 'PRT-')) {
+            if (str_starts_with($upper, 'PRT-') || str_contains($name, 'CAPITAL')) {
                 return '3001'; // Share / Partner Capital
             }
             if (str_starts_with($upper, 'EXP-SITE') || str_starts_with($upper, 'EXP-')) {
-                return '4020'; // Site / Operational Expenses
+                if (str_contains($name, 'MACHINERY') || str_contains($name, 'EQUIPMENT')) {
+                    return '4004'; // Machinery & Heavy Equipment Rental
+                }
+                if (str_contains($name, 'MATERIAL') || str_contains($name, 'CEMENT') || str_contains($name, 'SAND') || str_contains($name, 'AGGREGATE')) {
+                    return '4005'; // Construction Material Expenses
+                }
+                if (str_contains($name, 'AGENT') || str_contains($name, 'BROKER')) {
+                    return '4001'; // Agent Payable Expense
+                }
+                if (str_contains($name, 'CONTRACTOR') || str_contains($name, 'RA BILL')) {
+                    return '4002'; // Contractor Work Expenses
+                }
+                return '4003'; // Site Office & Administrative
             }
             if (str_starts_with($upper, 'INC-')) {
                 return '5010'; // Sales Revenue
+            }
+            // Unknown numeric codes (e.g. standalone bank sub-ledgers) -> group by first digit
+            if (ctype_digit($upper)) {
+                return match ($upper[0]) {
+                    '1'     => '1001',
+                    '2'     => '2002',
+                    '3'     => '3001',
+                    '4'     => '4003',
+                    default => $accCode,
+                };
             }
             return $accCode;
         };
@@ -2947,7 +2978,7 @@ class ReportController extends Controller
 
             // 2. From Voucher Lines
             foreach ($allVl as $vl) {
-                $mappedCode = $resolveCoaCode($vl->acc_code);
+                $mappedCode = $resolveCoaCode($vl->acc_code, (string) ($vl->acc_name ?? ''));
                 if ($mappedCode === $code) {
                     $vDate = $vl->voucher_date ? Carbon::parse($vl->voucher_date)->format('Y-m-d') : null;
                     if ($vDate && $vDate < $fromDate) {
@@ -2961,41 +2992,17 @@ class ReportController extends Controller
             }
 
             // Compute Net Opening Balance
-            $isDebitNature = ($type === 'ASSET' || $type === 'EXPENSE' || str_starts_with($code, '1') || str_starts_with($code, '4'));
-
-            $openingBalance = $initialOb;
-            if ($isDebitNature) {
-                $openingBalance = ($obSide === 'DR' ? $initialOb : -$initialOb) + ($priorDr - $priorCr);
-            } else {
-                $openingBalance = ($obSide === 'CR' ? $initialOb : -$initialOb) + ($priorCr - $priorDr);
-            }
-            $openingBalance = max(0.00, $openingBalance);
+            // Signed convention: Debit positive (+), Credit negative (-)
+            // Opening Balance = COA opening balance (as per its Dr/Cr nature) + all prior period movements
+            $openingBalance = ($obSide === 'CR' ? -$initialOb : $initialOb) + ($priorDr - $priorCr);
 
             // Compute Closing Balance:
             // Formula = Opening Balance + Debit Movement - Credit Movement
             // Dr / Cr Suffix
-            $closingNet = 0.0;
-            $closingSide = 'Dr';
-            if ($isDebitNature) {
-                $rawClosing = $openingBalance + $periodDr - $periodCr;
-                if ($rawClosing >= 0) {
-                    $closingNet = $rawClosing;
-                    $closingSide = 'Dr';
-                } else {
-                    $closingNet = abs($rawClosing);
-                    $closingSide = 'Cr';
-                }
-            } else {
-                // Liabilities, Equity, Revenue (Normal Credit Balance)
-                $rawClosing = $openingBalance + $periodCr - $periodDr;
-                if ($rawClosing >= 0) {
-                    $closingNet = $rawClosing;
-                    $closingSide = 'Cr';
-                } else {
-                    $closingNet = abs($rawClosing);
-                    $closingSide = 'Dr';
-                }
-            }
+            $closingSigned = $openingBalance + $periodDr - $periodCr;
+            $closingSide = $closingSigned >= 0 ? 'Dr' : 'Cr';
+            $closingNet = abs($closingSigned);
+            $openingSide = $openingBalance >= 0 ? 'Dr' : 'Cr';
 
             $isZero = ($openingBalance == 0 && $periodDr == 0 && $periodCr == 0);
 
@@ -3005,6 +3012,7 @@ class ReportController extends Controller
                 'name'            => $name,
                 'type'            => $type,
                 'opening_balance' => $openingBalance,
+                'opening_side'    => $openingSide,
                 'period_debit'    => $periodDr,
                 'period_credit'   => $periodCr,
                 'closing_balance' => $closingNet,
@@ -3016,25 +3024,30 @@ class ReportController extends Controller
             $groupsData[$groupKey]['opening_balance'] += $openingBalance;
             $groupsData[$groupKey]['period_debit']    += $periodDr;
             $groupsData[$groupKey]['period_credit']   += $periodCr;
-            $groupsData[$groupKey]['closing_balance'] += ($closingSide === ($type === 'ASSET' || $type === 'EXPENSE' ? 'Dr' : 'Cr') ? $closingNet : -$closingNet);
+            $groupsData[$groupKey]['closing_balance'] += $closingSigned;
         }
 
-        // Format group closing sides
-        foreach ($groupsData as $k => &$grp) {
-            $isAssetExpense = in_array($grp['type'], ['ASSET', 'EXPENSE']);
-            $val = $grp['closing_balance'];
-            if ($isAssetExpense) {
-                $grp['closing_side'] = $val >= 0 ? 'Dr' : 'Cr';
-            } else {
-                $grp['closing_side'] = $val >= 0 ? 'Cr' : 'Dr';
+        // Grand Totals across all accounts (Opening uses signed values)
+        $signedOpenings = [];
+        foreach ($groupsData as $grp) {
+            foreach ($grp['accounts'] as $acc) {
+                $signedOpenings[] = $acc['opening_balance'];
             }
-            $grp['closing_balance'] = abs($val);
         }
-
-        // Grand Totals across all accounts
-        $grandTotalOpening = array_sum(array_column($groupsData, 'opening_balance'));
+        $grandTotalOpening = array_sum($signedOpenings);
+        $grandTotalOpeningSide = $grandTotalOpening >= 0 ? 'Dr' : 'Cr';
+        $grandTotalOpening = abs($grandTotalOpening);
         $grandTotalDebit   = array_sum(array_column($groupsData, 'period_debit'));
         $grandTotalCredit  = array_sum(array_column($groupsData, 'period_credit'));
+
+        // Format group opening/closing sides (absolute display + Dr/Cr tag)
+        foreach ($groupsData as $k => &$grp) {
+            $grp['opening_side'] = $grp['opening_balance'] >= 0 ? 'Dr' : 'Cr';
+            $grp['opening_balance'] = abs($grp['opening_balance']);
+            $grp['closing_side'] = $grp['closing_balance'] >= 0 ? 'Dr' : 'Cr';
+            $grp['closing_balance'] = abs($grp['closing_balance']);
+        }
+        unset($grp);
 
         $diff = abs($grandTotalDebit - $grandTotalCredit);
         $isBalanced = ($diff < 0.01);
@@ -3051,6 +3064,7 @@ class ReportController extends Controller
             'financialYearLabel',
             'groupsData',
             'grandTotalOpening',
+            'grandTotalOpeningSide',
             'grandTotalDebit',
             'grandTotalCredit',
             'isBalanced',
