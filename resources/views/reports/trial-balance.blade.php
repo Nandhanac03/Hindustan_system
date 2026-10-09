@@ -333,7 +333,7 @@
                             </td>
 
                             <td class="px-5 py-3 text-right font-mono font-black text-slate-900">
-                                ₹{{ number_format($grp['opening_balance'], 2) }}
+                                ₹{{ number_format($grp['opening_balance'], 2) }} <span class="font-extrabold {{ ($grp['opening_side'] ?? 'Dr') === 'Dr' ? 'text-blue-700' : 'text-rose-700' }}">{{ $grp['opening_side'] ?? 'Dr' }}</span>
                             </td>
 
                             <td class="px-5 py-3 text-right font-mono font-black text-slate-900">
@@ -369,7 +369,7 @@
                                 </td>
 
                                 <td class="px-5 py-2.5 text-right font-mono font-bold text-slate-700 text-xs">
-                                    {{ $acc['opening_balance'] > 0 ? '₹'.number_format($acc['opening_balance'], 2) : '0.00' }}
+                                    {{ number_format(abs($acc['opening_balance']), 2) }}@if($acc['opening_balance'] != 0) <span class="font-extrabold {{ $acc['opening_side'] === 'Dr' ? 'text-blue-700' : 'text-rose-700' }}">{{ $acc['opening_side'] }}</span>@endif
                                 </td>
 
                                 <td class="px-5 py-2.5 text-right font-mono font-bold text-indigo-700 text-xs">
@@ -401,7 +401,7 @@
                             TOTAL
                         </td>
                         <td class="px-5 py-4 text-right font-mono font-black text-slate-900 text-xs">
-                            ₹{{ number_format($grandTotalOpening, 2) }}
+                            ₹{{ number_format($grandTotalOpening, 2) }} <span class="font-extrabold">{{ $grandTotalOpeningSide ?? '' }}</span>
                         </td>
                         <td class="px-5 py-4 text-right font-mono font-black text-slate-900 text-xs">
                             ₹{{ number_format($grandTotalDebit, 2) }}
@@ -458,8 +458,9 @@ function trialBalanceApp() {
             this.periodDropdownOpen = false;
             const today = new Date();
             if (type === 'fy') {
-                this.fromDate = '2025-04-01';
-                this.toDate = '2026-03-31';
+                const fyStart = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+                this.fromDate = fyStart + '-04-01';
+                this.toDate = (fyStart + 1) + '-03-31';
             } else if (type === 'quarter') {
                 const curMonth = today.getMonth();
                 const qStartMonth = Math.floor(curMonth / 3) * 3;
