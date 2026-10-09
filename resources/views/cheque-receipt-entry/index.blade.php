@@ -885,7 +885,7 @@
             form: {
                 booking_id: '',
                 amount: '',
-                payment_mode: 'Cash',
+                payment_mode: 'Cheque',
                 receipt_date: new Date().toISOString().split('T')[0],
                 reference_no: '',
                 bank_id: '',
@@ -1135,7 +1135,7 @@
                 }
 
                 this.form.amount = '';
-                this.form.payment_mode = 'Cash';
+                this.form.payment_mode = 'Cheque';
                 this.form.receipt_date = new Date().toISOString().split('T')[0];
                 this.form.reference_no = '';
                 this.form.bank_id = '';
