@@ -906,6 +906,95 @@
         </div>
     </div>
 
+    {{-- Success Modal (Matching System Style) --}}
+    <div x-show="successModal.open" 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs text-left" 
+         style="display: none;" 
+         x-transition:enter="transition ease-out duration-250"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto transform transition-all"
+             style="animation: successModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;"
+             @click.away="closeSuccessModal()">
+            
+            {{-- Gold shimmer top stripe --}}
+            <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
+
+            {{-- Dark header --}}
+            <div class="relative overflow-hidden px-6 py-5 bg-slate-900" style="background-color: #0f172a;">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        {{-- Animated Checkmark Icon --}}
+                        <div class="w-12 h-12 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 flex items-center justify-center shadow-lg shadow-[#a38c29]/20 ring-1 ring-[#d9bf3b]/20 shrink-0"
+                             style="animation: iconPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;">
+                            <svg class="w-6 h-6 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"
+                                      style="stroke-dasharray:30; stroke-dashoffset:30; animation: drawCheck 0.5s ease-out 0.4s forwards;"/>
+                            </svg>
+                        </div>
+
+                        <div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>PAYMENT RECORDED</span>
+                            </span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Payment Successful!</h2>
+                            <p class="text-[10px] text-slate-400 mt-0.5 font-medium">Installment receipt recorded & verified.</p>
+                        </div>
+                    </div>
+
+                    {{-- Close Button --}}
+                    <button type="button" @click="closeSuccessModal()" title="Close"
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-[#a38c29]/30 text-white hover:text-[#d9bf3b] flex items-center justify-center transition-all focus:outline-none shrink-0 border border-white/10 hover:border-[#a38c29]/40 text-sm font-bold cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 bg-gradient-to-b from-slate-50/80 to-white space-y-3">
+                {{-- Message Card --}}
+                <div class="flex items-center gap-3 bg-white border border-[#a38c29]/25 rounded-xl px-4 py-3.5 shadow-sm ring-1 ring-[#a38c29]/10">
+                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/20 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[9px] font-bold text-[#a38c29]/70 uppercase tracking-widest">Installment Settled</p>
+                        <p class="text-xs font-extrabold text-slate-900 mt-0.5" x-text="successModal.message"></p>
+                    </div>
+                </div>
+
+                {{-- Auto-close progress bar --}}
+                <div class="flex items-center gap-2.5">
+                    <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-[#a38c29] to-[#d9bf3b] rounded-full transition-all duration-75 ease-linear"
+                             :style="'width: ' + successModal.progressWidth + '%;'"></div>
+                    </div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider whitespace-nowrap">Auto-refresh</span>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
+                <button type="button" @click="closeSuccessModal()"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/25 uppercase tracking-wider transition-all ring-1 ring-[#a38c29]/30 flex items-center gap-2 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Got it</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
  </div>
 
 <script>
@@ -914,6 +1003,42 @@ function ledgerApp() {
         warningModal: {
             open: false,
             message: ''
+        },
+        successModal: {
+            open: false,
+            message: '',
+            progressWidth: 100,
+            _timer: null,
+            _progressInterval: null
+        },
+        openSuccessModal(message) {
+            this.modalOpen = false;
+            this.successModal.message = message;
+            this.successModal.progressWidth = 100;
+            this.successModal.open = true;
+
+            const duration = 3500;
+            const startTime = Date.now();
+            if (this.successModal._progressInterval) clearInterval(this.successModal._progressInterval);
+            this.successModal._progressInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+                this.successModal.progressWidth = remaining;
+                if (remaining <= 0) {
+                    clearInterval(this.successModal._progressInterval);
+                }
+            }, 50);
+
+            if (this.successModal._timer) clearTimeout(this.successModal._timer);
+            this.successModal._timer = setTimeout(() => {
+                this.closeSuccessModal();
+            }, duration);
+        },
+        closeSuccessModal() {
+            if (this.successModal._timer) clearTimeout(this.successModal._timer);
+            if (this.successModal._progressInterval) clearInterval(this.successModal._progressInterval);
+            this.successModal.open = false;
+            window.location.reload();
         },
         modalOpen: false,
         submitting: false,
@@ -990,8 +1115,9 @@ function ledgerApp() {
                 });
                 const json = await res.json();
                 if (res.ok && json.success) {
-                    this.modalOpen = false;
-                    window.location.reload();
+                    const paidLabel = this.form.label || 'Installment';
+                    const paidAmt = Number(this.form.amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
+                    this.openSuccessModal(`Successfully collected ₹${paidAmt} for ${paidLabel}.`);
                 } else if (json.errors) {
                     this.errors = json.errors;
                 } else {
