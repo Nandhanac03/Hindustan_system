@@ -546,7 +546,7 @@
     <div x-show="emiModalOpen" 
          class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
          style="display: none;" x-transition.opacity>
-         <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="emiModalOpen = false">
+         <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="emiModalOpen = false">
               {{-- Header --}}
               <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
                   <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -561,25 +561,29 @@
 
               <div x-show="emiError" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
 
-              <div class="px-6 pt-4 pb-0">
+              <div class="px-6 pt-4 pb-0 overflow-x-auto scrollbar-none">
                   {{-- Tabs --}}
-                  <div class="flex items-center gap-2 border-b border-slate-200">
-                      <button type="button" @click="emiTab = 'manual'" 
-                              :class="emiTab === 'manual' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
-                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all">
-                          Edit Rows Manually
-                      </button>
+                  <div class="flex items-center gap-1 sm:gap-2 border-b border-slate-200 whitespace-nowrap min-w-max">
                       <button type="button" @click="emiTab = 'restructure'" 
                               :class="emiTab === 'restructure' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
-                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                          Restructure Remaining Balance
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                          <span>Restructure Balance</span>
+                      </button>
+                      <button type="button" @click="emiTab = 'manual'" 
+                              :class="emiTab === 'manual' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          <span>Edit Rows Manually</span>
                       </button>
                       <button type="button" @click="emiTab = 'history'" 
                               :class="emiTab === 'history' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
-                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                          Restructure History (<span x-text="restructureLogs.length"></span>)
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          <span>History</span>
+                          <span class="inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[9px] font-black"
+                                :class="emiTab === 'history' ? 'bg-[#a38c29]/20 text-[#a38c29]' : 'bg-slate-200 text-slate-600'"
+                                x-text="restructureLogs.length"></span>
                       </button>
                   </div>
               </div>
@@ -964,7 +968,7 @@ function ledgerApp() {
 
         openEmiModal() {
             this.emiError = '';
-            this.emiTab = 'manual';
+            this.emiTab = 'restructure';
             this.restructureCount = '';
             this.restructureStartDate = '';
             this.editInstallments = this.originalInstallments.map(inst => ({
