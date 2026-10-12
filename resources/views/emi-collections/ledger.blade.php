@@ -678,18 +678,21 @@
                   </template>
               </div>
 
-              <div x-show="emiTab !== 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                <div x-show="emiTab !== 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                   {{-- Dynamic Summary Stats --}}
-                  <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 rounded-xl text-xs text-white border border-[#a38c29]/20">
-                      <div>
+                   <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 rounded-xl text-xs text-white border border-[#a38c29]/20">
+                       <div>
                           <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
                           <strong class="text-white text-sm font-mono mt-0.5 block">₹<span x-text="totalSaleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
                       </div>
-                      <div>
-                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span>
-                          <strong class="text-[#d9bf3b] text-sm font-mono mt-0.5 block">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
-                      </div>
-                      <div>
+                        <div>
+                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Remaining Balance</span>
+                          <!-- <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span> -->
+                          <!-- <strong class="text-[#d9bf3b] text-sm font-mono mt-0.5 block">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong> -->
+                          <strong class="text-rose-400 text-sm font-mono mt-0.5 block">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"</span></strong>
+                         
+                        </div>
+                        <div>
                           <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
                           <div class="flex items-center gap-1.5 mt-0.5">
                               <strong class="text-sm font-mono" :class="calculateUnallocated() === 0 ? 'text-emerald-400' : 'text-rose-400'">
