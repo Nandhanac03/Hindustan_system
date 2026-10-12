@@ -42,6 +42,15 @@
     $defaultProjectName = strtoupper($projects->first()?->name ?? 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.');
 @endphp
 
+<style>
+[x-cloak] { display: none !important; }
+.modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+</style>
+
 <x-erp-layout title="Cancellation Charges & Additional Work" headerTitle="Cancellation Charges & Additional Work">
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{ 
         activeTab: 'cancellation', 
@@ -50,6 +59,66 @@
         allCancellationData: {{ Js::from($cancellationExportList) }},
         allAdditionalData: {{ Js::from($additionalExportList) }},
         printReport() { window.print(); },
+
+        // Cancellation View Modal State
+        selectedCancelSale: null,
+        showCancelModal: false,
+        cancelModalTab: 'dossier',
+        openCancelModalById(id) {
+            const el = document.getElementById('cancel-sale-data-' + id);
+            if (el) {
+                try {
+                    this.selectedCancelSale = JSON.parse(el.textContent);
+                    this.cancelModalTab = 'dossier';
+                    this.showCancelModal = true;
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Error parsing cancel sale data:', e);
+                }
+            }
+        },
+        closeCancelModal() {
+            this.showCancelModal = false;
+            this.selectedCancelSale = null;
+            this.cancelModalTab = 'dossier';
+            document.body.style.overflow = '';
+        },
+
+        // Additional Work View Modal State
+        selectedWork: null,
+        showWorkModal: false,
+        openWorkModalById(id) {
+            const el = document.getElementById('work-data-' + id);
+            if (el) {
+                try {
+                    this.selectedWork = JSON.parse(el.textContent);
+                    this.showWorkModal = true;
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Error parsing work data:', e);
+                }
+            }
+        },
+        closeWorkModal() {
+            this.showWorkModal = false;
+            this.selectedWork = null;
+            document.body.style.overflow = '';
+        },
+
+        fmtMoney(num) {
+            if (num === null || num === undefined || isNaN(num)) return '₹0.00';
+            return '₹' + Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getCancelRefundStatus(sale) {
+            if (!sale) return 'Pending';
+            const refundAmount = Number(sale.refund_amount || 0);
+            const refundPaid = Number(sale.refund_paid || 0);
+            if (refundAmount <= 0) return 'Settled';
+            if (refundPaid >= refundAmount) return 'Completed';
+            if (refundPaid > 0) return 'Partially Paid';
+            return 'Pending';
+        },
+
         async exportExcel(type) {
             const isAdditional = (type === 'additional_work' || this.activeTab === 'additional');
             const workbook = new ExcelJS.Workbook();
@@ -608,6 +677,7 @@
                             <th class="px-5 py-3 text-center">Cancellation Fee (₹)</th>
                             <th class="px-5 py-3 text-center">Reason</th>
                             <th class="px-5 py-3 text-center w-28">Status</th>
+                            <th class="px-5 py-3 text-center w-24">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -625,6 +695,22 @@
                                 $cSaleNumber = $charge->sale_number ?? '';
                                 $cReason = $charge->cancellation_reason ?? '';
                                 $cSearchTerms = strtolower($cCustomerName . ' ' . $cSaleNumber . ' ' . $chargeUnitDisplay . ' ' . $cReason);
+
+                                $chargeModalPayload = [
+                                    'id' => $charge->id,
+                                    'sale_number' => $charge->sale_number ?? 'N/A',
+                                    'customer_name' => $cCustomerName ?: 'N/A',
+                                    'customer_phone' => $charge->customer->phone ?? '—',
+                                    'customer_email' => $charge->customer->email ?? '—',
+                                    'customer_address' => $charge->customer->address ?? '—',
+                                    'unit_display' => $chargeUnitDisplay,
+                                    'project_name' => $charge->project?->name ?? '—',
+                                    'cancellation_date' => $charge->updated_at ? $charge->updated_at->format('d/m/Y') : 'N/A',
+                                    'cancellation_fee' => (float)($charge->cancellation_fee ?? 0),
+                                    'cancellation_reason' => $charge->cancellation_reason ?: 'Customer Request',
+                                    'status' => $charge->status ?? 'cancelled',
+                                    'notes' => $charge->notes ?: ($charge->remarks ?: 'No additional notes provided.'),
+                                ];
                             @endphp
                             <tr class="hover:bg-slate-50 transition group"
                                 data-status="{{ strtolower($charge->status ?? '') }}"
@@ -635,8 +721,22 @@
                                     '{{ addslashes(strtolower($cReason)) }}'.includes(search.trim().toLowerCase()) || 
                                     '{{ addslashes($cSearchTerms) }}'.includes(search.trim().toLowerCase())
                                 ) && (status === '' || '{{ strtolower($charge->status ?? '') }}' === status.toLowerCase())">
+                                
+                                <td class="hidden" style="display: none;">
+                                    <script type="application/json" id="cancel-sale-data-{{ $charge->id }}">
+                                        {!! json_encode($chargeModalPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!}
+                                    </script>
+                                </td>
+
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
-                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">{{ $charge->sale_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">
+                                    <button type="button" @click.stop="openCancelModalById({{ $charge->id }})" 
+                                            class="text-rose-700 hover:text-[#a38c29] hover:underline transition-colors inline-flex items-center gap-1 cursor-pointer font-black"
+                                            title="View full cancellation details">
+                                        <span>{{ $charge->sale_number ?? 'N/A' }}</span>
+                                        <svg class="w-3 h-3 opacity-40 group-hover:opacity-100 text-[#a38c29] transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </button>
+                                </td>
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $charge->customer->name ?? ($charge->customer_name ?? 'N/A') }}</td>
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $chargeUnitDisplay }}</td>
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $charge->updated_at ? $charge->updated_at->format('d/m/Y') : 'N/A' }}</td>
@@ -653,10 +753,17 @@
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">{{ $charge->status ?? 'N/A' }}</span>
                                     @endif
                                 </td>
+                                <td class="px-5 py-3 text-center whitespace-nowrap">
+                                    <button type="button" @click.stop="openCancelModalById({{ $charge->id }})"
+                                            class="w-7 h-7 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                            title="View Cancellation Details">
+                                        <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-12 text-center">
+                                <td colspan="9" class="px-5 py-12 text-center">
                                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">No cancellation charges found</div>
                                 </td>
                             </tr>
@@ -705,6 +812,7 @@
                             <th class="px-5 py-3 text-center">Amount (₹)</th>
                             <th class="px-5 py-3 text-center">Work Date</th>
                             <th class="px-5 py-3 text-center w-28">Status</th>
+                            <th class="px-5 py-3 text-center w-24">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -722,6 +830,29 @@
                                 $wSaleNumber = $work->sale?->sale_number ?? '';
                                 $wDescription = $work->description ?? '';
                                 $wSearchTerms = strtolower($wCustomerName . ' ' . $wSaleNumber . ' ' . $workUnitDisplay . ' ' . $wDescription);
+
+                                $workModalPayload = [
+                                    'id' => $work->id,
+                                    'description' => $work->description ?? '—',
+                                    'amount' => (float)($work->amount ?? 0),
+                                    'gst_type' => $work->gst_type ?? 'None',
+                                    'gst_percentage' => (float)($work->gst_percentage ?? 0),
+                                    'gst_amount' => (float)($work->gst_amount ?? 0),
+                                    'line_total' => (float)($work->line_total ?? $work->amount ?? 0),
+                                    'date' => $work->created_at ? $work->created_at->format('d M Y, h:i A') : '—',
+                                    'sale_number' => $work->sale?->sale_number ?? '—',
+                                    'sale_status' => $work->sale?->status ?? 'active',
+                                    'customer' => [
+                                        'name' => $work->sale?->customer?->name ?? ($work->sale?->customer_name ?? '—'),
+                                        'phone' => $work->sale?->customer?->phone ?? '—',
+                                        'email' => $work->sale?->customer?->email ?? '—',
+                                        'address' => $work->sale?->customer?->address ?? '—',
+                                    ],
+                                    'project' => [
+                                        'name' => $work->sale?->project?->name ?? '—',
+                                    ],
+                                    'unit_display' => $workUnitDisplay,
+                                ];
                             @endphp
                             <tr class="hover:bg-slate-50 transition group"
                                 data-status="{{ strtolower($work->sale->status ?? '') }}"
@@ -732,11 +863,25 @@
                                     '{{ addslashes(strtolower($wDescription)) }}'.includes(search.trim().toLowerCase()) || 
                                     '{{ addslashes($wSearchTerms) }}'.includes(search.trim().toLowerCase())
                                 ) && (status === '' || '{{ strtolower($work->sale->status ?? '') }}' === status.toLowerCase())">
+                                
+                                <td class="hidden" style="display: none;">
+                                    <script type="application/json" id="work-data-{{ $work->id }}">
+                                        {!! json_encode($workModalPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!}
+                                    </script>
+                                </td>
+
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
-                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">{{ $work->sale->sale_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">
+                                    <button type="button" @click.stop="openWorkModalById({{ $work->id }})" 
+                                            class="text-slate-800 hover:text-[#a38c29] hover:underline transition-colors inline-flex items-center gap-1 cursor-pointer font-black"
+                                            title="View work order details">
+                                        <span>{{ $work->sale->sale_number ?? 'N/A' }}</span>
+                                        <svg class="w-3 h-3 opacity-40 group-hover:opacity-100 text-[#a38c29] transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </button>
+                                </td>
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $work->sale->customer->name ?? ($work->sale->customer_name ?? 'N/A') }}</td>
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $workUnitDisplay }}</td>
-                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $work->description }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500 max-w-xs truncate" title="{{ $work->description }}">{{ $work->description }}</td>
                                 <td class="px-5 py-3 text-center text-xs font-black text-[#a38c29]">
                                     ₹{{ number_format((float)($work->amount ?? 0), 2) }}
                                 </td>
@@ -750,10 +895,17 @@
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">{{ $work->sale->status ?? 'N/A' }}</span>
                                     @endif
                                 </td>
+                                <td class="px-5 py-3 text-center whitespace-nowrap">
+                                    <button type="button" @click.stop="openWorkModalById({{ $work->id }})"
+                                            class="w-7 h-7 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer"
+                                            title="View Work Order Details">
+                                        <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-12 text-center">
+                                <td colspan="9" class="px-5 py-12 text-center">
                                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">No additional work found</div>
                                 </td>
                             </tr>
@@ -776,6 +928,317 @@
                     </span>
                     <button type="button" disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors opacity-50 cursor-not-allowed shadow-2xs">NEXT</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- ── CANCELLATION CHARGE VIEW MODAL ── -->
+        <div x-show="showCancelModal" 
+             x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 modal-backdrop bg-slate-900/60 print:hidden" 
+             style="display: none; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);" 
+             x-transition.opacity
+             @keydown.escape.window="closeCancelModal()">
+
+            <div class="w-full max-w-4xl max-h-[92vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up" 
+                 @click.away="closeCancelModal()">
+                
+                <!-- Modal Header -->
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 shrink-0">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
+                                      x-text="(selectedCancelSale?.status || 'cancelled').toUpperCase()">CANCELLED</span>
+                            </div>
+                            <h2 class="text-lg font-extrabold text-white tracking-tight uppercase">CANCELLATION CHARGE DETAILS</h2>
+                        </div>
+                        <button type="button" @click="closeCancelModal()" 
+                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm cursor-pointer"
+                                title="Close">✕</button>
+                    </div>
+                </div>
+
+                <!-- Modal Body (Scrollable) -->
+                <div class="p-6 overflow-y-auto bg-slate-50/60 space-y-5 flex-1 custom-scrollbar">
+
+                    <!-- Banner Card: Customer Entity, Unit & Cancellation Timeline -->
+                    <div class="bg-white rounded-2xl p-5 md:p-6 border border-slate-200/90 shadow-2xs grid grid-cols-1 md:grid-cols-3 gap-6 md:divide-x divide-slate-100">
+                        <!-- Customer Entity -->
+                        <div class="space-y-2 md:pr-5">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>CUSTOMER DETAILS</span>
+                            </div>
+                            <div class="text-sm font-black text-slate-900" x-text="selectedCancelSale?.customer_name || '—'"></div>
+                            <div class="text-[11px] text-slate-500 font-medium space-y-1">
+                                <div class="flex items-center gap-1.5" x-show="selectedCancelSale?.customer_phone && selectedCancelSale?.customer_phone !== '—'">
+                                    <span class="text-slate-400">Phone:</span>
+                                    <span class="font-mono font-bold text-slate-700" x-text="selectedCancelSale?.customer_phone"></span>
+                                </div>
+                                <div class="flex items-center gap-1.5" x-show="selectedCancelSale?.customer_email && selectedCancelSale?.customer_email !== '—'">
+                                    <span class="text-slate-400">Email:</span>
+                                    <span class="text-slate-700 truncate font-semibold" x-text="selectedCancelSale?.customer_email"></span>
+                                </div>
+                                <div class="flex items-start gap-1.5 pt-0.5" x-show="selectedCancelSale?.customer_address && selectedCancelSale?.customer_address !== '—'">
+                                    <span class="text-slate-400">Address:</span>
+                                    <span class="text-slate-700 font-medium leading-tight" x-text="selectedCancelSale?.customer_address"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Unit -->
+                        <div class="space-y-2 md:px-5 border-t-0">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>PROPERTY UNIT</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-xs font-black font-mono"
+                                      x-text="'UNIT: ' + (selectedCancelSale?.unit_display || '—')"></span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-medium space-y-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400">Project:</span>
+                                    <span class="font-semibold text-slate-700" x-text="selectedCancelSale?.project_name || '—'"></span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400">Booking Ref:</span>
+                                    <span class="font-bold text-slate-800 uppercase font-mono" x-text="selectedCancelSale?.sale_number || '—'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Timeline & Status -->
+                        <div class="space-y-2 md:pl-5 border-t-0">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>CANCELLATION TIMELINE</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 text-[11px]">Cancellation Date:</span>
+                                    <span class="font-bold text-rose-700 font-mono text-[11px]" x-text="selectedCancelSale?.cancellation_date || '—'"></span>
+                                </div>
+                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                    <span class="text-slate-500 text-[11px]">Status:</span>
+                                    <span class="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-rose-50 text-rose-700 border border-rose-200"
+                                          x-text="(selectedCancelSale?.status || 'cancelled').toUpperCase()"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial & Cancellation Metric Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- 1. Cancellation Fee (Key Highlight) -->
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-[#a38c29]">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block truncate">CANCELLATION FEE</span>
+                            <span class="text-xl font-black font-mono text-[#a38c29] block truncate" x-text="fmtMoney(selectedCancelSale?.cancellation_fee)">₹0.00</span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate">Fee Charged / Retained</span>
+                        </div>
+
+                        <!-- 2. Sale Booking No. -->
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-slate-700">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block truncate">SALE BOOKING NO.</span>
+                            <span class="text-base font-black font-mono text-slate-900 block truncate" x-text="selectedCancelSale?.sale_number || 'N/A'"></span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate">Original Booking Ref</span>
+                        </div>
+
+                        <!-- 3. Record Status -->
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-rose-500">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-rose-700 block truncate">STATUS</span>
+                            <span class="text-base font-black uppercase text-rose-600 block truncate" x-text="(selectedCancelSale?.status || 'cancelled').toUpperCase()">CANCELLED</span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate">Booking Cancellation</span>
+                        </div>
+                    </div>
+
+                    <!-- Cancellation Reason & Audit Notes -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-3.5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                </div>
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Cancellation Reason & Details</h3>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Reason for Cancellation</span>
+                                <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-100 text-slate-900 font-bold text-sm"
+                                     x-text="selectedCancelSale?.cancellation_reason || 'Customer Request'"></div>
+                            </div>
+
+                            <div x-show="selectedCancelSale?.notes && selectedCancelSale?.notes !== 'No additional notes provided.'">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Remarks / Registry Notes</span>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 leading-relaxed font-medium"
+                                     x-text="selectedCancelSale?.notes"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-5 py-3 border-t border-slate-100 bg-white flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="closeCancelModal()"
+                            class="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-extrabold uppercase tracking-wider transition shadow-2xs active:scale-95 cursor-pointer">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── ADDITIONAL WORK VIEW MODAL ── -->
+        <div x-show="showWorkModal" 
+             x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 modal-backdrop bg-slate-900/60 print:hidden" 
+             style="display: none; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);" 
+             x-transition.opacity
+             @keydown.escape.window="closeWorkModal()">
+
+            <div class="w-full max-w-4xl max-h-[92vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up" 
+                 @click.away="closeWorkModal()">
+                
+                <!-- Modal Header -->
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-primary-500/10 shrink-0">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d4af37] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">ADDITIONAL WORK</span>
+                            </div>
+                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1 uppercase">ADDITIONAL WORK DETAILS</h2>
+                        </div>
+                        <button type="button" @click="closeWorkModal()" 
+                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm cursor-pointer"
+                                title="Close">✕</button>
+                    </div>
+                </div>
+
+                <!-- Modal Body (Scrollable) -->
+                <div class="p-6 overflow-y-auto bg-slate-50/60 space-y-5 flex-1 custom-scrollbar">
+
+                    <!-- Banner Card: Customer, Property & Order Timeline -->
+                    <div class="bg-white rounded-2xl p-5 md:p-6 border border-slate-200/90 shadow-2xs grid grid-cols-1 md:grid-cols-3 gap-6 md:divide-x divide-slate-100">
+                        <!-- Customer Entity -->
+                        <div class="space-y-2 md:pr-5">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>CUSTOMER DETAILS</span>
+                            </div>
+                            <div class="text-sm font-black text-slate-900" x-text="selectedWork?.customer?.name || '—'"></div>
+                            <div class="text-[11px] text-slate-500 font-medium space-y-1">
+                                <div class="flex items-center gap-1.5" x-show="selectedWork?.customer?.phone">
+                                    <span class="text-slate-400">Phone:</span>
+                                    <span class="font-mono font-bold text-slate-700" x-text="selectedWork?.customer?.phone"></span>
+                                </div>
+                                <div class="flex items-center gap-1.5" x-show="selectedWork?.customer?.email">
+                                    <span class="text-slate-400">Email:</span>
+                                    <span class="text-slate-700 truncate font-semibold" x-text="selectedWork?.customer?.email"></span>
+                                </div>
+                                <div class="flex items-start gap-1.5 pt-0.5" x-show="selectedWork?.customer?.address">
+                                    <span class="text-slate-400">Address:</span>
+                                    <span class="text-slate-700 font-medium leading-tight" x-text="selectedWork?.customer?.address"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Unit -->
+                        <div class="space-y-2 md:px-5 border-t-0">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>PROPERTY UNIT</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black font-mono"
+                                      x-text="'UNIT: ' + (selectedWork?.unit_display || '—')"></span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-medium space-y-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400">Project:</span>
+                                    <span class="font-semibold text-slate-700" x-text="selectedWork?.project?.name || '—'"></span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-slate-400">Booking Ref:</span>
+                                    <span class="font-bold text-slate-800 uppercase" x-text="selectedWork?.sale_number || '—'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline & Status -->
+                        <div class="space-y-2 md:pl-5 border-t-0">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>ORDER TIMELINE</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 text-[11px]">Work Order Date:</span>
+                                    <span class="font-bold text-slate-800 text-[11px]" x-text="selectedWork?.date || '—'"></span>
+                                </div>
+                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                    <span class="text-slate-500 text-[11px]">Sale Status:</span>
+                                    <span class="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide"
+                                          :class="{
+                                              'bg-emerald-100 text-emerald-800 border border-emerald-300': (selectedWork?.sale_status || '').toLowerCase() === 'active',
+                                              'bg-rose-100 text-rose-800 border border-rose-300': (selectedWork?.sale_status || '').toLowerCase() === 'cancelled',
+                                              'bg-blue-100 text-blue-800 border border-blue-300': (selectedWork?.sale_status || '').toLowerCase() === 'completed'
+                                          }"
+                                          x-text="(selectedWork?.sale_status || 'active').toUpperCase()"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Metric Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-[#a38c29]">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block truncate">BASE WORK AMOUNT</span>
+                            <span class="text-base font-black font-mono text-slate-900 block truncate" x-text="fmtMoney(selectedWork?.amount)">₹0.00</span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate">Before Tax</span>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-blue-500">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-blue-700 block truncate">GST TAX</span>
+                            <span class="text-base font-black font-mono text-blue-600 block truncate" x-text="fmtMoney(selectedWork?.gst_amount) + (selectedWork?.gst_percentage ? ' (' + selectedWork?.gst_percentage + '%)' : '')">₹0.00</span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate" x-text="selectedWork?.gst_type || 'None'"></span>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-emerald-500">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 block truncate">TOTAL WORK VALUE</span>
+                            <span class="text-base font-black font-mono text-emerald-600 block truncate" x-text="fmtMoney(selectedWork?.line_total || selectedWork?.amount)">₹0.00</span>
+                            <span class="text-[9px] text-slate-400 font-medium block truncate">Net Work Order Cost</span>
+                        </div>
+                    </div>
+
+                    <!-- Work Description Panel -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-3.5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Work Scope & Description</h3>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-800 font-semibold leading-relaxed text-sm whitespace-pre-wrap"
+                             x-text="selectedWork?.description || 'No work description provided.'"></div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-4 py-2 border-slate-200/90 bg-white flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="closeWorkModal()"
+                            class="px-5 py-2.5 rounded-xl border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-extrabold uppercase tracking-wider transition shadow-2xs active:scale-95 cursor-pointer">
+                        Close
+                    </button>
+                </div>
+
             </div>
         </div>
 
