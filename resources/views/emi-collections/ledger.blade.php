@@ -81,63 +81,104 @@
         </div>
     </div>
 
-    {{-- Executive Metric Cards (4 Cards) --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    {{-- Executive Metric Cards (4 Cards - Design Matching Customer Ledger Report) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Card 1: Sale Value --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-[#a38c29] shadow-sm p-3.5 sm:p-4 hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] group relative overflow-hidden flex items-center justify-between">
-            <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Sale Value</span>
-                <span class="text-lg font-black text-slate-900 mt-0.5 block font-mono">₹{{ number_format($sale->total_amount, 2) }}</span>
-                <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Agreed sale price + GST</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-1-4h.01M9 16h.01M9 12h.01M13 12h.01M13 16h.01M17 12h.01M17 16h.01"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Sale Value</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-[#8a7522] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                    Sales Value
+                </span>
             </div>
-            <div class="w-9 h-9 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-1-4h.01M9 16h.01M9 12h.01M13 12h.01M13 16h.01M17 12h.01M17 16h.01"/></svg>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    ₹{{ number_format($sale->total_amount, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Agreed sale price + GST</p>
             </div>
         </div>
 
         {{-- Card 2: Total Instalment Dues --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-rose-500 shadow-sm p-3.5 sm:p-4 hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] group relative overflow-hidden flex items-center justify-between">
-            <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Instalment Dues</span>
-                <span class="text-lg font-black text-rose-600 mt-0.5 block font-mono">₹{{ number_format($totalDebits, 2) }}</span>
-                <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Scheduled installments</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Instalment Dues</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    Scheduled
+                </span>
             </div>
-            <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                    ₹{{ number_format($totalDebits, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Scheduled installments</p>
             </div>
         </div>
 
         {{-- Card 3: Total Receipts Paid --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-emerald-500 shadow-sm p-3.5 sm:p-4 hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] group relative overflow-hidden flex items-center justify-between">
-            <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Receipts Paid</span>
-                <span class="text-lg font-black text-emerald-600 mt-0.5 block font-mono">₹{{ number_format($totalCredits, 2) }}</span>
-                <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Payments received</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Receipts Paid</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                    Realized
+                </span>
             </div>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                    ₹{{ number_format($totalCredits, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Payments received</p>
             </div>
         </div>
 
         {{-- Card 4: Net Outstanding --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] 
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] 
             {{ $sale->status === 'exchanged' 
                 ? 'border-l-blue-500 hover:border-blue-200 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] bg-blue-50/20' 
                 : (in_array($sale->status, ['cancelled', 'returned', 'resale']) 
                     ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' 
                     : ($closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20')) }} 
-            shadow-sm p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden flex items-center justify-between">
-            <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Net Outstanding</span>
-                <span class="text-lg font-black {{ $sale->status === 'exchanged' ? 'text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }} mt-0.5 block font-mono">
-                    ₹{{ number_format(abs($closingBalance), 2) }}
-                </span>
-                <span class="text-[9px] font-bold {{ $sale->status === 'exchanged' ? 'text-blue-650' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }} mt-0.5 block">
-                    {{ in_array($sale->status, ['exchanged', 'cancelled', 'returned', 'resale']) ? ucfirst($sale->status) . ' (Archived)' : ($closingBalance > 0 ? 'Balance Due' : 'Fully Settled') }}
+            p-5 flex flex-col justify-between relative overflow-hidden group transition-all duration-300 hover:-translate-y-1.5 cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full 
+                        {{ $sale->status === 'exchanged' ? 'bg-blue-50 text-blue-600 border-blue-100/60' : ($closingBalance > 0 ? 'bg-rose-50 text-rose-600 border-rose-100/60' : 'bg-emerald-50 text-emerald-600 border-emerald-100/60') }} 
+                        flex items-center justify-center border transition-all duration-300 
+                        {{ $closingBalance > 0 ? 'group-hover:bg-rose-500' : 'group-hover:bg-emerald-500' }} group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Net Outstanding</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider shadow-sm transition-all duration-300 
+                    {{ $sale->status === 'exchanged' 
+                        ? 'text-blue-700 bg-blue-50 border-blue-200 group-hover:border-blue-300 group-hover:bg-blue-100/60' 
+                        : ($closingBalance > 0 ? 'text-rose-700 bg-rose-50 border-rose-200 group-hover:border-rose-300 group-hover:bg-rose-100/60' : 'text-emerald-700 bg-emerald-50 border-emerald-200 group-hover:border-emerald-300 group-hover:bg-emerald-100/60') }}">
+                    {{ in_array($sale->status, ['exchanged', 'cancelled', 'returned', 'resale']) ? ucfirst($sale->status) : ($closingBalance > 0 ? 'Pending' : 'Settled') }}
                 </span>
             </div>
-            <div class="w-9 h-9 rounded-xl {{ $sale->status === 'exchanged' ? 'bg-blue-100 text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'bg-rose-100 text-rose-600' : ($closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600')) }} flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3zm12 11H9v-2h6v2zm1-4H8V9h9v4z"/></svg>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black font-mono tracking-tight block transition-colors duration-300 
+                    {{ $sale->status === 'exchanged' ? 'text-blue-600' : ($closingBalance > 0 ? 'text-rose-600 group-hover:text-rose-700' : 'text-emerald-600 group-hover:text-emerald-700') }}">
+                    ₹{{ number_format(abs($closingBalance), 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
+                    {{ in_array($sale->status, ['exchanged', 'cancelled', 'returned', 'resale']) ? ucfirst($sale->status) . ' (Archived)' : ($closingBalance > 0 ? 'Balance Due' : 'Fully Settled') }}
+                </p>
             </div>
         </div>
     </div>
@@ -155,12 +196,15 @@
                     <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Chronological history of installment dues and receipt credits with running balance.</p>
                 </div>
             </div>
-            
             <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                 @if($sale->status !== 'exchanged')
                 <button type="button" @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white border border-[#a38c29] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-sm hover:shadow inline-flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Add Receipt
+                </button>
+                <button type="button" @click="openEmiModal()" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 hover:border-[#a38c29] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Restructure / Edit EMI
                 </button>
                 @endif
                 <a href="{{ route('sales.index') }}" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 hover:border-slate-300 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5">
@@ -517,7 +561,120 @@
 
               <div x-show="emiError" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
 
-              <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+              <div class="px-6 pt-4 pb-0">
+                  {{-- Tabs --}}
+                  <div class="flex items-center gap-2 border-b border-slate-200">
+                      <button type="button" @click="emiTab = 'manual'" 
+                              :class="emiTab === 'manual' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all">
+                          Edit Rows Manually
+                      </button>
+                      <button type="button" @click="emiTab = 'restructure'" 
+                              :class="emiTab === 'restructure' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                          Restructure Remaining Balance
+                      </button>
+                      <button type="button" @click="emiTab = 'history'" 
+                              :class="emiTab === 'history' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-700 font-bold'"
+                              class="pb-2.5 px-3 text-xs border-b-2 uppercase tracking-wider transition-all flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          Restructure History (<span x-text="restructureLogs.length"></span>)
+                      </button>
+                  </div>
+              </div>
+
+              {{-- Restructure Generator Card --}}
+              <div x-show="emiTab === 'restructure'" class="p-6 pb-2 space-y-3 bg-amber-50/50 border-b border-amber-200/60 font-sans text-xs">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide">Restructure Unpaid Balance</h3>
+                          <p class="text-[11px] text-slate-500 mt-0.5">Keep already paid installments and recalculate the remaining unpaid balance into fresh EMIs.</p>
+                      </div>
+                      <div class="text-right">
+                          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Remaining Balance</span>
+                          <div class="text-sm font-black font-mono text-rose-600">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></div>
+                      </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      <div>
+                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Number of New EMIs</label>
+                          <input type="number" min="1" max="120" placeholder="e.g. 3, 6, 12" x-model.number="restructureCount"
+                                 class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
+                      </div>
+                      <div>
+                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">First Due Date</label>
+                          <input type="date" x-model="restructureStartDate"
+                                 class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
+                      </div>
+                      <div class="flex items-end">
+                          <button type="button" @click="applyRestructure()" 
+                                  class="w-full px-3 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                              Generate Schedule
+                          </button>
+                      </div>
+                  </div>
+              </div>
+
+              {{-- Restructure History Container --}}
+              <div x-show="emiTab === 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                  <template x-if="restructureLogs.length === 0">
+                      <div class="text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+                          <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          <div class="font-bold text-slate-600">No Restructure Logs Found</div>
+                          <p class="text-[10px] mt-0.5">Every time this customer's schedule is restructured, a full copy of the previous installments is saved here.</p>
+                      </div>
+                  </template>
+                  <template x-for="(log, lIdx) in restructureLogs" :key="log.id || lIdx">
+                      <div class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+                          <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                              <div>
+                                  <span class="text-[10px] font-black uppercase text-slate-700" x-text="log.reason || 'EMI Restructure'"></span>
+                                  <div class="text-[9px] text-slate-400 mt-0.5">
+                                      By <strong class="text-slate-600" x-text="log.performed_by?.name || 'Admin'"></strong> • <span x-text="formatDate(log.created_at)"></span>
+                                  </div>
+                              </div>
+                              <button type="button" @click="restoreFromLog(log)" 
+                                      class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/30 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer">
+                                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                  Load this Version
+                              </button>
+                          </div>
+                          <div class="p-3">
+                              <table class="w-full text-[10px]">
+                                  <thead>
+                                      <tr class="text-slate-400 border-b border-slate-100 uppercase text-[8px] font-bold">
+                                          <th class="text-left pb-1.5">No / Label</th>
+                                          <th class="text-left pb-1.5">Due Date</th>
+                                          <th class="text-right pb-1.5">Amount</th>
+                                          <th class="text-right pb-1.5">Paid</th>
+                                          <th class="text-center pb-1.5">Status</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody class="divide-y divide-slate-50">
+                                      <template x-for="inst in (log.snapshot_data?.installments || [])" :key="inst.id || inst.installment_no">
+                                          <tr>
+                                              <td class="py-1 font-semibold text-slate-700" x-text="inst.label || ('EMI ' + inst.installment_no)"></td>
+                                              <td class="py-1 text-slate-500 font-mono" x-text="inst.due_date || '—'"></td>
+                                              <td class="py-1 text-right font-mono font-bold text-slate-800" x-text="'₹' + Number(inst.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
+                                              <td class="py-1 text-right font-mono text-emerald-600 font-semibold" x-text="inst.paid_amount > 0 ? ('₹' + Number(inst.paid_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})) : '—'"></td>
+                                              <td class="py-1 text-center">
+                                                  <span class="px-1.5 py-0.5 text-[8px] uppercase font-bold rounded"
+                                                        :class="inst.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-100 text-slate-600'"
+                                                        x-text="inst.status"></span>
+                                              </td>
+                                          </tr>
+                                      </template>
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </template>
+              </div>
+
+              <div x-show="emiTab !== 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                   {{-- Dynamic Summary Stats --}}
                   <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 rounded-xl text-xs text-white border border-[#a38c29]/20">
                       <div>
@@ -767,8 +924,12 @@ function ledgerApp() {
 
         // Custom EMI schedule editor state
         originalInstallments: @json($installments),
+        restructureLogs: @json($restructureLogs ?? []),
         editInstallments: [],
         emiModalOpen: false,
+        emiTab: 'manual',
+        restructureCount: '',
+        restructureStartDate: '',
         totalSaleAmount: {{ $sale->total_amount }},
         emiSubmitting: false,
         emiError: '',
@@ -803,6 +964,9 @@ function ledgerApp() {
 
         openEmiModal() {
             this.emiError = '';
+            this.emiTab = 'manual';
+            this.restructureCount = '';
+            this.restructureStartDate = '';
             this.editInstallments = this.originalInstallments.map(inst => ({
                 id: inst.id,
                 installment_no: inst.installment_no,
@@ -811,7 +975,98 @@ function ledgerApp() {
                 amount: Number(inst.amount),
                 status: inst.status
             }));
+
             this.emiModalOpen = true;
+        },
+        unpaidBalanceToRestructure() {
+            const paidSum = this.editInstallments
+                .filter(inst => inst.status === 'paid')
+                .reduce((sum, inst) => sum + Number(inst.amount), 0);
+            return Math.max(0, Math.round((this.totalSaleAmount - paidSum) * 100) / 100);
+        },
+        applyRestructure() {
+            this.emiError = '';
+            const count = parseInt(this.restructureCount);
+            if (isNaN(count) || count < 1) {
+                this.emiError = 'Please enter a valid number of EMIs (minimum 1).';
+                return;
+            }
+            if (!this.restructureStartDate) {
+                this.emiError = 'Please choose a starting due date for restructured EMIs.';
+                return;
+            }
+
+            const remainingBalance = this.unpaidBalanceToRestructure();
+            if (remainingBalance <= 0) {
+                this.emiError = 'No remaining unpaid balance to restructure.';
+                return;
+            }
+
+            // Keep all paid installments
+            const preservedPaid = this.editInstallments.filter(inst => inst.status === 'paid');
+            
+            // Generate restructured EMIs
+            const baseAmount = Math.floor((remainingBalance / count) * 100) / 100;
+            const remainder = Math.round((remainingBalance - (baseAmount * count)) * 100) / 100;
+
+            const newInstallments = [];
+            const startDateParts = this.restructureStartDate.split('-');
+            const year = parseInt(startDateParts[0]);
+            const month = parseInt(startDateParts[1]) - 1;
+            const day = parseInt(startDateParts[2]);
+
+            // Find starting index for labels
+            let startIndex = 1;
+            if (preservedPaid.length > 0) {
+                const maxNo = Math.max(...preservedPaid.map(i => i.installment_no));
+                startIndex = maxNo + 1;
+            }
+
+            for (let i = 0; i < count; i++) {
+                // Calculate next month correctly without timezone shifts
+                let dYear = year + Math.floor((month + i) / 12);
+                let dMonth = (month + i) % 12;
+                // Clamp day to max days in month (e.g. Feb 28/29, Apr 30)
+                let maxDays = new Date(dYear, dMonth + 1, 0).getDate();
+                let dDay = Math.min(day, maxDays);
+                
+                const mm = String(dMonth + 1).padStart(2, '0');
+                const dd = String(dDay).padStart(2, '0');
+                const isoDue = `${dYear}-${mm}-${dd}`;
+                
+                // Add the cents remainder to the last installment
+                const amt = (i === count - 1) 
+                    ? Math.round((baseAmount + remainder) * 100) / 100 
+                    : baseAmount;
+
+                newInstallments.push({
+                    id: null,
+                    installment_no: startIndex + i,
+                    label: 'EMI ' + (startIndex + i),
+                    due_date: isoDue,
+                    amount: amt,
+                    status: 'pending'
+                });
+            }
+
+            this.editInstallments = [...preservedPaid, ...newInstallments];
+            this.emiTab = 'manual';
+        },
+        restoreFromLog(log) {
+            if (!log || !log.snapshot_data || !log.snapshot_data.installments) {
+                this.emiError = 'No installments data found in this log.';
+                return;
+            }
+            this.emiError = '';
+            this.editInstallments = log.snapshot_data.installments.map(inst => ({
+                id: inst.id,
+                installment_no: inst.installment_no,
+                label: inst.label,
+                due_date: inst.due_date ? inst.due_date.split('T')[0] : '',
+                amount: Number(inst.amount),
+                status: inst.status
+            }));
+            this.emiTab = 'manual';
         },
         addInstallment() {
             const nextNo = this.editInstallments.length > 0 

@@ -81,6 +81,13 @@ class EmiCollectionController extends Controller
             $due = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
             $sale->setAttribute('next_due_amount', $due);
             $sale->next_due_amount = $due;
+
+            // Actual installment count from schedule (excluding Down Payment if present, or total EMI rows)
+            $emiOnlyCount = $installments->filter(function($i) {
+                return !str_contains(strtolower($i->label), 'down payment') && $i->installment_no > 0;
+            })->count();
+            $effectiveCount = $emiOnlyCount > 0 ? $emiOnlyCount : ($installments->count() > 0 ? $installments->count() : ($sale->emi_installment_count ?? 12));
+            $sale->setAttribute('actual_installment_count', $effectiveCount);
         }
 
         $allSalesFormatted = $activeSales->map(function ($sale) {
@@ -142,7 +149,7 @@ class EmiCollectionController extends Controller
                 'remaining_balance'      => (float) $sale->remaining_balance,
                 'next_due_amount'        => (float) ($sale->next_due_amount ?? $sale->remaining_balance),
                 'payment_plan'           => $sale->payment_plan ?: 'emi',
-                'emi_installment_count'  => $sale->emi_installment_count ?? 12,
+                'emi_installment_count'  => $sale->actual_installment_count ?? ($sale->emi_installment_count ?? 12),
                 'emi_frequency'          => $sale->emi_frequency ?? 'monthly',
                 'created_date'           => $sale->created_at?->format('Y-m-d'),
                 'receipts'               => $sale->receipts->map(function($r) {
@@ -774,7 +781,21 @@ class EmiCollectionController extends Controller
             ]);
         }
 
-        $ledger = $ledger->sortBy('sort_date')->values();
+        $ledger = $ledger->sort(function ($a, $b) {
+            $dateA = $a['sort_date'] ? Carbon::parse($a['sort_date'])->format('Y-m-d') : '9999-12-31';
+            $dateB = $b['sort_date'] ? Carbon::parse($b['sort_date'])->format('Y-m-d') : '9999-12-31';
+            if ($dateA === $dateB) {
+                // If both dates are identical, prioritize paid items first, then installment ID
+                $statusOrder = ['paid' => 1, 'partial' => 2, 'pending' => 3, 'overdue' => 4];
+                $sA = $statusOrder[$a['status']] ?? 5;
+                $sB = $statusOrder[$b['status']] ?? 5;
+                if ($sA !== $sB) {
+                    return $sA <=> $sB;
+                }
+                return ($a['id'] ?? 0) <=> ($b['id'] ?? 0);
+            }
+            return strcmp($dateA, $dateB);
+        })->values();
 
         // Running balance
         $runningBalance = 0;
@@ -790,6 +811,11 @@ class EmiCollectionController extends Controller
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $paymentModes   = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        $restructureLogs = \App\Models\SaleStatusLog::with('performedBy')
+            ->where('sale_id', $sale->id)
+            ->where('event_type', 'emi_restructure')
+            ->latest()
+            ->get();
 
         return view('emi-collections.ledger', compact(
             'sale',
@@ -802,7 +828,8 @@ class EmiCollectionController extends Controller
             'installments',
             'banks',
             'paymentModes',
-            'archiveSnapshot'
+            'archiveSnapshot',
+            'restructureLogs'
         ));
     }
 
@@ -936,12 +963,39 @@ class EmiCollectionController extends Controller
         }
 
         DB::transaction(function () use ($sale, $installmentsData) {
-            $currentInsts = CustomerInstallment::where('sale_id', $sale->id)->get()->keyBy('id');
+            $currentInsts = CustomerInstallment::where('sale_id', $sale->id)->orderBy('installment_no')->get();
             
+            // 1. Snapshot previous installments before modification/restructuring
+            if ($currentInsts->isNotEmpty()) {
+                \App\Models\SaleStatusLog::create([
+                    'sale_id'       => $sale->id,
+                    'from_status'   => $sale->status,
+                    'to_status'     => $sale->status,
+                    'event_type'    => 'emi_restructure',
+                    'reason'        => 'EMI schedule restructured/updated on ' . now()->format('d M Y, h:i A'),
+                    'performed_by'  => auth()->id(),
+                    'snapshot_data' => [
+                        'restructured_at' => now()->toIso8601String(),
+                        'installments'    => $currentInsts->map(function ($inst) {
+                            return [
+                                'id'             => $inst->id,
+                                'installment_no' => $inst->installment_no,
+                                'label'          => $inst->label,
+                                'due_date'       => $inst->due_date ? $inst->due_date->format('Y-m-d') : null,
+                                'amount'         => (float)$inst->amount,
+                                'paid_amount'    => (float)($inst->paid_amount ?? 0),
+                                'status'         => $inst->status,
+                            ];
+                        })->values()->toArray(),
+                    ],
+                ]);
+            }
+
+            $currentInstsKeyed = $currentInsts->keyBy('id');
             $keepIds = [];
             foreach ($installmentsData as $inst) {
-                if (isset($inst['id']) && $currentInsts->has($inst['id'])) {
-                    $row = $currentInsts->get($inst['id']);
+                if (isset($inst['id']) && $currentInstsKeyed->has($inst['id'])) {
+                    $row = $currentInstsKeyed->get($inst['id']);
                     if ($row->status !== 'paid') {
                         $row->update([
                             'installment_no' => $inst['installment_no'],
@@ -970,6 +1024,18 @@ class EmiCollectionController extends Controller
                 ->whereNotIn('id', $keepIds)
                 ->where('status', '!=', 'paid')
                 ->delete();
+
+            // Re-allocate payments across updated installments
+            CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+
+            // Sync total EMI count onto Sale model
+            $newEmiCount = CustomerInstallment::where('sale_id', $sale->id)
+                ->where('installment_no', '>', 0)
+                ->where('label', 'not like', '%down payment%')
+                ->count();
+            if ($newEmiCount > 0) {
+                $sale->update(['emi_installment_count' => $newEmiCount]);
+            }
         });
 
         return response()->json(['success' => true]);
