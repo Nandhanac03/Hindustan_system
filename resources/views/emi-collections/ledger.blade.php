@@ -861,11 +861,60 @@
          </div>
     </div>
 
+    {{-- Warning Popup Modal (Matching System Style) --}}
+    <div x-show="warningModal.open" 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs text-left" 
+         style="display: none;" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-fade-in-up" 
+             @click.away="warningModal.open = false">
+            <div class="bg-[#1c1716] px-6 py-4 text-white flex items-center justify-between">
+                <div class="space-y-1">
+                    <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
+                </div>
+                <button type="button" @click="warningModal.open = false" 
+                        class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
+            </div>
+            
+            <div class="p-6 space-y-5 text-slate-700 text-xs pb-6">
+                <p class="font-bold text-slate-900 text-sm">
+                    Cannot process this installment payment.
+                </p>
+                
+                <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2 text-amber-900 shadow-2xs">
+                    <p class="font-extrabold uppercase tracking-wider text-[11px] text-amber-800 flex items-center gap-1.5">
+                        <span>⚠️ PAYMENT BLOCKED</span>
+                    </p>
+                    <ul class="list-disc list-inside space-y-1.5 text-[12px] text-slate-700 font-medium leading-relaxed mt-2">
+                        <li class="font-semibold text-rose-800" x-text="warningModal.message"></li>
+                        <li>Please clear installments sequentially to maintain accurate ledger balances.</li>
+                    </ul>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button type="button" @click="warningModal.open = false" 
+                            class="px-5 py-2.5 bg-[#1c1716] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">
+                        Understood
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
  </div>
 
 <script>
 function ledgerApp() {
     return {
+        warningModal: {
+            open: false,
+            message: ''
+        },
         modalOpen: false,
         submitting: false,
         error: '',
@@ -901,7 +950,11 @@ function ledgerApp() {
             this.errors = {};
 
             if (this.form.isOutOfOrder) {
-                this.error = "Installments must be paid in sequential order. Please settle earlier pending installment '" + this.form.firstUnpaidLabel + "' first before paying '" + this.form.label + "'.";
+                const msg = "Installments must be paid in sequential order. Please settle earlier pending installment '" + this.form.firstUnpaidLabel + "' first before paying '" + this.form.label + "'.";
+                this.error = msg;
+                this.warningModal.message = msg;
+                this.modalOpen = false;
+                this.warningModal.open = true;
                 return;
             }
 
@@ -942,7 +995,13 @@ function ledgerApp() {
                 } else if (json.errors) {
                     this.errors = json.errors;
                 } else {
-                    this.error = json.error || json.message || 'An error occurred.';
+                    const errMsg = json.error || json.message || 'An error occurred.';
+                    this.error = errMsg;
+                    if (errMsg.includes('sequential order') || errMsg.includes('earlier pending installment')) {
+                        this.modalOpen = false;
+                        this.warningModal.message = errMsg;
+                        this.warningModal.open = true;
+                    }
                 }
             } catch(e) {
                 this.error = 'Request failed: ' + e.message;
