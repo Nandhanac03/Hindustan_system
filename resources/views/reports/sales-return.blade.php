@@ -386,33 +386,36 @@
          x-cloak
          class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 modal-backdrop bg-slate-900/60 print:hidden" 
          style="display: none; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);" 
-         <div class="w-full max-w-5xl max-h-[96vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up" 
+         x-transition.opacity
+         @keydown.escape.window="closeCancelModal()">
+
+        <div class="w-full max-w-5xl max-h-[92vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up" 
              @click.away="closeCancelModal()">
             
             <!-- Modal Header (Matching sales?tab=sale-return View Modal Style) -->
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-2.5 border-b border-primary-500/10 shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-primary-500/10 shrink-0">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
-                        <div class="flex flex-wrap items-center gap-2 mb-0.5">
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
                             <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
                                   x-text="(selectedCancelSale?.status || 'cancelled').toUpperCase()">CANCELLED</span>
                         </div>
-                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight uppercase">CANCELLATION DETAILS</h2>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1 uppercase">CANCELLATION DETAILS</h2>
                     </div>
                     <button type="button" @click="closeCancelModal()" 
-                            class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm cursor-pointer text-xs"
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm cursor-pointer"
                             title="Close">✕</button>
                 </div>
             </div>
 
-            <!-- Modal Body (Scrollable if needed, optimized to fit without scrolling) -->
-            <div class="px-5 py-3.5 overflow-y-auto bg-slate-50/60 space-y-3 flex-1 custom-scrollbar">
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto bg-slate-50/60 space-y-5 flex-1 custom-scrollbar">
 
                 <!-- Interactive Tabs Bar (Inside Modal Body) -->
-                <div class="flex items-center gap-1.5 p-0.5 shadow-2xs w-fit overflow-x-auto">
+                <div class="flex items-center gap-2 p-1 shadow-2xs w-fit overflow-x-auto">
                     <button type="button" @click="cancelModalTab = 'dossier'"
-                            class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0"
                             :class="cancelModalTab === 'dossier' ? 'bg-[#a38c29] text-white shadow-sm ring-1 ring-[#d4af37]/50' : 'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900'">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>1. Cancellation Details</span>
@@ -427,7 +430,7 @@
                               x-text="selectedCancelSale?.receipts?.length || 0">0</span>
                     </button> -->
                     <button type="button" @click="cancelModalTab = 'refunds'"
-                            class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0"
                             :class="cancelModalTab === 'refunds' ? 'bg-[#a38c29] text-white shadow-sm ring-1 ring-[#d4af37]/50' : 'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900'">
                         <span class="font-black text-xs leading-none">₹</span>
                         <span>3. Refund Payout Summary</span>
@@ -438,17 +441,17 @@
                 </div>
 
                 {{-- ══ TAB 1: CANCELLATION DOSSIER ══ --}}
-                <div x-show="cancelModalTab === 'dossier'" class="space-y-3">
+                <div x-show="cancelModalTab === 'dossier'" class="space-y-5">
                     <!-- Banner Card: Primary Parties & Dates -->
-                <div class="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs grid grid-cols-1 md:grid-cols-3 gap-4 md:divide-x divide-slate-100">
+                <div class="bg-white rounded-2xl p-5 md:p-6 border border-slate-200/90 shadow-2xs grid grid-cols-1 md:grid-cols-3 gap-6 md:divide-x divide-slate-100">
                     <!-- Customer Entity -->
-                    <div class="space-y-1.5 md:pr-4">
-                        <div class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <div class="space-y-2 md:pr-5">
+                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             <span>CUSTOMER Details</span>
                         </div>
                         <div class="text-sm font-black text-slate-900" x-text="selectedCancelSale?.customer?.name || '—'"></div>
-                        <div class="text-[11px] text-slate-500 font-medium space-y-0.5">
+                        <div class="text-[11px] text-slate-500 font-medium space-y-1">
                             <div class="flex items-center gap-1.5" x-show="selectedCancelSale?.customer?.phone">
                                 <span class="text-slate-400">Phone:</span>
                                 <span class="font-mono font-bold text-slate-700" x-text="selectedCancelSale?.customer?.phone"></span>
@@ -465,8 +468,8 @@
                     </div>
 
                     <!-- Returned Unit -->
-                    <div class="space-y-1.5 md:px-4 border-t-0">
-                        <div class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <div class="space-y-2 md:px-5 border-t-0">
+                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span>RETURNED UNIT</span>
                         </div>
@@ -476,7 +479,7 @@
                             <span class="text-slate-300">•</span>
                             <span class="text-xs font-bold text-slate-800" x-text="(selectedCancelSale?.unit?.floor || '') + ' (' + (selectedCancelSale?.unit?.type || '') + ')'"></span>
                         </div>
-                        <div class="text-[11px] text-slate-500 font-medium space-y-0.5">
+                        <div class="text-[11px] text-slate-500 font-medium space-y-1">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-slate-400">Project:</span>
                                 <span class="font-semibold text-slate-700" x-text="selectedCancelSale?.project?.name || '—'"></span>
@@ -485,23 +488,23 @@
                     </div>
 
                     <!-- Timestamps & Status -->
-                    <div class="space-y-1.5 md:pl-4 border-t-0">
-                        <div class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <div class="space-y-2 md:pl-5 border-t-0">
+                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             <span>CANCELLATION TIMELINE</span>
                         </div>
-                        <div class="space-y-1 text-xs">
+                        <div class="space-y-1.5 text-xs">
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-500 text-[10.5px]">Booking / Agreement:</span>
-                                <span class="font-bold text-slate-800 text-[10.5px]" x-text="selectedCancelSale?.agreement_date || selectedCancelSale?.sale_date || '—'"></span>
+                                <span class="text-slate-500 text-[11px]">Booking / Agreement:</span>
+                                <span class="font-bold text-slate-800 text-[11px]" x-text="selectedCancelSale?.agreement_date || selectedCancelSale?.sale_date || '—'"></span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-500 text-[10.5px]">Cancellation Date:</span>
-                                <span class="font-bold text-rose-700 font-mono text-[10.5px]" x-text="selectedCancelSale?.cancelled_at || '—'"></span>
+                                <span class="text-slate-500 text-[11px]">Cancellation Date:</span>
+                                <span class="font-bold text-rose-700 font-mono text-[11px]" x-text="selectedCancelSale?.cancelled_at || '—'"></span>
                             </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                                <span class="text-slate-500 text-[10.5px]">Refund Status:</span>
-                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide"
+                            <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                <span class="text-slate-500 text-[11px]">Refund Status:</span>
+                                <span class="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide"
                                       :class="{
                                           'bg-emerald-100 text-emerald-800 border border-emerald-300': getCancelRefundStatus(selectedCancelSale) === 'Completed' || getCancelRefundStatus(selectedCancelSale) === 'Settled',
                                           'bg-blue-100 text-blue-800 border border-blue-300': getCancelRefundStatus(selectedCancelSale) === 'Partially Paid',
@@ -514,90 +517,90 @@
                 </div>
 
                 {{-- Financial Ledger Key Performance Indicators (6 Metric Cards Always Visible) --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     <!-- 1. Contract Value -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-slate-700">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-slate-400 block truncate">CONTRACT VALUE</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-slate-900 block truncate" x-text="fmtMoney(selectedCancelSale?.contract_value)">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate">Agreed Value</span>
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-slate-700">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block truncate">CONTRACT VALUE</span>
+                        <span class="text-sm font-black font-mono text-slate-900 block truncate" x-text="fmtMoney(selectedCancelSale?.contract_value)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Agreed Value</span>
                     </div>
 
                     <!-- 2. Paid Till Cancellation -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-emerald-500">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-emerald-700 block truncate">TOTAL PAID AMOUNT</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-emerald-600 block truncate" x-text="fmtMoney(selectedCancelSale?.total_paid)">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate" x-text="(selectedCancelSale?.receipts?.length || 0) + ' Receipts Recorded'"></span>
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-emerald-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 block truncate">TOTAL PAID AMOUNT</span>
+                        <span class="text-sm font-black font-mono text-emerald-600 block truncate" x-text="fmtMoney(selectedCancelSale?.total_paid)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate" x-text="(selectedCancelSale?.receipts?.length || 0) + ' Receipts Recorded'"></span>
                     </div>
 
                     <!-- 3. Cancellation Fee Retained -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-rose-500">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-rose-700 block truncate">CANCELLATION FEE</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-rose-600 block truncate" x-text="fmtMoney(selectedCancelSale?.cancellation_fee)">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate">Penalty / Retained</span>
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-rose-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-rose-700 block truncate">CANCELLATION FEE</span>
+                        <span class="text-sm font-black font-mono text-rose-600 block truncate" x-text="fmtMoney(selectedCancelSale?.cancellation_fee)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Penalty / Retained</span>
                     </div>
 
                     <!-- 4. Approved Refund Amount -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-[#a38c29]">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-[#a38c29] block truncate">APPROVED NET REFUND</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-[#a38c29] block truncate" x-text="fmtMoney(selectedCancelSale?.refund_amount)">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate">Approved Liability</span>
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-[#a38c29]">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-[#a38c29] block truncate">APPROVED NET REFUND</span>
+                        <span class="text-sm font-black font-mono text-[#a38c29] block truncate" x-text="fmtMoney(selectedCancelSale?.refund_amount)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Approved Liability</span>
                     </div>
 
                     <!-- 5. Disbursed Refund Paid -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-emerald-500">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-emerald-700 block truncate">REFUND PAID OUT</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-emerald-600 block truncate" x-text="fmtMoney(selectedCancelSale?.refund_paid)">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate" x-text="(selectedCancelSale?.refund_payments?.length || 0) + ' Vouchers Paid'"></span>
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-emerald-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 block truncate">REFUND PAID OUT</span>
+                        <span class="text-sm font-black font-mono text-emerald-600 block truncate" x-text="fmtMoney(selectedCancelSale?.refund_paid)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate" x-text="(selectedCancelSale?.refund_payments?.length || 0) + ' Vouchers Paid'"></span>
                     </div>
 
                     <!-- 6. Pending Refund Balance -->
-                    <div class="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-2xs space-y-0.5 border-l-4 border-l-amber-500">
-                        <span class="text-[8.5px] font-black uppercase tracking-wider text-amber-700 block truncate">PENDING BALANCE DUE</span>
-                        <span class="text-xs sm:text-sm font-black font-mono text-amber-600 block truncate" 
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-amber-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 block truncate">PENDING BALANCE DUE</span>
+                        <span class="text-sm font-black font-mono text-amber-600 block truncate" 
                               x-text="fmtMoney(Math.max(0, (selectedCancelSale?.refund_amount || 0) - (selectedCancelSale?.refund_paid || 0)))">₹0.00</span>
-                        <span class="text-[8.5px] text-slate-400 font-medium block truncate">Remaining Payable</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Remaining Payable</span>
                     </div>
                 </div>
 
                 <!-- Two-Column Cards: Detailed Breakdown -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                         <!-- Panel 1: Cancellation Reason & Audit Details -->
-                        <div class="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs space-y-2.5">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-3.5">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                     </div>
                                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Cancellation Audit Details</h3>
                                 </div>
-                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[9.5px] font-mono font-bold">Audit Verified</span>
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-mono font-bold">Audit Verified</span>
                             </div>
 
-                            <div class="space-y-2 text-xs">
+                            <div class="space-y-2.5 text-xs">
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Primary Cancellation Reason</span>
-                                    <div class="p-2 rounded-lg bg-rose-50/60 border border-rose-100 text-slate-900 font-bold text-xs"
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Primary Cancellation Reason</span>
+                                    <div class="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 text-slate-900 font-bold"
                                          x-text="selectedCancelSale?.cancellation_reason || 'Customer Cancellation Request'"></div>
                                 </div>
 
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Detailed Remarks / Registry Notes</span>
-                                    <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700 leading-normal font-medium text-xs"
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Detailed Remarks / Registry Notes</span>
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 leading-relaxed font-medium"
                                          x-text="selectedCancelSale?.notes || 'No additional cancellation notes provided.'"></div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-2 pt-0.5">
+                                <div class="grid grid-cols-2 gap-3 pt-1">
                                     <div>
-                                        <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Cancellation Fee Deduction</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Cancellation Fee Deduction</span>
                                         <span class="text-xs font-bold text-rose-700 font-mono" x-text="fmtMoney(selectedCancelSale?.cancellation_fee)"></span>
                                     </div>
                                     <div x-show="Number(selectedCancelSale?.additional_refund_amount || 0) > 0">
-                                        <span class="text-[9.5px] font-black uppercase tracking-wider text-emerald-700 block">Additional Approved Refund</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">Additional Approved Refund</span>
                                         <span class="text-xs font-bold text-emerald-700 font-mono" x-text="'+ ' + fmtMoney(selectedCancelSale?.additional_refund_amount)"></span>
                                     </div>
                                     <div :class="Number(selectedCancelSale?.additional_refund_amount || 0) > 0 ? 'col-span-2' : ''">
-                                        <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Net Refund Calculation</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Net Refund Calculation</span>
                                         <span class="text-xs font-bold text-slate-800 font-mono" 
                                               x-text="'Paid ' + fmtMoney(selectedCancelSale?.total_paid) + ' - Fee ' + fmtMoney(selectedCancelSale?.cancellation_fee) + (Number(selectedCancelSale?.additional_refund_amount || 0) > 0 ? ' + Addl ' + fmtMoney(selectedCancelSale?.additional_refund_amount) : '')"></span>
                                     </div>
@@ -605,47 +608,43 @@
                             </div>
                         </div>
 
-                        <!-- Panel 2: Property & Commercial Specifications -->
-                        <div class="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs space-y-2.5">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <!-- Panel 2: Property & Agreement Specifications -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-3.5">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold text-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                     </div>
                                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Unit & Commercial Terms</h3>
                                 </div>
-                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[9.5px] font-mono font-bold" x-text="selectedCancelSale?.project?.code || 'HEV'"></span>
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-mono font-bold" x-text="selectedCancelSale?.project?.code || 'HEV'"></span>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-y-2 gap-x-3 text-xs">
+                            <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Project Location</span>
-                                    <span class="font-bold text-slate-800 text-[11px]" x-text="(selectedCancelSale?.project?.location || '') + (selectedCancelSale?.project?.city ? ', ' + selectedCancelSale?.project?.city : '') || '—'"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Project Location</span>
+                                    <span class="font-bold text-slate-800" x-text="(selectedCancelSale?.project?.location || '') + (selectedCancelSale?.project?.city ? ', ' + selectedCancelSale?.project?.city : '') || '—'"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Rate per Sq.Ft</span>
-                                    <span class="font-bold text-slate-800 font-mono text-[11px]" x-text="fmtMoney(selectedCancelSale?.rate_per_sqft)"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Rate per Sq.Ft</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="fmtMoney(selectedCancelSale?.rate_per_sqft)"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Base Value</span>
-                                    <span class="font-bold text-slate-800 font-mono text-[11px]" x-text="fmtMoney(selectedCancelSale?.base_amount)"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Base Value</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="fmtMoney(selectedCancelSale?.base_amount)"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">GST Taxes</span>
-                                    <span class="font-bold text-slate-800 font-mono text-[11px]" x-text="fmtMoney(selectedCancelSale?.gst_amount) + (selectedCancelSale?.gst_percentage ? ' (' + selectedCancelSale?.gst_percentage + '%)' : '')"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">GST Taxes</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="fmtMoney(selectedCancelSale?.gst_amount) + (selectedCancelSale?.gst_percentage ? ' (' + selectedCancelSale?.gst_percentage + '%)' : '')"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Payment Plan</span>
-                                    <span class="font-bold text-slate-800 uppercase text-[11px]" x-text="selectedCancelSale?.payment_plan || 'Lump Sum'"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Payment Plan</span>
+                                    <span class="font-bold text-slate-800 uppercase" x-text="selectedCancelSale?.payment_plan || 'Lump Sum'"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-400 block">Broker</span>
-                                    <span class="font-bold text-slate-800 text-[11px]" x-text="selectedCancelSale?.broker?.name || 'Direct / None'"></span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Broker</span>
+                                    <span class="font-bold text-slate-800" x-text="selectedCancelSale?.broker?.name || 'Direct / None'"></span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div></div>
                             </div>
                         </div>
                     </div>
