@@ -246,7 +246,7 @@
                             <tr class="erp-table-header border-b border-slate-700">
                                 <th class="px-4 py-3 text-white font-extrabold text-center w-12">SL No</th>
                                 <th class="px-4 py-3 text-white font-extrabold whitespace-nowrap">Ref Code No.</th>
-                                <th class="px-4 py-3 text-white font-extrabold">Customer Entity</th>
+                                <th class="px-4 py-3 text-white font-extrabold">Customer</th>
                                 <th class="px-4 py-3 text-white font-extrabold">Unit Details</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Contract Value</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Paid Amount</th>
@@ -272,6 +272,14 @@
                                     $rp['balance'] = max(0, $approvedRefundAmount - $runningDisbursed);
                                     return $rp;
                                 }, $ret->refund_payments ?? [], array_keys($ret->refund_payments ?? []));
+
+                                $unitDisplay = '—';
+                                if ($ret->saleUnits && $ret->saleUnits->isNotEmpty()) {
+                                    $unitDisplay = $ret->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->implode(', ');
+                                }
+                                if (empty($unitDisplay) || $unitDisplay === '—') {
+                                    $unitDisplay = $ret->unit?->formatted_name ?: ($ret->unit?->door_no ?? '—');
+                                }
 
                                 $saleModalPayload = [
                                     'id' => $ret->id,
@@ -314,6 +322,7 @@
                                         'category' => $ret->unit?->unitType?->category ?? '—',
                                         'built_up_area' => $ret->unit?->built_up_area ?? 0,
                                         'carpet_area' => $ret->unit?->carpet_area ?? 0,
+                                        'formatted_name' => $unitDisplay,
                                     ],
                                     'broker' => $ret->broker ? [
                                         'name' => $ret->broker->name,
@@ -351,10 +360,7 @@
                                     </button>
                                 </td>
                                 <td class="px-4 py-3 font-sans text-slate-800 font-bold whitespace-nowrap">{{ $ret->customer?->name ?? '—' }}</td>
-                                <td class="px-4 py-3 font-sans">
-                                    <div class="font-bold text-slate-800">{{ $ret->project?->name ?? '—' }}</div>
-                                    <div class="text-[10px] text-slate-400">Unit: {{ $ret->unit?->door_no ?? '—' }}</div>
-                                </td>
+                                <td class="px-4 py-3 font-sans text-slate-800 font-semibold whitespace-nowrap">{{ $unitDisplay }}</td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap">₹{{ number_format($ret->total_amount, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-emerald-600 font-bold whitespace-nowrap">₹{{ number_format($ret->total_paid ?? 0.00, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-rose-600 font-bold whitespace-nowrap">₹{{ number_format($ret->cancellation_fee, 2) }}</td>
@@ -878,7 +884,13 @@
                     $totalFee += (float)$ret->cancellation_fee;
                     $totalRefund += (float)$ret->refund_amount + (float)($ret->refund_paid ?? 0);
                     $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; // Light blue for zebra striping
-                    $unitDetails = ($ret->project?->name ?? '—') . ' (Unit: ' . ($ret->unit?->door_no ?? '—') . ')';
+                    $unitDetails = '—';
+                    if ($ret->saleUnits && $ret->saleUnits->isNotEmpty()) {
+                        $unitDetails = $ret->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->implode(', ');
+                    }
+                    if (empty($unitDetails) || $unitDetails === '—') {
+                        $unitDetails = $ret->unit?->formatted_name ?: ($ret->unit?->door_no ?? '—');
+                    }
                 @endphp
                 <tr height="25" style="height: 25pt;">
                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000; mso-number-format:'\@';">{{ $ret->sale_number }}</td>
