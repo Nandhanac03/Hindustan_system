@@ -262,7 +262,7 @@
                                 $cancelledByName = $cancelLog?->performedBy?->name ?? 'Authorized Administrator';
                                 $cancelledLogReason = $cancelLog?->reason ?? null;
 
-                                $approvedRefundAmount = (float)$ret->refund_amount;
+                                $approvedRefundAmount = (float)$ret->refund_amount + (float)($ret->refund_paid ?? 0);
                                 $runningDisbursed = 0;
                                 $refundPaymentsWithLedger = array_map(function($rp, $idx) use (&$runningDisbursed, $approvedRefundAmount) {
                                     $amt = (float)($rp['amount'] ?? 0);
@@ -291,9 +291,9 @@
                                     'total_paid' => (float)($ret->total_paid ?? 0),
                                     'cancellation_fee' => (float)($ret->cancellation_fee ?? 0),
                                     'additional_refund_amount' => (float)($ret->additional_refund_amount ?? 0),
-                                    'refund_amount' => (float)$ret->refund_amount,
+                                    'refund_amount' => (float)$ret->refund_amount + (float)($ret->refund_paid ?? 0),
                                     'refund_paid' => (float)($ret->refund_paid ?? 0),
-                                    'refund_balance' => max(0, (float)$ret->refund_amount - (float)($ret->refund_paid ?? 0)),
+                                    'refund_balance' => max(0, (float)$ret->refund_amount),
                                     'payment_plan' => $ret->payment_plan ?: '—',
                                     'customer' => [
                                         'name' => $ret->customer?->name ?? '—',
@@ -863,7 +863,7 @@
                     $totalContract += (float)$ret->total_amount;
                     $totalPaid += (float)($ret->total_paid ?? 0);
                     $totalFee += (float)$ret->cancellation_fee;
-                    $totalRefund += (float)$ret->refund_amount;
+                    $totalRefund += (float)$ret->refund_amount + (float)($ret->refund_paid ?? 0);
                     $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; // Light blue for zebra striping
                     $unitDetails = ($ret->project?->name ?? '—') . ' (Unit: ' . ($ret->unit?->door_no ?? '—') . ')';
                 @endphp

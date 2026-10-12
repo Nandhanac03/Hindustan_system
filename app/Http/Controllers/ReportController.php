@@ -2362,28 +2362,42 @@ class ReportController extends Controller
             ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
             ->get();
 
+        // NOTE: sales.refund_amount holds the REMAINING refund balance (reduced by every
+        // payout). Total approved liability = remaining balance + already-paid vouchers.
+        $allReturns->each(function ($s) use ($refundsPaidBySale) {
+            $s->refund_paid = $refundsPaidBySale[$s->id] ?? 0.00;
+        });
+
         $totalFee = (float)$allReturns->sum('cancellation_fee');
-        $totalRefund = (float)$allReturns->sum('refund_amount');
+        $totalRefund = (float)$allReturns->sum(fn($s) => (float)$s->refund_amount + (float)$s->refund_paid);
         $totalCount = $allReturns->count();
 
-        $monthlyReturns = Sale::whereIn('status', ['cancelled', 'returned'])
-            ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
-            ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
-            ->selectRaw("DATE_FORMAT(cancelled_at, '%b %Y') as m_label, DATE_FORMAT(cancelled_at, '%Y-%m') as ym, COUNT(*) as cnt, SUM(cancellation_fee) as total_fee, SUM(refund_amount) as total_refund")
-            ->groupBy('ym', 'm_label')
-            ->orderBy('ym')
-            ->get();
+        // Monthly trend grouped in PHP so the refund series stays on total-liability basis
+        $monthAgg = [];
+        foreach ($allReturns as $s) {
+            if (empty($s->cancelled_at)) {
+                continue;
+            }
+            $ym = Carbon::parse($s->cancelled_at)->format('Y-m');
+            if (!isset($monthAgg[$ym])) {
+                $monthAgg[$ym] = ['m_label' => Carbon::parse($s->cancelled_at)->format('M Y'), 'cnt' => 0, 'total_fee' => 0.0, 'total_refund' => 0.0];
+            }
+            $monthAgg[$ym]['cnt']++;
+            $monthAgg[$ym]['total_fee'] += (float)$s->cancellation_fee;
+            $monthAgg[$ym]['total_refund'] += (float)$s->refund_amount + (float)$s->refund_paid;
+        }
+        ksort($monthAgg);
 
         $rMonths = [];
         $rCounts = [];
         $rFees = [];
         $rRefunds = [];
-        if ($monthlyReturns->isNotEmpty()) {
-            foreach ($monthlyReturns as $mr) {
-                $rMonths[] = $mr->m_label;
-                $rCounts[] = (int)$mr->cnt;
-                $rFees[] = (float)$mr->total_fee;
-                $rRefunds[] = (float)$mr->total_refund;
+        if (!empty($monthAgg)) {
+            foreach ($monthAgg as $mr) {
+                $rMonths[] = $mr['m_label'];
+                $rCounts[] = (int)$mr['cnt'];
+                $rFees[] = (float)$mr['total_fee'];
+                $rRefunds[] = (float)$mr['total_refund'];
             }
         } else {
             for ($i = 5; $i >= 0; $i--) {

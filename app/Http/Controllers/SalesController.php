@@ -1145,6 +1145,29 @@ class SalesController extends Controller
         // Build rich snapshot of the unit & sale BEFORE cancellation/returns/resales
         $snapshotData = $this->buildSaleSnapshot($sale->id);
 
+        // sales.refund_amount holds the REMAINING refund balance. When (re-)setting the
+        // approved liability here, subtract any payouts already made so a re-save after
+        // partial refunds does not reset the balance back to the full liability.
+        $newRefundLiability = in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? (float) ($validated['refund_amount'] ?? 0.00) : null;
+        if ($newRefundLiability !== null && $newRefundLiability > 0) {
+            $paidRefs = DB::table('vouchers')
+                ->where('status', 'Posted')
+                ->whereNotNull('reference_no')
+                ->pluck('reference_no');
+            $alreadyPaidForSale = 0.0;
+            foreach ($paidRefs as $refNo) {
+                $refData = json_decode($refNo, true);
+                if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                    foreach ($refData['allocations'] as $alloc) {
+                        if (($alloc['type'] ?? '') === 'refund' && (int) ($alloc['target_id'] ?? 0) === (int) $sale->id) {
+                            $alreadyPaidForSale += (float) ($alloc['amount'] ?? 0);
+                        }
+                    }
+                }
+            }
+            $newRefundLiability = max(0.0, $newRefundLiability - $alreadyPaidForSale);
+        }
+
         $sale->update([
             'status'                   => $validated['status'],
             'cancellation_reason'      => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? $validated['reason'] : $sale->cancellation_reason,
@@ -1152,7 +1175,7 @@ class SalesController extends Controller
             'is_resale'                => $validated['status'] === 'resale' ? true : $sale->is_resale,
             'cancellation_fee'         => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
             'additional_refund_amount' => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? ($validated['additional_refund_amount'] ?? 0.00) : $sale->additional_refund_amount,
-            'refund_amount'            => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
+            'refund_amount'            => $newRefundLiability ?? $sale->refund_amount,
         ]);
         $shouldFreeUnit = in_array($validated['status'], ['cancelled', 'returned', 'resale', 'inactive']);
         if ($shouldFreeUnit) {
@@ -1421,6 +1444,33 @@ class SalesController extends Controller
                 $isHistorical = $request->boolean('is_historical');
 
                 // 1. Lock & Update Company Bank Account Balance (skip for historical entries)
+                // NOTE: sales.refund_amount holds the REMAINING refund balance still payable.
+                // It is set to the full liability at cancellation and reduced by every
+                // payout below (step 5). Payouts are also tracked via PY-REF-*
+                // voucher allocations (refund_paid); never increment this column.
+                // Guard against paying more than the remaining balance refund instead.
+                $paidIntake = (float) Receipt::where('sale_id', $sale->id)->sum('amount');
+                $refundDue = max(0.0, $paidIntake - (float) ($sale->cancellation_fee ?? 0) + (float) ($sale->additional_refund_amount ?? 0));
+                $alreadyPaid = 0.0;
+                $postedRefs = DB::table('vouchers')
+                    ->where('status', 'Posted')
+                    ->whereNotNull('reference_no')
+                    ->pluck('reference_no');
+                foreach ($postedRefs as $refNo) {
+                    $refData = json_decode($refNo, true);
+                    if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                        foreach ($refData['allocations'] as $alloc) {
+                            if (($alloc['type'] ?? '') === 'refund' && (int) ($alloc['target_id'] ?? 0) === (int) $sale->id) {
+                                $alreadyPaid += (float) ($alloc['amount'] ?? 0);
+                            }
+                        }
+                    }
+                }
+                $remainingRefund = $refundDue - $alreadyPaid;
+                if ($amount - $remainingRefund > 0.01) {
+                    throw new \Exception('Refund amount (Rs. ' . number_format($amount, 2) . ') exceeds the remaining balance refund (Rs. ' . number_format(max(0.0, $remainingRefund), 2) . ').');
+                }
+
                 $companyBank = CompanyBankAccount::lockForUpdate()->find($companyBankId);
                 if ($companyBank) {
                     $currentBal = (float) ($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
@@ -1559,9 +1609,10 @@ class SalesController extends Controller
                     'line_narration' => ($companyBank ? $companyBank->bank_name : 'Karnataka Bank Account') . ' (Bank Asset Decreases)',
                 ]);
 
-                // 5. Update Sale refund_amount field
+                // 5. Reduce the Sale's remaining refund balance by the paid amount,
+                // so sales.refund_amount in the DB always holds the balance still payable.
                 $existingRefund = (float) ($sale->refund_amount ?? 0);
-                $sale->refund_amount = $existingRefund + $amount;
+                $sale->refund_amount = max(0.0, $existingRefund - $amount);
                 $sale->save();
 
                 // 6. Log Sale Status Event
