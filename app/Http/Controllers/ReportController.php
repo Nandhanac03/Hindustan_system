@@ -2278,7 +2278,16 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'sales_return';
 
-        $retQuery = Sale::with(['customer', 'unit.unitType', 'project'])
+        $retQuery = Sale::with([
+            'customer',
+            'unit.unitType',
+            'unit.floor',
+            'project',
+            'broker',
+            'receipts.bank',
+            'receipts.companyBankAccount',
+            'statusLogs.performedBy',
+        ])
             ->withSum('receipts as total_paid', 'amount')
             ->whereIn('status', ['cancelled', 'returned']);
         if ($request->filled('project_id')) {
@@ -2298,6 +2307,55 @@ class ReportController extends Controller
             $retQuery->whereIn('customer_id', $customerIds);
         }
         $salesReturns = $retQuery->orderByDesc('cancelled_at')->paginate(50);
+
+        // Fetch refund disbursement vouchers to provide comprehensive refund payout details
+        $postedVouchers = DB::table('vouchers')
+            ->whereIn('type', ['Receipt', 'Payment'])
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get(['id', 'voucher_number', 'date', 'reference_no', 'company_bank_account_id', 'created_by', 'created_at']);
+
+        $bankNames = CompanyBankAccount::get(['id', 'bank_name', 'account_number'])->keyBy('id');
+        $userNames = DB::table('users')
+            ->whereIn('id', $postedVouchers->pluck('created_by')->filter()->unique()->all())
+            ->pluck('name', 'id');
+
+        $refundsPaidBySale = [];
+        $refundPaymentsBySale = [];
+        foreach ($postedVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        $amt = (float)($alloc['amount'] ?? 0);
+                        $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + $amt;
+
+                        $bankId = $refData['company_bank_account_id'] ?? $v->company_bank_account_id;
+                        $bank = $bankId ? $bankNames->get((int)$bankId) : null;
+                        $refundPaymentsBySale[$sId][] = [
+                            'voucher_id'     => $v->id,
+                            'voucher_number' => $v->voucher_number,
+                            'date'           => $v->date,
+                            'created_at'     => $v->created_at,
+                            'amount'         => $amt,
+                            'payment_mode'   => $refData['payment_mode'] ?? 'Bank Transfer',
+                            'bank_name'      => $bank ? $bank->bank_name . ($bank->account_number ? ' (' . $bank->account_number . ')' : '') : '—',
+                            'remarks'        => $refData['remarks'] ?? 'Cancellation refund payout',
+                            'processed_by'   => $v->created_by ? ($userNames[$v->created_by] ?? null) : null,
+                        ];
+                    }
+                }
+            }
+        }
+
+        $salesReturns->getCollection()->transform(function ($sale) use ($refundsPaidBySale, $refundPaymentsBySale) {
+            $sale->refund_paid = $refundsPaidBySale[$sale->id] ?? 0.00;
+            $sale->refund_payments = $refundPaymentsBySale[$sale->id] ?? [];
+            return $sale;
+        });
 
         $allReturns = Sale::whereIn('status', ['cancelled', 'returned'])
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))

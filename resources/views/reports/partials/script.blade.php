@@ -31,6 +31,256 @@ function reportsApp() {
             });
         },
 
+        // Sales Cancellation View Modal state & methods
+        selectedCancelSale: null,
+        showCancelModal: false,
+        cancelModalTab: 'dossier',
+        openCancelModalById(id) {
+            const el = document.getElementById('cancel-sale-data-' + id);
+            if (el) {
+                try {
+                    this.selectedCancelSale = JSON.parse(el.textContent);
+                    this.cancelModalTab = 'dossier';
+                    this.showCancelModal = true;
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Error parsing cancel sale data:', e);
+                }
+            }
+        },
+        openCancelModal(saleData) {
+            this.selectedCancelSale = saleData;
+            this.cancelModalTab = 'dossier';
+            this.showCancelModal = true;
+            document.body.style.overflow = 'hidden';
+        },
+        closeCancelModal() {
+            this.showCancelModal = false;
+            this.selectedCancelSale = null;
+            this.cancelModalTab = 'dossier';
+            document.body.style.overflow = '';
+        },
+        fmtMoney(num) {
+            if (num === null || num === undefined || isNaN(num)) return '₹0.00';
+            return '₹' + Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getCancelRefundStatus(sale) {
+            if (!sale) return 'Pending';
+            const refundAmount = Number(sale.refund_amount || 0);
+            const refundPaid = Number(sale.refund_paid || 0);
+            if (refundAmount <= 0) return 'Settled';
+            if (refundPaid >= refundAmount) return 'Completed';
+            if (refundPaid > 0) return 'Partially Paid';
+            return 'Pending';
+        },
+        printCancelSlip() {
+            if (!this.selectedCancelSale) return;
+            const s = this.selectedCancelSale;
+            const printWindow = window.open('', '_blank', 'width=950,height=800');
+            if (!printWindow) {
+                alert('Please allow popups to print cancellation report.');
+                return;
+            }
+            
+            const receiptsRows = (s.receipts && s.receipts.length > 0) 
+                ? s.receipts.map((r, i) => `
+                    <tr>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center;">${i + 1}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${r.receipt_date || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${r.payment_mode || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${r.reference_no || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${r.bank_name || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;">₹${Number(r.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; color: #64748b; font-style: italic;">No advance receipts recorded.</td></tr>';
+
+            const refundRows = (s.refund_payments && s.refund_payments.length > 0)
+                ? s.refund_payments.map((rp, i) => `
+                    <tr>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center;">${i + 1}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; font-family: monospace;">${rp.voucher_number || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${rp.date || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${rp.payment_mode || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${rp.bank_name || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: center;">${rp.processed_by || '—'}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #0284c7;">₹${Number(rp.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #d97706;">₹${Number(rp.balance !== undefined ? rp.balance : Math.max(0, (s.refund_amount || 0) - (rp.cumulative || rp.amount))).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="8" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; color: #64748b; font-style: italic;">No refund payout vouchers recorded yet.</td></tr>';
+
+            const netPending = Math.max(0, Number(s.refund_amount || 0) - Number(s.refund_paid || 0));
+
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cancellation Report - ${s.sale_number}</title>
+    <style>
+        @page { size: portrait; margin: 12mm 15mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 11px; color: #1e293b; margin: 0; padding: 20px; line-height: 1.4; }
+        .header { border-bottom: 2px solid #a38c29; padding-bottom: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .brand { font-size: 16px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; }
+        .subbrand { font-size: 10px; font-weight: 700; color: #a38c29; text-transform: uppercase; margin-top: 2px; }
+        .title { font-size: 14px; font-weight: 800; text-align: center; margin: 12px 0 16px; text-transform: uppercase; letter-spacing: 1px; color: #be123c; border-top: 1px solid #fecdd3; border-bottom: 1px solid #fecdd3; padding: 6px 0; background: #fff1f2; }
+        .grid { display: flex; gap: 15px; margin-bottom: 15px; }
+        .col { flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: #f8fafc; }
+        .col-title { font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+        .field { margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 10.5px; }
+        .field span:first-child { color: #64748b; font-weight: 600; }
+        .field span:last-child { font-weight: 700; color: #0f172a; }
+        .metrics { display: flex; gap: 10px; margin-bottom: 16px; }
+        .metric-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; text-align: center; background: #ffffff; }
+        .metric-label { font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        .metric-val { font-size: 13px; font-weight: 900; margin-top: 3px; font-family: monospace; }
+        table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
+        th { background: #f1f5f9; padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: 800; text-align: left; text-transform: uppercase; font-size: 9px; color: #334155; }
+        .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; color: #0f172a; display: flex; justify-content: space-between; }
+        .signatures { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; }
+        .sig-box { width: 180px; border-top: 1px dashed #94a3b8; padding-top: 6px; font-size: 10px; font-weight: 700; color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="brand">Tabasco Hindustan Infra Developers Pvt. Ltd.</div>
+            <div class="subbrand">Hindustan Real Estate ERP • Official Audit Certificate</div>
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 3px;">Project: <strong>${s.project ? s.project.name : '—'}</strong> (${s.project ? s.project.location : ''})</div>
+        </div>
+        <div style="text-align: right; font-size: 9.5px;">
+            <div><strong>Report No:</strong> ${s.sale_number}</div>
+            <div><strong>Date:</strong> ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            <div><strong>Status:</strong> <span style="color: #e11d48; font-weight: 800;">${(s.status || 'CANCELLED').toUpperCase()}</span></div>
+        </div>
+    </div>
+
+    <div class="title">SALES CANCELLATION & REFUND AUDIT STATEMENT</div>
+
+    <div class="metrics">
+        <div class="metric-box">
+            <div class="metric-label">Contract Value</div>
+            <div class="metric-val">₹${Number(s.contract_value).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        <div class="metric-box" style="border-left: 3px solid #10b981;">
+            <div class="metric-label">Paid Amount</div>
+            <div class="metric-val" style="color: #059669;">₹${Number(s.total_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        <div class="metric-box" style="border-left: 3px solid #f43f5e;">
+            <div class="metric-label">Cancellation Fee</div>
+            <div class="metric-val" style="color: #e11d48;">₹${Number(s.cancellation_fee).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        ${Number(s.additional_refund_amount || 0) > 0 ? `
+        <div class="metric-box" style="border-left: 3px solid #059669;">
+            <div class="metric-label">Addl Approved Refund</div>
+            <div class="metric-val" style="color: #059669;">+₹${Number(s.additional_refund_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        ` : ''}
+        <div class="metric-box" style="border-left: 3px solid #d97706;">
+            <div class="metric-label">Net Refund Payable</div>
+            <div class="metric-val" style="color: #d97706;">₹${Number(s.refund_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        <div class="metric-box" style="border-left: 3px solid #0284c7;">
+            <div class="metric-label">Refund Paid</div>
+            <div class="metric-val" style="color: #0284c7;">₹${Number(s.refund_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+        <div class="metric-box" style="border-left: 3px solid #ea580c;">
+            <div class="metric-label">Pending Refund Due</div>
+            <div class="metric-val" style="color: #ea580c;">₹${netPending.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="col">
+            <div class="col-title">Customer Entity Information</div>
+            <div class="field"><span>Customer Name:</span> <span>${s.customer ? s.customer.name : '—'}</span></div>
+            <div class="field"><span>Contact Phone:</span> <span>${s.customer ? s.customer.phone : '—'}</span></div>
+            <div class="field"><span>Email Address:</span> <span>${s.customer ? s.customer.email : '—'}</span></div>
+            <div class="field"><span>Address:</span> <span>${s.customer ? (s.customer.address || '—') : '—'}</span></div>
+        </div>
+        <div class="col">
+            <div class="col-title">Returned Unit Specifications</div>
+            <div class="field"><span>Project Name:</span> <span>${s.project ? s.project.name : '—'}</span></div>
+            <div class="field"><span>Unit / Door No.:</span> <span>${s.unit ? s.unit.door_no : '—'}</span></div>
+            <div class="field"><span>Unit Floor / Type:</span> <span>${s.unit ? ((s.unit.floor || '') + ' • ' + (s.unit.type || '')) : '—'}</span></div>
+            <div class="field"><span>Built-up Area:</span> <span>${s.unit && s.unit.built_up_area ? s.unit.built_up_area + ' Sq.Ft' : '—'}</span></div>
+        </div>
+        <div class="col">
+            <div class="col-title">Cancellation Audit Details</div>
+            <div class="field"><span>Agreement Date:</span> <span>${s.agreement_date || '—'}</span></div>
+            <div class="field"><span>Cancellation Date:</span> <span>${s.cancelled_at || '—'}</span></div>
+            <div class="field"><span>Executed By:</span> <span>${s.cancelled_by || 'Admin User'}</span></div>
+            <div class="field"><span>Primary Reason:</span> <span style="color: #e11d48;">${s.cancellation_reason || '—'}</span></div>
+            <div class="field"><span>Remarks / Notes:</span> <span>${s.notes || '—'}</span></div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <span>1. Customer Advance Receipts (Collected Before Cancellation)</span>
+        <span style="font-weight: 700; color: #059669;">Total Receipts: ₹${Number(s.total_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35px; text-align: center;">#</th>
+                <th>Receipt Date</th>
+                <th>Payment Mode</th>
+                <th>Reference No.</th>
+                <th>Bank Account</th>
+                <th style="text-align: right;">Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${receiptsRows}
+        </tbody>
+    </table>
+
+    <div class="section-title" style="margin-top: 15px;">
+        <span>2. Refund Disbursement Vouchers (Paid Back To Customer)</span>
+        <span style="font-weight: 700; color: #0284c7;">Total Disbursed: ₹${Number(s.refund_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35px; text-align: center;">#</th>
+                <th>Voucher No.</th>
+                <th>Payout Date</th>
+                <th>Payment Mode</th>
+                <th>Source Bank</th>
+                <th style="text-align: center;">Processed By</th>
+                <th style="text-align: right;">Amount (₹)</th>
+                <th style="text-align: right;">Balance Due (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${refundRows}
+        </tbody>
+        ${s.refund_payments && s.refund_payments.length > 0 ? `
+        <tfoot>
+            <tr style="background: #f8fafc; font-weight: bold;">
+                <td colspan="6" style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; text-transform: uppercase;">Total Disbursed / Balance Due:</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; color: #0284c7;">₹${Number(s.refund_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; text-align: right; color: #d97706;">₹${netPending.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            </tr>
+        </tfoot>
+        ` : ''}
+    </table>
+
+    <div class="signatures">
+        <div class="sig-box">Customer Signature / Acknowledgment</div>
+        <div class="sig-box">Accountant / Verified By</div>
+        <div class="sig-box">Authorized Signatory / Director</div>
+    </div>
+</body>
+</html>`;
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 300);
+        },
+
         init() {
             this.$nextTick(() => {
                 this.renderAllCharts();
