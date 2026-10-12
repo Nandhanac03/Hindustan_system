@@ -247,11 +247,11 @@
                                 <th class="px-4 py-3 text-white font-extrabold text-center w-12">SL No</th>
                                 <th class="px-4 py-3 text-white font-extrabold whitespace-nowrap">Ref Code No.</th>
                                 <th class="px-4 py-3 text-white font-extrabold">Customer Entity</th>
-                                <th class="px-4 py-3 text-white font-extrabold">Returned Property Unit</th>
+                                <th class="px-4 py-3 text-white font-extrabold">Unit Details</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Contract Value</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Paid Amount</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Cancellation Fee</th>
-                                <th class="px-4 py-3 text-white font-extrabold text-right">Payable / Receivable</th>
+                                <th class="px-4 py-3 text-white font-extrabold">Payable / Receivable</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-center print:hidden w-24">Action</th>
                             </tr>
                         </thead>
@@ -363,12 +363,12 @@
                                     $refLiability = (float)$ret->refund_amount + $refPaid;
                                 @endphp
                                 @if($refLiability > 0)
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <span class="text-orange-600 font-bold">Payable (₹{{ number_format($ret->refund_amount, 2) }})</span>
                                     <span class="text-[10px] text-slate-500 font-semibold block">Paid: ₹{{ number_format($refPaid, 2) }} / Total: ₹{{ number_format($refLiability, 2) }}</span>
                                 </td>
                                 @else
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <span class="text-teal-600 font-bold">Receivable (₹{{ number_format(max(0, (float)$ret->cancellation_fee - (float)($ret->total_paid ?? 0)), 2) }})</span>
                                 </td>
                                 @endif
