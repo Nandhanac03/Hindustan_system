@@ -251,7 +251,7 @@
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Contract Value</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Paid Amount</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-right">Cancellation Fee</th>
-                                <th class="px-4 py-3 text-white font-extrabold text-right">Refund Amount</th>
+                                <th class="px-4 py-3 text-white font-extrabold text-right">Payable / Receivable</th>
                                 <th class="px-4 py-3 text-white font-extrabold text-center print:hidden w-24">Action</th>
                             </tr>
                         </thead>
@@ -358,7 +358,20 @@
                                 <td class="px-4 py-3 text-right whitespace-nowrap">₹{{ number_format($ret->total_amount, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-emerald-600 font-bold whitespace-nowrap">₹{{ number_format($ret->total_paid ?? 0.00, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-rose-600 font-bold whitespace-nowrap">₹{{ number_format($ret->cancellation_fee, 2) }}</td>
-                                <td class="px-4 py-3 text-right text-emerald-700 font-bold whitespace-nowrap">₹{{ number_format($ret->refund_amount, 2) }}</td>
+                                @php
+                                    $refPaid = (float)($ret->refund_paid ?? 0);
+                                    $refLiability = (float)$ret->refund_amount + $refPaid;
+                                @endphp
+                                @if($refLiability > 0)
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-orange-600 font-bold">Payable (₹{{ number_format($ret->refund_amount, 2) }})</span>
+                                    <span class="text-[10px] text-slate-500 font-semibold block">Paid: ₹{{ number_format($refPaid, 2) }} / Total: ₹{{ number_format($refLiability, 2) }}</span>
+                                </td>
+                                @else
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-teal-600 font-bold">Receivable (₹{{ number_format(max(0, (float)$ret->cancellation_fee - (float)($ret->total_paid ?? 0)), 2) }})</span>
+                                </td>
+                                @endif
                                 <td class="px-4 py-3 text-center print:hidden whitespace-nowrap">
                                     <button type="button" @click.stop="openCancelModalById({{ $ret->id }})"
                                             class="w-7 h-7 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs"
@@ -874,7 +887,7 @@
                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $ret->total_amount }}</td>
                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $ret->total_paid ?? 0.00 }}</td>
                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $ret->cancellation_fee }}</td>
-                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $ret->refund_amount }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ (float)$ret->refund_amount + (float)($ret->refund_paid ?? 0) }}</td>
                 </tr>
             @endforeach
         </tbody>
