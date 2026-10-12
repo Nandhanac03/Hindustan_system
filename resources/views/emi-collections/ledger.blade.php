@@ -227,6 +227,18 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
+                    @php
+                        $firstUnpaidIndex = null;
+                        $firstUnpaidLabel = null;
+                        foreach($ledger as $idx => $r) {
+                            $rem = round(($r['debit'] ?? 0) - ($r['credit'] ?? 0), 2);
+                            if ($rem > 0.01 && in_array($r['status'] ?? '', ['pending', 'partial', 'overdue'])) {
+                                $firstUnpaidIndex = $idx;
+                                $firstUnpaidLabel = $r['description'] ?? 'earlier installment';
+                                break;
+                            }
+                        }
+                    @endphp
                     @forelse($ledger as $row)
                     @php
                         $status = $row['status'] ?? '';
@@ -241,6 +253,8 @@
                             'row'   => $rowStyle,
                             'badge' => 'bg-amber-50 text-amber-700 border-amber-200',
                         ];
+
+                        $isOutOfOrder = ($firstUnpaidIndex !== null && $loop->index > $firstUnpaidIndex);
                     @endphp
                     <tr class="transition-colors border-b border-slate-100/80 {{ $cfg['row'] }}">
                         <td class="px-4 py-2.5 text-slate-500 text-[10px] font-mono whitespace-nowrap">{{ $row['date'] }}</td>
@@ -298,9 +312,9 @@
                                     @endif
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
                                         type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
                                         Pay Remaining
                                     </button>
                                     @endif
@@ -310,9 +324,9 @@
                                     </span>
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
                                         type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
                                         Pay Installment
                                     </button>
                                     @endif
@@ -322,9 +336,9 @@
                                     </span>
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
                                         type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
                                         Pay Installment
                                     </button>
                                     @endif
@@ -453,7 +467,7 @@
                   </div>
               </div>
 
-              <div x-show="error" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="error"></div>
+              <div x-show="error" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 leading-relaxed shadow-xs" x-text="error"></div>
 
               <form @submit.prevent="submitPayment()" novalidate>
                   <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
@@ -867,11 +881,13 @@ function ledgerApp() {
             remarks: '',
             label: ''
         },
-        openPayModal(amount, label) {
+        openPayModal(amount, label, isOutOfOrder = false, firstUnpaidLabel = '') {
             this.error = '';
             this.errors = {};
             this.form.amount = amount;
             this.form.label = label;
+            this.form.isOutOfOrder = isOutOfOrder;
+            this.form.firstUnpaidLabel = firstUnpaidLabel;
             this.form.receipt_date = new Date().toISOString().split('T')[0];
             this.form.payment_mode = '{{ $paymentModes->first()?->name ?? '' }}';
             this.form.reference_no = '';
@@ -883,6 +899,12 @@ function ledgerApp() {
         async submitPayment() {
             this.error = '';
             this.errors = {};
+
+            if (this.form.isOutOfOrder) {
+                this.error = "Installments must be paid in sequential order. Please settle earlier pending installment '" + this.form.firstUnpaidLabel + "' first before paying '" + this.form.label + "'.";
+                return;
+            }
+
             let hasError = false;
 
             if (this.form.amount === '' || this.form.amount === null || this.form.amount === undefined || parseFloat(this.form.amount) <= 0 || isNaN(parseFloat(this.form.amount))) {

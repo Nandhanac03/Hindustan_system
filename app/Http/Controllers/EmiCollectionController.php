@@ -381,6 +381,27 @@ class EmiCollectionController extends Controller
             }
         }
 
+        if ($request->filled('label') && preg_match('/^(EMI\s*\d+|Down Payment)/i', $request->label)) {
+            $currentLabel = trim(explode('(', $request->label)[0]);
+            $installments = CustomerInstallment::where('sale_id', $sale->id)
+                ->orderBy('installment_no')
+                ->get();
+
+            $firstUnpaid = $installments->first(function ($inst) {
+                return in_array($inst->status, ['pending', 'partial', 'overdue']) && ((float)$inst->amount - (float)($inst->paid_amount ?? 0) > 0.01);
+            });
+
+            if ($firstUnpaid && strcasecmp(trim($firstUnpaid->label), $currentLabel) !== 0) {
+                $targetInst = $installments->first(fn($i) => strcasecmp(trim($i->label), $currentLabel) === 0);
+                if ($targetInst && $targetInst->installment_no > $firstUnpaid->installment_no) {
+                    $unpaidDesc = $firstUnpaid->label . ' (Due)';
+                    return response()->json([
+                        'error' => "Installments must be paid in sequential order. Please settle earlier pending installment '{$unpaidDesc}' first before paying '{$request->label}'."
+                    ], 422);
+                }
+            }
+        }
+
         $result = DB::transaction(function () use ($validated, $sale) {
             $collectionType = $validated['collection_type'] ?? 'regular';
             $receipt = null;
