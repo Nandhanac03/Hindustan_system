@@ -2282,6 +2282,8 @@ class ReportController extends Controller
             'customer',
             'unit.unitType',
             'unit.floor',
+            'saleUnits.unit.unitType',
+            'saleUnits.unit.floor',
             'project',
             'broker',
             'receipts.bank',
@@ -2856,16 +2858,18 @@ class ReportController extends Controller
             'journal_vouchers.voucher_date'
         )->get();
 
-        // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding only duplicate RA Bill PVs covered in journal_entries)
+        // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding duplicates already covered in journal_entries)
         $vlQuery = VoucherLine::join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
             ->join('accounts', 'voucher_lines.account_id', '=', 'accounts.id')
             ->where('vouchers.status', 'Posted')
             ->where(function($q) {
-                // Exclude contractor payment PVs already covered in journal_entries
+                // Exclude contractor payment PVs already covered in journal_entries (JV-RA-* / JV-CP-*)
                 $q->whereNot(function($sub) {
                     $sub->where('vouchers.voucher_number', 'like', 'PV-%')
                         ->where('vouchers.narration', 'like', '%RA Bill%');
                 });
+                // Exclude loan EMI payment vouchers already covered in journal_entries (JV-EMI-*)
+                $q->where('vouchers.voucher_number', 'not like', 'PAY-LOAN-%');
             });
 
         if ($selectedProjectId !== 'all' && $selectedProjectId) {
@@ -2992,7 +2996,7 @@ class ReportController extends Controller
             ],
             '5000' => [
                 'code' => '5000',
-                'name' => 'REVENUE',
+                'name' => 'REVENUE / INCOME',
                 'type' => 'REVENUE',
                 'accounts' => [],
                 'opening_balance' => 0.0,
@@ -3002,24 +3006,42 @@ class ReportController extends Controller
             ],
         ];
 
+        // Ensure all groups are visible even when empty (so grand totals balance)
+        // Note: groups with zero amounts will be hidden if hideZero is on
+
         // Process each COA account
         foreach ($coas as $coa) {
             $code = (string) $coa->account_code;
             $name = (string) $coa->account_name;
             $type = strtoupper((string) $coa->account_type);
 
-            // Determine parent group
-            $groupKey = '1000';
-            if (str_starts_with($code, '1')) {
+            // Determine parent group — use account_type first for correctness,
+            // then fall back to account_code prefix.
+            if (in_array($type, ['EXPENSE', 'EXPENSES'])) {
+                $groupKey = '4000'; // All expense-typed accounts go to DIRECT EXPENSES
+            } elseif (in_array($type, ['INCOME', 'REVENUE'])) {
+                $groupKey = '5000'; // All income/revenue accounts go to REVENUE
+            } elseif (in_array($type, ['ASSET', 'ASSETS'])) {
                 $groupKey = '1000';
-            } elseif (str_starts_with($code, '2')) {
+            } elseif (in_array($type, ['LIABILITY', 'LIABILITIES'])) {
                 $groupKey = '2000';
-            } elseif (str_starts_with($code, '3')) {
+            } elseif (in_array($type, ['EQUITY'])) {
                 $groupKey = '3000';
-            } elseif (str_starts_with($code, '4')) {
-                $groupKey = '4000';
-            } elseif (str_starts_with($code, '5')) {
-                $groupKey = '5000';
+            } else {
+                // Fallback: use account_code prefix
+                if (str_starts_with($code, '1')) {
+                    $groupKey = '1000';
+                } elseif (str_starts_with($code, '2')) {
+                    $groupKey = '2000';
+                } elseif (str_starts_with($code, '3')) {
+                    $groupKey = '3000';
+                } elseif (str_starts_with($code, '4')) {
+                    $groupKey = '4000';
+                } elseif (str_starts_with($code, '5')) {
+                    $groupKey = '5000';
+                } else {
+                    $groupKey = '1000';
+                }
             }
 
             // Initial Opening Balance from COA Master

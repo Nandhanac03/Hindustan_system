@@ -360,12 +360,7 @@
                                 </td>
 
                                 <td class="px-5 py-2.5">
-                                    <a href="{{ route('vouchers.ledger.index', ['account_id' => $acc['id']]) }}" 
-                                       class="font-semibold text-slate-800 hover:text-[#a38c29] hover:underline transition flex items-center gap-1.5 group"
-                                       title="Click to view detailed general ledger">
-                                        <span>{{ $acc['name'] }}</span>
-                                        <svg class="w-3 h-3 text-slate-300 group-hover:text-[#a38c29] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                    </a>
+                                    <span class="font-semibold text-slate-800">{{ $acc['name'] }}</span>
                                 </td>
 
                                 <td class="px-5 py-2.5 text-right font-mono font-bold text-slate-700 text-xs">
