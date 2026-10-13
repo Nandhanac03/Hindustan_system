@@ -815,7 +815,17 @@ class ReportController extends Controller
             $selectedCustomers = Customer::whereIn('id', $customerIds)->get();
             $selectedCustomer = $selectedCustomers->first();
             if ($selectedCustomer && $selectedCustomers->isNotEmpty()) {
-                $salesQuery = Sale::with(['project', 'unit', 'receipts', 'customer', 'customerInstallments'])
+                $salesQuery = Sale::with([
+                    'project', 
+                    'unit.unitType', 
+                    'unit.floor', 
+                    'saleUnits.unit.unitType', 
+                    'saleUnits.unit.floor', 
+                    'receipts.bank', 
+                    'receipts.companyBankAccount', 
+                    'customer', 
+                    'customerInstallments'
+                ])
                     ->whereIn('customer_id', $customerIds)
                     ->where('status', 'active');
                 if ($request->filled('project_id')) {
@@ -846,19 +856,98 @@ class ReportController extends Controller
 
                     $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
 
+                    $unitDisplay = '—';
+                    if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                        $unitDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->implode(', ');
+                    }
+                    if (empty($unitDisplay) || $unitDisplay === '—') {
+                        $unitDisplay = $sale->unit?->formatted_name ?: ($sale->unit?->door_no ?? '—');
+                    }
+
+                    $saleModalPayload = [
+                        'sale_id'            => $sale->id,
+                        'sale_number'        => $sale->sale_number,
+                        'sale_date'          => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : ($sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d M Y') : '—'),
+                        'agreement_date'     => $sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d M Y') : '—',
+                        'status'             => ucfirst($sale->status ?? 'active'),
+                        'payment_plan'       => $sale->payment_plan ?: 'Standard',
+                        'notes'              => $sale->notes ?: ($sale->remarks ?? '—'),
+                        'customer' => [
+                            'id'             => $sale->customer_id,
+                            'name'           => $cName,
+                            'phone'          => $sale->customer?->phone ?? '—',
+                            'email'          => $sale->customer?->email ?? '—',
+                            'address'        => $sale->customer?->address ?? '—',
+                            'pan_no'         => $sale->customer?->pan_no ?? '—',
+                            'aadhaar_no'     => $sale->customer?->aadhaar_no ?? '—',
+                        ],
+                        'project' => [
+                            'id'             => $sale->project_id,
+                            'name'           => $sale->project?->name ?? '—',
+                            'code'           => $sale->project?->code ?? '—',
+                            'location'       => $sale->project?->location ?? '—',
+                        ],
+                        'unit' => [
+                            'door_no'        => $sale->unit?->door_no ?? '—',
+                            'type'           => $sale->unit?->unitType?->name ?? '—',
+                            'floor'          => $sale->unit?->floor?->name ?? '—',
+                            'built_up_area'  => $sale->unit?->built_up_area ?? 0,
+                            'formatted_name' => $unitDisplay,
+                        ],
+                        'financials' => [
+                            'contract_value' => (float)$sale->total_amount,
+                            'base_amount'    => (float)($sale->base_amount ?? $sale->sale_amount ?? 0),
+                            'gst_amount'     => (float)($sale->gst_amount ?? 0),
+                            'rate_per_sqft'  => (float)($sale->rate_per_sqft ?? 0),
+                            'total_paid'     => $paidRealizedAmount,
+                            'pending_amount' => $pendingAmount,
+                            'outstanding'    => max(0, (float)$sale->total_amount - $paidRealizedAmount),
+                        ],
+                        'receipts' => $sale->receipts->sortByDesc('receipt_date')->values()->map(function($r) {
+                            $rst = strtolower($r->realization_status ?? 'realized');
+                            return [
+                                'id'           => $r->id,
+                                'ref_no'       => $r->reference_no ?? ('REC-' . sprintf("%05d", $r->id)),
+                                'date'         => $r->receipt_date ? Carbon::parse($r->receipt_date)->format('d M Y') : '—',
+                                'amount'       => (float)$r->amount,
+                                'payment_mode' => $r->payment_mode ?? 'Cash',
+                                'bank_name'    => $r->companyBankAccount?->bank_name ?? ($r->bank?->bank_name ?? ($r->drawee_bank ?? '—')),
+                                'status'       => $r->realization_status_label ?? ucfirst(str_replace('_', ' ', $rst)),
+                                'is_pending'   => in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true),
+                                'remarks'      => $r->remarks ?? '—',
+                            ];
+                        })->all(),
+                        'installments' => ($sale->customerInstallments ?? collect())->map(function($inst) {
+                            return [
+                                'id'             => $inst->id,
+                                'installment_no' => $inst->installment_no,
+                                'label'          => $inst->label ?? ('Installment #' . $inst->installment_no),
+                                'due_date'       => $inst->due_date ? Carbon::parse($inst->due_date)->format('d M Y') : '—',
+                                'amount'         => (float)$inst->amount,
+                                'paid_amount'    => (float)$inst->paid_amount,
+                                'outstanding'    => max(0, (float)$inst->amount - (float)$inst->paid_amount),
+                                'status'         => ucfirst($inst->status ?? 'pending'),
+                                'is_overdue'     => $inst->is_overdue ?? false,
+                            ];
+                        })->all(),
+                    ];
+
                     $customerSummaryList->push([
+                        'sale_id'         => $sale->id,
                         'customer_id'     => $sale->customer_id,
                         'customer_name'   => $cName,
                         'phone'           => $sale->customer?->phone,
                         'email'           => $sale->customer?->email,
                         'project'         => $sale->project?->name ?? '-',
                         'unit'            => $sale->unit?->door_no ?? '-',
+                        'unit_formatted'  => $unitDisplay,
                         'sale_number'     => $sale->sale_number,
                         'total_amount'    => (float)$sale->total_amount,
                         'paid_amount'     => $paidRealizedAmount,
                         'pending_amount'  => $pendingAmount,
                         'outstanding'     => max(0, (float)$sale->total_amount - $paidRealizedAmount),
                         'last_payment'    => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
+                        'modal_payload'   => $saleModalPayload,
                     ]);
 
                     if ($sale->customerInstallments && $sale->customerInstallments->isNotEmpty()) {
@@ -965,7 +1054,17 @@ class ReportController extends Controller
                 $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
             }
         } else {
-            $salesQuery = Sale::with(['customer', 'project', 'unit', 'receipts'])
+            $salesQuery = Sale::with([
+                'customer', 
+                'project', 
+                'unit.unitType', 
+                'unit.floor', 
+                'saleUnits.unit.unitType', 
+                'saleUnits.unit.floor', 
+                'receipts.bank', 
+                'receipts.companyBankAccount', 
+                'customerInstallments'
+            ])
                 ->where('status', 'active')
                 ->latest('id');
             if ($request->filled('project_id')) {
@@ -999,6 +1098,82 @@ class ReportController extends Controller
                 $outstanding = max(0, $totalSale - $paidRealizedAmount);
                 $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
 
+                $unitDisplay = '—';
+                if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                    $unitDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->formatted_name)->filter()->implode(', ');
+                }
+                if (empty($unitDisplay) || $unitDisplay === '—') {
+                    $unitDisplay = $sale->unit?->formatted_name ?: ($sale->unit?->door_no ?? '—');
+                }
+
+                $saleModalPayload = [
+                    'sale_id'            => $sale->id,
+                    'sale_number'        => $sale->sale_number,
+                    'sale_date'          => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : ($sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d M Y') : '—'),
+                    'agreement_date'     => $sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d M Y') : '—',
+                    'status'             => ucfirst($sale->status ?? 'active'),
+                    'payment_plan'       => $sale->payment_plan ?: 'Standard',
+                    'notes'              => $sale->notes ?: ($sale->remarks ?? '—'),
+                    'customer' => [
+                        'id'             => $sale->customer_id,
+                        'name'           => $cName,
+                        'phone'          => $sale->customer?->phone ?? '—',
+                        'email'          => $sale->customer?->email ?? '—',
+                        'address'        => $sale->customer?->address ?? '—',
+                        'pan_no'         => $sale->customer?->pan_no ?? '—',
+                        'aadhaar_no'     => $sale->customer?->aadhaar_no ?? '—',
+                    ],
+                    'project' => [
+                        'id'             => $sale->project_id,
+                        'name'           => $sale->project?->name ?? '—',
+                        'code'           => $sale->project?->code ?? '—',
+                        'location'       => $sale->project?->location ?? '—',
+                    ],
+                    'unit' => [
+                        'door_no'        => $sale->unit?->door_no ?? '—',
+                        'type'           => $sale->unit?->unitType?->name ?? '—',
+                        'floor'          => $sale->unit?->floor?->name ?? '—',
+                        'built_up_area'  => $sale->unit?->built_up_area ?? 0,
+                        'formatted_name' => $unitDisplay,
+                    ],
+                    'financials' => [
+                        'contract_value' => $totalSale,
+                        'base_amount'    => (float)($sale->base_amount ?? $sale->sale_amount ?? 0),
+                        'gst_amount'     => (float)($sale->gst_amount ?? 0),
+                        'rate_per_sqft'  => (float)($sale->rate_per_sqft ?? 0),
+                        'total_paid'     => $paidRealizedAmount,
+                        'pending_amount' => $pendingAmount,
+                        'outstanding'    => $outstanding,
+                    ],
+                    'receipts' => $sale->receipts->sortByDesc('receipt_date')->values()->map(function($r) {
+                        $rst = strtolower($r->realization_status ?? 'realized');
+                        return [
+                            'id'           => $r->id,
+                            'ref_no'       => $r->reference_no ?? ('REC-' . sprintf("%05d", $r->id)),
+                            'date'         => $r->receipt_date ? Carbon::parse($r->receipt_date)->format('d M Y') : '—',
+                            'amount'       => (float)$r->amount,
+                            'payment_mode' => $r->payment_mode ?? 'Cash',
+                            'bank_name'    => $r->companyBankAccount?->bank_name ?? ($r->bank?->bank_name ?? ($r->drawee_bank ?? '—')),
+                            'status'       => $r->realization_status_label ?? ucfirst(str_replace('_', ' ', $rst)),
+                            'is_pending'   => in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true),
+                            'remarks'      => $r->remarks ?? '—',
+                        ];
+                    })->all(),
+                    'installments' => ($sale->customerInstallments ?? collect())->map(function($inst) {
+                        return [
+                            'id'             => $inst->id,
+                            'installment_no' => $inst->installment_no,
+                            'label'          => $inst->label ?? ('Installment #' . $inst->installment_no),
+                            'due_date'       => $inst->due_date ? Carbon::parse($inst->due_date)->format('d M Y') : '—',
+                            'amount'         => (float)$inst->amount,
+                            'paid_amount'    => (float)$inst->paid_amount,
+                            'outstanding'    => max(0, (float)$inst->amount - (float)$inst->paid_amount),
+                            'status'         => ucfirst($inst->status ?? 'pending'),
+                            'is_overdue'     => $inst->is_overdue ?? false,
+                        ];
+                    })->all(),
+                ];
+
                 $customerSummaryList->push([
                     'sale_id'         => $sale->id,
                     'customer_id'     => $sale->customer_id,
@@ -1007,12 +1182,14 @@ class ReportController extends Controller
                     'email'           => $sale->customer?->email,
                     'project'         => $sale->project?->name ?? '-',
                     'unit'            => $sale->unit?->door_no ?? '-',
+                    'unit_formatted'  => $unitDisplay,
                     'sale_number'     => $sale->sale_number,
                     'total_amount'    => $totalSale,
                     'paid_amount'     => $paidRealizedAmount,
                     'pending_amount'  => $pendingAmount,
                     'outstanding'     => $outstanding,
                     'last_payment'    => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
+                    'modal_payload'   => $saleModalPayload,
                 ]);
 
                 $saleDate = Carbon::parse($sale->sale_date);

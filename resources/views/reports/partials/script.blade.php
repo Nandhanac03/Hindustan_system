@@ -86,6 +86,35 @@ function reportsApp() {
             this.selectedExchangeSale = null;
             document.body.style.overflow = '';
         },
+
+        // Customer Ledger Account View Modal state & methods
+        selectedCustomerSale: null,
+        showCustomerModal: false,
+        customerModalTab: 'receipts',
+        openCustomerModalById(id) {
+            const el = document.getElementById('customer-sale-data-' + id);
+            if (el) {
+                try {
+                    this.selectedCustomerSale = JSON.parse(el.textContent);
+                    this.customerModalTab = 'receipts';
+                    this.showCustomerModal = true;
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Error parsing customer sale data:', e);
+                }
+            }
+        },
+        openCustomerModal(saleData) {
+            this.selectedCustomerSale = saleData;
+            this.customerModalTab = 'receipts';
+            this.showCustomerModal = true;
+            document.body.style.overflow = 'hidden';
+        },
+        closeCustomerModal() {
+            this.showCustomerModal = false;
+            this.selectedCustomerSale = null;
+            document.body.style.overflow = '';
+        },
         fmtMoney(num) {
             if (num === null || num === undefined || isNaN(num)) return '₹0.00';
             return '₹' + Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

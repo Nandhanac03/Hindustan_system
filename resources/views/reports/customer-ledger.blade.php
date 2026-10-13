@@ -387,7 +387,7 @@
                                     <tr class="erp-table-header border-b border-slate-700">
                                         <th class="px-5 py-3.5 text-white font-extrabold">SL NO</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Customer Name & Contact</th>
-                                        <th class="px-5 py-3.5 text-white font-extrabold">Project / Unit</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Unit Details</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Sale (₹)</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Paid (₹)</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Outstanding (₹)</th>
@@ -406,9 +406,9 @@
                                             </div>
                                         </td>
                                         <td class="px-5 py-4">
-                                            <div class="font-bold text-slate-800">{{ $cs['project'] }}</div>
-                                            <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-600 inline-block mt-0.5">
-                                                Unit: {{ $cs['unit'] }}
+                                            <!-- <div class="font-bold text-slate-800">{{ $cs['project'] }}</div> -->
+                                            <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-700 inline-block mt-0.5">
+                                                Unit: {{ $cs['unit_formatted'] ?? $cs['unit'] }}
                                             </span>
                                         </td>
                                         <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">
@@ -432,11 +432,22 @@
                                             {{ $cs['last_payment'] }}
                                         </td>
                                         <td class="px-5 py-4 text-right whitespace-nowrap">
-                                            <a href="{{ route('reports.customer_ledger', ['customer_id' => $cs['customer_id'], 'project_id' => request('project_id')]) }}"
-                                               class="px-4 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs hover:shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
-                                                <span>View Ledger</span>
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                            </a>
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{{ route('reports.customer_ledger', ['customer_id' => $cs['customer_id'], 'project_id' => request('project_id')]) }}"
+                                                   class="px-4 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs hover:shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
+                                                    <span>View Ledger</span>
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </a>
+
+                                                @if(!empty($cs['sale_id']))
+                                                <button type="button" @click.stop="openCustomerModalById({{ $cs['sale_id'] }})"
+                                                        class="w-8 h-8 rounded-xl bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer group"
+                                                        title="View Customer & Sale Details">
+                                                    <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                </button>
+                                                <script id="customer-sale-data-{{ $cs['sale_id'] }}" type="application/json">{!! json_encode($cs['modal_payload'] ?? $cs) !!}</script>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                     @empty
@@ -615,7 +626,7 @@
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['project'] }}</td>
-                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit'] }}</td>
+                                        <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit_formatted'] ?? $cs['unit'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
                                         <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
@@ -703,7 +714,7 @@
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $cs['customer_name'] }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'\@'; color: #000000;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['project'] }}</td>
-                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit'] }}</td>
+                                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cs['unit_formatted'] ?? $cs['unit'] }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $cs['total_amount'] }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #047857;">{{ $cs['paid_amount'] }}</td>
                                     <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #be123c;">{{ $cs['outstanding'] }}</td>
@@ -723,6 +734,269 @@
                         @endif
                     </table>
                 </div>
+            </div>
+        </div>
+
+        {{-- VIEW CUSTOMER ACCOUNT & SALE DETAILS MODAL POPUP (COMMON MODAL UI) --}}
+        <div x-show="showCustomerModal" 
+             x-cloak
+             class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm print:hidden" 
+             style="display: none;" 
+             x-transition.opacity
+             @keydown.escape.window="closeCustomerModal()">
+
+            <div class="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in my-auto" 
+                 @click.away="closeCustomerModal()">
+                
+                {{-- Executive Dark Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 shrink-0">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Ledger</span>
+                                <span class="px-2 py-0.5 rounded bg-white/10 text-slate-300 text-[9px] font-bold uppercase tracking-wider whitespace-nowrap" x-text="selectedCustomerSale?.status || 'Active'"></span>
+                            </div>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white tracking-wider uppercase">CUSTOMER ACCOUNT & SALE STATEMENT</h2>
+                        </div>
+                        <button type="button" @click="closeCustomerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 cursor-pointer" title="Close">✕</button>
+                    </div>
+                </div>
+                
+                {{-- Scrollable Modal Body --}}
+                <div class="p-3.5 sm:p-4 space-y-3 font-sans text-xs bg-slate-50/50 flex-1 min-h-0 overflow-y-auto">
+                        
+                    {{-- Primary Customer & Transaction Details Overview Grid --}}
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            {{-- Customer Name --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Customer</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="selectedCustomerSale?.customer?.name || '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="selectedCustomerSale?.customer?.phone" x-text="selectedCustomerSale?.customer?.phone || ''"></span>
+                                </div>
+                            </div>
+
+                            {{-- Sale Reference --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Sale Ref</span>
+                                    <span class="text-slate-800 font-mono text-xs font-bold truncate block mt-0.5" x-text="selectedCustomerSale?.sale_number || '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block" x-show="selectedCustomerSale?.sale_date" x-text="'Date: ' + (selectedCustomerSale?.sale_date || '')"></span>
+                                </div>
+                            </div>
+
+                            {{-- Project --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Project</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="selectedCustomerSale?.project?.name || '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="selectedCustomerSale?.project?.location" x-text="selectedCustomerSale?.project?.location || ''"></span>
+                                </div>
+                            </div>
+
+                            {{-- Unit Details --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Unit Details</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5" x-text="selectedCustomerSale?.unit?.formatted_name || selectedCustomerSale?.unit?.door_no || '—'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate" x-show="selectedCustomerSale?.unit?.built_up_area" x-text="(selectedCustomerSale?.unit?.built_up_area || '') + ' Sq.Ft'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Financial Overview 4-Stat Box --}}
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-2xs">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                            <div class="text-center p-1.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Agreement Value</span>
+                                <span class="text-sm font-extrabold text-slate-900 font-mono block mt-1" x-text="fmtMoney(selectedCustomerSale?.financials?.contract_value)"></span>
+                            </div>
+                            <div class="text-center p-1.5">
+                                <span class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Total Paid (Realized)</span>
+                                <span class="text-sm font-extrabold text-emerald-600 font-mono block mt-1" x-text="fmtMoney(selectedCustomerSale?.financials?.total_paid)"></span>
+                            </div>
+                            <div class="text-center p-1.5">
+                                <span class="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Uncleared (Pending)</span>
+                                <span class="text-sm font-extrabold font-mono block mt-1" 
+                                      :class="(selectedCustomerSale?.financials?.pending_amount > 0) ? 'text-amber-700 font-black' : 'text-slate-400'"
+                                      x-text="fmtMoney(selectedCustomerSale?.financials?.pending_amount)"></span>
+                            </div>
+                            <div class="text-center p-1.5">
+                                <span class="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Net Outstanding Due</span>
+                                <span class="text-sm font-extrabold text-rose-600 font-mono block mt-1" x-text="fmtMoney(selectedCustomerSale?.financials?.outstanding)"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Horizontal Notes Bar (if exists) --}}
+                    <template x-if="selectedCustomerSale?.notes && selectedCustomerSale?.notes !== '—'">
+                        <div class="bg-white border border-slate-200/90 rounded-xl px-4 py-2 text-xs flex items-center gap-2 shadow-2xs">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest shrink-0">NOTES / NARRATION:</span>
+                            <span class="text-slate-800 font-semibold truncate" x-text="selectedCustomerSale?.notes"></span>
+                        </div>
+                    </template>
+
+                    {{-- Tab Navigation for Audit Logs --}}
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="customerModalTab = 'receipts'"
+                                        :class="customerModalTab === 'receipts' ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                                        class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>Receipts History</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono"
+                                          :class="customerModalTab === 'receipts' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'"
+                                          x-text="selectedCustomerSale?.receipts?.length || 0"></span>
+                                </button>
+
+                                <button type="button" @click="customerModalTab = 'installments'"
+                                        :class="customerModalTab === 'installments' ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                                        class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>Milestones & EMI Schedule</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono"
+                                          :class="customerModalTab === 'installments' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'"
+                                          x-text="selectedCustomerSale?.installments?.length || 0"></span>
+                                </button>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono font-bold uppercase" x-text="(customerModalTab === 'receipts') ? 'Advance & Payment Records' : 'Scheduled Allocations'"></span>
+                        </div>
+
+                        {{-- Tab 1: Receipts History Table --}}
+                        <div x-show="customerModalTab === 'receipts'" class="space-y-2">
+                            <div class="overflow-x-auto rounded-xl border border-slate-200 max-h-[300px]">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 uppercase text-[9px] font-bold sticky top-0 z-10">
+                                        <tr>
+                                            <th class="py-2 px-3 text-center w-10">#</th>
+                                            <th class="py-2 px-3">Receipt Date</th>
+                                            <th class="py-2 px-3">Voucher / Ref No</th>
+                                            <th class="py-2 px-3">Payment Mode</th>
+                                            <th class="py-2 px-3">Bank / Account</th>
+                                            <th class="py-2 px-3 text-center">Realization Status</th>
+                                            <th class="py-2 px-3 text-right">Amount (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-sans">
+                                        <template x-for="(rc, i) in (selectedCustomerSale?.receipts || [])" :key="i">
+                                            <tr class="hover:bg-slate-50/80 transition-colors" :class="rc.is_pending ? 'bg-amber-50/30' : ''">
+                                                <td class="py-2 px-3 text-center text-slate-400 font-mono text-[10px]" x-text="i + 1"></td>
+                                                <td class="py-2 px-3 font-semibold text-slate-700" x-text="rc.date"></td>
+                                                <td class="py-2 px-3 font-mono font-bold text-indigo-700 text-[11px]" x-text="rc.ref_no"></td>
+                                                <td class="py-2 px-3 text-slate-600" x-text="rc.payment_mode"></td>
+                                                <td class="py-2 px-3 text-slate-600 truncate max-w-[150px]" x-text="rc.bank_name"></td>
+                                                <td class="py-2 px-3 text-center">
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider inline-block"
+                                                          :class="rc.is_pending ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'"
+                                                          x-text="rc.status"></span>
+                                                </td>
+                                                <td class="py-2 px-3 text-right font-mono font-bold" 
+                                                    :class="rc.is_pending ? 'text-amber-800' : 'text-emerald-700'"
+                                                    x-text="fmtMoney(rc.amount)"></td>
+                                            </tr>
+                                        </template>
+                                        <template x-if="!selectedCustomerSale?.receipts || selectedCustomerSale?.receipts?.length === 0">
+                                            <tr>
+                                                <td colspan="7" class="py-8 text-center text-slate-400 italic text-xs">
+                                                    <div class="flex flex-col items-center justify-center gap-1">
+                                                        <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <span>No customer payment receipts recorded for this sale.</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- Tab 2: EMI Schedule Table --}}
+                        <div x-show="customerModalTab === 'installments'" class="space-y-2">
+                            <div class="overflow-x-auto rounded-xl border border-slate-200 max-h-[300px]">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 uppercase text-[9px] font-bold sticky top-0 z-10">
+                                        <tr>
+                                            <th class="py-2 px-3 text-center w-10">#</th>
+                                            <th class="py-2 px-3">Milestone / Installment</th>
+                                            <th class="py-2 px-3">Due Date</th>
+                                            <th class="py-2 px-3 text-right">Installment (₹)</th>
+                                            <th class="py-2 px-3 text-right">Paid (₹)</th>
+                                            <th class="py-2 px-3 text-right">Outstanding (₹)</th>
+                                            <th class="py-2 px-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-sans">
+                                        <template x-for="(inst, i) in (selectedCustomerSale?.installments || [])" :key="i">
+                                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                                <td class="py-2 px-3 text-center text-slate-400 font-mono text-[10px]" x-text="i + 1"></td>
+                                                <td class="py-2 px-3 font-semibold text-slate-800" x-text="inst.label"></td>
+                                                <td class="py-2 px-3 text-slate-600 font-mono text-[11px]" x-text="inst.due_date"></td>
+                                                <td class="py-2 px-3 text-right font-mono font-bold text-slate-800" x-text="fmtMoney(inst.amount)"></td>
+                                                <td class="py-2 px-3 text-right font-mono font-bold text-emerald-600" x-text="fmtMoney(inst.paid_amount)"></td>
+                                                <td class="py-2 px-3 text-right font-mono font-bold" 
+                                                    :class="(inst.outstanding > 0) ? 'text-rose-600' : 'text-slate-400'"
+                                                    x-text="fmtMoney(inst.outstanding)"></td>
+                                                <td class="py-2 px-3 text-center">
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider inline-block"
+                                                          :class="inst.status.toLowerCase() === 'paid' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : (inst.is_overdue ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-amber-100 text-amber-800 border border-amber-300')"
+                                                          x-text="inst.status"></span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <template x-if="!selectedCustomerSale?.installments || selectedCustomerSale?.installments?.length === 0">
+                                            <tr>
+                                                <td colspan="7" class="py-8 text-center text-slate-400 italic text-xs">
+                                                    <div class="flex flex-col items-center justify-center gap-1">
+                                                        <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                        <span>No customized installment schedule registered for this account.</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Sticky Modal Footer (Outside scrolling body) --}}
+                <div class="px-5 py-2.5 bg-white border-t border-slate-200/80 flex items-center justify-between shrink-0 shadow-2xs">
+                    <div class="flex items-center gap-2 text-[11px] text-slate-500 min-w-0">
+                        <span class="font-medium shrink-0">Account:</span>
+                        <span class="font-bold text-slate-800 truncate" x-text="selectedCustomerSale?.customer?.name || '—'"></span>
+                        <span class="text-slate-300">•</span>
+                        <span class="font-medium text-slate-600 truncate" x-text="selectedCustomerSale?.unit?.formatted_name || selectedCustomerSale?.unit?.door_no || '—'"></span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a :href="'{{ route('reports.customer_ledger') }}?customer_id=' + (selectedCustomerSale?.customer?.id || '')" 
+                           class="px-3.5 py-1.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                            <span>Open Full Ledger</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                        <button type="button" @click="closeCustomerModal()"
+                                class="px-4 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <span>✕</span>
+                            <span>CLOSE</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
