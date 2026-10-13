@@ -608,6 +608,11 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center col-action print:hidden align-middle">
+                                <button type="button" @click.stop="openContractorModal(group)"
+                                        class="w-8 h-8 rounded-xl bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer group"
+                                        title="View Contractor Transaction Details">
+                                    <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
                             </td>
                         </tr>
                         
@@ -722,8 +727,199 @@
         </div>
     </div>
 
-    <!-- VIEW MODAL -->
-    <div x-cloak x-show="viewModalOpen" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 print:hidden"
+    <!-- CONTRACTOR TRANSACTIONS STATEMENT MODAL -->
+    <div x-cloak x-show="contractorModalOpen" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 print:hidden"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 backdrop-blur-none"
+         x-transition:enter-end="opacity-100 backdrop-blur-xs"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 backdrop-blur-xs"
+         x-transition:leave-end="opacity-0 backdrop-blur-none">
+
+        <div class="w-full max-w-5xl max-h-[92vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up my-auto" 
+             @click.away="closeContractorModal()"
+             x-show="contractorModalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 scale-95">
+
+            <!-- Modal Header (Matching sales-return view modal style) -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/20 shrink-0">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d4af37] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
+                                  x-text="(selectedContractorGroup?.contractor_info?.type || 'CONTRACTOR').toUpperCase()">CONTRACTOR</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight uppercase" x-text="selectedContractorGroup?.contractor_name || 'CONTRACTOR DETAILS'">CONTRACTOR DETAILS</h2>
+                    </div>
+                    <button type="button" @click="closeContractorModal()" 
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm cursor-pointer"
+                            title="Close">✕</button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Scrollable with slate-50/60 background) -->
+            <div class="p-5 sm:p-6 overflow-y-auto bg-slate-50/60 space-y-4 flex-1 custom-scrollbar">
+
+                <!-- Contractor Profile Details Bar -->
+                <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Contact / Phone</span>
+                            <span class="font-bold text-slate-800 font-mono text-[11px]" x-text="selectedContractorGroup?.contractor_info?.phone || '—'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Email Address</span>
+                            <span class="font-bold text-slate-800 text-[11px] truncate block" x-text="selectedContractorGroup?.contractor_info?.email || '—'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">GSTIN / PAN</span>
+                            <span class="font-mono text-[11px] font-bold text-slate-800 block" x-text="selectedContractorGroup?.contractor_info?.gstin || selectedContractorGroup?.contractor_info?.pan || '—'"></span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Ledger Code / Acc</span>
+                            <span class="font-mono text-[11px] font-bold text-[#a38c29] block" x-text="selectedContractorGroup?.contractor_info?.account_code || 'N/A'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Ledger KPI Metric Cards (Matching Screenshot Card Style) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <!-- 1. Gross Claim Value -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-slate-700">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block truncate">GROSS CLAIM VALUE</span>
+                        <span class="text-sm font-black font-mono text-slate-900 block truncate" x-text="'₹' + numberFormat(selectedContractorGroup?.totalGross || selectedContractorGroup?.netClaimed || 0)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Total Inward Claims</span>
+                    </div>
+
+                    <!-- 2. Total Paid Amount -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-emerald-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 block truncate">TOTAL PAID AMOUNT</span>
+                        <span class="text-sm font-black font-mono text-emerald-600 block truncate" x-text="'₹' + numberFormat(selectedContractorGroup?.paid || 0)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate" x-text="(selectedContractorGroup?.entries?.filter(e => e.type === 'DISBURSEMENT')?.length || 0) + ' Vouchers Paid'"></span>
+                    </div>
+
+                    <!-- 3. Deductions / Corrections -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-rose-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-rose-700 block truncate">CORRECTIONS / DEDUCT</span>
+                        <span class="text-sm font-black font-mono text-rose-600 block truncate" x-text="'₹' + numberFormat(selectedContractorGroup?.totalCorrections || 0)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Site Deductions</span>
+                    </div>
+
+                    <!-- 4. Approved Net Claim -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-[#a38c29]">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-[#a38c29] block truncate">APPROVED NET CLAIM</span>
+                        <span class="text-sm font-black font-mono text-[#a38c29] block truncate" x-text="'₹' + numberFormat(selectedContractorGroup?.netClaimed || 0)">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Approved Liability</span>
+                    </div>
+
+                    <!-- 5. Verified RA Claims -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-emerald-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 block truncate">VERIFIED RA CLAIMS</span>
+                        <span class="text-sm font-black font-mono text-emerald-600 block truncate" x-text="(selectedContractorGroup?.entries?.filter(e => e.type === 'CLAIM')?.length || 0) + ' Claims Logged'"></span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Accrued Inward Bills</span>
+                    </div>
+
+                    <!-- 6. Pending Balance Due -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-1 border-l-4 border-l-amber-500">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 block truncate">PENDING BALANCE DUE</span>
+                        <span class="text-sm font-black font-mono text-amber-600 block truncate" x-text="'₹' + numberFormat(Math.abs(selectedContractorGroup?.balance || 0))">₹0.00</span>
+                        <span class="text-[9px] text-slate-400 font-medium block truncate">Remaining Payable (CR)</span>
+                    </div>
+                </div>
+
+                <!-- Detailed Transactions Statement Table -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                    <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-md bg-[#a38c29]/15 text-[#8a7522] flex items-center justify-center font-bold text-xs">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            </div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                                Chronological Transaction Ledger (Claims & Disbursements)
+                            </h4>
+                        </div>
+                        <span class="text-xs font-extrabold text-slate-700 font-mono"
+                              x-text="(selectedContractorGroup?.entries?.length || 0) + ' Recorded'"></span>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[380px] custom-scrollbar">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200 sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-3 border-r border-slate-200 w-24">Date</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-200">Type / Ref No</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-200">Particulars & Site</th>
+                                    <th class="py-2.5 px-3 text-right border-r border-slate-200 w-28">Debit (Claim)</th>
+                                    <th class="py-2.5 px-3 text-right border-r border-slate-200 w-28">Credit (Paid)</th>
+                                    <th class="py-2.5 px-3 text-right w-32">Balance Due</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white font-medium text-slate-700">
+                                <template x-for="(entry, index) in (selectedContractorGroup?.entries || [])" :key="index">
+                                    <tr class="hover:bg-slate-50/80 transition-colors" :class="entry.type === 'CLAIM' ? '' : 'bg-emerald-50/15'">
+                                        <td class="py-2.5 px-3 font-mono text-[11px] font-bold text-slate-700 border-r border-slate-100 whitespace-nowrap align-top" x-text="entry.date_formatted"></td>
+                                        <td class="py-2.5 px-3 border-r border-slate-100 align-top">
+                                            <div class="flex flex-col gap-1">
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider inline-block w-fit"
+                                                      :class="entry.type === 'CLAIM' ? 'bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/20' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
+                                                      x-text="entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released'"></span>
+                                                <span class="font-mono text-[10px] font-bold text-slate-600" x-text="entry.ref_no"></span>
+                                            </div>
+                                        </td>
+                                        <td class="py-2.5 px-3 border-r border-slate-100 align-top">
+                                            <div class="font-bold text-slate-800 leading-snug" x-text="entry.particulars"></div>
+                                            <div class="text-[11px] text-slate-500 font-medium mt-0.5" x-text="entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')"></div>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-[11px] font-bold text-blue-700 border-r border-slate-100 align-top"
+                                            x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-[11px] font-bold text-emerald-700 border-r border-slate-100 align-top"
+                                            x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-[11px] font-black align-top"
+                                            :class="entry.running_balance > 0 ? 'text-rose-700' : 'text-emerald-700'">
+                                            <span x-text="'₹' + numberFormat(Math.abs(entry.running_balance))"></span>
+                                            <span class="text-[9px] font-bold uppercase text-slate-400 ml-0.5">CR</span>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="!selectedContractorGroup?.entries || selectedContractorGroup?.entries?.length === 0">
+                                    <td colspan="6" class="py-8 text-center text-slate-400 italic text-xs">
+                                        No ledger transactions logged for this contractor.
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot x-show="selectedContractorGroup?.entries && selectedContractorGroup?.entries?.length > 0" class="bg-slate-50/80 border-t border-slate-200 text-xs font-bold">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-2.5 text-slate-700 uppercase text-[10px] tracking-wider text-right">TOTAL FOR CONTRACTOR</td>
+                                    <td class="px-4 py-2.5 text-right font-mono font-black text-blue-700 text-xs" x-text="'₹' + numberFormat(selectedContractorGroup?.netClaimed || 0)"></td>
+                                    <td class="px-4 py-2.5 text-right font-mono font-black text-emerald-700 text-xs" x-text="'₹' + numberFormat(selectedContractorGroup?.paid || 0)"></td>
+                                    <td class="px-4 py-2.5 text-right font-mono font-black text-rose-700 text-xs" x-text="'₹' + numberFormat(Math.abs(selectedContractorGroup?.balance || 0)) + ' CR'"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Sticky Modal Footer -->
+            <div class="px-6 py-3 bg-white border-t border-slate-200/80 flex items-center justify-end shrink-0 shadow-2xs">
+                <button type="button" @click="closeContractorModal()"
+                        class="px-5 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                    <span>CLOSE</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VIEW SINGLE TRANSACTION MODAL -->
+    <div x-cloak x-show="viewModalOpen" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-[110] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 print:hidden"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 backdrop-blur-none"
          x-transition:enter-end="opacity-100 backdrop-blur-xs"
@@ -886,9 +1082,22 @@ function raBillLedger() {
         selectedLedgerContractorId: '',
         allLedgerEntries: @json($allLedgerEntries ?? []),
         contractorsList: @json($contractors ?? []),
+        contractorLedgerSummaries: @json($contractorLedgerSummaries ?? []),
         viewModalOpen: false,
         selectedLedgerEntry: null,
         expandedContractor: null,
+        contractorModalOpen: false,
+        selectedContractorGroup: null,
+
+        openContractorModal(group) {
+            this.selectedContractorGroup = group;
+            this.contractorModalOpen = true;
+        },
+
+        closeContractorModal() {
+            this.contractorModalOpen = false;
+            this.selectedContractorGroup = null;
+        },
 
         openViewModal(entry) {
             this.selectedLedgerEntry = entry;
@@ -942,16 +1151,23 @@ function raBillLedger() {
             
             entries.forEach(entry => {
                 if (!groupsMap[entry.contractor_id]) {
+                    const cInfo = (this.contractorLedgerSummaries || []).find(c => c.id == entry.contractor_id) || 
+                                  (this.contractorsList || []).find(c => c.id == entry.contractor_id) || {};
                     groupsMap[entry.contractor_id] = {
                         contractor_id: entry.contractor_id,
                         contractor_name: entry.contractor_name,
+                        contractor_info: cInfo,
                         entries: [],
+                        totalGross: 0,
+                        totalCorrections: 0,
                         netClaimed: 0,
                         paid: 0,
                         balance: 0
                     };
                 }
                 groupsMap[entry.contractor_id].entries.push(entry);
+                groupsMap[entry.contractor_id].totalGross += parseFloat(entry.gross_amount) || 0;
+                groupsMap[entry.contractor_id].totalCorrections += parseFloat(entry.correction_amount) || 0;
                 groupsMap[entry.contractor_id].netClaimed += parseFloat(entry.net_approved) || 0;
                 groupsMap[entry.contractor_id].paid += parseFloat(entry.paid_amount) || 0;
             });
