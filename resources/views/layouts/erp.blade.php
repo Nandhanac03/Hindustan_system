@@ -824,6 +824,38 @@
                         $modalBadge = 'Sale Modified';
                         $modalSubtitle = 'The sale contract was updated successfully.';
                     }
+                } elseif (str_contains($lowerText, 'user')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'User Account Added!';
+                        $modalBadge = 'User Configured';
+                        $modalSubtitle = 'Corporate user account added successfully.';
+                    } elseif (str_contains($lowerText, 'delete') || str_contains($lowerText, 'remove')) {
+                        $modalTitle = 'User Account Deleted!';
+                        $modalBadge = 'User Removed';
+                        $modalSubtitle = 'Corporate user account deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'User Account Updated!';
+                        $modalBadge = 'User Modified';
+                        $modalSubtitle = 'Corporate user account updated successfully.';
+                    } elseif (str_contains($lowerText, 'status')) {
+                        $modalTitle = 'User Status Updated!';
+                        $modalBadge = 'Status Modified';
+                        $modalSubtitle = 'Corporate user status updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'customer')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Customer Added!';
+                        $modalBadge = 'Customer Configured';
+                        $modalSubtitle = 'Customer profile added successfully.';
+                    } elseif (str_contains($lowerText, 'delete') || str_contains($lowerText, 'remove')) {
+                        $modalTitle = 'Customer Deleted!';
+                        $modalBadge = 'Customer Removed';
+                        $modalSubtitle = 'Customer profile deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Customer Updated!';
+                        $modalBadge = 'Customer Modified';
+                        $modalSubtitle = 'Customer profile updated successfully.';
+                    }
                 }
             @endphp
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
@@ -902,6 +934,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <style>
                 @keyframes successModalIn {
@@ -993,7 +1026,7 @@
                             <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
                                 <button onclick="closeStatusModal()"
                                     class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/25 uppercase tracking-wider transition-all ring-1 ring-[#a38c29]/30 flex items-center gap-2">
-                                    <svg class="w-3.5 h-3.5 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Got it
@@ -1005,7 +1038,6 @@
                     setTimeout(closeStatusModal, 4500);
                 };
             </script>
-            @endif
 
             {!! $slot ?? '' !!}
             @yield('content')

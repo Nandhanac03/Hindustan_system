@@ -1600,11 +1600,28 @@ function customersApp() {
                 if (res.status === 422) {
                     this.errors = data.errors || {};
                 } else if (!res.ok) {
-                    this.showToast(data.error || 'Server error occurred.', 'error');
+                    this.showToast(data.error || data.message || 'Server error occurred.', 'error');
                 } else {
-                    this.showToast('Customer added successfully.');
                     this.closeAddModal();
                     this.fetchCustomers();
+                    if (data.customer) {
+                        this.allCustomerList.push({
+                            id: data.customer.id,
+                            name: data.customer.name,
+                            phone: data.customer.phone,
+                            email: data.customer.email
+                        });
+                    }
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'CUSTOMER ADDED!',
+                            'CUSTOMER CONFIGURED',
+                            'Customer profile added successfully.',
+                            data.message || 'Customer added successfully.'
+                        );
+                    } else {
+                        this.showToast(data.message || 'Customer added successfully.');
+                    }
                 }
             })
             .catch(err => {
@@ -1723,9 +1740,25 @@ function customersApp() {
                 } else if (!res.ok) {
                     this.showToast(data.error || data.message || 'Server error occurred.', 'error');
                 } else {
-                    this.showToast('Customer updated successfully.');
                     this.closeEditModal();
                     this.fetchCustomers();
+                    // Update in allCustomerList if present
+                    let found = (this.allCustomerList || []).find(c => c.id == this.forms.edit.id);
+                    if (found) {
+                        found.name = this.forms.edit.name;
+                        found.phone = this.forms.edit.phone;
+                        found.email = this.forms.edit.email;
+                    }
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'CUSTOMER UPDATED!',
+                            'CUSTOMER MODIFIED',
+                            'Customer profile updated successfully.',
+                            data.message || 'Customer details updated successfully.'
+                        );
+                    } else {
+                        this.showToast(data.message || 'Customer updated successfully.');
+                    }
                 }
             })
             .catch(err => {
@@ -1770,9 +1803,19 @@ function customersApp() {
                 if (!res.ok) {
                     this.showToast(data.error || data.message || 'Failed to delete customer.', 'error');
                 } else {
-                    this.showToast('Customer deleted successfully.');
                     this.closeDeleteModal();
                     this.fetchCustomers();
+                    this.allCustomerList = (this.allCustomerList || []).filter(c => c.id != customerId);
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'CUSTOMER DELETED!',
+                            'CUSTOMER REMOVED',
+                            'Customer profile deleted successfully.',
+                            data.message || 'Customer deleted successfully.'
+                        );
+                    } else {
+                        this.showToast(data.message || 'Customer deleted successfully.');
+                    }
                 }
             })
             .catch(err => {

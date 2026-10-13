@@ -4,16 +4,7 @@
 
     <div class="space-y-6" x-data="userManagementApp()">
 
-        {{-- Flash Alerts --}}
-        @if(session('success') || session('status'))
-            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>{{ session('success') ?? session('status') }}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:opacity-75 cursor-pointer">✕</button>
-            </div>
-        @endif
+
 
         @if(session('error'))
             <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between">
@@ -25,15 +16,6 @@
             </div>
         @endif
 
-        @if ($errors->any())
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         {{-- Under Construction Notice --}}
         <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
@@ -66,7 +48,7 @@
                 <p class="text-xs text-slate-500 mt-0.5">Manage credentials, permissions, system separation, and statuses.</p>
             </div>
             
-            <button type="button" @click="openAddModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
+            <button type="button" @click="openAddModalFn()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -206,7 +188,7 @@
         {{-- ADD USER MODAL --}}
         {{-- ========================================================================= --}}
         <div x-show="openAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="openAddModal = false">
+            <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="closeAddModalFn()">
                 {{-- Dark Header --}}
                 <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -215,27 +197,45 @@
                             <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">USER DIRECTORY</p>
                             <h2 class="text-lg font-extrabold text-white">Register New Enterprise User</h2>
                         </div>
-                        <button type="button" @click="openAddModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <button type="button" @click="closeAddModalFn()" class="text-slate-400 hover:text-white transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('admin.users.store') }}" class="flex flex-col">
+                <form method="POST" action="{{ route('admin.users.store') }}" class="flex flex-col" novalidate @submit="validateAddUser($event)">
                     @csrf
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <!-- Name & Email -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name <span class="text-rose-500">*</span></label>
-                                <input type="text" name="name" required placeholder="e.g. Rajesh Kumar"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="text" name="name" x-model="addForm.name"
+                                       @input="if (addErrors.name) delete addErrors.name"
+                                       :class="addErrors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('name') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       placeholder="e.g. Rajesh Kumar"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="addErrors.name">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.name"></p>
+                                </template>
+                                @error('name')
+                                    <p x-show="!addErrors.name" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address <span class="text-rose-500">*</span></label>
-                                <input type="email" name="email" required placeholder="user@company.com"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="email" name="email" x-model="addForm.email"
+                                       @input="if (addErrors.email) delete addErrors.email"
+                                       :class="addErrors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('email') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       placeholder="user@company.com"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="addErrors.email">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.email"></p>
+                                </template>
+                                @error('email')
+                                    <p x-show="!addErrors.email" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -243,14 +243,32 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number</label>
-                                <input type="text" name="phone" placeholder="+91 99999 99999"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="text" name="phone" x-model="addForm.phone"
+                                       @input="if (addErrors.phone) delete addErrors.phone"
+                                       :class="addErrors.phone ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('phone') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       placeholder="+91 99999 99999"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="addErrors.phone">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.phone"></p>
+                                </template>
+                                @error('phone')
+                                    <p x-show="!addErrors.phone" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee Code</label>
-                                <input type="text" name="employee_code" placeholder="e.g. EMP-001"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                                <input type="text" name="employee_code" x-model="addForm.employee_code"
+                                       @input="if (addErrors.employee_code) delete addErrors.employee_code"
+                                       :class="addErrors.employee_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('employee_code') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       placeholder="e.g. EMP-101"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                                <template x-if="addErrors.employee_code">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.employee_code"></p>
+                                </template>
+                                @error('employee_code')
+                                    <p x-show="!addErrors.employee_code" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -258,19 +276,31 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System <span class="text-rose-500">*</span></label>
-                                <select name="system_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                <select name="system_id" x-model="addForm.system_id"
+                                        @change="if (addErrors.system_id) delete addErrors.system_id"
+                                        :class="addErrors.system_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('system_id') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select System...</option>
                                     @foreach($systems as $sys)
-                                        <option value="{{ $sys->id }}" {{ $loop->first ? 'selected' : '' }}>
+                                        <option value="{{ $sys->id }}">
                                             {{ $sys->name }} ({{ $sys->code }})
                                         </option>
                                     @endforeach
                                 </select>
+                                <template x-if="addErrors.system_id">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.system_id"></p>
+                                </template>
+                                @error('system_id')
+                                    <p x-show="!addErrors.system_id" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
-                                <select name="role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                <select name="role" x-model="addForm.role"
+                                        @change="if (addErrors.role) delete addErrors.role"
+                                        :class="addErrors.role ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('role') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select Role...</option>
                                     @foreach($roles as $role)
                                         <option value="{{ $role->name }}">
@@ -278,6 +308,12 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <template x-if="addErrors.role">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.role"></p>
+                                </template>
+                                @error('role')
+                                    <p x-show="!addErrors.role" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -285,23 +321,41 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
-                                <select name="status" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
-                                    <option value="active" selected>Active</option>
+                                <select name="status" x-model="addForm.status"
+                                        @change="if (addErrors.status) delete addErrors.status"
+                                        :class="addErrors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('status') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                    <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                     <option value="suspended">Suspended</option>
                                 </select>
+                                <template x-if="addErrors.status">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.status"></p>
+                                </template>
+                                @error('status')
+                                    <p x-show="!addErrors.status" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password <span class="text-rose-500">*</span></label>
-                                <input type="password" name="password" required placeholder="••••••••"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password <span class="text-rose-500">*</span> <span class="text-[9px] text-slate-400 font-normal lowercase">(min 6 chars)</span></label>
+                                <input type="password" name="password" x-model="addForm.password"
+                                       @input="if (addErrors.password) delete addErrors.password"
+                                       :class="addErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('password') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       placeholder="Minimum 6 characters"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="addErrors.password">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.password"></p>
+                                </template>
+                                @error('password')
+                                    <p x-show="!addErrors.password" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>
 
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-                        <button type="button" @click="openAddModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                        <button type="button" @click="closeAddModalFn()" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
                         <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE USER ACCOUNT</button>
                     </div>
                 </form>
@@ -327,7 +381,7 @@
                     </div>
                 </div>
 
-                <form :action="editForm.action" method="POST" class="flex flex-col">
+                <form :action="editForm.action" method="POST" class="flex flex-col" novalidate @submit="validateEditUser($event)">
                     @csrf
                     @method('PUT')
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
@@ -335,14 +389,24 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name <span class="text-rose-500">*</span></label>
-                                <input type="text" name="name" x-model="editForm.name" required
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="text" name="name" x-model="editForm.name"
+                                       @input="if (editErrors.name) delete editErrors.name"
+                                       :class="editErrors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="editErrors.name">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.name"></p>
+                                </template>
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address <span class="text-rose-500">*</span></label>
-                                <input type="email" name="email" x-model="editForm.email" required
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="email" name="email" x-model="editForm.email"
+                                       @input="if (editErrors.email) delete editErrors.email"
+                                       :class="editErrors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="editErrors.email">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.email"></p>
+                                </template>
                             </div>
                         </div>
 
@@ -365,7 +429,10 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System <span class="text-rose-500">*</span></label>
-                                <select name="system_id" x-model="editForm.system_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                <select name="system_id" x-model="editForm.system_id"
+                                        @change="if (editErrors.system_id) delete editErrors.system_id"
+                                        :class="editErrors.system_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select System...</option>
                                     @foreach($systems as $sys)
                                         <option value="{{ $sys->id }}">
@@ -373,11 +440,17 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <template x-if="editErrors.system_id">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.system_id"></p>
+                                </template>
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
-                                <select name="role" x-model="editForm.role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                <select name="role" x-model="editForm.role"
+                                        @change="if (editErrors.role) delete editErrors.role"
+                                        :class="editErrors.role ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select Role...</option>
                                     @foreach($roles as $role)
                                         <option value="{{ $role->name }}">
@@ -385,6 +458,9 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <template x-if="editErrors.role">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.role"></p>
+                                </template>
                             </div>
                         </div>
 
@@ -392,17 +468,29 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
-                                <select name="status" x-model="editForm.status" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                <select name="status" x-model="editForm.status"
+                                        @change="if (editErrors.status) delete editErrors.status"
+                                        :class="editErrors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                     <option value="suspended">Suspended</option>
                                 </select>
+                                <template x-if="editErrors.status">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.status"></p>
+                                </template>
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">New Password <span class="text-slate-400 font-normal normal-case">(Leave blank to keep current)</span></label>
-                                <input type="password" name="password" x-model="editForm.password" placeholder="••••••••"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <input type="password" name="password" x-model="editForm.password"
+                                       @input="if (editErrors.password) delete editErrors.password"
+                                       :class="editErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                       placeholder="••••••••"
+                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                                <template x-if="editErrors.password">
+                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.password"></p>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -526,12 +614,157 @@
     <script>
     function userManagementApp() {
         return {
-            openAddModal: false,
-            openEditModal: false,
+            openAddModal: {{ $errors->any() && !old('_method') ? 'true' : 'false' }},
+            openEditModal: {{ $errors->any() && old('_method') ? 'true' : 'false' }},
             openViewModal: false,
             openStatusModal: false,
 
             rawSelectedUser: null,
+
+            addForm: {
+                name: @js(old('name', '')),
+                email: @js(old('email', '')),
+                phone: @js(old('phone', '')),
+                employee_code: @js(old('employee_code', '')),
+                system_id: @js(old('system_id', $systems->first()?->id ?? '')),
+                role: @js(old('role', '')),
+                status: @js(old('status', 'active')),
+                password: ''
+            },
+            addErrors: {},
+            editErrors: {},
+
+            openAddModalFn() {
+                this.addErrors = {};
+                this.openAddModal = true;
+            },
+
+            closeAddModalFn() {
+                this.addErrors = {};
+                this.openAddModal = false;
+            },
+
+            validateAddUser(e) {
+                this.addErrors = {};
+                let hasError = false;
+                let firstErrorKey = null;
+
+                if (!this.addForm.name || !this.addForm.name.trim()) {
+                    this.addErrors.name = 'Please enter full name.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'name';
+                } else if (this.addForm.name.trim().length < 2) {
+                    this.addErrors.name = 'Full name must be at least 2 characters.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'name';
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!this.addForm.email || !this.addForm.email.trim()) {
+                    this.addErrors.email = 'Please enter email address.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'email';
+                } else if (!emailRegex.test(this.addForm.email.trim())) {
+                    this.addErrors.email = 'Please enter a valid email address.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'email';
+                }
+
+                if (!this.addForm.system_id) {
+                    this.addErrors.system_id = 'Please select an operating system.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'system_id';
+                }
+
+                if (!this.addForm.role) {
+                    this.addErrors.role = 'Please select a role assignment.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'role';
+                }
+
+                if (!this.addForm.status) {
+                    this.addErrors.status = 'Please select an account status.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'status';
+                }
+
+                if (!this.addForm.password) {
+                    this.addErrors.password = 'Please enter a password.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'password';
+                } else if (this.addForm.password.length < 6) {
+                    this.addErrors.password = 'Password must be at least 6 characters.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'password';
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    if (firstErrorKey) {
+                        this.$nextTick(() => {
+                            const el = document.querySelector(`[name="${firstErrorKey}"]`);
+                            if (el) el.focus();
+                        });
+                    }
+                    return false;
+                }
+            },
+
+            validateEditUser(e) {
+                this.editErrors = {};
+                let hasError = false;
+                let firstErrorKey = null;
+
+                if (!this.editForm.name || !this.editForm.name.trim()) {
+                    this.editErrors.name = 'Please enter full name.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'name';
+                } else if (this.editForm.name.trim().length < 2) {
+                    this.editErrors.name = 'Full name must be at least 2 characters.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'name';
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!this.editForm.email || !this.editForm.email.trim()) {
+                    this.editErrors.email = 'Please enter email address.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'email';
+                } else if (!emailRegex.test(this.editForm.email.trim())) {
+                    this.editErrors.email = 'Please enter a valid email address.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'email';
+                }
+
+                if (!this.editForm.system_id) {
+                    this.editErrors.system_id = 'Please select an operating system.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'system_id';
+                }
+
+                if (!this.editForm.role) {
+                    this.editErrors.role = 'Please select a role assignment.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'role';
+                }
+
+                if (!this.editForm.status) {
+                    this.editErrors.status = 'Please select an account status.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'status';
+                }
+
+                if (this.editForm.password && this.editForm.password.length < 6) {
+                    this.editErrors.password = 'Password must be at least 6 characters.';
+                    hasError = true;
+                    if (!firstErrorKey) firstErrorKey = 'password';
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return false;
+                }
+            },
 
             viewUser: {
                 id: null,
@@ -586,6 +819,7 @@
 
             editUserFn(user, updateUrl) {
                 this.openViewModal = false;
+                this.editErrors = {};
                 const userRole = (user.roles && user.roles.length > 0) ? user.roles[0].name : '';
                 this.editForm = {
                     id: user.id,

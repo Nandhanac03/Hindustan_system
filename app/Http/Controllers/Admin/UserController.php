@@ -21,7 +21,12 @@ class UserController extends Controller
     {
         // SystemScope global scope automatically filters queries to the user's system 
         // unless they are an Owner.
-        $users = User::with('roles', 'system')->latest()->paginate(15);
+        $query = User::with('roles', 'system');
+        if (auth()->user()->hasMultiSystemAccess()) {
+            $users = $query->withoutGlobalScopes()->latest()->paginate(15);
+        } else {
+            $users = $query->latest()->paginate(15);
+        }
         $roles = Role::all();
         $systems = System::where('is_active', true)->get();
 
@@ -42,9 +47,9 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'phone' => ['nullable', 'string', 'max:20'],
-            'employee_code' => ['nullable', 'string', 'max:50', 'unique:users'],
+            'employee_code' => ['nullable', 'string', 'max:50', 'unique:users,employee_code'],
             'system_id' => ['required', 'exists:systems,id'],
-            'password' => ['required', Rules\Password::defaults()],
+            'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'exists:roles,name'],
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
         ]);
@@ -53,16 +58,16 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'employee_code' => $request->employee_code,
+            'employee_code' => $request->filled('employee_code') ? $request->employee_code : null,
             'system_id' => $request->system_id,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'status' => $request->status,
         ]);
 
         $user->assignRole($request->role);
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'User created successfully.');
+            ->with('success', 'User added successfully.');
     }
 
     public function edit(User $user): View
@@ -88,7 +93,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
-            'employee_code' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
+            'employee_code' => ['nullable', 'string', 'max:50', Rule::unique('users', 'employee_code')->ignore($user->id)],
             'system_id' => ['required', 'exists:systems,id'],
             'role' => ['required', 'exists:roles,name'],
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
@@ -98,24 +103,24 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'employee_code' => $request->employee_code,
+            'employee_code' => $request->filled('employee_code') ? $request->employee_code : null,
             'system_id' => $request->system_id,
             'status' => $request->status,
         ]);
 
         if ($request->filled('password')) {
             $request->validate([
-                'password' => Rules\Password::defaults(),
+                'password' => ['string', 'min:6'],
             ]);
             $user->update([
-                'password' => Hash::make($request->password),
+                'password' => $request->password,
             ]);
         }
 
         $user->syncRoles([$request->role]);
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'User updated successfully.');
+            ->with('success', 'User updated successfully.');
     }
 
     public function toggleStatus(User $user): RedirectResponse
@@ -128,6 +133,6 @@ class UserController extends Controller
         $user->update(['status' => $newStatus]);
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'User status updated successfully.');
+            ->with('success', 'User status updated successfully.');
     }
 }

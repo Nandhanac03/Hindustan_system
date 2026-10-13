@@ -20,7 +20,7 @@
                 </div>
                 <div class="flex-1 space-y-0.5">
                     <div class="flex items-center justify-between">
-                        <h4 class="font-extrabold text-rose-900 text-xs uppercase tracking-wider">Access Denied</h4>
+                        <h4 class="font-extrabold text-rose-900 text-xs uppercase tracking-wider">Invalid Username or Password</h4>
                         <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-200/60 text-rose-800 uppercase tracking-widest">Failed</span>
                     </div>
                     <p class="text-[11px] text-rose-700 font-medium leading-relaxed">
@@ -46,14 +46,6 @@
                    autocomplete="username"
                    placeholder="Enter your email or username"
                    class="w-full bg-white border {{ $errors->has('email') ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/15 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/10 text-slate-900' }} rounded-xl text-xs px-4 py-3 placeholder-slate-400 focus:outline-none transition shadow-xs font-medium" />
-            @if($errors->has('email'))
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200/80 text-rose-700 text-[11px] font-semibold mt-1.5 shadow-xs">
-                    <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ $errors->first('email') }}</span>
-                </div>
-            @endif
         </div>
 
         <!-- Password -->
@@ -75,14 +67,6 @@
                     </svg>
                 </button>
             </div>
-            @if($errors->has('password'))
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200/80 text-rose-700 text-[11px] font-semibold mt-1.5 shadow-xs">
-                    <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ $errors->first('password') }}</span>
-                </div>
-            @endif
         </div>
 
         <!-- Remember Me -->
