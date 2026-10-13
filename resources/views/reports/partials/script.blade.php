@@ -60,6 +60,32 @@ function reportsApp() {
             this.cancelModalTab = 'dossier';
             document.body.style.overflow = '';
         },
+
+        // Unit Exchange View Modal state & methods
+        selectedExchangeSale: null,
+        showExchangeModal: false,
+        openExchangeModalById(id) {
+            const el = document.getElementById('exchange-sale-data-' + id);
+            if (el) {
+                try {
+                    this.selectedExchangeSale = JSON.parse(el.textContent);
+                    this.showExchangeModal = true;
+                    document.body.style.overflow = 'hidden';
+                } catch (e) {
+                    console.error('Error parsing exchange sale data:', e);
+                }
+            }
+        },
+        openExchangeModal(saleData) {
+            this.selectedExchangeSale = saleData;
+            this.showExchangeModal = true;
+            document.body.style.overflow = 'hidden';
+        },
+        closeExchangeModal() {
+            this.showExchangeModal = false;
+            this.selectedExchangeSale = null;
+            document.body.style.overflow = '';
+        },
         fmtMoney(num) {
             if (num === null || num === undefined || isNaN(num)) return '₹0.00';
             return '₹' + Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

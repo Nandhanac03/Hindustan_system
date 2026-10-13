@@ -2515,16 +2515,18 @@ class ReportController extends Controller
 
         // 5. Find Replacement (New) Sale
         $newSale = Sale::where('notes', 'like', '%Exchanged from sale ' . $sale->sale_number . '%')
-            ->with(['unit.unitType', 'unit.floor', 'customer'])
+            ->with(['unit.unitType', 'unit.floor', 'customer', 'project'])
             ->first();
 
         if (!$newSale && $exLog && !empty($exLog->snapshot_data['exchange_meta']['target_unit_id'])) {
             $targetUnitId = $exLog->snapshot_data['exchange_meta']['target_unit_id'];
             $newSale = Sale::where('unit_id', $targetUnitId)
                 ->where('customer_id', $sale->customer_id)
-                ->with(['unit.unitType', 'unit.floor', 'customer'])
+                ->with(['unit.unitType', 'unit.floor', 'customer', 'project'])
                 ->first();
         }
+
+        $sale->new_sale = $newSale;
 
         // 6. New Unit Details & Customer Name & Contract Value
         if ($newSale && $newSale->unit) {
