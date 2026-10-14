@@ -2,7 +2,9 @@
 
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{
         processModalOpen: false,
+        viewModalOpen: false,
         targetReceipt: null,
+        viewReceipt: null,
         selectedStatusId: '',
         statusName: '',
         selectedBankId: '',
@@ -13,6 +15,19 @@
         
         modalBankOpen: false,
         modalBankSearch: '',
+
+        openViewModal(r) {
+            this.viewReceipt = r;
+            this.viewModalOpen = true;
+        },
+
+        openProcessFromView() {
+            let r = this.viewReceipt;
+            this.viewModalOpen = false;
+            if (r && !r.is_terminal && r.realization_status !== 'realized') {
+                this.openProcessModal(r);
+            }
+        },
 
         get filteredModalBanks() {
             const list = this.banks || [];
@@ -739,9 +754,7 @@
                             <th class="px-4 py-3.5 text-right text-white">AMOUNT</th>
                             <th class="px-4 py-3.5 text-center text-white">MODE</th>
                             <th class="px-4 py-3.5 text-center text-white">STATUS</th>
-                            @unless(request()->routeIs('cheque-realization.realized'))
-                                <th class="px-4 py-3.5 text-center text-white">ACTIONS</th>
-                            @endunless
+                            <th class="px-4 py-3.5 text-center text-white">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs font-semibold">
@@ -775,26 +788,37 @@
                                           x-text="`${receipt.status_icon} ${receipt.status_display_name}`">
                                     </span>
                                 </td>
-                                @unless(request()->routeIs('cheque-realization.realized'))
-                                    <td class="px-4 py-3.5 text-center">
-                                        <div class="flex items-center justify-center">
+                                <td class="px-4 py-3.5 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        @unless(request()->routeIs('cheque-realization.realized'))
                                             <template x-if="!receipt.is_terminal">
                                                 <button type="button" @click.prevent="openProcessModal(receipt)"
-                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 border border-[#a38c29]/30 hover:shadow-sm group cursor-pointer">
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 border border-[#a38c29]/30 hover:shadow-sm group cursor-pointer"
+                                                        title="Process Clearance">
                                                     <span>Process</span>
                                                     <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                                 </button>
                                             </template>
                                             <template x-if="receipt.is_terminal">
-                                                <span class="text-xs text-slate-400 italic">Terminal State</span>
+                                                <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider italic">Terminal</span>
                                             </template>
-                                        </div>
-                                    </td>
-                                @endunless
+                                        @endunless
+
+                                        {{-- View Details Icon Button --}}
+                                        <button type="button" @click.prevent="openViewModal(receipt)"
+                                                class="w-8 h-8 rounded-xl bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer group"
+                                                title="View Cheque Details">
+                                            <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         </template>
                         <tr x-show="filteredReceipts.length === 0">
-                            <td colspan="{{ request()->routeIs('cheque-realization.realized') ? 8 : 9 }}" class="px-6 py-16 text-center">
+                            <td colspan="9" class="px-6 py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-200">
                                         <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -837,12 +861,12 @@
         {{-- Unified Process Modal (Matched to Collection Receipt Entry Modal) --}}
         <template x-teleport="body">
             <div x-show="processModalOpen" 
-                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto" 
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-5 bg-slate-950/60 backdrop-blur-xs" 
                  style="display: none;" 
                  x-transition.opacity>
-                <div class="w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden transform transition-all my-auto border border-slate-800/80" @click.away="processModalOpen = false">
+                <div class="w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 my-auto" @click.away="processModalOpen = false">
                     {{-- Header --}}
-                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80">
+                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 sm:px-8 py-4 sm:py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
                         <div class="flex items-center gap-3 relative z-10">
                             <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
                                 ₹
@@ -850,7 +874,7 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">CHEQUE REALIZATION</span>
-                                    <span class="text-[10px] text-slate-400 font-semibold">Clearance Queue</span>
+                                    
                                 </div>
                                 <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5">Process Cheque Clearance</h3>
                             </div>
@@ -858,41 +882,39 @@
                         <button type="button" @click="processModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer relative z-10" title="Close Modal">✕</button>
                     </div>
 
-                    {{-- Modal Body --}}
-                    <div class="bg-white rounded-b-3xl p-6 sm:p-7 space-y-5">
-                        <form :action="formAction" method="POST" id="processModalForm" novalidate @submit.prevent="validateAndSubmitProcessForm($event)">
-                            @csrf
+                    {{-- Form with Scrollable Content and Sticky Footer --}}
+                    <form :action="formAction" method="POST" id="processModalForm" novalidate @submit.prevent="validateAndSubmitProcessForm($event)" class="flex flex-col flex-1 min-h-0 bg-white">
+                        @csrf
+                        
+                        {{-- Modal Scrollable Body --}}
+                        <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
                             
-                            {{-- 1. Top Receipt & Cheque Overview Strip --}}
-                            <div class="bg-slate-50/90 rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
-                                <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-slate-200/70">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
-                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Cheque & Receipt Details</span>
-                                    </div>
-                                    <span class="px-3 py-1 rounded-full bg-[#a38c29]/10 text-[#a38c29] font-mono text-[11px] font-extrabold border border-[#a38c29]/30 shadow-2xs" x-text="targetReceipt ? ('Cheque #' + targetReceipt.ref) : ''"></span>
+                            {{-- 1. Top Receipt & Cheque Overview Strip (No dot) --}}
+                            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs relative overflow-hidden">
+                                <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-slate-100">
+                                    <span class="text-[11px] font-black uppercase tracking-wider text-slate-700">Cheque & Receipt Details</span>
+                                    <span class="px-3 py-1 rounded-full bg-[#a38c29]/10 text-[#8a7522] font-mono text-[11px] font-extrabold border border-[#a38c29]/30" x-text="targetReceipt ? ('Cheque #' + targetReceipt.ref) : ''"></span>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                                     <div class="space-y-1">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
-                                        <span class="text-xs font-black text-slate-900 block truncate" x-text="targetReceipt ? targetReceipt.customer_name : '—'"></span>
+                                        <span class="text-xs sm:text-sm font-black text-slate-900 block truncate" x-text="targetReceipt ? targetReceipt.customer_name : '—'"></span>
                                     </div>
                                     <div class="space-y-1">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Receipt Voucher No.</span>
                                         <span class="text-xs font-mono font-bold text-slate-700 block whitespace-nowrap overflow-hidden text-ellipsis" x-text="targetReceipt ? targetReceipt.receipt_no : '—'"></span>
                                     </div>
-                                    <div class="space-y-1">
+                                    <div class="space-y-1 sm:text-right">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Receipt Amount</span>
-                                        <span class="text-base font-black font-mono text-[#a38c29] block" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '₹0.00'"></span>
+                                        <span class="text-lg sm:text-xl font-black font-mono text-[#a38c29] block" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '₹0.00'"></span>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- 2. Realization & Status Action Form Grid --}}
-                            <div class="pt-2">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                            {{-- 2. Realization & Status Action Form Grid (No dot) --}}
+                            <div class="pt-1">
+                                <div class="mb-3">
                                     <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
                                         Clearance Details & Actions
                                     </h3>
@@ -910,7 +932,7 @@
                                             <div class="relative">
                                                 <select x-model="selectedStatusId" @change="formErrors.selectedStatusId = ''; updateStatusName()" 
                                                         :class="formErrors.selectedStatusId ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
-                                                        class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
+                                                        class="w-full h-10 pl-3.5 pr-8 bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
                                                 <option value="">-- Select Status --</option>
                                                 <template x-for="s in chequeStatuses" :key="s.id">
                                                     <option :value="s.id" x-text="s.name"></option>
@@ -934,7 +956,7 @@
                                             </label>
                                             <input type="date" name="realization_date" x-model="realizationDateVal" @input="formErrors.realization_date = ''"
                                                    :class="formErrors.realization_date ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                                   class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
                                             <p x-show="formErrors.realization_date" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
                                                 <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 <span x-text="formErrors.realization_date"></span>
@@ -953,7 +975,7 @@
                                             {{-- Dropdown Trigger Button --}}
                                             <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
                                                  :class="formErrors.company_bank_account_id ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29]/60'"
-                                                 class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                                 class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
                                                 <template x-if="modalSelectedBankObj">
                                                     <div class="flex items-center gap-2 truncate">
                                                         <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="modalSelectedBankObj.bank_name"></span>
@@ -1028,7 +1050,7 @@
                                             </label>
                                             <input type="text" name="bank_reference_no" x-model="bankRefNoVal" @input="formErrors.bank_reference_no = ''" placeholder="e.g. NEFT/INWARD/5187 or CTS Ref" 
                                                    :class="formErrors.bank_reference_no ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                                   class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
                                             <p x-show="formErrors.bank_reference_no" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
                                                 <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 <span x-text="formErrors.bank_reference_no"></span>
@@ -1040,8 +1062,13 @@
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
                                                 Processed By
                                             </label>
-                                            <input type="text" value="{{ auth()->user()->name ?? 'Owner' }}" 
-                                                   class="w-full h-10 px-3.5 bg-slate-100/90 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 cursor-not-allowed" readonly>
+                                            <div class="relative">
+                                                <input type="text" value="{{ auth()->user()->name ?? 'Owner' }}" 
+                                                       class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-not-allowed" readonly>
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         {{-- Remarks / Reason (Exact Same Height h-10 as Left Column) --}}
@@ -1049,76 +1076,368 @@
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]" 
                                                    x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Remarks (Optional)'">Remarks</label>
                                             <input type="text" name="remarks" 
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs" 
+                                                   class="w-full h-10 px-3.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs" 
                                                    :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason for this state...' : 'Enter any clearing notes or remarks...'" x-model="remarksText">
                                         </div>
                                     </div>
 
                                 </div>
 
-                                {{-- Bank Details & Balance Summary Row (2 Boxes lying Horizontally in 1 Line) --}}
+                                {{-- Modern Treasury Clearance & Bank Balance Impact (Professional Pure White Surface, No Dull Grey) --}}
                                 <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" 
-                                     class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" 
+                                     class="mt-5 grid grid-cols-1 lg:grid-cols-12 gap-4" 
                                      style="display: none;" 
                                      x-transition>
                                     
-                                    {{-- Left Box: Company Bank Account Details Card --}}
-                                    <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
-                                        <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
-                                            <div>
-                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Bank</span>
-                                                <span class="font-bold text-slate-800 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.bank_name || '—'"></span>
+                                    {{-- Left Box: Selected Company Bank Profile --}}
+                                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#a38c29] to-amber-300"></div>
+                                        
+                                        <div>
+                                            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold text-xs">
+                                                        🏦
+                                                    </div>
+                                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Company Bank Details</span>
+                                                </div>
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                                    Deposit Target
+                                                </span>
                                             </div>
-                                            <div>
-                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account No</span>
-                                                <span class="font-mono font-bold text-slate-800 block" x-text="banks.find(b => b.id == selectedBankId)?.account_number || '—'"></span>
-                                            </div>
-                                            <div>
-                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account Name</span>
-                                                <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.account_name || '—'"></span>
-                                            </div>
-                                            <div>
-                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Branch</span>
-                                                <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.branch_name || '—'"></span>
+
+                                            <div class="space-y-2.5 text-xs">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bank</span>
+                                                    <span class="font-extrabold text-slate-900" x-text="selectedBankObj?.bank_name || '—'"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account No</span>
+                                                    <span class="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px] border border-slate-200/60" x-text="selectedBankObj?.account_number || '—'"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Name</span>
+                                                    <span class="font-semibold text-slate-700 truncate max-w-[190px]" x-text="selectedBankObj?.account_name || '—'"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Branch</span>
+                                                    <span class="font-medium text-slate-600 truncate max-w-[190px]" x-text="selectedBankObj?.branch_name || '—'"></span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {{-- Right Box: Live Dynamic Bank Balance Summary Card --}}
-                                    <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs flex flex-col justify-center">
-                                        <div class="flex items-center justify-between gap-3 text-xs">
-                                            <span class="font-bold text-slate-600">
-                                                Selected Bank Account Balance (<span x-text="selectedBankObj?.bank_name || 'Bank'"></span>)
-                                            </span>
-                                            <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="' ₹' + selectedBankBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
-                                        </div>
-                                        
-                                        <div class="flex items-center justify-between gap-3 text-xs">
-                                            <span class="font-bold text-slate-600">Receipt / Cheque Amount</span>
-                                            <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="'+ ₹' + receiptAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">+ ₹0.00</span>
-                                        </div>
+                                    {{-- Right Box: Bank Balance Details & Realization Impact --}}
+                                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                                        <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
 
-                                        <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-                                            <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Bank Balance After Realization</span>
-                                            <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="' ₹' + bankBalanceAfterRealization.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
+                                        <div>
+                                            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                                                        📊
+                                                    </div>
+                                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Clearance Treasury Impact</span>
+                                                </div>
+                                                <span class="text-[10px] font-mono text-slate-400" x-text="'A/C: ' + (selectedBankObj?.bank_name || '')"></span>
+                                            </div>
+
+                                            <div class="space-y-2 text-xs">
+                                                {{-- Current Balance --}}
+                                                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/60 border border-slate-100">
+                                                    <span class="text-[11px] font-bold text-slate-600">Selected Bank Account Balance (<span x-text="selectedBankObj?.bank_name || 'Bank'"></span>)</span>
+                                                    <span class="font-mono font-bold text-slate-800 text-xs sm:text-sm" 
+                                                          x-text="'₹' + selectedBankBalance.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})">₹0.00</span>
+                                                </div>
+
+                                                {{-- Receipt / Cheque Amount --}}
+                                                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                                                    <span class="text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
+                                                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-black">+</span>
+                                                        Receipt / Cheque Amount
+                                                    </span>
+                                                    <span class="font-mono font-black text-emerald-700 text-xs sm:text-sm" 
+                                                          x-text="'+ ₹' + receiptAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})">+ ₹0.00</span>
+                                                </div>
+
+                                                {{-- Final Balance After Realization --}}
+                                                <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-50/90 via-amber-50/40 to-white border border-[#a38c29]/40 shadow-2xs">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="w-4 h-4 rounded-full bg-[#a38c29] text-white flex items-center justify-center text-[10px] font-black">=</span>
+                                                        <div>
+                                                            <span class="text-xs font-black uppercase tracking-wider text-slate-900 block leading-tight">Bank Balance After Realization</span>
+                                                            <span class="text-[9px] text-[#8a7522] font-semibold block leading-tight">Post-realization treasury closing</span>
+                                                        </div>
+                                                    </div>
+                                                    <span class="font-mono font-black text-slate-900 text-sm sm:text-base" 
+                                                          x-text="'₹' + bankBalanceAfterRealization.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})">₹0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Bounced / Cancelled Alert Banner --}}
+                                <div x-show="['bounced', 'cancelled'].includes(statusName)" 
+                                     class="mt-5 p-4 rounded-2xl bg-rose-50/40 border border-rose-200 text-xs text-rose-800 flex items-start gap-3" 
+                                     style="display: none;" 
+                                     x-transition>
+                                    <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <div>
+                                        <span class="font-extrabold uppercase tracking-wide block" x-text="statusName === 'bounced' ? 'Instrument Marked As Bounced / Dishonored' : 'Clearance Process Cancelled'"></span>
+                                        <span class="text-rose-700/90 text-[11px] mt-0.5 block">No funds will be credited to company accounts. The instrument will move to the bounced register.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 3. Sticky Modal Footer Action Bar (Always Visible at First View) --}}
+                        <div class="shrink-0 bg-white border-t border-slate-200/90 px-6 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                            <button type="button" @click="processModalOpen = false" 
+                                    class="h-10 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">
+                                ← Back to Queue
+                            </button>
+                            <button type="submit" 
+                                    class="h-10 px-8 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md shadow-[#a38c29]/20 hover:shadow-lg active:scale-95 flex items-center justify-center cursor-pointer">
+                                SUBMIT
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+
+        {{-- ── COMPREHENSIVE CHEQUE DETAILS VIEW MODAL ── --}}
+        <template x-teleport="body">
+            <div x-show="viewModalOpen" 
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-5 bg-slate-950/60 backdrop-blur-xs" 
+                 style="display: none;" 
+                 x-transition.opacity>
+                <div class="w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 my-auto" 
+                     @click.away="viewModalOpen = false">
+                    
+                    {{-- Header --}}
+                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 sm:px-8 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+                        <div class="flex items-center gap-3.5 relative z-10">
+                            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center shadow-inner border border-[#a38c29]/30">
+                                <svg class="w-5 h-5 text-[#f3e5ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">INSTRUMENT DETAILS</span>
+                                    <!-- <span class="text-[10px] text-slate-400 font-semibold" x-text="viewReceipt?.receipt_no || ''"></span> -->
+                                </div>
+                                <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5 flex items-center gap-2">CHEQUE REALIZATION
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 relative z-10">
+                            {{-- Status Badge in Header --}}
+                            <template x-if="viewReceipt">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-2xs"
+                                      :class="viewReceipt.status_badge_classes"
+                                      x-text="`${viewReceipt.status_icon} ${viewReceipt.status_display_name}`">
+                                </span>
+                            </template>
+                            <button type="button" @click="viewModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer" title="Close Modal">✕</button>
+                        </div>
+                    </div>
+
+                    {{-- Modal Scrollable Body --}}
+                    <div class="p-6 sm:p-7 space-y-5 overflow-y-auto flex-1 bg-white">
+                        
+                        {{-- 1. Top Highlight Cards Strip --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                            {{-- Amount --}}
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs">
+                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Receipt Amount</span>
+                                <span class="text-lg sm:text-xl font-mono font-black text-[#a38c29] block" 
+                                      x-text="viewReceipt ? ('₹' + Number(viewReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})) : '₹0.00'">
+                                </span>
+                            </div>
+
+                            {{-- Payment Mode --}}
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs">
+                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Payment Mode</span>
+                                <span class="inline-block px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider"
+                                      :class="['Cheque', 'CHEQUE', 'DD', 'Demand Draft (DD)'].includes(viewReceipt?.payment_mode) ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-800'"
+                                      x-text="viewReceipt?.payment_mode || 'Cheque'">
+                                </span>
+                            </div>
+
+                            {{-- Cheque Date --}}
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs">
+                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Cheque / Inst. Date</span>
+                                <span class="text-xs sm:text-sm font-mono font-bold text-slate-900 block" x-text="viewReceipt?.cheque_date_formatted || '—'"></span>
+                            </div>
+
+                            {{-- Receipt Date --}}
+                            <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs">
+                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Receipt Date</span>
+                                <span class="text-xs sm:text-sm font-mono font-bold text-slate-900 block" x-text="viewReceipt?.date_formatted || '—'"></span>
+                            </div>
+                        </div>
+
+                        {{-- 2. Two-Column Grid: Customer/Project vs Banking/Clearing --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            
+                            {{-- Card Left: Customer & Project Details --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                                <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold text-xs">
+                                        👤
+                                    </div>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Customer & Property Details</h4>
+                                </div>
+
+                                <div class="space-y-3 text-xs">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                                        <span class="text-sm font-extrabold text-slate-900 block mt-0.5" x-text="viewReceipt?.customer_name || '—'"></span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 pt-1">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Contact Phone</span>
+                                            <span class="font-mono font-semibold text-slate-700 block mt-0.5" x-text="viewReceipt?.customer_phone || '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</span>
+                                            <span class="font-medium text-slate-700 truncate block mt-0.5" x-text="viewReceipt?.customer_email || '—'"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit</span>
+                                            <span class="inline-block px-2 py-0.5 rounded text-[11px] bg-slate-100 font-extrabold border border-slate-200 text-slate-800 mt-0.5" x-text="viewReceipt?.unit_number ? ('Unit: ' + viewReceipt.unit_number) : '—'"></span>
+                                        </div>
+                                        <div class="pt-2">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Receipt Voucher No</span>
+                                            <span class="font-mono font-bold text-slate-700 block mt-0.5" x-text="viewReceipt?.receipt_no || '—'"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- 3. Modal Footer Action Bar (Aligned Heights) --}}
-                            <div class="mt-6 pt-5 flex items-center justify-between border-t border-slate-100">
-                                <button type="button" @click="processModalOpen = false" 
-                                        class="h-10 px-6 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">
-                                    ← Back to Queue
-                                </button>
-                                <button type="submit" 
-                                        class="h-10 px-8 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md shadow-[#a38c29]/20 hover:shadow-lg active:scale-95 flex items-center justify-center cursor-pointer">
-                                    SUBMIT
-                                </button>
+                            {{-- Card Right: Bank & Clearing Details --}}
+                            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
+                                <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold text-xs">
+                                        🏦
+                                    </div>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Bank & Clearance Information</h4>
+                                </div>
+
+                                <div class="space-y-3 text-xs">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer's Drawee Bank</span>
+                                        <span class="text-sm font-bold text-slate-900 block mt-0.5" x-text="viewReceipt?.customer_bank || viewReceipt?.drawee_bank || '—'"></span>
+                                    </div>
+
+                                    <div class="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Deposit Company Bank:</span>
+                                            <span class="font-extrabold text-slate-900" x-text="viewReceipt?.company_bank_account_name || '—'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center" x-show="viewReceipt?.company_bank_account_number">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Account No:</span>
+                                            <span class="font-mono font-bold text-slate-800" x-text="viewReceipt?.company_bank_account_number || '—'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center" x-show="viewReceipt?.company_bank_branch">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Branch:</span>
+                                            <span class="font-medium text-slate-700" x-text="viewReceipt?.company_bank_branch || '—'"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 pt-1">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Ref / UTR No</span>
+                                            <span class="font-mono font-bold text-slate-900 block mt-0.5" x-text="viewReceipt?.bank_reference_no || '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Realized / Cleared Date</span>
+                                            <span class="font-mono font-semibold text-slate-800 block mt-0.5" x-text="viewReceipt?.realized_at || 'Awaiting Realization'"></span>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="viewReceipt?.realized_by" class="pt-2 border-t border-slate-100">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Realized By</span>
+                                        <span class="font-bold text-slate-700 block mt-0.5" x-text="viewReceipt?.realized_by || '—'"></span>
+                                    </div>
+                                </div>
                             </div>
-                        </form>
+                        </div>
+
+                        {{-- 3. Remarks Section --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Remarks & Clearing Notes</span>
+                            <p class="text-xs font-medium text-slate-700 leading-relaxed italic" x-text="viewReceipt?.remarks || 'No remarks provided.'"></p>
+                        </div>
+
+                        {{-- 4. Status History & Audit Trail --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                        ⏱
+                                    </div>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Clearance Status History & Audit Trail</h4>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase" x-text="`${viewReceipt?.logs ? viewReceipt.logs.length : 0} Transition(s)`"></span>
+                            </div>
+
+                            <template x-if="viewReceipt?.logs && viewReceipt.logs.length > 0">
+                                <div class="divide-y divide-slate-100">
+                                    <template x-for="(log, lIdx) in viewReceipt.logs" :key="log.id || lIdx">
+                                        <div class="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="log.old_status"></span>
+                                                    <span class="text-slate-400 font-bold">→</span>
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-50 text-[#8a7522] border border-[#a38c29]/30" x-text="log.new_status"></span>
+                                                </div>
+                                                <span class="text-slate-600 font-medium truncate" x-show="log.remarks && log.remarks !== '—'" x-text="'• ' + log.remarks"></span>
+                                            </div>
+                                            <div class="flex items-center gap-3 shrink-0 text-slate-400 text-[11px] font-medium sm:text-right pl-4 sm:pl-0">
+                                                <span class="font-bold text-slate-700" x-text="log.user_name"></span>
+                                                <span>•</span>
+                                                <span class="font-mono" x-text="log.date_formatted"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <template x-if="!viewReceipt?.logs || viewReceipt.logs.length === 0">
+                                <div class="py-4 text-center text-xs text-slate-400 italic">
+                                    No status changes recorded yet. Instrument is awaiting initial clearance.
+                                </div>
+                            </template>
+                        </div>
+
                     </div>
+
+                    {{-- Footer Actions --}}
+                    <div class="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/80 flex items-center justify-between shrink-0">
+                        <button type="button" @click="viewModalOpen = false" 
+                                class="h-10 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition uppercase cursor-pointer">
+                            Close
+                        </button>
+
+                        <template x-if="!viewReceipt?.is_terminal && viewReceipt?.realization_status !== 'realized'">
+                            <button type="button" @click="openProcessFromView()"
+                                    class="h-10 px-6 bg-[#a38c29] hover:bg-[#8a7522] text-white font-black rounded-xl text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 cursor-pointer active:scale-95">
+                                <span>Process This Cheque</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </template>
+                    </div>
+
                 </div>
             </div>
         </template>
