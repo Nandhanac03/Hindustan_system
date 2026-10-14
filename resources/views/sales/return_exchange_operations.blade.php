@@ -2649,27 +2649,32 @@
     </template>
 
     {{-- VIEW EXCHANGE DETAILS MODAL POPUP --}}
-    <div x-show="openViewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openViewExchangeModal = false"></div>
-        <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden animate-fade-in">
-                
-                {{-- Header Combo --}}
-                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4">
-                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10 flex items-center justify-between gap-4">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2 mb-1">
-                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchanged</span>
-                                <!-- <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Audit Trail</span> -->
-                            </div>
-                            <h2 class="text-base sm:text-lg font-extrabold text-white tracking-wider uppercase">EXCHANGE DETAILS</h2>
+    <template x-teleport="body">
+    <div x-show="openViewExchangeModal" 
+         class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;" 
+         x-cloak 
+         x-transition.opacity>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in my-auto"
+             @click.away="openViewExchangeModal = false">
+            
+            {{-- Header Combo (Fixed at Top) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 shrink-0 rounded-t-2xl border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchanged</span>
+                            <!-- <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Audit Trail</span> -->
                         </div>
-                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-wider uppercase">EXCHANGE DETAILS</h2>
                     </div>
+                    <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 cursor-pointer">✕</button>
                 </div>
-                
-                <div class="p-3.5 sm:p-4 space-y-2.5 font-sans text-xs bg-slate-50/50">
+            </div>
+            
+            {{-- Modal Body (Scrollable in between) --}}
+            <div class="p-3.5 sm:p-4 space-y-2.5 font-sans text-xs bg-slate-50/50 flex-1 overflow-y-auto min-h-0">
                     
                     {{-- Primary Customer & Transaction Details Overview Grid --}}
                     <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs">
@@ -3012,18 +3017,20 @@
                         </div>
                     </template>
 
-                    <div class="flex items-center justify-end pt-1">
-                        <button type="button" @click="openViewExchangeModal = false"
-                                class="px-4 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase flex items-center gap-1.5 cursor-pointer">
-                            <span>✕</span>
-                            <span>CLOSE</span>
-                        </button>
-                    </div>
+                </div>
+
+                {{-- Sticky Modal Footer (Fixed at Bottom) --}}
+                <div class="px-6 py-3 bg-white border-t border-slate-200/80 flex items-center justify-end shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.03)] rounded-b-2xl z-10">
+                    <button type="button" @click="openViewExchangeModal = false"
+                            class="px-5 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                        <span>✕</span>
+                        <span>CLOSE</span>
+                    </button>
                 </div>
                 
             </div>
         </div>
-    </div>
+    </template>
 
     {{-- REFUND LEDGER MODAL --}}
     <div x-show="openRefundLedgerModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen">
