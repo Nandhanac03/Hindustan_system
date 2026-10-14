@@ -2867,18 +2867,24 @@ function salesApp() {
         },
         getPaidTillDate(sale) {
             if (!sale) return 0;
+            const receiptsSum = sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
+            if (receiptsSum > 0) {
+                return receiptsSum;
+            }
             if (sale.paid_amount !== undefined && sale.paid_amount !== null && Number(sale.paid_amount) > 0) {
                 return Number(sale.paid_amount);
             }
             if (sale.total_paid !== undefined && sale.total_paid !== null && Number(sale.total_paid) > 0) {
                 return Number(sale.total_paid);
             }
+            if (sale.initial_payment !== undefined && sale.initial_payment !== null && Number(sale.initial_payment) > 0) {
+                return Number(sale.initial_payment);
+            }
             const snap = this.getExchangeSnapshot(sale);
             if (snap && snap.old_sale && snap.old_sale.total_paid !== undefined && snap.old_sale.total_paid !== null) {
                 return Number(snap.old_sale.total_paid);
             }
-            const receiptsSum = sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
-            return receiptsSum;
+            return 0;
         },
         selectExchangeSale(sale) {
             this.selectedExchangeSale = sale;
@@ -3131,37 +3137,42 @@ function salesApp() {
             return Math.round((agreedAmt - expectedAmt) * 100) / 100;
         },
         getExchangeEmiPreview() {
-            const preview = [];
-            const form = this.exchangeForm;
-            const total = parseFloat(form.new_unit_value) || 0;
-            const paid = parseFloat(form.initial_payment_amount) || 0;
-            const remaining = Math.max(0, Math.round((total - paid) * 100) / 100);
+            if (this.exchangeForm.payment_plan !== 'emi') return [];
+            if (this.calculateDifferentialDue() <= 0) return [];
+            const newVal = parseFloat(this.exchangeForm.new_unit_value || 0);
+            const equity = parseFloat(this.exchangeForm.equity_applied || 0);
+            const initPay = parseFloat(this.exchangeForm.initial_payment_amount || 0);
+            const netDue = Math.max(0, Math.round((newVal - equity - initPay) * 100) / 100);
+            const count = parseInt(this.exchangeForm.emi_installment_count) || 1;
+            if (count <= 0 || netDue <= 0) return [];
+            const emiAmt = Math.floor((netDue / count) * 100) / 100;
+            const lastEmiAmt = Math.round((netDue - (emiAmt * (count - 1))) * 100) / 100;
+            
+            const list = [];
+            let baseDateStr = this.exchangeForm.first_installment_date || new Date().toISOString().split('T')[0];
+            let baseDate = new Date(baseDateStr + 'T00:00:00');
+            if (isNaN(baseDate.getTime())) baseDate = new Date();
 
-            if (remaining <= 0 || form.payment_plan !== 'emi') {
-                return preview;
-            }
-            const count = parseInt(form.emi_installment_count) || 0;
-            if (count <= 0) return preview;
-            const emiAmt = Math.round((remaining / count) * 100) / 100;
-            const freq = form.emi_frequency || 'monthly';
-            const firstDate = form.first_installment_date ? new Date(form.first_installment_date) : new Date();
             for (let i = 1; i <= count; i++) {
-                const d = new Date(firstDate);
+                let dueDate = new Date(baseDate);
                 if (i > 1) {
-                    if (freq === 'quarterly') {
-                        d.setMonth(d.getMonth() + (i - 1) * 3);
+                    if (this.exchangeForm.emi_frequency === 'quarterly') {
+                        dueDate.setMonth(dueDate.getMonth() + (i - 1) * 3);
                     } else {
-                        d.setMonth(d.getMonth() + (i - 1));
+                        dueDate.setMonth(dueDate.getMonth() + (i - 1));
                     }
                 }
-                const amt = (i === count) ? (Math.round((remaining - (emiAmt * (count - 1))) * 100) / 100) : emiAmt;
-                preview.push({
-                    label: `EMI ${i}`,
-                    due_date: d.toISOString().split('T')[0],
-                    amount: amt
+                const year = dueDate.getFullYear();
+                const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+                const day = String(dueDate.getDate()).padStart(2, '0');
+                list.push({
+                    installment_no: i,
+                    label: 'EMI ' + i,
+                    due_date: `${year}-${month}-${day}`,
+                    amount: i === count ? lastEmiAmt : emiAmt
                 });
             }
-            return preview;
+            return list;
         },
         updateExchangeInitialPaymentFromPercentage() {
             const form = this.exchangeForm;

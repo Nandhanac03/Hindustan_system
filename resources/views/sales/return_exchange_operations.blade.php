@@ -2381,19 +2381,33 @@
                             </div>
                         </div>
 
-                        {{-- Contract Values --}}
-                        <div class="border border-slate-200 rounded-xl p-5">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Contract Values & Equity Details --}}
+                        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50/50">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Old Contract Value</label>
-                                    <input type="text" :value="fmt(selectedExchangeSale.total_amount)" disabled
-                                           class="w-full px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
+                                    <input type="text" :value="fmt(selectedExchangeSale.total_amount || selectedExchangeSale.sale_amount)" disabled
+                                           class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Old Paid Amount (Transferred)</label>
+                                    <input type="text" :value="fmt(exchangeForm.equity_applied)" disabled
+                                           class="w-full px-3.5 py-2.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-700 font-bold font-mono">
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Contract Value</label>
                                     <input type="text" :value="fmt(exchangeForm.new_unit_value)" disabled
-                                           class="w-full px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
+                                           class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
                                 </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">Remaining Balance Due</label>
+                                    <input type="text" :value="fmt(calculateDifferentialDue())" disabled
+                                           class="w-full px-3.5 py-2.5 bg-indigo-50 border border-indigo-300 rounded-xl text-xs text-indigo-700 font-bold font-mono">
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                                <span class="text-slate-500 font-medium">New Contract Value (₹<span x-text="Number(exchangeForm.new_unit_value || 0).toLocaleString()"></span>) − Old Paid Amount (₹<span x-text="Number(exchangeForm.equity_applied || 0).toLocaleString()"></span>)</span>
+                                <span class="font-bold text-indigo-700 font-mono">Net Due: <span x-text="fmt(calculateDifferentialDue())"></span></span>
                             </div>
                         </div>
 
@@ -2406,15 +2420,15 @@
                             </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Additional Initial Payment Amount & %</label>
                                     <div class="flex gap-2">
-                                        <input type="number" x-model.number="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()"
+                                        <input type="number" x-model.number="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (₹)"
                                                :class="errors.initial_payment_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white'"
-                                               class="w-1/2 px-3 py-2.5 border rounded-xl text-xs font-bold text-slate-800 transition-all">
+                                               class="w-1/2 px-3 py-2.5 border rounded-xl text-xs font-bold text-slate-800 transition-all font-mono">
                                         <input type="number" x-model.number="exchangeForm.initial_payment_percentage" @input="updateExchangeInitialPaymentFromPercentage()" placeholder="Percentage (%)"
-                                               class="w-1/2 px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 transition-all">
+                                               class="w-1/2 px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 transition-all font-mono">
                                     </div>
-                                    <p class="text-[9px] text-slate-400 mt-1">Enter amount or percentage (0 if none)</p>
+                                    <p class="text-[9px] text-slate-400 mt-1">Additional down payment towards new contract (0 if none; old paid equity already transferred)</p>
                                     <template x-if="errors.initial_payment_amount">
                                         <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.initial_payment_amount) ? errors.initial_payment_amount[0] : errors.initial_payment_amount"></p>
                                     </template>
