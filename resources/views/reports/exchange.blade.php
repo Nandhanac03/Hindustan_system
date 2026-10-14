@@ -341,10 +341,12 @@
                                 $newUnitStr = $newDoor . ($newType ? "({$newType})" : "") . ($newFloor ? " - {$newFloor}" : "");
                                 
                                 $oldVal = (float)($snap['old_sale']['total_amount'] ?? $row->total_amount ?? 0);
-                                $paidVal = (float)($row->equity_paid ?? 0);
+                                $oldDownPayment = (float)($row->old_down_payment ?? 0);
+                                $newDownPayment = (float)($row->new_down_payment ?? 0);
+                                $paidVal = (float)($row->equity_paid ?? ($oldDownPayment + $newDownPayment));
                                 $newVal = (float)($newSale?->total_amount ?? ($row->new_unit_value ?? 0));
                                 $netDue = round($newVal - $paidVal, 2);
-                                
+
                                 $statusText = 'Fully Settled';
                                 if ($netDue > 0) {
                                     $statusText = 'PAYABLE BY CUSTOMER';
@@ -380,15 +382,17 @@
                                         'project_name' => $row->project?->name ?? ($snap['project']['name'] ?? '—'),
                                         'unit_details' => $oldUnitStr,
                                         'original_value' => $oldVal,
-                                        'paid_amount' => $paidVal,
+                                        'paid_amount' => $oldDownPayment,
                                     ],
                                     'new_unit' => [
                                         'project_name' => $newSale?->project?->name ?? ($row->project?->name ?? '—'),
                                         'unit_details' => $newUnitStr,
                                         'new_value' => $newVal,
-                                        'transferred_equity' => $paidVal,
+                                        'transferred_equity' => $newDownPayment,
                                     ],
                                     'paid_amount' => $paidVal,
+                                    'old_down_payment' => $oldDownPayment,
+                                    'new_down_payment' => $newDownPayment,
                                     'net_balance_due' => abs($netDue),
                                     'net_due_raw' => $netDue,
                                     'status_text' => $statusText,
@@ -401,7 +405,7 @@
                                         'old_door_no' => $archivedOldUnit['door_no'] ?? $oldDoor,
                                         'old_type_and_floor' => trim(($archivedOldUnit['unit_type_name'] ?? $oldType) . ' • ' . ($archivedOldUnit['floor_name'] ?? $oldFloor), ' •'),
                                         'old_contract_value' => (float)($archivedOldSale['total_amount'] ?? $oldVal),
-                                        'total_paid' => (float)($archivedOldSale['total_paid'] ?? $paidVal),
+                                        'total_paid' => $oldDownPayment,
                                         'receipts_count' => count($archivedReceipts),
                                         'carry_forward' => !empty($archivedMeta['carry_forward']) ? 'YES (EQUITY TRANSFERRED)' : 'No',
                                         'processed_by' => $archivedMeta['exchanged_by_user'] ?? 'Owner',
@@ -605,7 +609,7 @@
                                     <span class="text-rose-600 font-extrabold font-mono text-xs block" x-text="fmtMoney(selectedExchangeSale?.old_unit?.original_value)"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PAID AMOUNT</span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">OLD CONTRACT PAID</span>
                                     <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="fmtMoney(selectedExchangeSale?.old_unit?.paid_amount)"></span>
                                 </div>
                             </div>
@@ -631,7 +635,7 @@
                                     <span class="text-emerald-700 font-extrabold font-mono text-xs block" x-text="fmtMoney(selectedExchangeSale?.new_unit?.new_value)"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">TRANSFERRED EQUITY</span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">NEW CONTRACT PAID</span>
                                     <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="fmtMoney(selectedExchangeSale?.new_unit?.transferred_equity)"></span>
                                 </div>
                             </div>
@@ -639,14 +643,18 @@
                     </div>
 
                     {{-- Financial calculations --}}
-                    <div class="bg-white border border-slate-200/90 rounded-xl p-3 grid grid-cols-3 gap-3 divide-x divide-slate-100 shadow-2xs">
+                    <div class="bg-white border border-slate-200/90 rounded-xl p-3 grid grid-cols-4 gap-3 divide-x divide-slate-100 shadow-2xs">
                         <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAID AMOUNT</p>
-                            <p class="text-sm font-extrabold text-emerald-600 font-mono mt-0.5" x-text="fmtMoney(selectedExchangeSale?.paid_amount)"></p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">OLD CONTRACT PAID</p>
+                            <p class="text-sm font-extrabold text-rose-600 font-mono mt-0.5" x-text="fmtMoney(selectedExchangeSale?.old_down_payment)"></p>
                         </div>
                         <div class="text-center px-2">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NET BALANCE DUE</p>
-                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmtMoney(selectedExchangeSale?.net_balance_due)"></p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NEW CONTRACT PAID</p>
+                            <p class="text-sm font-extrabold text-blue-600 font-mono mt-0.5" x-text="fmtMoney(selectedExchangeSale?.new_down_payment)"></p>
+                        </div>
+                        <div class="text-center px-2">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">TOTAL PAID</p>
+                            <p class="text-sm font-extrabold text-emerald-600 font-mono mt-0.5" x-text="fmtMoney(selectedExchangeSale?.paid_amount)"></p>
                         </div>
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAYABLE / REFUNDABLE</p>
@@ -705,12 +713,12 @@
 
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
                                         <div>
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">TOTAL PAID AMOUNT</span>
-                                            <span class="font-extrabold text-emerald-600 font-mono text-xs block truncate" x-text="fmtMoney(selectedExchangeSale?.snapshot?.total_paid)"></span>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">OLD CONTRACT PAID</span>
+                                            <span class="font-extrabold text-rose-600 font-mono text-xs block truncate" x-text="fmtMoney(selectedExchangeSale?.old_down_payment)"></span>
                                         </div>
                                         <div>
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">RECEIPTS COUNT</span>
-                                            <span class="font-bold text-slate-800 font-mono text-xs block truncate" x-text="selectedExchangeSale?.snapshot?.receipts_count || 0"></span>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">NEW CONTRACT PAID</span>
+                                            <span class="font-extrabold text-blue-600 font-mono text-xs block truncate" x-text="fmtMoney(selectedExchangeSale?.new_down_payment)"></span>
                                         </div>
                                         <div>
                                             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">CARRIED FORWARD</span>

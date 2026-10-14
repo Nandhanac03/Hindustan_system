@@ -2722,12 +2722,34 @@ class ReportController extends Controller
             $sale->new_unit_value = (float)($sale->total_amount ?? 0);
         }
 
-        // 7. Equity Paid
-        $equity = (float)($sale->transferred_equity ?? 0);
-        if ($equity <= 0 && $sale->relationLoaded('receipts')) {
-            $equity = (float)$sale->receipts->sum('amount');
+        // 7. Equity Paid = Old contract paid (archived snapshot) + New contract paid (new sale receipts)
+        $exSnap = $exLog?->snapshot_data ?? [];
+        $carryForward = !empty($exSnap['exchange_meta']['carry_forward']);
+
+        // Old down payment: total amount paid on the OLD contract (from the archived snapshot)
+        $oldDownPayment = (float)($exSnap['old_sale']['total_paid'] ?? 0);
+        if ($oldDownPayment <= 0) {
+            // Fallback to transferred_equity or old sale receipts
+            $oldDownPayment = (float)($sale->transferred_equity ?? 0);
+            if ($oldDownPayment <= 0 && $sale->relationLoaded('receipts')) {
+                $oldDownPayment = (float)$sale->receipts->sum('amount');
+            }
         }
-        $sale->equity_paid = $equity;
+
+        // New down payment: amount paid ONLY on the NEW contract.
+        // When carry_forward=true, old receipts are physically moved to the new sale,
+        // so new sale's receipts total already includes the old payments — subtract them
+        // to avoid double-counting.
+        $newSaleReceiptsTotal = $newSale ? (float)$newSale->receipts()->sum('amount') : 0.0;
+        if ($carryForward) {
+            $newDownPayment = max(0.0, $newSaleReceiptsTotal - $oldDownPayment);
+        } else {
+            $newDownPayment = $newSaleReceiptsTotal;
+        }
+
+        $sale->old_down_payment = $oldDownPayment;
+        $sale->new_down_payment = $newDownPayment;
+        $sale->equity_paid      = $oldDownPayment + $newDownPayment;
 
         return $sale;
     }
