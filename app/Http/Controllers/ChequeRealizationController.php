@@ -21,7 +21,7 @@ class ChequeRealizationController extends Controller
      */
     public function realizationQueue(Request $request): View
     {
-        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'bank'])
+        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank', 'realizedBy', 'realizationLogs.changedBy'])
             ->whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited', 'in_clearing', 'bounced', 'cancelled'])
             ->latest('receipt_date');
 
@@ -46,76 +46,10 @@ class ChequeRealizationController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
         $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
 
-        $chequeStatusesMap = [];
-        foreach ($chequeStatuses as $cs) {
-            $key = strtolower(str_replace(' ', '_', trim($cs->name)));
-            $color = strtolower($cs->color_code ?? 'slate-500');
-            $badgeClasses = match(true) {
-                str_contains($color, 'emerald') || str_contains($color, 'green') => 'bg-emerald-50 text-emerald-800 border-emerald-300',
-                str_contains($color, 'amber') || str_contains($color, 'orange') || str_contains($color, 'yellow') => 'bg-amber-50 text-amber-800 border-amber-300',
-                str_contains($color, 'blue') => 'bg-blue-50 text-blue-800 border-blue-300',
-                str_contains($color, 'rose') || str_contains($color, 'red') => 'bg-rose-50 text-rose-800 border-rose-300',
-                str_contains($color, 'purple') || str_contains($color, 'violet') => 'bg-purple-50 text-purple-800 border-purple-300',
-                default => 'bg-slate-100 text-slate-700 border-slate-300',
-            };
-            $chequeStatusesMap[$key] = [
-                'name' => strtoupper($cs->name),
-                'badge_classes' => $badgeClasses,
-            ];
-        }
+        $chequeStatusesMap = $this->buildChequeStatusesMap($chequeStatuses);
 
         $allReceipts = $query->get();
-        $allReceiptsFormatted = $allReceipts->map(function($r) use ($chequeStatusesMap) {
-            $bankName = $r->companyBankAccount?->bank_name;
-            $accNo    = $r->companyBankAccount?->account_number;
-            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
-            $rst      = strtolower($r->realization_status ?? 'pending');
-            $rstMaster = $chequeStatusesMap[$rst] ?? null;
-            $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
-                'realized' => 'bg-emerald-50 text-emerald-800 border-emerald-300',
-                'cheque_in_hand' => 'bg-amber-50 text-amber-800 border-amber-300',
-                'deposited' => 'bg-blue-50 text-blue-800 border-blue-300',
-                'in_clearing' => 'bg-sky-50 text-sky-800 border-sky-300',
-                'bounced' => 'bg-rose-50 text-rose-800 border-rose-300',
-                default => 'bg-slate-100 text-slate-700 border-slate-300'
-            };
-            $statusName = $rstMaster ? $rstMaster['name'] : strtoupper(str_replace('_', ' ', $rst));
-
-            $icons = [
-                'pending'        => '⏳',
-                'cheque_in_hand' => '🖐',
-                'deposited'      => '🏦',
-                'in_clearing'    => '🔄',
-                'realized'       => '✅',
-                'bounced'        => '❌',
-                'cancelled'      => '🚫',
-            ];
-
-            return [
-                'id'                          => $r->id,
-                'receipt_no'                  => $r->receipt_no ?? ('RV/2025-26/' . str_pad($r->id, 6, '0', STR_PAD_LEFT)),
-                'ref'                         => $r->reference_no ?: ('REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT)),
-                'date'                        => $r->receipt_date?->format('Y-m-d'),
-                'date_formatted'              => $r->receipt_date?->format('d M Y') ?? '—',
-                'customer_id'                 => $r->customer_id,
-                'customer_name'               => $r->customer?->name ?? '—',
-                'company_bank_account_id'     => $r->company_bank_account_id,
-                'company_bank_account_name'   => $bankName,
-                'company_bank_account_number' => $accNo,
-                'customer_bank'               => $custBank,
-                'drawee_bank'                 => $custBank ?: '—',
-                'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
-                'cheque_date_formatted'       => $r->cheque_date?->format('d M Y') ?? '—',
-                'amount'                      => (float)$r->amount,
-                'payment_mode'                => $r->payment_mode ?: 'Cheque',
-                'realization_status'          => $r->realization_status ?? 'pending',
-                'status_display_name'         => $statusName,
-                'status_badge_classes'        => $badgeClasses,
-                'status_icon'                 => $icons[$r->realization_status] ?? '•',
-                'remarksText'                 => $r->realizationLogs->first()?->remarks ?? ($r->remarks ?? ''),
-                'is_terminal'                 => in_array($r->realization_status, ['bounced', 'cancelled']),
-            ];
-        });
+        $allReceiptsFormatted = $this->formatReceipts($allReceipts, $chequeStatusesMap);
 
         return view('cheque-realization.queue', compact(
             'pendingReceipts',
@@ -139,7 +73,7 @@ class ChequeRealizationController extends Controller
      */
     public function realizedReceipts(Request $request): View
     {
-        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'bank'])
+        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank', 'realizedBy', 'realizationLogs.changedBy'])
             ->where('realization_status', 'realized')
             ->latest('receipt_date');
 
@@ -164,76 +98,10 @@ class ChequeRealizationController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
         $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
 
-        $chequeStatusesMap = [];
-        foreach ($chequeStatuses as $cs) {
-            $key = strtolower(str_replace(' ', '_', trim($cs->name)));
-            $color = strtolower($cs->color_code ?? 'slate-500');
-            $badgeClasses = match(true) {
-                str_contains($color, 'emerald') || str_contains($color, 'green') => 'bg-emerald-50 text-emerald-800 border-emerald-300',
-                str_contains($color, 'amber') || str_contains($color, 'orange') || str_contains($color, 'yellow') => 'bg-amber-50 text-amber-800 border-amber-300',
-                str_contains($color, 'blue') => 'bg-blue-50 text-blue-800 border-blue-300',
-                str_contains($color, 'rose') || str_contains($color, 'red') => 'bg-rose-50 text-rose-800 border-rose-300',
-                str_contains($color, 'purple') || str_contains($color, 'violet') => 'bg-purple-50 text-purple-800 border-purple-300',
-                default => 'bg-slate-100 text-slate-700 border-slate-300',
-            };
-            $chequeStatusesMap[$key] = [
-                'name' => strtoupper($cs->name),
-                'badge_classes' => $badgeClasses,
-            ];
-        }
+        $chequeStatusesMap = $this->buildChequeStatusesMap($chequeStatuses);
 
         $allReceipts = $query->get();
-        $allReceiptsFormatted = $allReceipts->map(function($r) use ($chequeStatusesMap) {
-            $bankName = $r->companyBankAccount?->bank_name;
-            $accNo    = $r->companyBankAccount?->account_number;
-            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
-            $rst      = strtolower($r->realization_status ?? 'pending');
-            $rstMaster = $chequeStatusesMap[$rst] ?? null;
-            $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
-                'realized' => 'bg-emerald-50 text-emerald-800 border-emerald-300',
-                'cheque_in_hand' => 'bg-amber-50 text-amber-800 border-amber-300',
-                'deposited' => 'bg-blue-50 text-blue-800 border-blue-300',
-                'in_clearing' => 'bg-sky-50 text-sky-800 border-sky-300',
-                'bounced' => 'bg-rose-50 text-rose-800 border-rose-300',
-                default => 'bg-slate-100 text-slate-700 border-slate-300'
-            };
-            $statusName = $rstMaster ? $rstMaster['name'] : strtoupper(str_replace('_', ' ', $rst));
-
-            $icons = [
-                'pending'        => '⏳',
-                'cheque_in_hand' => '🖐',
-                'deposited'      => '🏦',
-                'in_clearing'    => '🔄',
-                'realized'       => '✅',
-                'bounced'        => '❌',
-                'cancelled'      => '🚫',
-            ];
-
-            return [
-                'id'                          => $r->id,
-                'receipt_no'                  => $r->receipt_no ?? ('RV/2025-26/' . str_pad($r->id, 6, '0', STR_PAD_LEFT)),
-                'ref'                         => $r->reference_no ?: ('REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT)),
-                'date'                        => $r->receipt_date?->format('Y-m-d'),
-                'date_formatted'              => $r->receipt_date?->format('d M Y') ?? '—',
-                'customer_id'                 => $r->customer_id,
-                'customer_name'               => $r->customer?->name ?? '—',
-                'company_bank_account_id'     => $r->company_bank_account_id,
-                'company_bank_account_name'   => $bankName,
-                'company_bank_account_number' => $accNo,
-                'customer_bank'               => $custBank,
-                'drawee_bank'                 => $custBank ?: '—',
-                'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
-                'cheque_date_formatted'       => $r->cheque_date?->format('d M Y') ?? '—',
-                'amount'                      => (float)$r->amount,
-                'payment_mode'                => $r->payment_mode ?: 'Cheque',
-                'realization_status'          => $r->realization_status ?? 'pending',
-                'status_display_name'         => $statusName,
-                'status_badge_classes'        => $badgeClasses,
-                'status_icon'                 => $icons[$r->realization_status] ?? '•',
-                'remarksText'                 => $r->realizationLogs->first()?->remarks ?? ($r->remarks ?? ''),
-                'is_terminal'                 => in_array($r->realization_status, ['bounced', 'cancelled']),
-            ];
-        });
+        $allReceiptsFormatted = $this->formatReceipts($allReceipts, $chequeStatusesMap);
 
         return view('cheque-realization.queue', compact(
             'pendingReceipts',
@@ -250,6 +118,139 @@ class ChequeRealizationController extends Controller
             'customers',
             'chequeStatuses'
         ));
+    }
+
+    /**
+     * Map cheque statuses with respective badge CSS classes.
+     */
+    private function buildChequeStatusesMap($chequeStatuses): array
+    {
+        $map = [];
+        foreach ($chequeStatuses as $cs) {
+            $key = strtolower(str_replace(' ', '_', trim($cs->name)));
+            $color = strtolower($cs->color_code ?? 'slate-500');
+            $badgeClasses = match(true) {
+                str_contains($color, 'emerald') || str_contains($color, 'green') => 'bg-emerald-50 text-emerald-800 border-emerald-300',
+                str_contains($color, 'amber') || str_contains($color, 'orange') || str_contains($color, 'yellow') => 'bg-amber-50 text-amber-800 border-amber-300',
+                str_contains($color, 'blue') => 'bg-blue-50 text-blue-800 border-blue-300',
+                str_contains($color, 'rose') || str_contains($color, 'red') => 'bg-rose-50 text-rose-800 border-rose-300',
+                str_contains($color, 'purple') || str_contains($color, 'violet') => 'bg-purple-50 text-purple-800 border-purple-300',
+                default => 'bg-slate-100 text-slate-700 border-slate-300',
+            };
+            $map[$key] = [
+                'name' => strtoupper($cs->name),
+                'badge_classes' => $badgeClasses,
+            ];
+        }
+        return $map;
+    }
+
+    /**
+     * Format receipts into comprehensive payload for Alpine.js table and detail modals.
+     */
+    private function formatReceipts($receipts, array $chequeStatusesMap): array
+    {
+        $icons = [
+            'pending'        => '⏳',
+            'cheque_in_hand' => '🖐',
+            'deposited'      => '🏦',
+            'in_clearing'    => '🔄',
+            'realized'       => '✅',
+            'bounced'        => '❌',
+            'cancelled'      => '🚫',
+        ];
+
+        return $receipts->map(function($r) use ($chequeStatusesMap, $icons) {
+            $bankName = $r->companyBankAccount?->bank_name;
+            $accNo    = $r->companyBankAccount?->account_number;
+            $accTitle = $r->companyBankAccount?->account_name;
+            $branch   = $r->companyBankAccount?->branch_name;
+            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
+            $rst      = strtolower($r->realization_status ?? 'pending');
+            $rstMaster = $chequeStatusesMap[$rst] ?? null;
+            $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
+                'realized' => 'bg-emerald-50 text-emerald-800 border-emerald-300',
+                'cheque_in_hand' => 'bg-amber-50 text-amber-800 border-amber-300',
+                'deposited' => 'bg-blue-50 text-blue-800 border-blue-300',
+                'in_clearing' => 'bg-sky-50 text-sky-800 border-sky-300',
+                'bounced' => 'bg-rose-50 text-rose-800 border-rose-300',
+                default => 'bg-slate-100 text-slate-700 border-slate-300'
+            };
+            $statusName = $rstMaster ? $rstMaster['name'] : strtoupper(str_replace('_', ' ', $rst));
+
+            $latestLog = $r->realizationLogs->first();
+            $remarksText = $latestLog?->remarks ?? ($r->remarks ?? '');
+            $bankRef = '';
+            foreach ($r->realizationLogs as $l) {
+                if ($l->remarks && preg_match('/\(Bank Ref:\s*(.*?)\)/', $l->remarks, $matches)) {
+                    $bankRef = $matches[1];
+                    break;
+                }
+            }
+            if (!$bankRef && $r->remarks && preg_match('/\(Bank Ref:\s*(.*?)\)/', $r->remarks, $matches)) {
+                $bankRef = $matches[1];
+            }
+
+            $cleanRemarks = $remarksText;
+            if ($cleanRemarks && preg_match('/\(Bank Ref:\s*(.*?)\)/', $cleanRemarks, $matches)) {
+                $cleanRemarks = trim(str_replace($matches[0], '', $cleanRemarks));
+            }
+
+            $logs = $r->realizationLogs->map(function ($log) {
+                $logRem = $log->remarks ?? '';
+                $logRef = '';
+                if ($logRem && preg_match('/\(Bank Ref:\s*(.*?)\)/', $logRem, $m)) {
+                    $logRef = $m[1];
+                    $logRem = trim(str_replace($m[0], '', $logRem));
+                }
+                return [
+                    'id'             => $log->id,
+                    'old_status'     => $log->old_status_label ?? $log->old_status ?? '—',
+                    'new_status'     => $log->new_status_label ?? $log->new_status ?? '—',
+                    'remarks'        => $logRem ?: '—',
+                    'bank_ref'       => $logRef,
+                    'user_name'      => $log->changedBy?->name ?? 'System',
+                    'date_formatted' => $log->created_at?->format('d M Y, h:i A') ?? '—',
+                ];
+            })->values()->all();
+
+            return [
+                'id'                          => $r->id,
+                'receipt_no'                  => $r->receipt_no ?? ('RV/2025-26/' . str_pad((string)$r->id, 6, '0', STR_PAD_LEFT)),
+                'ref'                         => $r->reference_no ?: ('REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT)),
+                'date'                        => $r->receipt_date?->format('Y-m-d'),
+                'date_formatted'              => $r->receipt_date?->format('d M Y') ?? '—',
+                'customer_id'                 => $r->customer_id,
+                'customer_name'               => $r->customer?->name ?? '—',
+                'customer_phone'              => $r->customer?->phone ?? '—',
+                'customer_email'              => $r->customer?->email ?? '—',
+                'customer_address'            => $r->customer?->address ?? '—',
+                'project_name'                => $r->project?->name ?? '—',
+                'unit_number'                 => $r->unit?->unit_number ?? ($r->unit?->door_no ?? '—'),
+                'company_bank_account_id'     => $r->company_bank_account_id,
+                'company_bank_account_name'   => $bankName,
+                'company_bank_account_number' => $accNo,
+                'company_bank_account_title'  => $accTitle,
+                'company_bank_branch'         => $branch,
+                'customer_bank'               => $custBank,
+                'drawee_bank'                 => $custBank ?: '—',
+                'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
+                'cheque_date_formatted'       => $r->cheque_date?->format('d M Y') ?? '—',
+                'amount'                      => (float)$r->amount,
+                'payment_mode'                => $r->payment_mode ?: 'Cheque',
+                'realization_status'          => $r->realization_status ?? 'pending',
+                'status_display_name'         => $statusName,
+                'status_badge_classes'        => $badgeClasses,
+                'status_icon'                 => $icons[$r->realization_status] ?? '•',
+                'remarks'                     => $cleanRemarks ?: ($r->remarks ?: '—'),
+                'remarksText'                 => $remarksText,
+                'bank_reference_no'           => $bankRef,
+                'realized_at'                 => $r->realized_at?->format('d M Y, h:i A') ?? null,
+                'realized_by'                 => $r->realizedBy?->name ?? null,
+                'is_terminal'                 => in_array($r->realization_status, ['bounced', 'cancelled']),
+                'logs'                        => $logs,
+            ];
+        })->values()->all();
     }
 
     /**
