@@ -19,14 +19,14 @@ class UnitMatrixController extends Controller
 
         $project = Project::find($selectedProjectId) ?? $projects->first();
 
-        if (!$project) {
-            abort(404, 'No active project found for this system.');
-        }
-
-        $floors = Floor::where('project_id', $project->id)->orderBy('floor_number')->get();
+        $floors = $project ? Floor::where('project_id', $project->id)->orderBy('floor_number')->get() : collect();
         $unitTypes = UnitType::where('is_active', true)
             ->where(function ($q) use ($project) {
-                $q->whereNull('project_id')->orWhere('project_id', $project->id);
+                if ($project) {
+                    $q->whereNull('project_id')->orWhere('project_id', $project->id);
+                } else {
+                    $q->whereNull('project_id');
+                }
             })
             ->get();
         $customers = Customer::orderBy('name')->get();
@@ -40,100 +40,105 @@ class UnitMatrixController extends Controller
         $selectedCustomerId = $request->input('customer_id');
         $selectedCustomerIds = is_array($selectedCustomerId) ? $selectedCustomerId : ($selectedCustomerId ? [$selectedCustomerId] : []);
 
-        $matrixFloors = Floor::where('project_id', $project->id)
-            ->orderBy('floor_number', 'desc')
-            ->with(['units' => function($q) use ($selectedCustomerIds) {
-                $q->with(['booking', 'unitType', 'sale.customer', 'saleUnits.sale.customer'])
-                  ->orderBy('door_no');
-                if (!empty($selectedCustomerIds)) {
-                    $q->where(function($uq) use ($selectedCustomerIds) {
-                        $uq->whereHas('sale', function ($sq) use ($selectedCustomerIds) {
-                            $sq->whereIn('customer_id', $selectedCustomerIds)
-                               ->where('status', 'active');
-                        })->orWhereHas('saleUnits.sale', function ($sq) use ($selectedCustomerIds) {
-                            $sq->whereIn('customer_id', $selectedCustomerIds)
-                               ->where('status', 'active');
+        if ($project) {
+            $matrixFloors = Floor::where('project_id', $project->id)
+                ->orderBy('floor_number', 'desc')
+                ->with(['units' => function($q) use ($selectedCustomerIds) {
+                    $q->with(['booking', 'unitType', 'sale.customer', 'saleUnits.sale.customer'])
+                      ->orderBy('door_no');
+                    if (!empty($selectedCustomerIds)) {
+                        $q->where(function($uq) use ($selectedCustomerIds) {
+                            $uq->whereHas('sale', function ($sq) use ($selectedCustomerIds) {
+                                $sq->whereIn('customer_id', $selectedCustomerIds)
+                                   ->where('status', 'active');
+                            })->orWhereHas('saleUnits.sale', function ($sq) use ($selectedCustomerIds) {
+                                $sq->whereIn('customer_id', $selectedCustomerIds)
+                                   ->where('status', 'active');
+                            });
                         });
-                    });
-                }
-            }])
-            ->get();
+                    }
+                }])
+                ->get();
 
-        $allUnits = Unit::with(['floor', 'unitType', 'booking', 'sale.customer', 'saleUnits.sale.customer'])
-            ->where('project_id', $project->id)
-            ->orderBy('floor_id')
-            ->orderBy('door_no')
-            ->get();
+            $allUnits = Unit::with(['floor', 'unitType', 'booking', 'sale.customer', 'saleUnits.sale.customer'])
+                ->where('project_id', $project->id)
+                ->orderBy('floor_id')
+                ->orderBy('door_no')
+                ->get();
 
-        $regularFloors = [];
-        foreach ($matrixFloors as $floor) {
-            $isParking = false;
-            if (stripos($floor->name, 'parking') !== false || stripos($floor->name, 'basement') !== false) {
-                $isParking = true;
-            } else {
-                $parkingUnitsCount = $floor->units->where('unit_type_id', 5)->count();
-                if ($floor->units->isNotEmpty() && $parkingUnitsCount === $floor->units->count()) {
+            $regularFloors = [];
+            foreach ($matrixFloors as $floor) {
+                $isParking = false;
+                if (stripos($floor->name, 'parking') !== false || stripos($floor->name, 'basement') !== false) {
                     $isParking = true;
+                } else {
+                    $parkingUnitsCount = $floor->units->where('unit_type_id', 5)->count();
+                    if ($floor->units->isNotEmpty() && $parkingUnitsCount === $floor->units->count()) {
+                        $isParking = true;
+                    }
+                }
+
+                if ($isParking) {
+                    $rowUnits = $floor->units->sortBy('door_no')->values();
+                    $parkingRows[] = [
+                        'floor'        => $floor,
+                        'display_name' => $floor->name,
+                        'units'        => $rowUnits,
+                    ];
+                } else {
+                    $regularFloors[] = $floor;
                 }
             }
 
-            if ($isParking) {
-                $rowUnits = $floor->units->sortBy('door_no')->values();
-                $parkingRows[] = [
+            $allDoorNos = collect();
+            foreach ($regularFloors as $floor) {
+                foreach ($floor->units as $unit) {
+                    $allDoorNos->push($unit->door_no);
+                }
+            }
+            
+            $matrixColumns = $allDoorNos->unique()->sortBy(function($doorNo) {
+                return [strlen($doorNo), $doorNo];
+            })->values()->toArray();
+
+            foreach ($regularFloors as $floor) {
+                $unitsByDoor = $floor->units->keyBy('door_no');
+                $cols = [];
+                foreach ($matrixColumns as $doorNo) {
+                    $cols[$doorNo] = $unitsByDoor->get($doorNo);
+                }
+
+                $floorMatrix[] = [
                     'floor'        => $floor,
                     'display_name' => $floor->name,
-                    'units'        => $rowUnits,
+                    'columns'      => $cols,
                 ];
-            } else {
-                $regularFloors[] = $floor;
-            }
-        }
-
-        $allDoorNos = collect();
-        foreach ($regularFloors as $floor) {
-            foreach ($floor->units as $unit) {
-                $allDoorNos->push($unit->door_no);
-            }
-        }
-        
-        $matrixColumns = $allDoorNos->unique()->sortBy(function($doorNo) {
-            return [strlen($doorNo), $doorNo];
-        })->values()->toArray();
-
-        foreach ($regularFloors as $floor) {
-            $unitsByDoor = $floor->units->keyBy('door_no');
-            $cols = [];
-            foreach ($matrixColumns as $doorNo) {
-                $cols[$doorNo] = $unitsByDoor->get($doorNo);
             }
 
-            $floorMatrix[] = [
-                'floor'        => $floor,
-                'display_name' => $floor->name,
-                'columns'      => $cols,
-            ];
+            $parkingRows = array_map(function($pRow, $index) {
+                $pRow['display_name'] = 'P' . ($index + 1);
+                return $pRow;
+            }, $parkingRows, array_keys($parkingRows));
+
+            $salesList = Sale::with([
+                'customer', 
+                'unit.unitType', 
+                'unit.floor', 
+                'project', 
+                'broker', 
+                'saleUnits.unit.unitType', 
+                'saleUnits.unit.floor',
+                'extraWorks'
+            ])
+            ->where('project_id', $project->id)
+            ->where('status', 'active')
+            ->when(!empty($selectedCustomerIds), fn($q) => $q->whereIn('customer_id', $selectedCustomerIds))
+            ->orderByDesc('sale_date')
+            ->get();
+        } else {
+            $allUnits = collect();
+            $salesList = collect();
         }
-
-        $parkingRows = array_map(function($pRow, $index) {
-            $pRow['display_name'] = 'P' . ($index + 1);
-            return $pRow;
-        }, $parkingRows, array_keys($parkingRows));
-
-        $salesList = Sale::with([
-            'customer', 
-            'unit.unitType', 
-            'unit.floor', 
-            'project', 
-            'broker', 
-            'saleUnits.unit.unitType', 
-            'saleUnits.unit.floor',
-            'extraWorks'
-        ])
-        ->where('project_id', $project->id)
-        ->where('status', 'active')
-        ->when(!empty($selectedCustomerIds), fn($q) => $q->whereIn('customer_id', $selectedCustomerIds))
-        ->orderByDesc('sale_date')
-        ->get();
 
         return view('unit-matrix.index', compact('project', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns', 'floors', 'unitTypes', 'customers', 'salesList', 'allUnits', 'selectedStatus'));
     }

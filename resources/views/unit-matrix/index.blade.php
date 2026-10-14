@@ -57,7 +57,7 @@ window.getStatusBadgeClass = function(status) {
 function unitMatrixApp() {
     return {
         // App states
-        projectId: {{ $project->id }},
+        projectId: {{ $project ? $project->id : 'null' }},
         unitTypeMap: @js($unitTypes->keyBy('id')->map(fn($t) => ['name' => $t->name, 'category' => $t->category])),
         allUnits: @js($allUnits),
         selectedStatus: '{{ $selectedStatus ?? '' }}',
@@ -780,6 +780,50 @@ window.unitMatrixApp = unitMatrixApp;
         <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
     </div>
 
+    {{-- Top Action Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">
+                    Project:
+                </h1>
+                @if(isset($projects) && $projects->count() > 1)
+                    <form method="GET" action="{{ route('units-matrix') }}" class="inline">
+                        <select name="project_id" onchange="this.form.submit()" class="px-3 py-1 text-xs font-extrabold uppercase tracking-wide rounded-xl border border-slate-300 bg-white text-primary-700 focus:ring-2 focus:ring-[#a38c29]/50 shadow-sm cursor-pointer">
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}" {{ ($project && $project->id == $p->id) ? 'selected' : '' }}>
+                                    {{ $p->name }} {{ $p->is_active ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @else
+                    <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project ? $project->name : 'No Project Selected' }}</span>
+                @endif
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Visual Floor Matrix, Unit Availability, and Allocation Grid for <span class="font-bold text-slate-700">{{ $project->name ?? 'the system' }}</span>.</p>
+        </div>
+    </div>
+
+    @if(!$project)
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-12 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center mb-4 shadow-sm">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 tracking-tight uppercase">No Project Found</h3>
+            <p class="text-xs text-slate-500 max-w-md mt-1 mb-6 font-medium">There are currently no active projects configured in the system. Create a project in Project Masters to view unit matrix and availability grid.</p>
+            @can('projects.manage')
+                <a href="{{ route('projects.index') }}" class="btn-ripple inline-flex items-center gap-2 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Go to Project Masters
+                </a>
+            @endcan
+        </div>
+    @else
     {{-- Filter Units and Excel Report by Status --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
         <div class="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
@@ -2425,6 +2469,7 @@ window.unitMatrixApp = unitMatrixApp;
               </tr>
         </tbody>
     </table>
+    @endif
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>

@@ -15,21 +15,21 @@
                     <form method="GET" action="{{ route('units.index') }}" class="inline">
                         <select name="project_id" onchange="this.form.submit()" class="px-3 py-1 text-xs font-extrabold uppercase tracking-wide rounded-xl border border-slate-300 bg-white text-primary-700 focus:ring-2 focus:ring-[#a38c29]/50 shadow-sm cursor-pointer">
                             @foreach($projects as $p)
-                                <option value="{{ $p->id }}" {{ $project->id == $p->id ? 'selected' : '' }}>
+                                <option value="{{ $p->id }}" {{ ($project && $project->id == $p->id) ? 'selected' : '' }}>
                                     {{ $p->name }} {{ $p->is_active ? '(Active)' : '' }}
                                 </option>
                             @endforeach
                         </select>
                     </form>
                 @else
-                    <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project->name }}</span>
+                    <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project ? $project->name : 'No Project Selected' }}</span>
                 @endif
             </div>
-            <p class="text-xs text-slate-500 mt-1">Manage single unit listings, pricing matrices, and floor allocations for <span class="font-bold text-slate-700">{{ $project->name }}</span>.</p>
+            <p class="text-xs text-slate-500 mt-1">Manage single unit listings, pricing matrices, and floor allocations for <span class="font-bold text-slate-700">{{ $project->name ?? 'the system' }}</span>.</p>
         </div>
 
         <div class="flex items-center gap-2.5">
-            <template x-if="permissions.manage">
+            <template x-if="permissions.manage && projectId">
                 <div class="flex items-center gap-2">
 
                     <button @click="openAddModal()" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
@@ -57,83 +57,103 @@
     </div>
 
     {{-- Project Overview Banner Card --}}
-   @php
-    $projectImage = $project->display_image;
-@endphp
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-3">
-        {{-- Project Image --}}
-        <div class="w-full md:w-[300px] h-[240px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">
-            <img src="{{ $projectImage }}" 
-                 onerror="this.onerror=null;this.src='{{ asset('img/default-project.jpg') }}';" 
-                 alt="{{ $project->name }}" 
-                 class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-            <!-- <div class="absolute bottom-3 left-3">
-                <span class="text-[9px] font-bold px-2 py-0.5 bg-primary text-white rounded-md uppercase font-mono tracking-wider">{{ $project->code }}</span>
-            </div> -->
-        </div>
+    @if($project)
+        @php
+            $projectImage = $project->display_image;
+        @endphp
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-3">
+            {{-- Project Image --}}
+            <div class="w-full md:w-[300px] h-[240px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">
+                <img src="{{ $projectImage }}" 
+                     onerror="this.onerror=null;this.src='{{ asset('img/default-project.jpg') }}';" 
+                     alt="{{ $project->name }}" 
+                     class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+                <!-- <div class="absolute bottom-3 left-3">
+                    <span class="text-[9px] font-bold px-2 py-0.5 bg-primary text-white rounded-md uppercase font-mono tracking-wider">{{ $project->code }}</span>
+                </div> -->
+            </div>
 
-        {{-- Project Information --}}
-        <div class="flex-1 flex flex-col justify-between py-1">
-            <div class="space-y-2">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+            {{-- Project Information --}}
+            <div class="flex-1 flex flex-col justify-between py-1">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-extrabold text-slate-900 tracking-tight leading-snug">{{ $project->name }}</h2>
+                            <p class="text-xs text-slate-450 font-semibold flex items-center gap-1 mt-0.5">
+                                <svg class="w-3.5 h-3.5 text-slate-450" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                {{ $project->location }}, {{ $project->city }}, {{ $project->state_or_emirate }}, {{ $project->country }}
+                            </p>
+                        </div>
+
+                        @php
+                            $statusColors = [
+                                'planning' => 'bg-slate-50 text-slate-700 border-slate-200',
+                                'ongoing' => 'bg-primary-50 text-primary-800 border-primary-200',
+                                'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-150',
+                                'on_hold' => 'bg-amber-50 text-amber-700 border-amber-150'
+                            ];
+                            $colorClass = $statusColors[$project->status] ?? $statusColors['planning'];
+                        @endphp
+                        <div class="flex items-center gap-2">
+                            <span class="badge border font-extrabold uppercase {{ $colorClass }} text-[10px] px-2.5 py-1 rounded-lg">
+                                {{ str_replace('_', ' ', $project->status) }}
+                            </span>
+                            @can('projects.manage')
+                                <button
+                                    @click="editProjectModal = true"
+                                    class="px-2.5 py-1 bg-white border border-[#09876B] hover:bg-[#09876B]/10 text-[#09876B] hover:text-[#076852] font-bold rounded-lg transition text-[10px] uppercase tracking-wide flex items-center gap-1 cursor-pointer"
+                                >
+                                    <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    Edit Project
+                                </button>
+                            @endcan
+                        </div>
+                    </div>
+
+                    @if($project->description)
+                        <div class="mt-3 text-[11px] leading-relaxed text-slate-500 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
+                            {!! $project->description !!}
+                        </div>
+                    @endif
+                </div>
+                {{-- Summary of Statistics / RERA --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100 pt-4 mt-4 text-xs font-semibold text-slate-500">
+                   
                     <div>
-                        <h2 class="text-base font-extrabold text-slate-900 tracking-tight leading-snug">{{ $project->name }}</h2>
-                        <p class="text-xs text-slate-450 font-semibold flex items-center gap-1 mt-0.5">
-                            <svg class="w-3.5 h-3.5 text-slate-450" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            {{ $project->location }}, {{ $project->city }}, {{ $project->state_or_emirate }}, {{ $project->country }}
-                        </p>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Floors</span>
+                        <strong class="text-slate-800 font-bold text-[11px]">{{ $project->total_floors }} Floors</strong>
                     </div>
-
-                    @php
-                        $statusColors = [
-                            'planning' => 'bg-slate-50 text-slate-700 border-slate-200',
-                            'ongoing' => 'bg-primary-50 text-primary-800 border-primary-200',
-                            'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-150',
-                            'on_hold' => 'bg-amber-50 text-amber-700 border-amber-150'
-                        ];
-                        $colorClass = $statusColors[$project->status] ?? $statusColors['planning'];
-                    @endphp
-                    <div class="flex items-center gap-2">
-                        <span class="badge border font-extrabold uppercase {{ $colorClass }} text-[10px] px-2.5 py-1 rounded-lg">
-                            {{ str_replace('_', ' ', $project->status) }}
-                        </span>
-                        @can('projects.manage')
-    <button
-        @click="editProjectModal = true"
-        class="px-2.5 py-1 bg-white border border-[#09876B] hover:bg-[#09876B]/10 text-[#09876B] hover:text-[#076852] font-bold rounded-lg transition text-[10px] uppercase tracking-wide flex items-center gap-1"
-    >
-        <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        Edit Project
-    </button>
-@endcan
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Start Date</span>
+                        <strong class="text-slate-800 font-bold text-[11px]">{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'N/A' }}</strong>
                     </div>
-                </div>
-
-                @if($project->description)
-                    <div class="mt-3 text-[11px] leading-relaxed text-slate-500 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
-                        {!! $project->description !!}
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Target Completion</span>
+                        <strong class="text-slate-800 font-bold text-[11px]">{{ $project->expected_completion_date ? \Carbon\Carbon::parse($project->expected_completion_date)->format('d M Y') : 'N/A' }}</strong>
                     </div>
-                @endif
-            </div>
-            {{-- Summary of Statistics / RERA --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100 pt-4 mt-4 text-xs font-semibold text-slate-500">
-               
-                <div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Floors</span>
-                    <strong class="text-slate-800 font-bold text-[11px]">{{ $project->total_floors }} Floors</strong>
-                </div>
-                <div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Start Date</span>
-                    <strong class="text-slate-800 font-bold text-[11px]">{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'N/A' }}</strong>
-                </div>
-                <div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Target Completion</span>
-                    <strong class="text-slate-800 font-bold text-[11px]">{{ $project->expected_completion_date ? \Carbon\Carbon::parse($project->expected_completion_date)->format('d M Y') : 'N/A' }}</strong>
                 </div>
             </div>
         </div>
-    </div>
+    @else
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-12 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center mb-4 shadow-sm">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 tracking-tight uppercase">No Project Found</h3>
+            <p class="text-xs text-slate-500 max-w-md mt-1 mb-6 font-medium">There are currently no active projects configured in the system. Create a project in Project Masters to start managing units, pricing matrices, and floor layouts.</p>
+            @can('projects.manage')
+                <a href="{{ route('projects.index') }}" class="btn-ripple inline-flex items-center gap-2 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Go to Project Masters
+                </a>
+            @endcan
+        </div>
+    @endif
 
     {{-- Customer Selection Filter Bar --}}
     <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm mb-4">
@@ -1130,7 +1150,7 @@
 
             <form @submit.prevent="submitAddUnit()" class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
                 <div class="p-6 space-y-4 overflow-y-auto">
-                    <input type="hidden" name="project_id" value="{{ $project->id }}">
+                    <input type="hidden" name="project_id" value="{{ $project?->id }}">
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
@@ -1526,7 +1546,7 @@
 
             <form @submit.prevent="submitBulkAdd()" class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
                 <div class="p-6 space-y-4 overflow-y-auto">
-                    <input type="hidden" name="project_id" value="{{ $project->id }}">
+                    <input type="hidden" name="project_id" value="{{ $project?->id }}">
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
@@ -1623,6 +1643,7 @@
 
 
 {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
+@if($project)
 <div x-show="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
     <div x-show="editProjectModal" class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="editProjectModal = false">
         {{-- Header --}}
@@ -1796,6 +1817,7 @@
         </form>
     </div>
 </div>
+@endif
 
 
 
@@ -2439,7 +2461,7 @@
 function unitsApp() {
     return {
         // App states
-        projectId: {{ $project->id }},
+        projectId: {{ $project ? $project->id : 'null' }},
         unitTypeMap: {!! json_encode($unitTypes->keyBy('id')->map(fn($t) => ['name' => $t->name, 'category' => $t->category])) !!},
         editProjectModal: false,
         imagePreview: null,
@@ -2699,7 +2721,7 @@ function unitsApp() {
             if (!tbody) return;
 
             if (this.units.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="px-6 py-10 text-center text-slate-400 italic">${!this.projectId ? 'No project found. Please create a project in Project Masters.' : 'No units match the query filters.'}</td></tr>`;
                 return;
             }
 

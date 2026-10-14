@@ -36,7 +36,27 @@ class UnitController extends Controller
         $project = Project::find($selectedProjectId) ?? $projects->first();
 
         if (!$project) {
-            abort(404, 'No active project found for this system.');
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'units' => [],
+                    'pagination' => [
+                        'current_page' => 1,
+                        'last_page' => 1,
+                        'total' => 0,
+                        'per_page' => 50,
+                    ]
+                ]);
+            }
+
+            $floors = collect();
+            $unitTypes = UnitType::where('is_active', true)->whereNull('project_id')->get();
+            $floorMatrix = [];
+            $parkingRows = [];
+            $matrixColumns = [];
+            $salesList = collect();
+            $customers = \App\Models\Customer::orderBy('name')->get();
+
+            return view('units.index', compact('project', 'floors', 'unitTypes', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns', 'salesList', 'customers'));
         }
 
         $floors = Floor::where('project_id', $project->id)->orderBy('floor_number')->get();
