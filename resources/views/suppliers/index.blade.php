@@ -641,85 +641,124 @@
         <!-- ========================================== -->
         <!-- 3. VIEW CONTRACTOR PROFILE MODAL -->
         <!-- ========================================== -->
-        <div x-show="openViewModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openViewModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border-0">
-                {{-- Dark Slate + Gold Header (Matched Theme) --}}
-                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10 flex items-center justify-between">
-                        <div>
-                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor Master</p>
-                            <h2 class="text-lg font-extrabold text-white" x-text="viewContractor.name || 'Contractor Details'"></h2>
+        <template x-teleport="body">
+            <div x-show="openViewModal" 
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" 
+                 style="display: none;" 
+                 x-transition.opacity>
+                <div @click.away="openViewModal = false" 
+                     class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border-0 my-auto">
+                    
+                    {{-- Header (Matched Exactly to Edit Modal) --}}
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-0">
+                        <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest">Contractor Master</p>
+                                    <template x-if="viewContractor.is_active">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                            Active
+                                        </span>
+                                    </template>
+                                    <template x-if="!viewContractor.is_active">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-slate-500/20 text-slate-300">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            Inactive
+                                        </span>
+                                    </template>
+                                </div>
+                                <h2 class="text-lg font-extrabold text-white truncate max-w-sm" x-text="viewContractor.name || 'Contractor Details'"></h2>
+                            </div>
+                            <button type="button" @click="openViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer" title="Close">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <button type="button" @click="openViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </div>
+
+                    {{-- Modal Body (Exact Font Size, Spacing & Proportions as Edit Modal, Borderless) --}}
+                    <div class="px-6 py-5 space-y-3.5 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
+                        
+                        {{-- Highlights Strip: Ledger Code + Total Billed --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-amber-50/60 rounded-xl px-3.5 py-2.5">
+                                <label class="block text-[10px] font-bold text-[#8a741f] uppercase tracking-wider mb-1">Linked Ledger Code</label>
+                                <div class="text-xs font-mono font-bold text-slate-900 truncate" 
+                                     x-text="viewContractor.linked_account ? viewContractor.linked_account.code : (viewContractor.linkedAccount ? viewContractor.linkedAccount.code : 'SUP-ACC-xxxx')"></div>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl px-3.5 py-2.5">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Total Billed Work</label>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="text-xs font-mono font-bold text-slate-900" 
+                                          x-text="'₹' + Number(viewContractor.total_billed || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                    <span class="text-[10px] text-slate-500 font-medium" 
+                                          x-text="'(' + (viewContractor.ra_bills_count || 0) + ' Bills)'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Phone & Email --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Phone Number</label>
+                                <div class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-bold text-slate-900 font-mono" 
+                                     x-text="viewContractor.phone || 'Not Provided'"></div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                                <div class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-bold text-slate-900 truncate" 
+                                     x-text="viewContractor.email || 'Not Provided'"></div>
+                            </div>
+                        </div>
+
+                        {{-- GSTIN & PAN --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GSTIN Number</label>
+                                <div class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-mono font-bold text-slate-900 uppercase" 
+                                     x-text="viewContractor.gstin || 'Unregistered'"></div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PAN Number</label>
+                                <div class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-mono font-bold text-slate-900 uppercase" 
+                                     x-text="viewContractor.pan || 'Not Provided'"></div>
+                            </div>
+                        </div>
+
+                        {{-- Office Address --}}
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Office Address</label>
+                            <div class="w-full px-3.5 py-2.5 bg-slate-50 rounded-xl text-xs font-semibold text-slate-900 leading-relaxed min-h-[52px]" 
+                                 x-text="viewContractor.address || 'No physical address recorded.'"></div>
+                        </div>
+
+                    </div>
+
+                    {{-- Sticky Modal Footer (Matched to Edit Modal buttons, Theme Golden Open Ledger) --}}
+                    <div class="px-6 py-4 flex items-center justify-end gap-3 bg-slate-50 border-0">
+                        <template x-if="!viewContractor.is_active">
+                            <button type="button" @click="openActivateModalFunc(viewContractor); openViewModal = false;" 
+                                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer inline-flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Activate</span>
+                            </button>
+                        </template>
+
+                        <a :href="'{{ route('expenses.ra-bills.ledger') }}?contractor_id=' + viewContractor.id" 
+                           class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer inline-flex items-center gap-2">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Open Ledger</span>
+                        </a>
+
+                        <button type="button" @click="openViewModal = false" 
+                                class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">
+                            Close
                         </button>
                     </div>
                 </div>
-
-                <div class="px-6 pt-3.5 pb-5 space-y-2.5 text-xs bg-white">
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">LEDGER CODE</span>
-                        <span class="font-mono font-bold text-[#a38c29]" x-text="viewContractor.linked_account ? viewContractor.linked_account.code : 'SUP-ACC-xxxx'"></span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">CONTRACTOR NAME</span>
-                        <span class="font-bold text-slate-900 uppercase" x-text="viewContractor.name"></span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">GSTIN</span>
-                        <span class="font-mono font-bold text-slate-900" x-text="viewContractor.gstin || 'Unregistered'"></span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PAN</span>
-                        <span class="font-mono font-bold text-slate-900" x-text="viewContractor.pan || 'N/A'"></span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PHONE</span>
-                        <span class="font-bold text-slate-900" x-text="viewContractor.phone || 'N/A'"></span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">EMAIL</span>
-                        <span class="font-bold text-slate-900" x-text="viewContractor.email || 'N/A'"></span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">STATUS</span>
-                        <template x-if="viewContractor.is_active">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Active
-                            </span>
-                        </template>
-                        <template x-if="!viewContractor.is_active">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                Inactive
-                            </span>
-                        </template>
-                    </div>
-                    <div class="flex justify-between pb-1">
-                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ADDRESS</span>
-                        <span class="font-semibold text-slate-800 text-right max-w-[220px]" x-text="viewContractor.address || 'N/A'"></span>
-                    </div>
-                </div>
-
-                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-                    <a :href="'{{ route('expenses.ra-bills.ledger') }}?contractor_id=' + viewContractor.id" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold uppercase rounded-xl transition inline-flex items-center gap-2 shadow-sm">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>OPEN LEDGER</span>
-                    </a>
-                    <div class="flex items-center gap-2">
-                        <template x-if="!viewContractor.is_active">
-                            <button type="button" @click="openActivateModalFunc(viewContractor); openViewModal = false;" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase rounded-xl transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                <span>ACTIVATE</span>
-                            </button>
-                        </template>
-                        <button type="button" @click="openViewModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CLOSE</button>
-                    </div>
-                </div>
             </div>
-        </div>
+        </template>
 
         <!-- ========================================== -->
         <!-- 4. DELETE CONTRACTOR CONFIRMATION MODAL    -->

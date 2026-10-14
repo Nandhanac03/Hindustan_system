@@ -1690,7 +1690,7 @@
                             {{-- Actions --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
+                                    <template x-if="sale.status === 'active'">
                                         <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
                                                 class="px-3 py-1.5 bg-primary hover:bg-primary-700 text-white font-extrabold rounded-lg text-[10.5px] uppercase transition-all tracking-wide shadow-sm">
                                             Process Exchange
@@ -2092,7 +2092,7 @@
                         
                         {{-- Dropdown for search --}}
                         <div x-show="open && search.length > 0 && !newExchangeSaleId" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
-                            <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
+                            <template x-for="sale in sales.filter(s => s.status === 'active' && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
                                 <div @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); open = false; selectExchangeSale(sale); newExchangeStep = 2;" class="px-4 py-2.5 hover:bg-amber-50/50 cursor-pointer text-xs flex justify-between items-center transition">
                                     <div class="flex items-center gap-2.5">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
@@ -2104,7 +2104,7 @@
                                     <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold" x-text="getUnitsDisplay(sale)"></span>
                                 </div>
                             </template>
-                            <div x-show="!sales.some(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-400 text-center font-medium">No matching exchangeable sales found.</div>
+                            <div x-show="!sales.some(s => s.status === 'active' && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-400 text-center font-medium">No matching exchangeable sales found.</div>
                         </div>
                     </div>
 
@@ -2131,7 +2131,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-xs">
-                                    <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s)).slice(0, 10)" :key="sale.id">
+                                    <template x-for="sale in sales.filter(s => s.status === 'active' && isSaleExchangeEligible(s)).slice(0, 10)" :key="sale.id">
                                         <tr class="hover:bg-amber-50/40 cursor-pointer transition-colors"
                                             :class="newExchangeSaleId == sale.id ? 'bg-amber-50/60' : ''"
                                             @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); selectExchangeSale(sale); newExchangeStep = 2;">

@@ -2834,7 +2834,7 @@ function salesApp() {
             this.returnForm.revert_unsold = true;
         },
         isSaleExchangeEligible(sale) {
-            if (!sale) return false;
+            if (!sale || sale.status !== 'active') return false;
             const saleUnits = sale.sale_units || [];
             if (saleUnits.length <= 1) return true;
             
@@ -2854,6 +2854,10 @@ function salesApp() {
             let sale = this.sales.find(s => s.id == this.newExchangeSaleId);
             if (!sale) {
                 this.showToast('Please select a sale first.', 'error');
+                return;
+            }
+            if (sale.status !== 'active') {
+                this.showToast('Only active sales can be exchanged.', 'error');
                 return;
             }
             if (!this.isSaleExchangeEligible(sale)) {
