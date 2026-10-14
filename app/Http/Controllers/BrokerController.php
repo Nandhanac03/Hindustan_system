@@ -514,19 +514,44 @@ class BrokerController extends Controller
 
                 $desc = "Commission Allocated for Sale #{$saleNo}" . ($projectName ? " ({$projectName}" . ($unitDoor ? " {$unitDoor}" : "") . " - {$customerName})" : "");
 
+                $commAmt = (float)$entry->commission_amount;
+                $paidAmt = (float)$entry->paid_amount;
+                $remainingAmt = max(0.0, $commAmt - $paidAmt);
+
                 $runningLedger->push((object)[
                     'id' => 'comm_' . $entry->id,
+                    'entry_type' => 'commission',
                     'date' => $date,
                     'broker_id' => $broker->id,
                     'broker_name' => $broker->name,
+                    'broker_commission_pct' => (float)($broker->default_commission_pct ?? 0),
+                    'linked_account_name' => $broker->linkedAccount?->name ?? 'Brokerage Account',
+                    'linked_account_code' => $broker->linkedAccount?->code ?? null,
+                    'commission_entry_id' => $entry->id,
                     'project_id' => $sale?->project_id,
+                    'project_name' => $projectName,
+                    'sale_id' => $sale?->id,
+                    'sale_number' => $saleNo,
+                    'customer_name' => $customerName,
+                    'customer_phone' => $sale?->customer?->phone ?? null,
+                    'customer_email' => $sale?->customer?->email ?? null,
+                    'unit_door' => $sale?->unit?->door_no ?? null,
+                    'unit_number' => $sale?->unit?->door_no ?: ($sale?->unit?->unit_number ?? null),
+                    'unit_type' => $sale?->unit?->unit_type ?: ($sale?->unit?->type ?? null),
+                    'deal_value' => (float)($sale?->total_amount ?? $sale?->sale_amount ?? 0),
+                    'commission_percent' => (float)($entry->commission_percent ?? $broker->default_commission_pct ?? 0),
+                    'commission_amount' => $commAmt,
+                    'paid_amount' => $paidAmt,
+                    'remaining_amount' => $remainingAmt,
                     'ref_no' => $saleNo,
                     'description' => $desc,
                     'payment_mode' => null,
-                    'credit' => (float)$entry->commission_amount,
+                    'credit' => $commAmt,
                     'debit' => 0.0,
-                    'status' => $entry->status ?? 'payable',
+                    'status' => $entry->status ?? ($remainingAmt <= 0 ? 'paid' : ($paidAmt > 0 ? 'partial' : 'pending')),
                     'company_bank_account_name' => null,
+                    'company_bank_account_number' => null,
+                    'company_bank_branch' => null,
                 ]);
             }
         }
@@ -592,9 +617,10 @@ class BrokerController extends Controller
 
             // Extract project_id if narration refers to a specific sale number (e.g. #HID-AP-11A-JHAN)
             $voucherProjectId = null;
+            $saleObj = null;
             if ($v->narration && preg_match('/#([A-Z0-9\-]+)/i', $v->narration, $matches)) {
                 $saleNo = trim($matches[1]);
-                $saleObj = \App\Models\Sale::where('sale_number', $saleNo)->first();
+                $saleObj = \App\Models\Sale::where('sale_number', $saleNo)->with(['project', 'customer', 'unit'])->first();
                 if ($saleObj) {
                     $voucherProjectId = $saleObj->project_id;
                 }
@@ -612,19 +638,45 @@ class BrokerController extends Controller
                 }
             }
 
+            $matchedProject = $voucherProjectId ? $projects->firstWhere('id', $voucherProjectId) : null;
+            $matchedProjectName = $matchedProject?->name ?? ($saleObj?->project?->name ?? '');
+
             $runningLedger->push((object)[
                 'id' => 'vouch_' . $v->id,
+                'entry_type' => 'payout',
                 'date' => $v->date ? \Carbon\Carbon::parse($v->date)->format('Y-m-d') : $v->created_at->format('Y-m-d'),
                 'broker_id' => $bId,
                 'broker_name' => $brokerName,
+                'broker_commission_pct' => (float)($broker?->default_commission_pct ?? 0),
+                'linked_account_name' => $broker?->linkedAccount?->name ?? 'Brokerage Account',
+                'linked_account_code' => $broker?->linkedAccount?->code ?? null,
+                'commission_entry_id' => null,
                 'project_id' => $voucherProjectId,
+                'project_name' => $matchedProjectName,
+                'sale_id' => $saleObj?->id,
+                'sale_number' => $saleObj?->sale_number,
+                'customer_name' => $saleObj?->customer?->name ?? null,
+                'customer_phone' => $saleObj?->customer?->phone ?? null,
+                'customer_email' => $saleObj?->customer?->email ?? null,
+                'unit_door' => $saleObj?->unit?->door_no ?? null,
+                'unit_number' => $saleObj?->unit?->door_no ?: ($saleObj?->unit?->unit_number ?? null),
+                'unit_type' => $saleObj?->unit?->unit_type ?: ($saleObj?->unit?->type ?? null),
+                'deal_value' => (float)($saleObj?->total_amount ?? $saleObj?->sale_amount ?? 0),
+                'commission_percent' => (float)($broker?->default_commission_pct ?? 0),
+                'commission_amount' => 0.0,
+                'paid_amount' => $debitAmount,
+                'remaining_amount' => 0.0,
                 'ref_no' => $v->reference_no ?: $v->voucher_number,
+                'voucher_number' => $v->voucher_number,
+                'narration' => $v->narration,
                 'description' => $v->narration ?: ("Commission Payout Released to " . $brokerName),
                 'payment_mode' => $paymentMode,
                 'credit' => 0.0,
                 'debit' => $debitAmount,
                 'status' => 'paid',
                 'company_bank_account_name' => $v->companyBankAccount?->bank_name ?? 'Source Bank Account',
+                'company_bank_account_number' => $v->companyBankAccount?->account_number ?? null,
+                'company_bank_branch' => $v->companyBankAccount?->branch ?? null,
             ]);
         }
 

@@ -357,12 +357,12 @@
                             <th class="px-5 py-3.5 text-right text-emerald-100 font-extrabold border-r border-slate-600 erp-table-header">Commission Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
                             <th class="px-5 py-3.5 text-right text-rose-100 font-extrabold border-r border-slate-600 erp-table-header">Payout Released<br><span class="text-[9px] font-normal text-white/80">(Debit - Rs.)</span></th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-slate-600 erp-table-header">Running Payable Balance<br><span class="text-[9px] font-normal text-white/80">(Rs.)</span></th>
-                            <th class="px-4 py-3.5 text-center text-white font-extrabold w-24 erp-table-header">Actions</th>
+                            <th class="px-4 py-3.5 text-center text-white font-extrabold w-28 erp-table-header">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
                         <template x-for="(entry, index) in pagedLedger" :key="index">
-                            <tr class="hover:bg-slate-50 transition-colors font-medium">
+                            <tr @click="openViewModal(entry)" class="hover:bg-[#a38c29]/5 cursor-pointer transition-colors font-medium">
                                 <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100" x-text="formatDate(entry.date)"></td>
                                 <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="entry.broker_name"></td>
                                 <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100" x-text="entry.ref_no"></td>
@@ -387,6 +387,7 @@
                                 <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.running_balance)"></td>
                                 <td class="px-4 py-3.5 text-center whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center justify-center gap-1.5">
+                                    
                                         {{-- PDF / Print Receipt Icon Button (Matching Partner Statements Receipt Column) --}}
                                         <button type="button" 
                                                 @click="downloadReceiptPdf(entry)" 
@@ -395,6 +396,19 @@
                                                 aria-label="Download Receipt">
                                             <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
                                         </button>
+
+                                         {{-- View Details Icon Button --}}
+                                        <button type="button" 
+                                                @click="openViewModal(entry)" 
+                                                title="View Details"
+                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-[#a38c29]/20 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group"
+                                                aria-label="View Details">
+                                            <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </button>
+
                                     </div>
                                 </td>
                             </tr>
@@ -914,6 +928,340 @@
         </div>
     </div>
 
+    {{-- ── COMPREHENSIVE BROKER TRANSACTION VIEW MODAL ── --}}
+    <template x-teleport="body">
+        <div x-show="viewModalOpen" 
+             class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-5 bg-slate-950/60 backdrop-blur-xs" 
+             style="display: none;" 
+             x-transition.opacity>
+            <div class="w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 my-auto" 
+                 @click.away="viewModalOpen = false">
+                
+                {{-- 1. Sticky Luxury Modal Header --}}
+                <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 sm:px-8 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+                    <div class="flex items-center gap-3.5 relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center shadow-inner border border-[#a38c29]/30">
+                            <svg class="w-5 h-5 text-[#f3e5ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40"
+                                      x-text="(selectedLedgerEntry?.entry_type === 'payout' || selectedLedgerEntry?.debit > 0) ? 'BROKER DISBURSEMENT VOUCHER' : 'COMMISSION ALLOCATION SHARE'">
+                                </span>
+                                <!-- <span class="text-[10px] text-slate-400 font-mono font-semibold" x-text="selectedLedgerEntry?.ref_no || ''"></span> -->
+                            </div>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5 flex items-center gap-2"
+                                x-text="(selectedLedgerEntry?.entry_type === 'payout' || selectedLedgerEntry?.debit > 0) ? 'BROKER PAYOUT DETAILS' : 'COMMISSION TRANSACTION DETAILS'">
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 relative z-10">
+                        {{-- Status Badge in Header --}}
+                        <template x-if="selectedLedgerEntry">
+                            <div>
+                                <template x-if="selectedLedgerEntry.entry_type === 'payout' || selectedLedgerEntry.debit > 0">
+                                    <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-2xs">
+                                        💸 Payout Released
+                                    </span>
+                                </template>
+                                <template x-if="!(selectedLedgerEntry.entry_type === 'payout' || selectedLedgerEntry.debit > 0)">
+                                    <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-2xs"
+                                          :class="{
+                                              'bg-emerald-500/20 text-emerald-300 border-emerald-500/30': selectedLedgerEntry.status === 'paid' || (selectedLedgerEntry.remaining_amount !== undefined && selectedLedgerEntry.remaining_amount <= 0),
+                                              'bg-amber-500/20 text-amber-300 border-amber-500/30': selectedLedgerEntry.status === 'partial' || (selectedLedgerEntry.paid_amount > 0 && selectedLedgerEntry.remaining_amount > 0),
+                                              'bg-blue-500/20 text-blue-300 border-blue-500/30': selectedLedgerEntry.status === 'pending' || selectedLedgerEntry.status === 'payable'
+                                          }"
+                                          x-text="selectedLedgerEntry.status === 'paid' || (selectedLedgerEntry.remaining_amount !== undefined && selectedLedgerEntry.remaining_amount <= 0) ? '✓ Fully Cleared' : (selectedLedgerEntry.status === 'partial' ? '⏳ Partially Paid' : '📋 Payable Share')">
+                                    </span>
+                                </template>
+                            </div>
+                        </template>
+                        <button type="button" @click="viewModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer" title="Close Modal">✕</button>
+                    </div>
+                </div>
+
+                {{-- 2. Scrollable Modal Body --}}
+                <div class="p-4 sm:p-5 space-y-3 overflow-y-auto flex-1 bg-slate-50 min-h-0">
+                    
+                    {{-- A. Top 4 Highlight Cards Strip (Matching Common ERP Modal Card Standard) --}}
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            
+                            {{-- Card 1: Commission Amount / Disbursed Payout --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                     :class="(selectedLedgerEntry?.credit > 0) ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight"
+                                          x-text="(selectedLedgerEntry?.credit > 0) ? 'Commission Amount' : 'Disbursed Payout'">
+                                    </span>
+                                    <span class="text-xs font-bold font-mono truncate block mt-0.5"
+                                          :class="(selectedLedgerEntry?.credit > 0) ? 'text-emerald-700 font-extrabold' : 'text-rose-700 font-extrabold'"
+                                          x-text="formatCurrency(selectedLedgerEntry?.credit > 0 ? selectedLedgerEntry.credit : selectedLedgerEntry?.debit)">
+                                    </span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate"
+                                          x-text="(selectedLedgerEntry?.credit > 0) ? 'Allocated Credit Share' : 'Released Treasury Debit'">
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Card 2: Classification --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Classification</span>
+                                    <span class="text-slate-800 text-xs font-bold truncate block mt-0.5"
+                                          x-text="(selectedLedgerEntry?.credit > 0) ? 'Commission Share' : (selectedLedgerEntry?.payment_mode || 'Bank Transfer')">
+                                    </span>
+                                    <span class="text-[9px] font-mono text-slate-500 font-medium block truncate"
+                                          x-text="selectedLedgerEntry?.ref_no || 'Ref'">
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Card 3: Posting Date --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Posting Date</span>
+                                    <span class="text-slate-800 font-mono text-xs font-bold truncate block mt-0.5"
+                                          x-text="formatDate(selectedLedgerEntry?.date)">
+                                    </span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate">Recorded In Ledger</span>
+                                </div>
+                            </div>
+
+                            {{-- Card 4: Payable Balance --}}
+                            <div class="flex items-center gap-2.5 bg-slate-50/80 rounded-xl p-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5 5 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block leading-tight">Payable Balance</span>
+                                    <span class="text-xs font-extrabold font-mono text-[#a38c29] truncate block mt-0.5"
+                                          x-text="formatCurrency(selectedLedgerEntry?.running_balance)">
+                                    </span>
+                                    <span class="text-[9px] text-slate-500 font-medium block truncate">Balance Owed After Entry</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Horizontal Particulars & Narration Bar --}}
+                    <div class="bg-white border border-slate-200/90 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest shrink-0">NOTES / NARRATION:</span>
+                            <span class="text-slate-800 font-semibold truncate text-xs" x-text="selectedLedgerEntry ? (selectedLedgerEntry.description || 'No description recorded.') : '—'"></span>
+                        </div>
+                        <div class="px-2.5 py-0.5 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#8a7522] font-extrabold text-[9.5px] capitalize tracking-wide shadow-2xs shrink-0"
+                             x-show="selectedLedgerEntry">
+                            <span x-text="numberToWords(selectedLedgerEntry?.credit > 0 ? selectedLedgerEntry.credit : selectedLedgerEntry?.debit)"></span>
+                        </div>
+                    </div>
+
+                    {{-- B. Two-Column Grid: Broker/Account vs Transaction Details --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold">
+                        
+                        {{-- Left Card: Broker & Financial Account Profile --}}
+                        <div class="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2.5">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    <span>BROKER PROFILE & ACCOUNT</span>
+                                </div>
+                                <template x-if="selectedLedgerEntry?.broker_id">
+                                    <button type="button" 
+                                            @click="filters.broker_id = String(selectedLedgerEntry.broker_id); viewModalOpen = false; currentPage = 1"
+                                            class="text-[9.5px] font-extrabold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition hover:underline cursor-pointer">
+                                        Filter Statement →
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Broker / Agency Name</span>
+                                    <span class="text-xs font-extrabold text-slate-900 block mt-0.5 truncate" x-text="selectedLedgerEntry?.broker_name || '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Default Commission</span>
+                                    <span class="inline-block px-1.5 py-0.2 rounded text-[10.5px] bg-[#a38c29]/10 text-[#8a7522] font-mono font-bold mt-0.5" 
+                                          x-text="(Number(selectedLedgerEntry?.broker_commission_pct || 0).toFixed(2)) + '%'">
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Voucher</span>
+                                    <span class="font-mono font-bold text-slate-800 text-xs block mt-0.5 truncate" x-text="selectedLedgerEntry?.ref_no || '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Account Code</span>
+                                    <span class="font-mono font-bold text-slate-700 text-xs block mt-0.5" x-text="selectedLedgerEntry?.linked_account_code || '—'"></span>
+                                </div>
+                            </div>
+
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5 mt-1">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Linked Ledger Account:</span>
+                                    <span class="font-extrabold text-slate-900 text-right truncate max-w-[190px]" x-text="selectedLedgerEntry?.linked_account_name || 'Brokerage Ledger'"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60">
+                                    <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Running Broker Balance:</span>
+                                    <span class="font-mono font-black text-[#a38c29]" x-text="formatCurrency(selectedLedgerEntry?.running_balance)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Right Card: Context-Sensitive Details (Commission Deal vs Bank Disbursement) --}}
+                        <div class="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2.5">
+                            
+                            {{-- CASE A: Commission Allocation Details --}}
+                            <template x-if="selectedLedgerEntry?.credit > 0">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        <span>ASSOCIATED PROPERTY & DEAL</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</span>
+                                            <span class="text-xs font-bold text-slate-900 block mt-0.5 truncate" x-text="selectedLedgerEntry?.project_name || '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unit / Door</span>
+                                            <span class="inline-block px-1.5 py-0.2 rounded text-[10.5px] bg-slate-100 font-extrabold border border-slate-200 text-slate-800 mt-0.5" 
+                                                  x-text="selectedLedgerEntry?.unit_number ? ('Unit: ' + selectedLedgerEntry.unit_number) : (selectedLedgerEntry?.unit_door || '—')">
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                                            <span class="font-bold text-slate-800 text-xs block mt-0.5 truncate" x-text="selectedLedgerEntry?.customer_name || '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Sale Agreement Value</span>
+                                            <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5" x-text="selectedLedgerEntry?.deal_value ? formatCurrency(selectedLedgerEntry.deal_value) : '—'"></span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Commission Breakdown Card --}}
+                                    <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5 mt-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Total Commission Allocated:</span>
+                                            <span class="font-mono font-bold text-emerald-700" x-text="formatCurrency(selectedLedgerEntry?.commission_amount || selectedLedgerEntry?.credit)"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Paid Out / Disbursed:</span>
+                                            <span class="font-mono font-bold text-rose-600" x-text="formatCurrency(selectedLedgerEntry?.paid_amount || 0)"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60">
+                                            <span class="text-[9.5px] font-black text-slate-700 uppercase tracking-wider">Remaining Unpaid Share:</span>
+                                            <span class="font-mono font-black text-[#a38c29]" x-text="formatCurrency(selectedLedgerEntry?.remaining_amount !== undefined ? selectedLedgerEntry.remaining_amount : Math.max(0, (selectedLedgerEntry?.credit || 0) - (selectedLedgerEntry?.paid_amount || 0)))"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- CASE B: Payout Disbursement Details --}}
+                            <template x-if="!(selectedLedgerEntry?.credit > 0)">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        <span>DISBURSING TREASURY & BANK</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Company Bank Account</span>
+                                            <span class="text-xs font-bold text-slate-900 block mt-0.5 truncate" x-text="selectedLedgerEntry?.company_bank_account_name || 'Source Bank Account'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Bank Account No</span>
+                                            <span class="font-mono font-bold text-slate-700 text-xs block mt-0.5 truncate" x-text="selectedLedgerEntry?.company_bank_account_number || '—'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</span>
+                                            <span class="font-bold text-slate-800 text-xs block mt-0.5" x-text="selectedLedgerEntry?.payment_mode || 'Bank Transfer'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Cheque</span>
+                                            <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5 truncate" x-text="selectedLedgerEntry?.ref_no || '—'"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-1.5 mt-1">
+                                        <div class="flex justify-between items-center text-xs" x-show="selectedLedgerEntry?.project_name">
+                                            <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Associated Project:</span>
+                                            <span class="font-bold text-slate-800 truncate max-w-[190px]" x-text="selectedLedgerEntry?.project_name"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs pt-0.5">
+                                            <span class="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">Disbursed Amount:</span>
+                                            <span class="font-mono font-black text-rose-600 text-sm" x-text="formatCurrency(selectedLedgerEntry?.debit || 0)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- 3. Sticky Modal Footer Action Bar (Always Visible at First View) --}}
+                <div class="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/80 flex items-center justify-between shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                    <button type="button" @click="viewModalOpen = false" 
+                            class="h-10 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition uppercase cursor-pointer">
+                        Close
+                    </button>
+
+                    <div class="flex items-center gap-2.5">
+                        {{-- Download Receipt Button --}}
+                        <button type="button" @click="downloadReceiptPdf(selectedLedgerEntry)"
+                                class="h-10 px-5 bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] border border-[#09876B]/30 font-bold rounded-xl text-xs uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-2xs">
+                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
+                            <span>Print / Save Receipt</span>
+                        </button>
+
+                        {{-- If it's a commission entry with unpaid amount, allow quick Payout Recording --}}
+                        <template x-if="selectedLedgerEntry?.credit > 0 && (selectedLedgerEntry?.remaining_amount > 0 || (selectedLedgerEntry?.status !== 'paid' && !selectedLedgerEntry?.paid_amount))">
+                            <button type="button" 
+                                    @click="viewModalOpen = false; openPayoutModal(selectedLedgerEntry.broker_id, selectedLedgerEntry.commission_entry_id)"
+                                    class="h-10 px-6 bg-[#a38c29] hover:bg-[#8a7522] text-white font-black rounded-xl text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 cursor-pointer active:scale-95">
+                                <span>Record Payout for this Deal</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
 </div>
 
 <script>
@@ -970,6 +1318,14 @@ function brokerPayoutApp() {
         pageSize: 15,
 
         payoutModalOpen: false,
+        viewModalOpen: false,
+        selectedLedgerEntry: null,
+
+        openViewModal(entry) {
+            this.selectedLedgerEntry = entry;
+            this.viewModalOpen = true;
+        },
+
         modalBankOpen: false,
         modalBankSearch: '',
         modalBrokerOpen: false,
