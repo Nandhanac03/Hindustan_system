@@ -2923,10 +2923,10 @@
 
                                     {{-- Tab 1: EMI Installments Schedule --}}
                                     <div x-show="activeAuditTab === 'installments'" class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                        <div class="overflow-x-auto">
+                                        <div class="overflow-x-auto max-h-64 overflow-y-auto">
                                             <table class="w-full text-left text-xs border-collapse">
-                                                <thead>
-                                                    <tr class="bg-slate-100/90 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
+                                                <thead class="sticky top-0 z-10">
+                                                    <tr class="bg-slate-100 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
                                                         <th class="py-2.5 px-3.5 text-center w-12">#</th>
                                                         <th class="py-2.5 px-3.5">Installment Label</th>
                                                         <th class="py-2.5 px-3.5">Due Date</th>
@@ -2972,10 +2972,10 @@
 
                                     {{-- Tab 2: Receipts History --}}
                                     <div x-show="activeAuditTab === 'receipts'" class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                        <div class="overflow-x-auto">
+                                        <div class="overflow-x-auto max-h-64 overflow-y-auto">
                                             <table class="w-full text-left text-xs border-collapse">
-                                                <thead>
-                                                    <tr class="bg-slate-100/90 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
+                                                <thead class="sticky top-0 z-10">
+                                                    <tr class="bg-slate-100 border-b border-slate-200 text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">
                                                         <th class="py-2.5 px-3.5">Receipt No</th>
                                                         <th class="py-2.5 px-3.5">Payment Date</th>
                                                         <th class="py-2.5 px-3.5 text-center">Payment Mode</th>
