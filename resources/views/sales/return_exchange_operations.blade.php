@@ -1614,8 +1614,8 @@
                             New Unit (Booked)
                         </th>
                         
-                        <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/30">Difference Amount</th>
-                        <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30">Payable / Refundable</th>
+                        <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-white/30 whitespace-nowrap min-w-[210px]">Difference Amount</th>
+                        <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30 whitespace-nowrap">Payable / Refundable</th>
                         <th rowspan="2" class="px-3 py-3 text-center align-middle border-r border-white/30">Status</th>
                         <th rowspan="2" class="px-4 py-3 text-right align-middle">Actions</th>
                     </tr>
@@ -1660,15 +1660,20 @@
                             <td class="px-3 py-3 text-left font-bold text-slate-900 bg-emerald-50/15 border-r border-slate-100"
                                 x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
 
-                            {{-- Difference Amount --}}
-                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap"
-                                x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
+                            {{-- Difference Amount (Contract Value Difference) --}}
+                            <td class="px-4 py-3 text-left font-mono font-bold text-slate-900 whitespace-nowrap min-w-[210px]">
+                                <span class="text-[12px] font-black tracking-tight" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></span>
+                                <div class="text-[9.5px] text-slate-500 font-medium font-sans mt-0.5 tracking-tight" x-show="sale.status === 'exchanged'" x-text="'Diff: Old: ' + fmt(getOldUnitValue(sale)) + ' - New: ' + fmt(getNewUnitValue(sale))"></div>
+                            </td>
 
-                            {{-- Payable / Refundable --}}
+                            {{-- Payable / Refundable (Net Balance after all Paid Amounts) --}}
                             <td class="px-3 py-3 text-left whitespace-nowrap">
                                 <template x-if="sale.status === 'exchanged'">
-                                    <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
-                                          x-text="getExchangeStatusText(sale)"></span>
+                                    <div>
+                                        <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
+                                              x-text="getExchangeStatusText(sale)"></span>
+                                        <div class="text-[9.5px] font-mono text-slate-500 font-medium" x-show="getExchangeNetDue(sale) !== 0" x-text="'Net: ' + fmt(Math.abs(getExchangeNetDue(sale)))"></div>
+                                    </div>
                                 </template>
                                 <template x-if="sale.status !== 'exchanged'">
                                     <span class="text-slate-400 font-normal">—</span>
@@ -2382,32 +2387,61 @@
                         </div>
 
                         {{-- Contract Values & Equity Details --}}
-                        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50/50">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Old Contract Value</label>
-                                    <input type="text" :value="fmt(selectedExchangeSale.total_amount || selectedExchangeSale.sale_amount)" disabled
-                                           class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
+                        <div class="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50/80 via-white to-slate-50/80 p-4 shadow-xs space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                {{-- 1. Old Contract Value --}}
+                                <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-2xs flex flex-col justify-between">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Old Contract Value</span>
+                                        <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold">₹</span>
+                                    </div>
+                                    <div class="text-sm sm:text-base font-black text-slate-800 font-mono tracking-tight"
+                                         x-text="fmt(selectedExchangeSale.total_amount || selectedExchangeSale.sale_amount)"></div>
+                                    <div class="text-[9px] text-slate-400 mt-1 font-medium">Original Agreement Value</div>
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Old Paid Amount (Transferred)</label>
-                                    <input type="text" :value="fmt(exchangeForm.equity_applied)" disabled
-                                           class="w-full px-3.5 py-2.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-700 font-bold font-mono">
+
+                                {{-- 2. Old Paid Amount (Transferred) --}}
+                                <div class="bg-emerald-50/50 rounded-xl border border-emerald-200/80 p-3 shadow-2xs flex flex-col justify-between">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider">Old Paid (Transferred)</span>
+                                        <span class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                                    </div>
+                                    <div class="text-sm sm:text-base font-black text-emerald-700 font-mono tracking-tight"
+                                         x-text="fmt(exchangeForm.equity_applied)"></div>
+                                    <div class="text-[9px] text-emerald-600 font-semibold mt-1">Carried Forward Equity</div>
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Contract Value</label>
-                                    <input type="text" :value="fmt(exchangeForm.new_unit_value)" disabled
-                                           class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs text-slate-600 font-bold font-mono">
+
+                                {{-- 3. New Contract Value --}}
+                                <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-2xs flex flex-col justify-between">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">New Contract Value</span>
+                                        <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold">★</span>
+                                    </div>
+                                    <div class="text-sm sm:text-base font-black text-slate-800 font-mono tracking-tight"
+                                         x-text="fmt(exchangeForm.new_unit_value)"></div>
+                                    <div class="text-[9px] text-slate-400 mt-1 font-medium">New Total Agreement Value</div>
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">Remaining Balance Due</label>
-                                    <input type="text" :value="fmt(calculateDifferentialDue())" disabled
-                                           class="w-full px-3.5 py-2.5 bg-indigo-50 border border-indigo-300 rounded-xl text-xs text-indigo-700 font-bold font-mono">
+
+                                {{-- 4. Remaining Balance Due --}}
+                                <div class="bg-indigo-50/60 rounded-xl border border-indigo-200/80 p-3 shadow-2xs flex flex-col justify-between">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-extrabold text-indigo-700 uppercase tracking-wider">Remaining Balance Due</span>
+                                        <span class="w-5 h-5 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">⏳</span>
+                                    </div>
+                                    <div class="text-sm sm:text-base font-black text-indigo-700 font-mono tracking-tight"
+                                         x-text="fmt(calculateDifferentialDue())"></div>
+                                    <div class="text-[9px] text-indigo-600 font-semibold mt-1">Pending Net Differential</div>
                                 </div>
                             </div>
-                            <div class="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
-                                <span class="text-slate-500 font-medium">New Contract Value (₹<span x-text="Number(exchangeForm.new_unit_value || 0).toLocaleString()"></span>) − Old Paid Amount (₹<span x-text="Number(exchangeForm.equity_applied || 0).toLocaleString()"></span>)</span>
-                                <span class="font-bold text-indigo-700 font-mono">Net Due: <span x-text="fmt(calculateDifferentialDue())"></span></span>
+
+                            <div class="pt-2.5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                <span class="text-slate-500 font-medium flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                    <span>Formula: New Contract Value (<span class="font-bold text-slate-700" x-text="'₹' + Number(exchangeForm.new_unit_value || 0).toLocaleString()"></span>) − Old Paid Equity (<span class="font-bold text-emerald-700" x-text="'₹' + Number(exchangeForm.equity_applied || 0).toLocaleString()"></span>)</span>
+                                </span>
+                                <span class="font-extrabold text-indigo-700 font-mono bg-indigo-100/70 px-2.5 py-1 rounded-lg border border-indigo-200 text-xs">
+                                    Net Due: <span x-text="fmt(calculateDifferentialDue())"></span>
+                                </span>
                             </div>
                         </div>
 
@@ -2715,11 +2749,11 @@
                                 </div>
                                 <div>
                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">ORIGINAL VALUE</span>
-                                    <span class="text-rose-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span>
+                                    <span class="text-rose-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(getOldUnitValue(viewExchangeSale)) : '—'"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">PAID AMOUNT</span>
-                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">OLD PAID (EQUITY)</span>
+                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(getOldUnitPaidAmount(viewExchangeSale)) : '—'"></span>
                                 </div>
                             </div>
                         </div>
@@ -2744,26 +2778,34 @@
                                     <span class="text-emerald-700 font-extrabold font-mono text-xs block" x-text="fmt(getNewUnitValue(viewExchangeSale))"></span>
                                 </div>
                                 <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">TRANSFERRED EQUITY</span>
-                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="fmt(getPaidTillDate(viewExchangeSale))"></span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">NEW PAID (DOWN PMT)</span>
+                                    <span class="text-emerald-600 font-extrabold font-mono text-xs block" x-text="viewExchangeSale ? fmt(getNewUnitDirectPaidAmount(viewExchangeSale)) : '—'"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Financial calculations --}}
-                    <div class="bg-white border border-slate-200/90 rounded-xl p-3 grid grid-cols-3 gap-3 divide-x divide-slate-100 shadow-2xs">
+                    <div class="bg-white border border-slate-200/90 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 shadow-2xs">
                         <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAID AMOUNT</p>
-                            <p class="text-sm font-extrabold text-emerald-600 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">OLD PAID AMOUNT</p>
+                            <p class="text-sm font-extrabold text-amber-600 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getOldUnitPaidAmount(viewExchangeSale)) : '₹0.00'"></p>
+                            <span class="text-[8.5px] text-slate-400 font-medium">Carried Forward</span>
                         </div>
-                        <div class="text-center px-2">
+                        <div class="text-center px-1">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NEW PAID AMOUNT</p>
+                            <p class="text-sm font-extrabold text-blue-600 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getNewUnitDirectPaidAmount(viewExchangeSale)) : '₹0.00'"></p>
+                            <span class="text-[8.5px] text-slate-400 font-medium">New Down Payment</span>
+                        </div>
+                        <div class="text-center px-1">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">TOTAL PAID AMOUNT</p>
+                            <p class="text-sm font-extrabold text-emerald-600 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getTotalExchangePaidAmount(viewExchangeSale)) : '₹0.00'"></p>
+                            <span class="text-[8.5px] text-emerald-600 font-bold" x-text="viewExchangeSale ? ('Old: ' + fmt(getOldUnitPaidAmount(viewExchangeSale)) + ' + New: ' + fmt(getNewUnitDirectPaidAmount(viewExchangeSale))) : ''"></span>
+                        </div>
+                        <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NET BALANCE DUE</p>
-                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : '₹0.00'"></p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">PAYABLE / REFUNDABLE</p>
-                            <p class="text-xs font-extrabold mt-1 uppercase" 
+                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(Math.abs(getExchangeNetDue(viewExchangeSale))) : '₹0.00'"></p>
+                            <p class="text-[9px] font-extrabold mt-0.5 uppercase" 
                                :class="viewExchangeSale && getExchangeNetDue(viewExchangeSale) > 0 ? 'text-orange-600' : (viewExchangeSale && getExchangeNetDue(viewExchangeSale) < 0 ? 'text-teal-600' : 'text-slate-600')"
                                 x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
                         </div>

@@ -2733,11 +2733,52 @@ function salesApp() {
             const newSale = this.getNewUnit(sale);
             return newSale ? parseFloat(newSale.total_amount || 0) : 0;
         },
+        getOldUnitValue(sale) {
+            if (!sale) return 0;
+            const snap = this.getExchangeSnapshot(sale);
+            if (snap && snap.old_sale && snap.old_sale.total_amount) {
+                return parseFloat(snap.old_sale.total_amount);
+            }
+            return parseFloat(sale.total_amount || 0);
+        },
+        getOldUnitPaidAmount(sale) {
+            if (!sale) return 0;
+            const snap = this.getExchangeSnapshot(sale);
+            if (snap && snap.old_sale && snap.old_sale.total_paid !== undefined && snap.old_sale.total_paid !== null) {
+                return parseFloat(snap.old_sale.total_paid);
+            }
+            // If receipts exist on old sale
+            if (sale.receipts && sale.receipts.length > 0) {
+                return sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0);
+            }
+            return 0;
+        },
+        getNewUnitDirectPaidAmount(sale) {
+            if (!sale || sale.status !== 'exchanged') return 0;
+            const newSale = this.getNewUnit(sale);
+            if (!newSale || !newSale.receipts) return 0;
+            // Old paid amount equity carried forward
+            const oldPaid = this.getOldUnitPaidAmount(sale);
+            // Receipts directly recorded on new sale (exclude carried forward receipt if marked)
+            const newSaleDirectReceipts = newSale.receipts.filter(r => !r.partner_id && !(r.remarks && r.remarks.includes('Initial payment from previous booking')));
+            if (newSaleDirectReceipts.length > 0) {
+                return newSaleDirectReceipts.reduce((sum, r) => sum + Number(r.amount), 0);
+            }
+            // Fallback: total receipts on new sale minus oldPaid (if old receipt was re-assigned to new sale)
+            const allNewReceipts = newSale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0);
+            return Math.max(0, allNewReceipts - oldPaid);
+        },
+        getTotalExchangePaidAmount(sale) {
+            if (!sale) return 0;
+            const oldPaid = this.getOldUnitPaidAmount(sale);
+            const newPaid = this.getNewUnitDirectPaidAmount(sale);
+            return Math.round((oldPaid + newPaid) * 100) / 100;
+        },
         getExchangeNetDue(sale) {
             if (!sale || sale.status !== 'exchanged') return 0;
             const newVal = this.getNewUnitValue(sale);
-            const paid = this.getPaidTillDate(sale);
-            return Math.round((newVal - paid) * 100) / 100;
+            const totalPaid = this.getTotalExchangePaidAmount(sale);
+            return Math.round((newVal - totalPaid) * 100) / 100;
         },
         getExchangeStatusText(sale) {
             if (!sale || sale.status !== 'exchanged') return '—';
@@ -2748,7 +2789,9 @@ function salesApp() {
         },
         getDifferenceAmount(sale) {
             if (!sale || sale.status !== 'exchanged') return 0;
-            return Math.abs(this.getExchangeNetDue(sale));
+            const newVal = this.getNewUnitValue(sale);
+            const oldVal = this.getOldUnitValue(sale);
+            return Math.round(Math.abs(newVal - oldVal) * 100) / 100;
         },
         getUnitsDisplay(sale) {
             if (!sale) return 'N/A';
