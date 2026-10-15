@@ -414,13 +414,61 @@
                             $paid = (float) $expense->paid_amount;
                             $isCleared = ($bal <= 0.001);
                             $paymentsCount = $expense->payments->count();
+
+                            $expenseData = [
+                                'id' => $expense->id,
+                                'voucher_number' => $expense->voucher_number,
+                                'voucher_date' => $expense->voucher_date ? \Carbon\Carbon::parse($expense->voucher_date)->format('d-M-Y') : '—',
+                                'project_name' => $expense->project->name ?? 'Global Project',
+                                'floor_name' => $expense->floor->name ?? ($expense->tower_block_tag ?: 'General Site'),
+                                'expense_category_name' => $expense->expense_category_name ?? '—',
+                                'payee_display_name' => $expense->payee_display_name,
+                                'payee_type_label' => $expense->vendor_id ? 'Registered Vendor' : ($expense->payee_type === 'registered' ? 'Registered Payee' : 'One-Time Payee'),
+                                'vendor_phone' => $expense->vendor->phone ?? ($expense->payee->phone ?? ''),
+                                'vendor_pan' => $expense->vendor->pan_number ?? ($expense->payee->pan_number ?? ''),
+                                'vendor_gst' => $expense->vendor->gstin ?? ($expense->payee->gst_number ?? ''),
+                                'gross_amount' => (float) $expense->gross_amount,
+                                'gst_rate' => (float) $expense->gst_rate,
+                                'total_gst_amount' => (float) ($expense->total_gst_amount ?: $expense->gst_amount),
+                                'net_amount' => $net,
+                                'paid_amount' => $paid,
+                                'balance_amount' => $bal,
+                                'status' => $isCleared ? 'Cleared' : ($paid > 0 ? 'Partially Paid' : 'Pending Release'),
+                                'is_cleared' => $isCleared,
+                                'payment_source_type' => $expense->payment_source_type ?? 'bank',
+                                'payment_source_name' => $expense->payment_source_display_name,
+                                'transaction_reference_no' => $expense->transaction_reference_no ?? '—',
+                                'narration' => $expense->narration ?? '—',
+                                'attachment_path' => $expense->attachment_path ? asset('storage/' . $expense->attachment_path) : null,
+                                'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : null,
+                                'created_by_name' => $expense->creator->name ?? 'System',
+                                'created_at' => $expense->created_at ? $expense->created_at->format('d-M-Y H:i') : null,
+                                'vendor_id' => $expense->vendor_id ?? '',
+                                'payee_id' => $expense->payee_id ?? '',
+                                'casual_payee_name' => $expense->casual_payee_name ?? '',
+                                'payments' => $expense->payments->map(function($p) {
+                                    return [
+                                        'id' => $p->id,
+                                        'payment_date' => $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('d-M-Y') : '—',
+                                        'paid_amount' => (float) $p->paid_amount,
+                                        'payment_mode' => $p->payment_mode ?? '—',
+                                        'payment_source' => $p->companyBankAccount ? ($p->companyBankAccount->bank_name . ' (' . substr((string)($p->companyBankAccount->account_number ?? ''), -4) . ')') : ($p->loan ? ($p->loan->lender_name) : ucfirst($p->payment_source_type ?? 'Bank')),
+                                        'reference_no' => $p->reference_no ?? '—',
+                                        'remarks' => $p->remarks ?? '—',
+                                    ];
+                                })->values()->toArray(),
+                            ];
                         @endphp
                         <tbody x-data="{ showHistory: false }" class="border-b border-slate-100">
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <!-- Column 1: Voucher No + Date + Part-Paid Accordion Toggle -->
                                 <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
                                     <div class="flex flex-col gap-1 items-start">
-                                        <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-xs whitespace-nowrap shadow-2xs">{{ $expense->voucher_number }}</span>
+                                        <button type="button" @click="openViewModal(@js($expenseData))" 
+                                                class="inline-block px-2 py-0.5 bg-slate-200/80 hover:bg-[#a38c29]/20 hover:text-[#7a681d] text-slate-900 rounded font-mono font-extrabold text-xs whitespace-nowrap shadow-2xs transition cursor-pointer"
+                                                title="Click to view voucher details">
+                                            {{ $expense->voucher_number }}
+                                        </button>
                                         <div class="text-[10px] text-slate-400 font-bold">{{ \Carbon\Carbon::parse($expense->voucher_date)->format('d/m/Y') }}</div>
                                         @if($paymentsCount > 0)
                                             <button type="button" @click="showHistory = !showHistory"
@@ -491,26 +539,38 @@
 
                                 <!-- Column 9: Action -->
                                 <td class="px-3 py-3 text-center whitespace-nowrap align-middle">
-                                    @if(!$isCleared)
-                                        <button type="button" @click="openDisburseModal({
-                                                    id: {{ $expense->id }},
-                                                    voucher_number: '{{ addslashes($expense->voucher_number) }}',
-                                                    payee_display_name: '{{ addslashes($expense->payee_display_name) }}',
-                                                    net_amount: {{ (float) $expense->net_amount }},
-                                                    paid_amount: {{ (float) $expense->paid_amount }},
-                                                    balance_amount: {{ (float) $expense->balance_amount }},
-                                                    payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
-                                                    vendor_id: '{{ $expense->vendor_id ?? '' }}',
-                                                    payee_id: '{{ $expense->payee_id ?? '' }}',
-                                                    casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}'
-                                                })"
-                                                class="w-7 h-7 inline-flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer group"
-                                                title="Disburse Payment">
-                                            <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    <div class="inline-flex items-center justify-center gap-1.5">
+                                        <!-- View Details Modal Button -->
+                                        <button type="button" @click="openViewModal(@js($expenseData))"
+                                                class="w-7 h-7 inline-flex items-center justify-center bg-[#a38c29]/10 text-[#a38c29] hover:bg-[#a38c29] hover:text-white rounded-full transition-colors cursor-pointer group shadow-2xs"
+                                                title="View Site Expense Details">
+                                            <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                    @else
-                                        <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
-                                    @endif
+
+                                        @if(!$isCleared)
+                                            <!-- Disburse Payment Button -->
+                                            <button type="button" @click="openDisburseModal({
+                                                        id: {{ $expense->id }},
+                                                        voucher_number: '{{ addslashes($expense->voucher_number) }}',
+                                                        payee_display_name: '{{ addslashes($expense->payee_display_name) }}',
+                                                        net_amount: {{ (float) $expense->net_amount }},
+                                                        paid_amount: {{ (float) $expense->paid_amount }},
+                                                        balance_amount: {{ (float) $expense->balance_amount }},
+                                                        payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
+                                                        vendor_id: '{{ $expense->vendor_id ?? '' }}',
+                                                        payee_id: '{{ $expense->payee_id ?? '' }}',
+                                                        casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}'
+                                                    })"
+                                                    class="w-7 h-7 inline-flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer group shadow-2xs"
+                                                    title="Disburse Payment">
+                                                <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            </button>
+                                        @else
+                                            <span class="w-7 h-7 inline-flex items-center justify-center bg-[#ECFDF3] text-[#065F46] rounded-full shadow-2xs" title="Payment Fully Cleared">
+                                                <svg class="w-3.5 h-3.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
 
@@ -610,6 +670,175 @@
                 {{ $siteExpenses->links() }}
             </div>
         @endif
+    </div>
+
+    <!-- ── MODAL: VIEW SITE EXPENSE DETAILS (COMPACT & FULLY VISIBLE) ── -->
+    <div x-show="viewModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col my-auto bg-white max-h-[92vh]" @click.away="viewModalOpen = false">
+            {{-- 1. Executive Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-5 sm:px-6 py-3.5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[#a38c29] text-[9.5px] font-black uppercase tracking-widest">
+                                SITE EXPENSE DETAILS
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border"
+                                  :class="{
+                                      'bg-[#ECFDF3] text-[#065F46] border-[#A7F3D0]': viewExpenseDetails?.status === 'Cleared',
+                                      'bg-blue-50 text-blue-800 border-blue-200': viewExpenseDetails?.status === 'Partially Paid',
+                                      'bg-amber-50 text-amber-900 border-amber-300': viewExpenseDetails?.status === 'Pending Release'
+                                  }"
+                                  x-text="viewExpenseDetails?.status"></span>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-black text-white tracking-tight" x-text="'Voucher #' + (viewExpenseDetails?.voucher_number || '')"></h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/90 text-xs font-mono font-bold border border-white/10 bg-white/10">
+                            <svg class="w-3.5 h-3.5 text-[#f3e5ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span x-text="viewExpenseDetails?.voucher_date || ''"></span>
+                        </div>
+                        <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 2. Compact Body (Fits fully on screen) --}}
+            <div class="p-4 sm:p-5 flex-1 overflow-y-auto space-y-3.5 bg-slate-50/50 text-xs">
+                
+                <!-- 2A. Three Top Financial Metric KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Net Approved -->
+                    <div class="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-slate-500 mb-0.5">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-600">NET APPROVED</span>
+                            <span class="text-[9px] font-mono text-slate-400" x-text="'GST: ' + (viewExpenseDetails?.gst_rate || 0) + '%'"></span>
+                        </div>
+                        <span class="text-base sm:text-lg font-black font-mono text-blue-900 block leading-tight" x-text="'₹ ' + numberFormat(viewExpenseDetails?.net_amount || 0)">₹ 0.00</span>
+                        <div class="text-[9.5px] text-slate-500 font-medium mt-1 pt-1 border-t border-slate-100 flex justify-between">
+                            <span>Gross: <strong class="font-mono text-slate-700" x-text="'₹ ' + numberFormat(viewExpenseDetails?.gross_amount || 0)"></strong></span>
+                            <span>Tax: <strong class="font-mono text-slate-700" x-text="'₹ ' + numberFormat(viewExpenseDetails?.total_gst_amount || 0)"></strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Paid / Disbursed -->
+                    <div class="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-slate-500 mb-0.5">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-600">PAID / DISBURSED</span>
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-base sm:text-lg font-black font-mono text-emerald-700 block leading-tight" x-text="'₹ ' + numberFormat(viewExpenseDetails?.paid_amount || 0)">₹ 0.00</span>
+                        <div class="text-[9.5px] text-emerald-700 font-bold mt-1 pt-1 border-t border-slate-100" x-text="(viewExpenseDetails?.payments ? viewExpenseDetails.payments.length : 0) + ' Payment Installment(s)'"></div>
+                    </div>
+
+                    <!-- Outstanding Balance Due -->
+                    <div class="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-slate-500 mb-0.5">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider" :class="viewExpenseDetails?.is_cleared ? 'text-slate-600' : 'text-rose-700'">BALANCE DUE</span>
+                            <template x-if="viewExpenseDetails?.is_cleared">
+                                <span class="text-[9px] font-bold text-emerald-600">CLEARED</span>
+                            </template>
+                        </div>
+                        <span class="text-base sm:text-lg font-black font-mono block leading-tight"
+                              :class="viewExpenseDetails?.is_cleared ? 'text-slate-400' : 'text-rose-700'"
+                              x-text="'₹ ' + numberFormat(viewExpenseDetails?.balance_amount || 0)">₹ 0.00</span>
+                        <div class="text-[9.5px] font-semibold mt-1 pt-1 border-t border-slate-100"
+                             :class="viewExpenseDetails?.is_cleared ? 'text-slate-400' : 'text-rose-600'"
+                             x-text="viewExpenseDetails?.is_cleared ? 'Zero Outstanding' : 'Ready For Release'"></div>
+                    </div>
+                </div>
+
+                <!-- 2B. Two Side-by-Side Information Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    
+                    <!-- Left: Payee & Scope Details -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <div class="flex items-center gap-1.5 border-b border-slate-100 pb-1.5 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span>Payee &amp; Project Info</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-3 text-xs">
+                            <div>
+                                <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Payee / Vendor</span>
+                                <span class="font-extrabold text-slate-900 block truncate" x-text="viewExpenseDetails?.payee_display_name"></span>
+                                <span class="text-[9px] text-slate-400 block" x-text="viewExpenseDetails?.payee_type_label"></span>
+                            </div>
+                            <div>
+                                <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Project</span>
+                                <span class="font-bold text-slate-800 block truncate" x-text="viewExpenseDetails?.project_name"></span>
+                                <span class="text-[9.5px] text-slate-500 block truncate" x-text="viewExpenseDetails?.floor_name"></span>
+                            </div>
+                            <div>
+                                <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Expense Category</span>
+                                <span class="inline-block px-2 py-0.5 bg-slate-100 text-slate-800 text-[10.5px] font-bold rounded border border-slate-200 truncate max-w-full" x-text="viewExpenseDetails?.expense_category_name"></span>
+                            </div>
+                            <div>
+                                <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Voucher Date</span>
+                                <span class="font-mono font-bold text-slate-800 text-[11px]" x-text="viewExpenseDetails?.voucher_date"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Payment Source & Narration -->
+                    <div class="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <div class="flex items-center gap-1.5 border-b border-slate-100 pb-1.5 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Payment Source &amp; Purpose</span>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Payment Source</span>
+                                    <span class="font-bold text-slate-800 text-[11px]" x-text="viewExpenseDetails?.payment_source_name || 'Bank Account'"></span>
+                                </div>
+                                <div class="text-right" x-show="viewExpenseDetails?.transaction_reference_no">
+                                    <span class="block text-[9.5px] font-bold text-slate-400 uppercase">Ref No</span>
+                                    <span class="font-mono text-slate-700 font-bold text-[11px]" x-text="viewExpenseDetails?.transaction_reference_no"></span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="block text-[9.5px] font-bold text-slate-400 uppercase mb-0.5">Narration / Purpose</span>
+                                <p class="text-[11px] text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-200/70 font-medium leading-relaxed max-h-14 overflow-y-auto" x-text="viewExpenseDetails?.narration || 'No narration provided.'"></p>
+                            </div>
+
+                            <template x-if="viewExpenseDetails?.attachment_path">
+                                <div class="pt-1 border-t border-slate-100 flex items-center justify-between">
+                                    <span class="text-[9.5px] font-bold text-slate-400 uppercase">Bill Attachment</span>
+                                    <a :href="viewExpenseDetails?.attachment_path" target="_blank"
+                                       class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8a7522] border border-[#a38c29]/30 rounded-lg text-[10.5px] font-bold transition">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                        <span class="truncate max-w-[180px]" x-text="viewExpenseDetails?.attachment_name || 'View Bill'"></span>
+                                    </a>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- 3. Dedicated Fixed Footer (Always visible, no scroll required) --}}
+            <div class="px-5 sm:px-6 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <template x-if="viewExpenseDetails && !viewExpenseDetails.is_cleared">
+                        <button type="button" @click="viewModalOpen = false; openDisburseModal(viewExpenseDetails)"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Disburse Payment</span>
+                        </button>
+                    </template>
+                </div>
+                <button type="button" @click="viewModalOpen = false" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold uppercase tracking-wider rounded-xl transition cursor-pointer">
+                    CLOSE
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (OPTIMIZED FOR LAPTOP & DESKTOP) ── -->
@@ -920,6 +1149,8 @@ function siteExpensePaymentRelease() {
     const categoryNames = @json($expenseCategories);
 
     return {
+        viewModalOpen: false,
+        viewExpenseDetails: null,
         disburseModalOpen: false,
         openErrorModal: {{ ($errors->any() || session('error')) ? 'true' : 'false' }},
         selectedExpense: null,
@@ -1092,6 +1323,11 @@ function siteExpensePaymentRelease() {
                 (b.account_number && b.account_number.toLowerCase().includes(q)) ||
                 (b.branch_name && b.branch_name.toLowerCase().includes(q))
             );
+        },
+
+        openViewModal(expense) {
+            this.viewExpenseDetails = expense;
+            this.viewModalOpen = true;
         },
 
         openDisburseModal(expense) {

@@ -856,6 +856,20 @@
                         $modalBadge = 'Customer Modified';
                         $modalSubtitle = 'Customer profile updated successfully.';
                     }
+                } elseif (str_contains($lowerText, 'vendor')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'register') || str_contains($lowerText, 'add') || str_contains($lowerText, 'save')) {
+                        $modalTitle = 'Vendor Registered!';
+                        $modalBadge = 'Vendor Profile Created';
+                        $modalSubtitle = 'Vendor profile registered successfully.';
+                    } elseif (str_contains($lowerText, 'delete') || str_contains($lowerText, 'remove')) {
+                        $modalTitle = 'Vendor Removed!';
+                        $modalBadge = 'Vendor Profile Removed';
+                        $modalSubtitle = 'Vendor profile removed successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Vendor Updated!';
+                        $modalBadge = 'Vendor Profile Modified';
+                        $modalSubtitle = 'Vendor profile updated successfully.';
+                    }
                 }
             @endphp
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}

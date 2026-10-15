@@ -30,18 +30,18 @@
         <div class="xl:col-span-2">
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 
-                <!-- Card Header (Theme Gold) -->
-                <div class="px-6 py-4 bg-[#a38c29] text-white flex items-center justify-between">
+                <!-- Card Header (Global Table Header Color) -->
+                <div class="px-6 py-4 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-[#a38c29]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                         </div>
                         <div>
                             <h2 class="text-sm font-black uppercase tracking-wider text-white">Contra Withdrawal Entry</h2>
-                            <p class="text-[11px] text-amber-100 font-medium mt-0.5">Disburse cash from company bank account into site petty cash box</p>
+                            <p class="text-[11px] text-slate-300 font-medium mt-0.5">Disburse cash from company bank account into site petty cash box</p>
                         </div>
                     </div>
-                    <span class="px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider border border-white/30">
+                    <span class="px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider border border-white/30 shadow-2xs">
                         Cash Transfer
                     </span>
                 </div>
@@ -320,12 +320,12 @@
             
             <!-- Withdrawal Details -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="px-5 py-4 bg-[#a38c29] text-white flex items-center justify-between">
+                <div class="px-5 py-3.5 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         <h2 class="text-xs font-black text-white uppercase tracking-wider">WITHDRAWAL DETAILS</h2>
                     </div>
-                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Live Analysis</span>
+                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Live Analysis</span>
                 </div>
                 <div class="p-5">
                     <table class="w-full text-xs">
@@ -362,12 +362,12 @@
 
             <!-- Contra History (Recent) -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                <div class="px-5 py-4 bg-[#a38c29] text-white flex items-center justify-between">
+                <div class="px-5 py-3.5 erp-table-header border-b border-slate-700 text-white flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <h2 class="text-xs font-black text-white uppercase tracking-wider">CONTRA HISTORY (RECENT)</h2>
                     </div>
-                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Recent 5</span>
+                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Recent 5</span>
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left whitespace-nowrap">

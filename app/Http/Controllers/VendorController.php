@@ -97,9 +97,26 @@ class VendorController extends Controller
     /**
      * Store a newly created Vendor in master
      */
-    public function store(Request $request): RedirectResponse
+    /**
+     * Store a newly created Vendor in master
+     */
+    public function store(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $systemId = Auth::user()->system_id ?? 1;
+
+        if ($request->has('gstin')) {
+            $request->merge(['gstin' => $request->filled('gstin') ? strtoupper(trim((string)$request->gstin)) : null]);
+        }
+        if ($request->has('pan')) {
+            $request->merge(['pan' => $request->filled('pan') ? strtoupper(trim((string)$request->pan)) : null]);
+        }
+
+        $messages = [
+            'name.required'   => 'The vendor / business name is required.',
+            'name.unique'     => 'A vendor with this business name already exists.',
+            'gstin.size'      => 'The GSTIN must be exactly 15 characters.',
+            'gstin.alpha_num' => 'The GSTIN must contain only alphanumeric characters.',
+        ];
 
         $request->validate([
             'name'           => 'required|string|max:191|unique:vendors,name,NULL,id,system_id,' . $systemId,
@@ -113,9 +130,9 @@ class VendorController extends Controller
             'account_number' => 'nullable|string|max:50',
             'ifsc_code'      => 'nullable|string|max:20',
             'branch'         => 'nullable|string|max:100',
-        ]);
+        ], $messages);
 
-        DB::transaction(function () use ($request, $systemId) {
+        $newVendor = DB::transaction(function () use ($request, $systemId) {
             // Generate sequential Vendor Code (e.g. VND-0001)
             $lastVendor = Vendor::where('system_id', $systemId)
                 ->where('vendor_code', 'like', 'VND-%')
@@ -151,7 +168,7 @@ class VendorController extends Controller
                 'is_active' => true,
             ]);
 
-            Vendor::create([
+            return Vendor::create([
                 'system_id'         => $systemId,
                 'vendor_code'       => $vendorCode,
                 'name'              => $request->name,
@@ -170,17 +187,41 @@ class VendorController extends Controller
             ]);
         });
 
-        return redirect()->route('vendors.index')->with('success', '✅ Vendor registered successfully in master and ledger account generated.');
+        session()->flash('status', 'Vendor profile registered successfully with linked liability ledger account.');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor profile registered successfully with linked liability ledger account.',
+                'vendor'  => $newVendor
+            ]);
+        }
+
+        return redirect()->route('vendors.index')->with('status', 'Vendor profile registered successfully with linked liability ledger account.');
     }
 
     /**
      * Update an existing Vendor
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int $id): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $systemId = Auth::user()->system_id ?? 1;
 
         $vendor = Vendor::where('system_id', $systemId)->findOrFail($id);
+
+        if ($request->has('gstin')) {
+            $request->merge(['gstin' => $request->filled('gstin') ? strtoupper(trim((string)$request->gstin)) : null]);
+        }
+        if ($request->has('pan')) {
+            $request->merge(['pan' => $request->filled('pan') ? strtoupper(trim((string)$request->pan)) : null]);
+        }
+
+        $messages = [
+            'name.required'   => 'The vendor / business name is required.',
+            'name.unique'     => 'A vendor with this business name already exists.',
+            'gstin.size'      => 'The GSTIN must be exactly 15 characters.',
+            'gstin.alpha_num' => 'The GSTIN must contain only alphanumeric characters.',
+        ];
 
         $request->validate([
             'name'           => 'required|string|max:191|unique:vendors,name,' . $vendor->id . ',id,system_id,' . $systemId,
@@ -195,7 +236,7 @@ class VendorController extends Controller
             'ifsc_code'      => 'nullable|string|max:20',
             'branch'         => 'nullable|string|max:100',
             'is_active'      => 'nullable|boolean',
-        ]);
+        ], $messages);
 
         DB::transaction(function () use ($request, $vendor) {
             $vendor->update([
@@ -221,7 +262,17 @@ class VendorController extends Controller
             }
         });
 
-        return redirect()->route('vendors.index')->with('success', '✅ Vendor details updated successfully.');
+        session()->flash('status', 'Vendor profile updated successfully.');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor profile updated successfully.',
+                'vendor'  => $vendor->fresh()
+            ]);
+        }
+
+        return redirect()->route('vendors.index')->with('status', 'Vendor profile updated successfully.');
     }
 
     /**

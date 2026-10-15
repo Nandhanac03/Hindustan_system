@@ -916,9 +916,9 @@
                                   style="background-color: rgba(163, 140, 41, 0.2) !important;">
                                 BROKER TRANSACTION RECORD
                             </span>
-                            <span x-show="selectedLedgerEntry?.type === 'CLAIM' || !selectedLedgerEntry?.type" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-xs" style="background-color: #a38c29 !important;">
+                            <!-- <span x-show="selectedLedgerEntry?.type === 'CLAIM' || !selectedLedgerEntry?.type" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-xs" style="background-color: #a38c29 !important;">
                                 COMMISSION ALLOCATED
-                            </span>
+                            </span> -->
                             <span x-show="selectedLedgerEntry?.type === 'DISBURSEMENT'" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-xs" style="background-color: #059669 !important;">
                                 PAYMENT DISBURSED
                             </span>
