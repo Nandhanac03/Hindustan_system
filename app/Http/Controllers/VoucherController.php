@@ -1573,12 +1573,11 @@ class VoucherController extends Controller
             $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0) + (float)$debits - (float)$credits, 2);
         }
 
-        // Load recent Contra vouchers
+        // Load Contra vouchers
         $recentContras = Voucher::where('system_id', $systemId)
             ->where('type', 'Contra')
             ->with(['lines.account'])
             ->orderBy('id', 'desc')
-            ->take(15)
             ->get();
 
         return view('vouchers.contra', compact('assetAccounts', 'companyBankAccounts', 'projects', 'paymentModes', 'voucherNumber', 'recentContras'));

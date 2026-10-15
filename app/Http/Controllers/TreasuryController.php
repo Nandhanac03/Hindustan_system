@@ -669,6 +669,18 @@ class TreasuryController extends Controller
                 $narrationLower = strtolower($v->narration ?? '');
                 $isBankTransfer = $destBank || str_contains($narrationLower, 'bank transfer') || str_contains($narrationLower, 'inter-bank') || str_contains($narrationLower, 'internal transfer');
 
+                $cleanContraRef = $v->reference_no;
+                if ($cleanContraRef) {
+                    $trimmedRef = trim($cleanContraRef);
+                    if (str_starts_with($trimmedRef, '{') || str_starts_with($trimmedRef, '[')) {
+                        $decoded = json_decode($trimmedRef, true);
+                        $cleanContraRef = is_array($decoded) ? (!empty($decoded['reference_no']) ? $decoded['reference_no'] : null) : null;
+                    }
+                }
+                if (!$cleanContraRef || $cleanContraRef === $v->voucher_number) {
+                    $cleanContraRef = '—';
+                }
+
                 // Source Bank Outflow
                 if ($sourceBank) {
                     $category = $destBank ? 'Contra Bank Transfer' : 'Contra Cash Withdrawal';
@@ -687,7 +699,7 @@ class TreasuryController extends Controller
                         'voucher_no'         => $v->voucher_number,
                         'counterparty'       => $counterparty,
                         'payment_mode'       => 'Contra Transfer',
-                        'reference_no'       => $v->reference_no ?: $v->voucher_number,
+                        'reference_no'       => $cleanContraRef,
                         'narration'          => $v->narration ?: ($destBank ? 'Transfer to ' . $destBank->bank_name : 'Cash Withdrawal'),
                         'inflow_amount'      => 0.00,
                         'outflow_amount'     => $amount,
@@ -710,7 +722,7 @@ class TreasuryController extends Controller
                         'voucher_no'         => $v->voucher_number,
                         'counterparty'       => $sourceBank ? $sourceBank->bank_name : 'Internal Contra Transfer',
                         'payment_mode'       => 'Contra Transfer',
-                        'reference_no'       => $v->reference_no ?: $v->voucher_number,
+                        'reference_no'       => $cleanContraRef,
                         'narration'          => $v->narration ?: ($sourceBank ? 'Transfer received from ' . $sourceBank->bank_name : 'Contra Inflow'),
                         'inflow_amount'      => $amount,
                         'outflow_amount'     => 0.00,
@@ -758,6 +770,26 @@ class TreasuryController extends Controller
                 $counterparty = \Illuminate\Support\Str::limit($v->narration, 35);
             }
 
+            $cleanRef = $v->reference_no;
+            $payMode = 'Bank Voucher';
+            if ($cleanRef) {
+                $trimmedRef = trim($cleanRef);
+                if (str_starts_with($trimmedRef, '{') || str_starts_with($trimmedRef, '[')) {
+                    $decoded = json_decode($trimmedRef, true);
+                    if (is_array($decoded)) {
+                        $cleanRef = !empty($decoded['reference_no']) ? $decoded['reference_no'] : (!empty($decoded['cheque_no']) ? $decoded['cheque_no'] : (!empty($decoded['utr_no']) ? $decoded['utr_no'] : null));
+                        if (!empty($decoded['payment_mode'])) {
+                            $payMode = $decoded['payment_mode'];
+                        }
+                    } else {
+                        $cleanRef = null;
+                    }
+                }
+            }
+            if (!$cleanRef || $cleanRef === $v->voucher_number) {
+                $cleanRef = '—';
+            }
+
             $allTransactions[] = [
                 'id'                 => 'vch_' . $v->id,
                 'raw_timestamp'      => $date->timestamp,
@@ -771,8 +803,8 @@ class TreasuryController extends Controller
                 'category'           => $category,
                 'voucher_no'         => $v->voucher_number,
                 'counterparty'       => $counterparty,
-                'payment_mode'       => 'Bank Voucher',
-                'reference_no'       => $v->reference_no ?: $v->voucher_number,
+                'payment_mode'       => $payMode,
+                'reference_no'       => $cleanRef,
                 'narration'          => $v->narration ?: $category,
                 'inflow_amount'      => 0.00,
                 'outflow_amount'     => $amount,

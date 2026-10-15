@@ -144,6 +144,7 @@
         box-sizing: border-box !important;
     }
 
+    .treasury-table-wrapper,
     .overflow-x-auto {
         display: block !important;
         overflow: visible !important;
@@ -813,58 +814,50 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs" id="treasuryReportTable">
-                <colgroup>
-                    <col style="width: 4%;">
-                    <col style="width: 13%;">
-                    <col style="width: 15%;">
-                    <col style="width: 34%;">
-                    <col style="width: 11%;">
-                    <col style="width: 11%;">
-                    <col style="width: 12%;">
-                </colgroup>
+        <div class="w-full overflow-hidden treasury-table-wrapper">
+            <table class="w-full text-left border-collapse text-xs table-auto" id="treasuryReportTable">
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
                     <tr class="erp-table-header border-b border-slate-700 text-left">
-                        <th class="py-3.5 px-3 erp-table-header border-r border-slate-600 w-12 text-center whitespace-nowrap">#</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Date & Voucher</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Bank Account</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-left">Transaction Particulars</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Inflow (₹)</th>
-                        <th class="py-3.5 px-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Outflow (₹)</th>
-                        <th class="py-3.5 px-3.5 erp-table-header text-right whitespace-nowrap">Running Bal (₹)</th>
+                        <th class="py-3 px-2 erp-table-header border-r border-slate-600 w-10 text-center whitespace-nowrap">#</th>
+                        <th class="py-3 px-3 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Date &amp; Voucher</th>
+                        <th class="py-3 px-3 erp-table-header border-r border-slate-600 whitespace-nowrap text-left">Bank Account</th>
+                        <th class="py-3 px-3 erp-table-header border-r border-slate-600 text-left">Transaction Particulars</th>
+                        <th class="py-3 px-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Inflow (₹)</th>
+                        <th class="py-3 px-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Outflow (₹)</th>
+                        <th class="py-3 px-3 erp-table-header text-right whitespace-nowrap">Running Bal (₹)</th>
+                        <th class="py-3 px-2.5 erp-table-header text-center whitespace-nowrap print:hidden w-14">Action</th>
                     </tr>
                 </thead>
                 <tbody id="treasuryReportTbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
                     <template x-for="(t, idx) in paginatedTransactions" :key="t.id">
-                        <tr class="transition-colors border-b border-slate-200/60">
+                        <tr class="transition-colors border-b border-slate-200/60 hover:bg-slate-50">
                             {{-- Index --}}
-                            <td class="py-3 px-3 text-center text-slate-400 font-mono text-[11px] border-r border-slate-200/40"
+                            <td class="py-2.5 px-2 text-center text-slate-400 font-mono text-[11px] border-r border-slate-200/40"
                                 x-text="((currentPage - 1) * perPage) + idx + 1">
                             </td>
 
                             {{-- Date & Voucher --}}
-                            <td class="py-3 px-3.5 whitespace-nowrap border-r border-slate-200/40">
+                            <td class="py-2.5 px-3 whitespace-nowrap border-r border-slate-200/40">
                                 <div class="font-bold text-slate-800 text-xs" x-text="t.date_formatted"></div>
                                 <div class="font-mono text-[10px] text-slate-400 font-semibold" x-text="t.voucher_no"></div>
-                                <template x-if="t.reference_no && t.reference_no !== '—' && t.reference_no !== t.voucher_no">
-                                    <div class="text-[9px] text-slate-400 font-mono" x-text="'Ref: ' + t.reference_no"></div>
+                                <template x-if="cleanReference(t.reference_no, t.voucher_no)">
+                                    <div class="text-[9px] text-slate-400 font-mono" x-text="'Ref: ' + cleanReference(t.reference_no, t.voucher_no)"></div>
                                 </template>
                             </td>
 
                             {{-- Bank Account & Mode --}}
-                            <td class="py-3 px-3.5 whitespace-nowrap border-r border-slate-200/40">
-                                <div class="font-bold text-slate-800 text-xs" x-text="t.bank_name"></div>
+                            <td class="py-2.5 px-3 whitespace-nowrap border-r border-slate-200/40">
+                                <div class="font-bold text-slate-800 text-xs truncate max-w-[150px]" :title="t.bank_name" x-text="t.bank_name"></div>
                                 <div class="text-[10px] text-slate-400 flex items-center gap-1.5 font-medium mt-0.5">
                                     <span class="font-mono font-semibold text-slate-500" x-show="t.account_number" x-text="t.account_number ? ('A/C ' + t.account_number.slice(-4)) : ''"></span>
                                     <span x-show="t.account_number" class="text-slate-300">/</span>
-                                    <span x-text="t.payment_mode"></span>
+                                    <span class="truncate max-w-[90px]" :title="t.payment_mode" x-text="t.payment_mode"></span>
                                 </div>
                             </td>
 
                             {{-- Particulars, Category, Direction & Narration --}}
-                            <td class="py-3 px-3.5 border-r border-slate-200/40">
-                                <div class="flex items-center gap-2 flex-wrap">
+                            <td class="py-2.5 px-3 border-r border-slate-200/40">
+                                <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="font-bold text-slate-900 text-xs" x-text="t.counterparty"></span>
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80" x-text="t.category"></span>
                                     <template x-if="t.flow_type === 'inflow'">
@@ -875,33 +868,47 @@
                                     </template>
                                 </div>
                                 <template x-if="t.narration && t.narration !== t.category && t.narration !== t.counterparty">
-                                    <div class="text-[10.5px] text-slate-400 truncate max-w-md mt-0.5" :title="t.narration" x-text="t.narration"></div>
+                                    <div class="text-[10px] text-slate-400 truncate max-w-xs sm:max-w-sm mt-0.5" :title="t.narration" x-text="t.narration"></div>
                                 </template>
                             </td>
 
                             {{-- Inflow Amount --}}
-                            <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
+                            <td class="py-2.5 px-3 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
                                 :class="t.inflow_amount > 0 ? 'text-emerald-700' : 'text-slate-300'"
                                 x-text="t.inflow_amount > 0 ? ('₹' + formatMoney(t.inflow_amount)) : ''">
                             </td>
 
                             {{-- Outflow Amount --}}
-                            <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
+                            <td class="py-2.5 px-3 text-right whitespace-nowrap font-mono font-bold text-xs border-r border-slate-200/40 amount-cell"
                                 :class="t.outflow_amount > 0 ? 'text-rose-700' : 'text-slate-300'"
                                 x-text="t.outflow_amount > 0 ? ('₹' + formatMoney(t.outflow_amount)) : ''">
                             </td>
 
                             {{-- Running Balance --}}
-                            <td class="py-3 px-3.5 text-right whitespace-nowrap font-mono font-extrabold text-xs amount-cell"
+                            <td class="py-2.5 px-3 text-right whitespace-nowrap font-mono font-extrabold text-xs amount-cell border-r border-slate-200/40 print:border-none"
                                 :class="t.running_balance >= 0 ? 'text-slate-900' : 'text-rose-700'"
                                 x-text="'₹' + formatMoney(t.running_balance)">
+                            </td>
+
+                            {{-- Action (View Modal) --}}
+                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap print:hidden" @click.stop>
+                                <button type="button" 
+                                        @click.stop="openViewModal(t)" 
+                                        title="View Transaction Details"
+                                        class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/20 hover:border-[#a38c29]/40 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group active:scale-95"
+                                        aria-label="View Transaction Details">
+                                    <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
                             </td>
                         </tr>
                     </template>
 
                     <template x-if="filteredTransactions.length === 0">
                         <tr>
-                            <td colspan="7" class="py-12 text-center text-slate-400">
+                            <td colspan="8" class="py-12 text-center text-slate-400">
                                 <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 </div>
@@ -918,16 +925,17 @@
                 {{-- Table Grand Totals Footer (Live Updates via Alpine) --}}
                 <tfoot x-show="filteredTransactions.length > 0">
                     <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-[#a38c29]">
-                        <td colspan="4" class="py-3.5 px-4 text-right uppercase tracking-wider text-[11px] text-slate-700 font-bold border-r border-slate-200/40">Grand Totals for Selected Range:</td>
-                        <td class="py-3.5 px-3.5 text-right font-mono text-xs text-emerald-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
+                        <td colspan="4" class="py-3 px-3 text-right uppercase tracking-wider text-[10.5px] text-slate-700 font-bold border-r border-slate-200/40">Grand Totals:</td>
+                        <td class="py-3 px-3 text-right font-mono text-xs text-emerald-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
                             x-text="'₹' + formatMoney(totalInflow)">
                         </td>
-                        <td class="py-3.5 px-3.5 text-right font-mono text-xs text-rose-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
+                        <td class="py-3 px-3 text-right font-mono text-xs text-rose-800 whitespace-nowrap font-black border-r border-slate-200/40 amount-cell"
                             x-text="'₹' + formatMoney(totalOutflow)">
                         </td>
-                        <td class="py-3.5 px-3.5 text-right font-mono text-xs text-slate-900 whitespace-nowrap font-black amount-cell"
+                        <td class="py-3 px-3 text-right font-mono text-xs text-slate-900 whitespace-nowrap font-black amount-cell border-r border-slate-200/40 print:border-none"
                             x-text="'Net: ₹' + formatMoney(netCashFlow)">
                         </td>
+                        <td class="py-3 px-2.5 print:hidden"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -968,12 +976,239 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- VIEW TREASURY TRANSACTION DETAIL MODAL -->
+    <!-- ========================================== -->
+    <div x-show="showViewModal" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;"
+         @click.self="closeViewModal()"
+         @keydown.escape.window="closeViewModal()"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-2xl flex flex-col my-auto max-h-[92vh]"
+             @click.stop
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            {{-- Executive Dark Gradient Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-4 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-44 h-44 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[#a38c29] text-[10px] font-black uppercase tracking-widest bg-[#a38c29]/15 px-2 py-0.5 rounded border border-[#a38c29]/30">
+                                TREASURY REPORT
+                            </span>
+                            <!-- <span class="text-slate-400 text-[10px] font-mono" x-show="viewTxn?.voucher_no" x-text="viewTxn?.voucher_no"></span> -->
+                        </div>
+                        <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider truncate" x-text="viewTxn?.counterparty || 'Transaction Particulars'"></h2>
+                        <p class="text-slate-300 text-xs mt-0.5 truncate flex items-center gap-1.5 font-medium">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span x-text="(viewTxn?.datetime_formatted || viewTxn?.date_formatted) + ' • ' + (viewTxn?.bank_name || 'Treasury Bank')"></span>
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        <template x-if="viewTxn?.flow_type === 'inflow'">
+                            <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+                                INFLOW / CREDIT
+                            </span>
+                        </template>
+                        <template x-if="viewTxn?.flow_type !== 'inflow'">
+                            <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                                OUTFLOW / DEBIT
+                            </span>
+                        </template>
+                        <button type="button" @click="closeViewModal()" 
+                                class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                                title="Close">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal Body (Light theme with gold/amber accents) --}}
+            <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto bg-slate-50/60 text-xs flex-1 custom-scrollbar">
+
+                {{-- 1. Top 3 KPI Summary Cards --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    
+                    {{-- KPI 1: Inflow Amount (Credit) --}}
+                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Cash Inflow</span>
+                        </div>
+                        <div class="text-base sm:text-lg font-black font-mono tracking-tight"
+                             :class="Number(viewTxn?.inflow_amount || 0) > 0 ? 'text-emerald-600' : 'text-slate-400'"
+                             x-text="Number(viewTxn?.inflow_amount || 0) > 0 ? ('₹' + formatMoney(viewTxn?.inflow_amount)) : '—'">
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium">Customer credits &amp; collections</p>
+                    </div>
+
+                    {{-- KPI 2: Outflow Amount (Debit) --}}
+                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Cash Outflow</span>
+                        </div>
+                        <div class="text-base sm:text-lg font-black font-mono tracking-tight"
+                             :class="Number(viewTxn?.outflow_amount || 0) > 0 ? 'text-rose-600' : 'text-slate-400'"
+                             x-text="Number(viewTxn?.outflow_amount || 0) > 0 ? ('₹' + formatMoney(viewTxn?.outflow_amount)) : '—'">
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium">Disbursements &amp; withdrawals</p>
+                    </div>
+
+                    {{-- KPI 3: Running Balance --}}
+                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Running Balance</span>
+                        </div>
+                        <div class="text-base sm:text-lg font-black font-mono tracking-tight"
+                             :class="(viewTxn?.running_balance || 0) >= 0 ? 'text-slate-900' : 'text-rose-600'"
+                             x-text="'₹' + formatMoney(viewTxn?.running_balance || 0)">
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium">Account balance after transaction</p>
+                    </div>
+
+                </div>
+
+                {{-- 2. Detail Information Cards --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    
+                    {{-- Bank & Settlement Card --}}
+                    <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <p class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Bank Account &amp; Settlement</span>
+                        </p>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Bank Name:</span>
+                                <span class="font-extrabold text-slate-900" x-text="viewTxn?.bank_name || 'Treasury Bank'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Account Number:</span>
+                                <span class="font-mono font-bold text-slate-800" x-text="viewTxn?.account_number ? ('A/C ' + viewTxn?.account_number) : 'Primary Account'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Payment Mode:</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase border shadow-2xs bg-slate-50 text-slate-700 border-slate-200"
+                                      x-text="viewTxn?.payment_mode || 'Bank Transfer'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Reference / UTR:</span>
+                                <span class="font-mono font-bold text-slate-800 bg-amber-50/80 px-2 py-0.5 rounded border border-[#a38c29]/30"
+                                      x-text="cleanReference(viewTxn?.reference_no, viewTxn?.voucher_no) || '—'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Transaction Particulars Card --}}
+                    <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+                        <p class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Accounting Classification</span>
+                        </p>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Counterparty / Payee:</span>
+                                <span class="font-extrabold text-slate-900 truncate max-w-[180px]" x-text="viewTxn?.counterparty || '—'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Category:</span>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200"
+                                      x-text="viewTxn?.category || '—'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Flow Direction:</span>
+                                <span class="font-bold text-xs"
+                                      :class="viewTxn?.flow_type === 'inflow' ? 'text-emerald-700' : 'text-rose-700'"
+                                      x-text="viewTxn?.flow_type === 'inflow' ? 'Cash Inflow (Credit)' : 'Cash Outflow (Debit)'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold">Voucher No:</span>
+                                <span class="font-mono font-bold text-slate-800" x-text="viewTxn?.voucher_no || '—'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- 3. Narration / Memo Box --}}
+                <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span>Narration &amp; Transaction Details Memo</span>
+                    </span>
+                    <p class="text-slate-800 font-semibold leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 text-[11px]" 
+                       x-text="viewTxn?.narration || 'No description memo specified for this transaction.'"></p>
+                </div>
+
+            </div>
+
+            {{-- Modal Fixed Footer --}}
+            <div class="px-6 py-3.5 border-t border-slate-200 flex items-center justify-between bg-slate-100 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <!-- <span class="px-2 py-1 rounded bg-[#a38c29]/15 text-[#a38c29] text-[10px] font-mono font-bold uppercase tracking-wider"
+                          x-text="viewTxn?.voucher_no || 'TREASURY'"></span> -->
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="closeViewModal()" 
+                            class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer active:scale-95">
+                        CLOSE
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 {{-- Treasury Report Alpine.js Reactive App --}}
 <script>
 function treasuryReportApp() {
     return {
+        showViewModal: false,
+        viewTxn: null,
+
+        openViewModal(t) {
+            this.viewTxn = t;
+            this.showViewModal = true;
+        },
+
+        closeViewModal() {
+            this.showViewModal = false;
+            this.viewTxn = null;
+        },
+
+        cleanReference(ref, voucherNo = null) {
+            if (!ref || ref === '—') return null;
+            const s = String(ref).trim();
+            if (voucherNo && s === String(voucherNo).trim()) return null;
+            if (s.startsWith('{') || s.startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(s);
+                    if (parsed && typeof parsed === 'object') {
+                        const clean = parsed.reference_no || parsed.cheque_no || parsed.utr_no;
+                        return (clean && clean !== '—' && clean !== voucherNo) ? String(clean).trim() : null;
+                    }
+                } catch(e) {
+                    return null;
+                }
+                return null;
+            }
+            return s;
+        },
+
         allTransactions: @js($allTransactions),
         bankAccounts: @js($bankAccounts),
         filters: {
@@ -1352,7 +1587,8 @@ function treasuryReportApp() {
                     row.getCell(6).value = t.counterparty || '-';
                     row.getCell(7).value = t.category || '-';
                     row.getCell(8).value = (t.flow_type || '').toUpperCase() || '-';
-                    row.getCell(9).value = `${t.payment_mode || ''} ${t.reference_no && t.reference_no !== '—' ? '(' + t.reference_no + ')' : ''}`.trim() || '-';
+                    const exportCleanRef = this.cleanReference(t.reference_no, t.voucher_no);
+                    row.getCell(9).value = `${t.payment_mode || ''} ${exportCleanRef ? '(' + exportCleanRef + ')' : ''}`.trim() || '-';
                     row.getCell(10).value = t.narration || '-';
                     row.getCell(11).value = t.inflow_amount || 0;
                     row.getCell(12).value = t.outflow_amount || 0;

@@ -455,31 +455,31 @@
                 <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
             </div>
 
-            <div class="overflow-x-auto custom-scrollbar">
+            <div class="w-full overflow-hidden">
                 <table class="w-full text-xs text-left border-collapse table-auto">
                     <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
                         <tr class="erp-table-header border-b border-slate-700 text-left">
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Transaction Date</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Reference / Voucher No.</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">Description / Transaction Type</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Profit Share Allocated<br><span class="text-[9px] font-normal opacity-80">(Credit - Rs.)</span></th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Released<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Running Payable Balance<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
-                            <th class="px-4 py-3.5 erp-table-header text-center w-24 whitespace-nowrap">Actions</th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Date</th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner</th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Voucher / Ref</th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600">Description / Particulars</th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Profit Share<br><span class="text-[9px] font-normal opacity-80">(Credit - Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Released<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Running Bal<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-2 py-3 erp-table-header text-center w-20 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
                         <template x-for="(entry, index) in pagedLedger" :key="index">
                             <tr class="hover:bg-slate-50 transition-colors font-medium">
-                                <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100" x-text="formatDate(entry.date)"></td>
-                                <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="entry.partner_name"></td>
-                                <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100" x-text="entry.ref_no"></td>
-                                <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span x-text="entry.description"></span>
+                                <td class="px-2.5 py-2.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100 text-xs" x-text="formatDate(entry.date)"></td>
+                                <td class="px-2.5 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs truncate max-w-[120px]" :title="entry.partner_name" x-text="entry.partner_name"></td>
+                                <td class="px-2.5 py-2.5 font-mono text-slate-700 font-bold border-r border-slate-100 whitespace-nowrap text-[11px] truncate max-w-[110px]" :title="entry.ref_no" x-text="entry.ref_no"></td>
+                                <td class="px-3 py-2.5 font-semibold text-slate-800 border-r border-slate-100 text-xs">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="truncate max-w-[180px] sm:max-w-xs md:max-w-sm inline-block" :title="entry.description" x-text="entry.description"></span>
                                         <template x-if="entry.payment_mode">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase border shadow-2xs"
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8.5px] font-extrabold tracking-wider uppercase border shadow-2xs shrink-0"
                                                   :class="{
                                                       'bg-emerald-50 text-emerald-700 border-emerald-200': entry.payment_mode === 'Bank Transfer',
                                                       'bg-blue-50 text-blue-700 border-blue-200': entry.payment_mode === 'Cheque',
@@ -491,18 +491,30 @@
                                         </template>
                                     </div>
                                 </td>
-                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.credit)"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.debit)"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.running_balance)"></td>
-                                <td class="px-4 py-3.5 text-center whitespace-nowrap" @click.stop>
-                                    <div class="inline-flex items-center justify-center gap-1.5">
+                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.credit)"></td>
+                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.debit)"></td>
+                                <td class="px-2.5 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.running_balance)"></td>
+                                <td class="px-2 py-2.5 text-center whitespace-nowrap" @click.stop>
+                                    <div class="inline-flex items-center justify-center gap-1">
+                                        {{-- View Transaction Modal Button --}}
+                                        <button type="button" 
+                                                @click.stop="openViewModal(entry)" 
+                                                title="View Transaction Details"
+                                                class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/20 hover:border-[#a38c29]/40 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group active:scale-95"
+                                                aria-label="View Transaction Details">
+                                            <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </button>
+
                                         {{-- PDF / Print Receipt Icon Button (Green Theme Style matching Cheque Receipt Entry) --}}
                                         <button type="button" 
                                                 @click="downloadReceiptPdf(entry)" 
                                                 title="Download Receipt"
-                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] border border-[#09876B]/20 hover:border-[#09876B]/40 transition inline-flex items-center justify-center shadow-sm cursor-pointer"
+                                                class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] border border-[#09876B]/20 hover:border-[#09876B]/40 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group active:scale-95"
                                                 aria-label="Download Receipt">
-                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
+                                            <svg class="w-3.5 h-3.5 text-[#09876B] transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
                                         </button>
                                     </div>
                                 </td>
@@ -517,11 +529,11 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
-                            <td colspan="4" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">TOTALS</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalCredit)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
-                            <td></td>
+                            <td colspan="4" class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">TOTALS</td>
+                            <td class="px-2.5 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalCredit)"></td>
+                            <td class="px-2.5 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-2.5 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
+                            <td class="px-2 py-2.5"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -569,35 +581,33 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto custom-scrollbar">
+            <div class="w-full overflow-hidden">
                 <table class="w-full text-xs text-left border-collapse table-auto">
                     <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
                         <tr class="erp-table-header border-b border-slate-700 text-left">
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Role / Entity Type</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Agreed Share (%)</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Total Allocated Net Profit (Rs.)</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Capital Contributions (Rs.)</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Total Payouts Released (Rs.)</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Current Net Balance Owed (Rs.)</th>
-                            <th class="px-4 py-3.5 erp-table-header text-center whitespace-nowrap">Action</th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
+                            <th class="px-2 py-3 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Agreed Share<br><span class="text-[9px] font-normal opacity-80">(%)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Allocated Net Profit<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Capital Contrib.<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payouts Released<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Net Balance Owed<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header text-center whitespace-nowrap w-28">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
                         <template x-for="(pRow, pIdx) in filteredMatrixList" :key="pIdx">
                             <tr class="hover:bg-slate-50 transition-colors font-medium" :class="filters.partner_id && String(pRow.id) === String(filters.partner_id) ? 'bg-[#a38c29]/5' : ''">
-                                <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100">
+                                <td class="px-3 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap">
                                     <span x-text="pRow.name"></span>
                                     <span class="text-xs text-slate-500 font-normal" x-text="' (' + Number(pRow.share_pct).toFixed(1) + '%)'"></span>
                                 </td>
-                                <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100" x-text="pRow.role"></td>
-                                <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_allocated)"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_payouts)"></td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-[#a38c29] border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.net_balance)"></td>
-                                <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                    <button type="button" @click="openPayoutModal(pRow.id)" class="px-3 py-1 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white font-extrabold text-[10px] uppercase rounded-lg border border-[#a38c29]/30 transition-all cursor-pointer">
+                                <td class="px-2 py-2.5 text-center font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_allocated)"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_payouts)"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-black text-[#a38c29] border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.net_balance)"></td>
+                                <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
+                                    <button type="button" @click="openPayoutModal(pRow.id)" class="px-2.5 py-1 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white font-extrabold text-[10px] uppercase rounded-lg border border-[#a38c29]/30 transition-all cursor-pointer whitespace-nowrap shadow-2xs">
                                         Record Payout
                                     </button>
                                 </td>
@@ -606,13 +616,13 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
-                            <td colspan="2" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">PROJECT TOTALS</td>
-                            <td class="px-5 py-3.5 text-center font-mono text-slate-900 border-r border-slate-200" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixPayouts)"></td>
-                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs + totalMatrixAllocated - totalMatrixPayouts)"></td>
-                            <td></td>
+                            <td class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">PROJECT TOTALS</td>
+                            <td class="px-2 py-2.5 text-center font-mono text-slate-900 border-r border-slate-200 text-xs" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixAllocated)"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixContribs)"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixPayouts)"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs + totalMatrixAllocated - totalMatrixPayouts)"></td>
+                            <td class="px-2.5 py-2.5"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -967,6 +977,208 @@
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- VIEW PARTNER TRANSACTION DETAIL MODAL -->
+        <!-- ========================================== -->
+        <div x-show="showViewModal" 
+             class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs" 
+             style="display: none;"
+             @click.self="closeViewModal()"
+             @keydown.escape.window="closeViewModal()"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-2xl flex flex-col my-auto max-h-[92vh]"
+                 @click.stop
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
+                
+                {{-- Executive Dark Gradient Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-4 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-44 h-44 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[#a38c29] text-[10px] font-black uppercase tracking-widest bg-[#a38c29]/15 px-2 py-0.5 rounded border border-[#a38c29]/30">
+                                    PARTNER STATEMENTS
+                                </span>
+                            </div>
+                            <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider truncate" x-text="viewEntry?.partner_name || 'Transaction Details'"></h2>
+                            <p class="text-slate-300 text-xs mt-0.5 truncate flex items-center gap-1.5 font-medium">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span x-text="formatDate(viewEntry?.date)"></span>
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <template x-if="Number(viewEntry?.credit || 0) > 0">
+                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+                                    Credit / Profit Share
+                                </span>
+                            </template>
+                            <template x-if="Number(viewEntry?.debit || 0) > 0">
+                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                                    Debit / Payout
+                                </span>
+                            </template>
+                            <button type="button" @click="closeViewModal()" 
+                                    class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                                    title="Close">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Modal Body (Light theme with gold/amber accents) --}}
+                <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto bg-slate-50/60 text-xs flex-1 custom-scrollbar">
+
+                    {{-- 1. Top 3 KPI Summary Cards --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        
+                        {{-- KPI 1: Profit Share Allocated (Credit) --}}
+                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Allocated Credit</span>
+                            </div>
+                            <div class="text-base sm:text-lg font-black text-emerald-600 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.credit)"></div>
+                            <p class="text-[9px] text-slate-400 font-medium">Profit share / collection</p>
+                        </div>
+
+                        {{-- KPI 2: Payout Released (Debit) --}}
+                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Payout Released</span>
+                            </div>
+                            <div class="text-base sm:text-lg font-black text-rose-600 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.debit)"></div>
+                            <p class="text-[9px] text-slate-400 font-medium">Drawings / distributions</p>
+                        </div>
+
+                        {{-- KPI 3: Running Payable Balance --}}
+                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Running Balance</span>
+                            </div>
+                            <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.running_balance)"></div>
+                            <p class="text-[9px] text-slate-400 font-medium">Cumulative payable balance</p>
+                        </div>
+
+                    </div>
+
+                    {{-- 2. Partner Entity & Profile Information Cards --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        
+                        {{-- Transaction Identifiers Card --}}
+                        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+                            <p class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>Partner &amp; Reference</span>
+                            </p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Partner Name:</span>
+                                    <span class="font-extrabold text-slate-900" x-text="viewEntry?.partner_name || '—'"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Reference / Voucher:</span>
+                                    <span class="font-mono font-bold text-slate-800 bg-amber-50/80 px-2 py-0.5 rounded border border-[#a38c29]/30" x-text="viewEntry?.ref_no || '—'"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Transaction Date:</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="formatDate(viewEntry?.date)"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Payment Mode:</span>
+                                    <template x-if="viewEntry?.payment_mode">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase border shadow-2xs"
+                                              :class="{
+                                                  'bg-emerald-50 text-emerald-700 border-emerald-200': viewEntry?.payment_mode === 'Bank Transfer',
+                                                  'bg-blue-50 text-blue-700 border-blue-200': viewEntry?.payment_mode === 'Cheque',
+                                                  'bg-amber-50 text-amber-700 border-amber-200': viewEntry?.payment_mode === 'Cash',
+                                                  'bg-purple-50 text-purple-700 border-purple-200': viewEntry?.payment_mode === 'UPI / Online' || viewEntry?.payment_mode === 'Online'
+                                              }"
+                                              x-text="viewEntry?.payment_mode">
+                                        </span>
+                                    </template>
+                                    <template x-if="!viewEntry?.payment_mode">
+                                        <span class="text-slate-400 italic">Not Specified</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Financial Classification Card --}}
+                        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+                            <p class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Ledger Impact Summary</span>
+                            </p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Transaction Type:</span>
+                                    <span class="font-extrabold text-xs" 
+                                          :class="Number(viewEntry?.credit || 0) > 0 ? 'text-emerald-700' : 'text-rose-700'"
+                                          x-text="Number(viewEntry?.credit || 0) > 0 ? 'Profit Share Allocated (Credit)' : 'Partner Payout Released (Debit)'"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Credit Amount:</span>
+                                    <span class="font-mono font-bold text-emerald-600" x-text="formatCurrency(viewEntry?.credit)"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Debit Amount:</span>
+                                    <span class="font-mono font-bold text-rose-600" x-text="formatCurrency(viewEntry?.debit)"></span>
+                                </div>
+                                <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+                                    <span class="text-slate-900 text-[10px] uppercase font-black">Net Running Balance:</span>
+                                    <span class="font-mono font-black text-slate-900" x-text="formatCurrency(viewEntry?.running_balance)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {{-- 3. Description Memo Box --}}
+                    <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+                        <span class="text-slate-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span>Description &amp; Transaction Details Memo</span>
+                        </span>
+                        <p class="text-slate-800 font-semibold leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 text-[11px]" 
+                           x-text="viewEntry?.description || 'No description memo specified for this transaction.'"></p>
+                    </div>
+
+                </div>
+
+                {{-- Modal Fixed Footer --}}
+                <div class="px-6 py-3.5 border-t border-slate-200 flex items-center justify-between bg-slate-100 flex-shrink-0">
+                    <div>
+                        <button type="button" 
+                                @click="downloadReceiptPdf(viewEntry)"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#09876B]/15 hover:bg-[#09876B] text-[#09876B] hover:text-white rounded-xl font-extrabold text-xs transition-all duration-150 shadow-2xs group border border-[#09876B]/30 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-[#09876B] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/>
+                            </svg>
+                            
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="closeViewModal()" 
+                                class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer active:scale-95">
+                            CLOSE
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -974,6 +1186,19 @@
 function partnerStatementApp() {
     return {
         showPayoutModal: false,
+        showViewModal: false,
+        viewEntry: null,
+
+        openViewModal(entry) {
+            this.viewEntry = entry;
+            this.showViewModal = true;
+        },
+
+        closeViewModal() {
+            this.showViewModal = false;
+            this.viewEntry = null;
+        },
+
         filters: {
             partner_id: '{{ request('partner_id', '') }}',
             project_id: '{{ request('project_id', $projects->first()?->id ?? '') }}',

@@ -2193,6 +2193,18 @@ class ReportController extends Controller
                 }
             }
 
+            $allocDetails = $pAllocs->map(function($a) {
+                return [
+                    'id' => $a->id,
+                    'date' => $a->date ? \Carbon\Carbon::parse($a->date)->format('d/m/Y') : '—',
+                    'voucher_no' => $a->voucher?->voucher_number ?? '—',
+                    'payment_mode' => $a->payment_mode ?? 'Bank Transfer',
+                    'bank' => $a->companyBankAccount?->bank_name ?? '—',
+                    'amount' => (float)$a->allocated_amount,
+                    'remarks' => $a->remarks ?? '—',
+                ];
+            })->values()->toArray();
+
             $outflowList->push((object)[
                 'partner_id' => $p->id,
                 'partner_name' => $p->name,
@@ -2204,6 +2216,7 @@ class ReportController extends Controller
                 'percentage' => $pct,
                 'allocations_count' => $pAllocs->count(),
                 'last_date' => $lastDate ? Carbon::parse($lastDate)->format('d M, Y') : '—',
+                'items' => $allocDetails,
             ]);
         }
 
@@ -2242,6 +2255,17 @@ class ReportController extends Controller
                     'percentage' => $demo['pct'],
                     'allocations_count' => $demo['count'],
                     'last_date' => $demo['date'],
+                    'items' => [
+                        [
+                            'id' => 1,
+                            'date' => $demo['date'],
+                            'voucher_no' => 'PV-2026-0' . ($idx + 1) . '89',
+                            'payment_mode' => 'Bank Transfer (NEFT)',
+                            'bank' => 'Federal Bank - Current A/C',
+                            'amount' => $demo['amt'],
+                            'remarks' => $demo['desc'],
+                        ]
+                    ],
                 ]);
             }
             $activePartnersCount = 2;

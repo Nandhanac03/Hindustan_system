@@ -677,7 +677,7 @@
         </div>
     </div>
 
-    <!-- ── 4. CONTRA VOUCHERS SLIP / RECEIPT MODAL (MATCHING UNIT SETUP MODAL EXACT STYLE) ── -->
+    <!-- ── 4. CONTRA VOUCHERS SLIP / RECEIPT MODAL ── -->
     <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity print:hidden"
          x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
@@ -694,73 +694,131 @@
                 <button type="button" @click="closeSlipModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-sm cursor-pointer">✕</button>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-4 flex-1 bg-white font-sans text-xs">
-                <!-- PURE WHITE SUMMARY CARD (PROJECT TAG REMOVED) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                    <div>
-                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-0.5">Voucher Date</span>
-                        <strong class="text-xs font-mono font-bold text-slate-900 block" x-text="activeVoucher.date || '31-Aug-2026'">31-Aug-2026</strong>
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 bg-slate-50/60 font-sans text-xs custom-scrollbar">
+                <!-- SUMMARY CARDS (NO THEME COLOR, CLEAN NEUTRAL SLATE) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Voucher Date</span>
+                        <div class="text-xs font-mono font-bold text-slate-900" x-text="activeVoucher.date || '—'">31-Aug-2026</div>
+                        <p class="text-[9.5px] text-slate-400 font-medium">Posting date</p>
                     </div>
-                    <div>
-                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-0.5">Reference / UTR</span>
-                        <strong class="text-xs font-mono font-bold text-slate-900 block" x-text="activeVoucher.reference_no || 'Cheque #40012'">Cheque #40012</strong>
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Reference / UTR</span>
+                        <div class="text-xs font-mono font-bold text-slate-900 truncate" :title="activeVoucher.reference_no" x-text="activeVoucher.reference_no || '—'">Cheque #40012</div>
+                        <p class="text-[9.5px] text-slate-400 font-medium">Instrument / Txn Ref</p>
                     </div>
-                    <div>
-                        <span class="text-[10px] font-extrabold text-[#a38c29] uppercase tracking-wider block mb-0.5">Transfer Amount</span>
-                        <strong class="text-sm font-mono font-black text-[#a38c29] block" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</strong>
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Transfer Amount</span>
+                        <div class="text-base font-mono font-black text-slate-900 tracking-tight" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 0)">₹ 25,000</div>
+                        <p class="text-[9.5px] text-slate-400 font-medium">Total fund movement</p>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <!-- ARRANGE TABLE (CLEAN BORDERS, NO THEME COLOR, PROPER DR/CR STRUCTURE) -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
                     <table class="w-full text-left border-collapse text-xs">
-                        <thead class="bg-[#a38c29] text-white text-[10px] font-black uppercase tracking-wider border-b-2 border-[#8a741f]">
+                        <thead class="bg-slate-800 text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-700">
                             <tr>
-                                <th class="px-4 py-3 text-white">Particulars / Account Head</th>
-                                <th class="px-4 py-3 text-center text-white">Voucher Type / Code</th>
-                                <th class="px-4 py-3 text-right text-white w-36">Debit (₹)</th>
-                                <th class="px-4 py-3 text-right text-white w-36">Credit (₹)</th>
+                                <th class="px-3.5 py-3 text-center w-14 border-r border-slate-700">Type</th>
+                                <th class="px-4 py-3 text-left border-r border-slate-700">Account Head / Ledger</th>
+                                <th class="px-4 py-3 text-left w-44 border-r border-slate-700">Transfer Nature</th>
+                                <th class="px-4 py-3 text-right w-36 border-r border-slate-700">Debit (₹)</th>
+                                <th class="px-4 py-3 text-right w-36">Credit (₹)</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-800 bg-white">
-                            {{-- DR Row: Destination Account (debit) --}}
-                            <tr>
-                                <td class="px-4 py-3.5 font-bold">
+                        <tbody class="divide-y divide-slate-100 text-slate-800 bg-white">
+                            {{-- DR Row: Destination Account (debit - money in) --}}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-3.5 py-3 text-center border-r border-slate-100">
+                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                        DR
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 border-r border-slate-100">
                                     <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-800">DR</span>
-                                        <span class="text-slate-800" x-text="activeVoucher.to_account || '—'"></span>
+                                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                                        <span class="font-bold text-slate-900 text-xs" x-text="activeVoucher.to_account || '—'"></span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C)</td>
-                                <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-700" x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'"></td>
-                                <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
+                                <td class="px-4 py-3 border-r border-slate-100">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Destination (Received)
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono font-bold text-emerald-700 border-r border-slate-100 text-xs"
+                                    x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'">
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-slate-300 text-xs">—</td>
                             </tr>
-                            {{-- CR Row: Source Account (credit) --}}
-                            <tr>
-                                <td class="px-4 py-3.5 font-bold pl-8">
+
+                            {{-- CR Row: Source Account (credit - money out) --}}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-3.5 py-3 text-center border-r border-slate-100">
+                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-50 text-rose-800 border border-rose-300">
+                                        CR
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 border-r border-slate-100">
                                     <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-100 text-rose-800">CR</span>
-                                        <span class="text-slate-800" x-text="activeVoucher.from_account ? 'To ' + activeVoucher.from_account : '—'"></span>
+                                        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                        <span class="font-bold text-slate-900 text-xs" x-text="activeVoucher.from_account || '—'"></span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C)</td>
-                                <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
-                                <td class="px-4 py-3.5 text-right font-mono font-bold text-rose-700" x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'"></td>
+                                <td class="px-4 py-3 border-r border-slate-100">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        Source (Disbursed)
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-slate-300 border-r border-slate-100 text-xs">—</td>
+                                <td class="px-4 py-3 text-right font-mono font-bold text-rose-700 text-xs"
+                                    x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'">
+                                </td>
                             </tr>
                         </tbody>
+                        <tfoot class="bg-slate-100/90 border-t-2 border-slate-300 text-slate-900 font-bold text-xs">
+                            <tr>
+                                <td colspan="3" class="px-4 py-2.5 text-right uppercase tracking-wider text-[10px] text-slate-700 font-black border-r border-slate-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9.5px] font-black uppercase bg-emerald-100/80 text-emerald-800 border border-emerald-300">
+                                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            Double Entry Balanced
+                                        </span>
+                                        <span>Total:</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-200 text-xs"
+                                    x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'">
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 text-xs"
+                                    x-text="activeVoucher.amount ? '₹ ' + formatCurrency(activeVoucher.amount) : '—'">
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span class="text-[10px] font-bold uppercase text-slate-500 block">Narration / Particulars</span>
-                    <p class="text-xs font-semibold text-slate-800 italic" x-text="activeVoucher.narration || '(Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box)'">(Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box)</p>
+                <!-- NARRATION / REMARKS MEMO (CLEAN CARD) -->
+                <div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1.5">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span>Narration / Particulars Memo</span>
+                    </span>
+                    <p class="text-xs font-semibold text-slate-800 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100" 
+                       x-text="activeVoucher.narration || 'No narration memo specified for this contra transfer.'"></p>
                 </div>
             </div>
 
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-                <button type="button" @click="closeSlipModal()" class="px-5 py-2 border border-slate-300 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+            <!-- MODAL FOOTER (NO THEME COLOR) -->
+            <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0">
+                <button type="button" @click="closeSlipModal()" 
+                        class="px-5 py-2 border border-slate-300 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer active:scale-95">
                     Close
                 </button>
-                <button type="button" @click="printVoucherSlip()" class="px-6 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase rounded-xl transition shadow-2xs flex items-center gap-2 cursor-pointer">
+                <button type="button" @click="printVoucherSlip()" 
+                        class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black uppercase rounded-xl transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
                     <span>Print Slip</span>
                 </button>
             </div>
