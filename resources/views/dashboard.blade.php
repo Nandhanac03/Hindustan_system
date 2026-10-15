@@ -134,8 +134,7 @@
 
         {{-- Total Sales (Emerald Theme) --}}
         @php
-            $salesFormatted = $totalSales >= 10000000 ? $currencySymbol.number_format($totalSales/10000000,2).'Cr'
-                : ($totalSales >= 100000 ? $currencySymbol.number_format($totalSales/100000,2).'L' : $currencySymbol.number_format($totalSales));
+            $salesFormatted = $currencySymbol . number_format($totalSales, 2);
         @endphp
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
             <div class="flex items-center justify-between mb-3 relative z-10">
@@ -157,8 +156,7 @@
 
         {{-- Collections (Gold Theme) --}}
         @php
-            $colFormatted = $totalCollections >= 10000000 ? $currencySymbol.number_format($totalCollections/10000000,2).'Cr'
-                : ($totalCollections >= 100000 ? $currencySymbol.number_format($totalCollections/100000,2).'L' : $currencySymbol.number_format($totalCollections));
+            $colFormatted = $currencySymbol . number_format($totalCollections, 2);
         @endphp
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.18)] cursor-default">
             <div class="flex items-center justify-between mb-3 relative z-10">
@@ -232,8 +230,8 @@
                 </div>
                 <span class="text-xs font-bold uppercase tracking-widest opacity-80">Outstanding</span>
             </div>
-            @php $outFmt = $outstanding >= 10000000 ? $currencySymbol.number_format($outstanding/10000000,2).'Cr' : ($outstanding >= 100000 ? $currencySymbol.number_format($outstanding/100000,2).'L' : $currencySymbol.number_format($outstanding)); @endphp
-            <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{!! $outFmt !!}</div>
+            @php $outFmt = $currencySymbol . number_format($outstanding, 2); @endphp
+            <div class="text-2xl xl:text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{!! $outFmt !!}</div>
             <div class="text-xs text-white/70 mt-1">Sales minus collections</div>
         </div>
 
@@ -268,7 +266,7 @@
             @php 
                 $soldCount = $soldUnitsCount ?? ($donutSold ?? 0);
                 $soldVal = $soldUnitsValue ?? 0;
-                $soldValFmt = $soldVal >= 10000000 ? $currencySymbol.number_format($soldVal/10000000,2).'Cr' : ($soldVal >= 100000 ? $currencySymbol.number_format($soldVal/100000,2).'L' : $currencySymbol.number_format($soldVal)); 
+                $soldValFmt = $currencySymbol . number_format($soldVal, 2); 
             @endphp
             <div>
                 <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{{ number_format($soldCount) }} <span class="text-base font-semibold text-white/80">Units</span></div>
@@ -360,7 +358,7 @@
                         $sv = ($customer->receipts_sum_amount > 0 ? $customer->receipts_sum_amount : null)
                             ?? ($customer->payments_sum_amount > 0 ? $customer->payments_sum_amount : null)
                             ?? ($customer->sales_sum_total_amount ?? 0);
-                        $sdFmt = $sv >= 10000000 ? $currencySymbol.number_format($sv/10000000,2).'Cr' : ($sv >= 100000 ? $currencySymbol.number_format($sv/100000,2).'L' : $currencySymbol.number_format($sv));
+                        $sdFmt = $currencySymbol . number_format($sv, 2);
                         
                         // Dynamic rank badge styling
                         $rankBadge = match($idx) {
