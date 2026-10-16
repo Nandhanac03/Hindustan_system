@@ -363,7 +363,7 @@
                             </div>
                             <div class="relative z-10 mt-1">
                                 <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
-                                    {{ count($customerSummaryList) }}
+                                    {{ $customerSummaryList instanceof \Illuminate\Pagination\LengthAwarePaginator ? $customerSummaryList->total() : count($customerSummaryList) }}
                                 </span>
                                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Customers with Active Sales</p>
                             </div>
@@ -458,9 +458,69 @@
                                 </tbody>
                             </table>
                         </div>
-                        @if($customerSummaryList instanceof \Illuminate\Pagination\LengthAwarePaginator && $customerSummaryList->hasPages())
+                        @php
+                            $isPaginator = $customerSummaryList instanceof \Illuminate\Pagination\LengthAwarePaginator;
+                            $hasCustomerPages = $isPaginator && $customerSummaryList->hasPages();
+                            $totalCustomerCount = $isPaginator ? $customerSummaryList->total() : count($customerSummaryList);
+                            $currentCustomerCount = $isPaginator ? $customerSummaryList->count() : count($customerSummaryList);
+                            $firstCustomerItem = $isPaginator ? ($customerSummaryList->firstItem() ?? ($totalCustomerCount > 0 ? 1 : 0)) : ($totalCustomerCount > 0 ? 1 : 0);
+                            $lastCustomerItem = $isPaginator ? ($customerSummaryList->lastItem() ?? $currentCustomerCount) : $currentCustomerCount;
+                        @endphp
+                        @if($totalCustomerCount > 0)
                         <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50">
-                            {{ $customerSummaryList->appends(request()->query())->links() }}
+                            @if($hasCustomerPages)
+                                {{ $customerSummaryList->appends(request()->query())->links() }}
+                            @else
+                                <nav role="navigation" aria-label="Pagination Navigation" class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    {{-- Mobile View --}}
+                                    <div class="flex items-center justify-between w-full sm:hidden">
+                                        <span class="inline-flex items-center px-4 py-2 text-[10px] font-extrabold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed rounded-xl uppercase tracking-wider">
+                                            Previous
+                                        </span>
+                                        <span class="inline-flex items-center px-4 py-2 text-[10px] font-extrabold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed rounded-xl uppercase tracking-wider">
+                                            Next
+                                        </span>
+                                    </div>
+
+                                    {{-- Desktop View --}}
+                                    <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between w-full">
+                                        <div>
+                                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                                                Showing
+                                                <span class="font-extrabold text-slate-800">{{ $firstCustomerItem }}</span>
+                                                to
+                                                <span class="font-extrabold text-slate-800">{{ $lastCustomerItem }}</span>
+                                                of
+                                                <span class="font-extrabold text-slate-800">{{ $totalCustomerCount }}</span>
+                                                results
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <span class="inline-flex gap-1.5 shadow-sm rounded-xl p-1.5 bg-slate-50/80 border border-slate-200/80 backdrop-blur-sm">
+                                                {{-- Previous Disabled --}}
+                                                <span aria-disabled="true" aria-label="Previous">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 bg-transparent cursor-not-allowed rounded-lg" aria-hidden="true">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                                    </span>
+                                                </span>
+
+                                                {{-- Active Page 1 --}}
+                                                <span aria-current="page">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 text-xs font-black text-white bg-[#a38c29] border border-[#a38c29] rounded-lg shadow-sm shadow-[#a38c29]/40">1</span>
+                                                </span>
+
+                                                {{-- Next Disabled --}}
+                                                <span aria-disabled="true" aria-label="Next">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 bg-transparent cursor-not-allowed rounded-lg" aria-hidden="true">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </nav>
+                            @endif
                         </div>
                         @endif
                     </div>
@@ -478,8 +538,8 @@
 
                         <div class="overflow-x-auto max-h-[500px]">
                             <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                                <thead class="sticky top-0 z-10">
-                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                                    <tr class="erp-table-header border-b border-slate-700">
                                         <th class="px-5 py-3.5 text-white font-extrabold">Posting Date</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Customer Name</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Voucher / Ref No.</th>

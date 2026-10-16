@@ -32,6 +32,8 @@ class LoanController extends Controller
             $paidSchedules = EmiSchedule::where('loan_id', $loan->id)->where('status', 'Paid')->get();
             $loan->paid_principal_to_date = $paidSchedules->sum('principal_component');
             $loan->cumulative_interest_paid = $paidSchedules->sum('interest_component');
+            $loan->paid_emis_count = $paidSchedules->count();
+            $loan->total_emis_count = EmiSchedule::where('loan_id', $loan->id)->count();
             
             // Next unpaid EMI for quick pay
             $loan->next_emi = EmiSchedule::where('loan_id', $loan->id)

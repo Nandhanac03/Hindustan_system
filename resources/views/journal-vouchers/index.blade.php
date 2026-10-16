@@ -409,20 +409,20 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Journal Entries</span>
                                 <button type="button" @click="addEntryRow()"
-                                        class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
-                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        class="px-3.5 py-1.5 bg-amber-50 hover:bg-[#a38c29] text-[#8a7522] hover:text-white border border-amber-200/90 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                     <span>Add Row</span>
                                 </button>
                             </div>
 
                             <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
                                 <table id="journal-entries-table" class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider">
-                                            <th class="px-3.5 py-3 w-4/12">Account Head *</th>
-                                            <th class="px-3.5 py-3 text-right w-2/12">Debit (DR)</th>
-                                            <th class="px-3.5 py-3 text-right w-2/12">Credit (CR)</th>
-                                            <th class="px-3.5 py-3 w-3/12">Line Narration</th>
+                                    <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                                        <tr>
+                                            <th class="px-3.5 py-3 w-4/12 border-r border-slate-200">Account Head *</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12 border-r border-slate-200">Debit (DR)</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12 border-r border-slate-200">Credit (CR)</th>
+                                            <th class="px-3.5 py-3 w-3/12 border-r border-slate-200">Line Narration</th>
                                             <th class="px-2 py-3 text-center w-8"></th>
                                         </tr>
                                     </thead>
@@ -513,17 +513,23 @@
                                         </template>
                                     </tbody>
 
-                                    <tfoot>
-                                        <tr class="bg-slate-900 text-white font-bold text-xs">
-                                            <td class="px-3.5 py-3 uppercase tracking-wider">TOTALS</td>
-                                            <td class="px-3.5 py-3 text-right font-mono" x-text="formatCurrency(calcTotalDebit())"></td>
-                                            <td class="px-3.5 py-3 text-right font-mono" x-text="formatCurrency(calcTotalCredit())"></td>
+                                    <tfoot class="bg-slate-50 border-t-2 border-slate-200 text-xs">
+                                        <tr class="font-bold">
+                                            <td class="px-3.5 py-3 uppercase tracking-wider text-[10px] font-black text-slate-700 border-r border-slate-200">TOTALS</td>
+                                            <td class="px-3.5 py-3 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="formatCurrency(calcTotalDebit())"></td>
+                                            <td class="px-3.5 py-3 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="formatCurrency(calcTotalCredit())"></td>
                                             <td colspan="2" class="px-3.5 py-3 text-center">
                                                 <template x-if="isBalanced()">
-                                                    <span class="text-emerald-400 font-bold uppercase text-[10px] tracking-wider">BALANCED (DR = CR)</span>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        BALANCED (DR = CR)
+                                                    </span>
                                                 </template>
                                                 <template x-if="!isBalanced()">
-                                                    <span class="text-rose-400 font-bold uppercase text-[10px] tracking-wider">UNBALANCED (Diff: <span x-text="formatCurrency(calcDifference())"></span>)</span>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase bg-rose-50 text-rose-800 border border-rose-300">
+                                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        UNBALANCED (Diff: <span x-text="formatCurrency(calcDifference())"></span>)
+                                                    </span>
                                                 </template>
                                             </td>
                                         </tr>
@@ -623,18 +629,18 @@
 
                         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
                             <table class="w-full text-left text-xs">
-                                <thead class="erp-table-header bg-[#17365D] text-white font-black uppercase text-[10px] tracking-wider">
+                                <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider">
                                     <tr>
-                                        <th class="px-4 py-2.5">Account Head</th>
-                                        <th class="px-4 py-2.5 text-right">Debit (₹)</th>
-                                        <th class="px-4 py-2.5 text-right">Credit (₹)</th>
+                                        <th class="px-4 py-2.5 border-r border-slate-200">Account Head</th>
+                                        <th class="px-4 py-2.5 text-right border-r border-slate-200">Debit (₹)</th>
+                                        <th class="px-4 py-2.5 text-right border-r border-slate-200">Credit (₹)</th>
                                         <th class="px-4 py-2.5">Line Narration</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-150 font-medium bg-white">
                                     <template x-for="entry in activeVoucher.entries" :key="entry.account_code">
                                         <tr>
-                                            <td class="px-4 py-2.5">
+                                            <td class="px-4 py-2.5 border-r border-slate-100">
                                                 <div class="font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></div>
                                                 <template x-if="entry.bank_account_name">
                                                     <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Bank: ' + entry.bank_account_name"></div>
@@ -643,18 +649,18 @@
                                                     <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Petty Cash Box: ' + entry.petty_cash_box_name"></div>
                                                 </template>
                                             </td>
-                                            <td class="px-4 py-2.5 text-right font-mono" x-text="entry.debit_amount"></td>
-                                            <td class="px-4 py-2.5 text-right font-mono" x-text="entry.credit_amount"></td>
-                                            <td class="px-4 py-2.5 text-slate-500" x-text="entry.line_narration"></td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100" x-text="entry.debit_amount"></td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100" x-text="entry.credit_amount"></td>
+                                            <td class="px-4 py-2.5 text-slate-600 font-medium" x-text="entry.line_narration"></td>
                                         </tr>
                                     </template>
                                 </tbody>
-                                <tfoot class="bg-slate-900 text-white font-bold">
+                                <tfoot class="bg-slate-50 border-t-2 border-slate-200 text-slate-800 font-bold text-xs">
                                     <tr>
-                                        <td class="px-4 py-2.5 uppercase">TOTAL</td>
-                                        <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_debit"></td>
-                                        <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_credit"></td>
-                                        <td></td>
+                                        <td class="px-4 py-2.5 uppercase tracking-wider text-[10px] font-black text-slate-700 border-r border-slate-200">TOTAL</td>
+                                        <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="activeVoucher.total_debit"></td>
+                                        <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="activeVoucher.total_credit"></td>
+                                        <td class="px-4 py-2.5"></td>
                                     </tr>
                                 </tfoot>
                             </table>

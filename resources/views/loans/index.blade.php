@@ -32,13 +32,21 @@
             }
         }
 
+        $principalAmount = (float)$loan->principal_amount;
+        $paidPrincipal = (float)($loan->paid_principal_to_date ?? 0);
+        $repaidPct = $principalAmount > 0 ? min(100, round(($paidPrincipal / $principalAmount) * 100, 1)) : 0;
+        $totalEmis = (int)($loan->total_emis_count ?? $loan->tenure_months ?? 0);
+        $paidEmis = (int)($loan->paid_emis_count ?? 0);
+        $pendingEmis = max(0, $totalEmis - $paidEmis);
+
         return [
             'id' => $loan->id,
             'loan_account_no' => $loan->loan_account_no ?? '',
             'project_id' => $loan->project_id,
             'project_name' => $loan->project->name ?? '—',
+            'project_code' => $loan->project->code ?? '',
             'lender_name' => $loan->lender_name ?? '',
-            'principal_amount' => (float)$loan->principal_amount,
+            'principal_amount' => $principalAmount,
             'current_emi' => $currentEmi,
             'principal_component' => $principalComp,
             'interest_component' => $interestComp,
@@ -51,6 +59,20 @@
             'interest_rate' => (float)$loan->interest_rate,
             'outstanding_balance' => (float)$loan->outstanding_balance,
             'schedule_url' => route('loans.schedule', $loan->id),
+            'tenure_months' => (int)$loan->tenure_months,
+            'start_date' => $loan->start_date ? \Carbon\Carbon::parse($loan->start_date)->format('d M Y') : '—',
+            'schedule_type' => $loan->schedule_type === 'reducing_balance' ? 'Reducing Balance' : 'Flat Rate',
+            'paid_principal_to_date' => $paidPrincipal,
+            'cumulative_interest_paid' => (float)($loan->cumulative_interest_paid ?? 0),
+            'base_emi' => (float)($loan->base_emi ?? 0),
+            'ledger_account_name' => $loan->ledgerAccount?->name ?? '—',
+            'interest_account_name' => $loan->interestAccount?->name ?? '—',
+            'next_installment_no' => $loan->next_emi?->installment_no ?? null,
+            'total_emis_count' => $totalEmis,
+            'paid_emis_count' => $paidEmis,
+            'pending_emis_count' => $pendingEmis,
+            'repaid_percentage' => $repaidPct,
+            'total_prepayments' => (float)($loan->prepayments ? $loan->prepayments->sum('prepayment_amount') : 0),
         ];
     })->values();
 @endphp
@@ -468,7 +490,7 @@
                 </thead>
                 <tbody id="loans-tbody" class="divide-y divide-slate-100 text-center font-semibold text-slate-700 bg-white">
                     <template x-for="(loan, idx) in filteredLoans" :key="loan.id">
-                        <tr @click="window.location = loan.schedule_url" 
+                        <tr @click="openViewModal(loan)" 
                             class="transition-colors text-xs cursor-pointer hover:bg-slate-50/80 select-none">
                             <td class="px-4 py-3.5 border font-bold text-slate-400 text-center" x-text="idx + 1"></td>
                             <td class="px-4 py-3.5 border text-left">
@@ -495,6 +517,7 @@
                             </td>
                             <td class="px-4 py-3.5 border text-right pr-4" @click.stop="">
                                 <div class="flex items-center justify-end gap-1.5">
+                                    
                                     <a :href="loan.schedule_url"
                                        class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1"
                                        title="Repayment Schedule Ledger">
@@ -510,12 +533,13 @@
                                             Interest
                                         </button>
                                     </template>
-
+                                    
                                     <button @click.stop="openInterestLogsModal(loan.loan_account_no)" 
                                             class="p-1.5 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] border border-[rgb(67,56,212)]/20 transition-all inline-flex items-center justify-center shadow-xs active:scale-95 cursor-pointer" 
                                             title="Interest Edit Log">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </button>
+                                    
                                 </div>
                             </td>
                         </tr>
@@ -543,6 +567,221 @@
 
     {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
     <div>
+
+    <!-- ========================================== -->
+    <!-- VIEW LOAN DETAILS MODAL -->
+    <!-- ========================================== -->
+    <div x-show="viewModalOpen" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs" 
+         style="display: none;"
+         @click.self="closeViewModal()"
+         @keydown.escape.window="closeViewModal()"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden w-full max-w-4xl flex flex-col my-auto max-h-[92vh]"
+             @click.stop
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            {{-- Executive Dark Header --}}
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-4 text-white flex items-center justify-between relative overflow-hidden shrink-0 border-b border-[#a38c29]/20">
+                <div class="flex items-center gap-3 relative z-10 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-base font-black shadow-inner border border-[#a38c29]/40 shrink-0">
+                        <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">
+                                COMPANY LOANS
+                            </span>
+                            <span class="text-xs text-slate-400 font-bold uppercase truncate" x-text="selectedLoan?.lender_name || 'Lending Bank'"></span>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-black text-white font-mono tracking-tight flex items-center gap-2">
+                            <span x-text="selectedLoan?.loan_account_no || 'Loan Account Details'"></span>
+                        </h2>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 shrink-0 relative z-10">
+                    <template x-if="selectedLoan?.status === 'Active'">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            Active Facility
+                        </span>
+                    </template>
+                    <template x-if="selectedLoan?.status === 'Closed'">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-500/20 text-slate-300 border border-slate-500/40">
+                            Closed / Paid Off
+                        </span>
+                    </template>
+                    <button type="button" @click="closeViewModal()" 
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer" 
+                            title="Close Modal">✕</button>
+                </div>
+            </div>
+
+            {{-- Modal Body (Light theme with gold/amber accents, ZERO black) --}}
+            <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto bg-slate-50/70 text-xs flex-1 custom-scrollbar">
+
+                {{-- 1. Top 4 KPI Metric Cards --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    
+                    {{-- KPI 1: Sanctioned Principal --}}
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Sanctioned Principal</span>
+                        <div class="text-sm sm:text-base font-black text-slate-900 font-mono tracking-tight" x-text="'₹' + formatCurrency(selectedLoan?.principal_amount || 0)"></div>
+                        <p class="text-[9px] text-slate-400 font-medium">Original Borrowed Capital</p>
+                    </div>
+
+                    {{-- KPI 2: Current Outstanding --}}
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Current Outstanding</span>
+                        <div class="text-sm sm:text-base font-black text-rose-600 font-mono tracking-tight" x-text="'₹' + formatCurrency(selectedLoan?.outstanding_balance || 0)"></div>
+                        <p class="text-[9px] text-slate-400 font-medium">Remaining Loan Balance</p>
+                    </div>
+
+                    {{-- KPI 3: Principal Repaid --}}
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Principal Repaid</span>
+                            <span class="text-[9px] font-bold text-emerald-600 font-mono" x-text="(selectedLoan?.repaid_percentage || 0) + '%'"></span>
+                        </div>
+                        <div class="text-sm sm:text-base font-black text-emerald-600 font-mono tracking-tight" x-text="'₹' + formatCurrency(selectedLoan?.paid_principal_to_date || 0)"></div>
+                        <p class="text-[9px] text-slate-400 font-medium">Principal Cleared to Date</p>
+                    </div>
+
+                    {{-- KPI 4: Cumulative Interest Paid --}}
+                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-1">
+                        <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Interest Paid</span>
+                        <div class="text-sm sm:text-base font-black text-amber-700 font-mono tracking-tight" x-text="'₹' + formatCurrency(selectedLoan?.cumulative_interest_paid || 0)"></div>
+                        <p class="text-[9px] text-slate-400 font-medium">Total Interest Serviced</p>
+                    </div>
+                </div>
+
+                {{-- 2. Repayment Progress Bar --}}
+                <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                            <span class="font-extrabold text-slate-700 uppercase tracking-wider text-[10px]">Principal Amortization Progress</span>
+                        </div>
+                        <span class="font-mono font-bold text-[#8a7522]" x-text="(selectedLoan?.repaid_percentage || 0) + '% Repaid'"></span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 flex">
+                        <div class="bg-gradient-to-r from-[#a38c29] to-emerald-500 h-full rounded-full transition-all duration-500"
+                             :style="'width: ' + (selectedLoan?.repaid_percentage || 0) + '%'"></div>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 font-semibold pt-0.5">
+                        <span x-text="'Installments Cleared: ' + (selectedLoan?.paid_emis_count || 0) + ' / ' + (selectedLoan?.total_emis_count || 0) + ' EMIs'"></span>
+                        <span x-text="'Remaining: ' + (selectedLoan?.pending_emis_count || 0) + ' EMIs'"></span>
+                    </div>
+                </div>
+
+                {{-- 3. Loan Facility Parameters Grid --}}
+                <div class="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">Facility Terms & Accounting Heads</h3>
+                        </div>
+                        <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200" x-text="selectedLoan?.schedule_type || 'Reducing Balance'"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 text-xs">
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Project / Venture</span>
+                            <span class="font-extrabold text-slate-800 block truncate" x-text="selectedLoan?.project_name || '—'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Lending Institution</span>
+                            <span class="font-extrabold text-slate-800 block truncate" x-text="selectedLoan?.lender_name || '—'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Annual Interest Rate</span>
+                            <span class="font-black font-mono text-[#8a7522] block" x-text="(selectedLoan?.interest_rate || 0) + '% p.a.'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Loan Tenure</span>
+                            <span class="font-bold text-slate-800 block" x-text="(selectedLoan?.tenure_months || 0) + ' Months (' + ((selectedLoan?.tenure_months || 0) / 12).toFixed(1) + ' Years)'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Disbursement / Start Date</span>
+                            <span class="font-bold text-slate-800 block" x-text="selectedLoan?.start_date || '—'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Base Monthly EMI</span>
+                            <span class="font-black font-mono text-slate-900 block" x-text="'₹' + formatCurrency(selectedLoan?.base_emi || 0)"></span>
+                        </div>
+                        <div class="space-y-1 sm:col-span-2">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Loan Principal Liability Ledger</span>
+                            <span class="font-semibold text-slate-800 block truncate" x-text="selectedLoan?.ledger_account_name || '—'"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Interest Expense Ledger</span>
+                            <span class="font-semibold text-slate-800 block truncate" x-text="selectedLoan?.interest_account_name || '—'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. Next Upcoming / Active EMI Card --}}
+                <div x-show="selectedLoan?.status === 'Active'" class="p-4 rounded-xl bg-amber-50/50 border border-amber-200/80 shadow-2xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                            <h4 class="text-[10.5px] font-black uppercase tracking-wider text-amber-900" x-text="'Upcoming EMI (Installment #' + (selectedLoan?.next_installment_no || '—') + ')'"></h4>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase border shadow-2xs" 
+                              :class="selectedLoan?.status_color" 
+                              x-text="selectedLoan?.payment_status || 'DUE'"></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3 rounded-lg border border-amber-200/60">
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-slate-400 block">Next Due Date</span>
+                            <span class="font-bold text-slate-800 text-xs" x-text="selectedLoan?.next_due_date_formatted || '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-slate-400 block">Total Due EMI</span>
+                            <span class="font-black font-mono text-slate-900 text-xs" x-text="'₹' + formatCurrency(selectedLoan?.current_emi || 0)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-slate-400 block">Principal Component</span>
+                            <span class="font-mono font-bold text-slate-700 text-xs" x-text="'₹' + formatCurrency(selectedLoan?.principal_component || 0)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-slate-400 block">Interest Component</span>
+                            <span class="font-mono font-bold text-slate-700 text-xs" x-text="'₹' + formatCurrency(selectedLoan?.interest_component || 0)"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Modal Fixed Footer --}}
+            <div class="px-6 py-3.5 border-t border-slate-200 flex items-center justify-between bg-slate-100 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <a :href="selectedLoan?.schedule_url"
+                       class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>View Repayment Schedule</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="closeViewModal()" 
+                            class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer active:scale-95">
+                        CLOSE
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     {{-- Payoff / Foreclosure Modal --}}
     <div x-show="payoffModalOpen" class="fixed inset-0 flex items-center justify-center p-4" style="display: none; z-index: 99999; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);" x-transition.opacity>
@@ -1485,6 +1724,19 @@ function loanApp() {
         formatCurrency(val) {
             const num = parseFloat(val) || 0;
             return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        viewModalOpen: false,
+        selectedLoan: null,
+
+        openViewModal(loan) {
+            this.selectedLoan = loan;
+            this.viewModalOpen = true;
+        },
+
+        closeViewModal() {
+            this.viewModalOpen = false;
+            this.selectedLoan = null;
         },
 
         companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},

@@ -10,6 +10,10 @@
     $soldCount = 0;
     $bookedCount = 0;
     $parkingCount = 0;
+    $parkingSoldCount = 0;
+    $parkingAvailableCount = 0;
+    $parkingBlockedCount = 0;
+
     foreach ($floorMatrix as $row) {
         foreach ($row['columns'] as $u) {
             if ($u) {
@@ -25,8 +29,23 @@
     
     if (!empty($parkingRows)) {
         foreach ($parkingRows as $pRow) {
-            if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
-            $parkingCount += $pRow['units']->count();
+            foreach ($pRow['units'] as $pUnit) {
+                $parkingCount++;
+                $totalUnitsCount++;
+                $pst = strtolower($pUnit->status);
+                if ($pst === 'sold') {
+                    $soldCount++;
+                    $parkingSoldCount++;
+                } elseif ($pst === 'blocked') {
+                    $blockedCount++;
+                    $parkingBlockedCount++;
+                } elseif ($pst === 'available') {
+                    $availableCount++;
+                    $parkingAvailableCount++;
+                } elseif ($pst === 'booked') {
+                    $bookedCount++;
+                }
+            }
         }
     }
 @endphp
@@ -897,7 +916,7 @@ window.unitMatrixApp = unitMatrixApp;
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                                 <span>— All Statuses —</span>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{{ $totalUnitsCount + $parkingCount }} Units</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{{ $totalUnitsCount }} Units</span>
                         </button>
 
                         <div class="p-1.5 space-y-1">
@@ -1049,6 +1068,10 @@ window.unitMatrixApp = unitMatrixApp;
                 $blockedCount = 0;
                 $soldCount = 0;
                 $parkingCount = 0;
+                $parkingSoldCount = 0;
+                $parkingAvailableCount = 0;
+                $parkingBlockedCount = 0;
+
                 foreach ($floorMatrix as $row) {
                     foreach ($row['columns'] as $u) {
                         if ($u) {
@@ -1063,8 +1086,21 @@ window.unitMatrixApp = unitMatrixApp;
                 
                 if (!empty($parkingRows)) {
                     foreach ($parkingRows as $pRow) {
-                        if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
-                        $parkingCount += $pRow['units']->count();
+                        foreach ($pRow['units'] as $pUnit) {
+                            $parkingCount++;
+                            $totalUnitsCount++;
+                            $pst = strtolower($pUnit->status);
+                            if ($pst === 'sold') {
+                                $soldCount++;
+                                $parkingSoldCount++;
+                            } elseif ($pst === 'blocked') {
+                                $blockedCount++;
+                                $parkingBlockedCount++;
+                            } elseif ($pst === 'available') {
+                                $availableCount++;
+                                $parkingAvailableCount++;
+                            }
+                        }
                     }
                 }
             @endphp
@@ -1197,12 +1233,13 @@ window.unitMatrixApp = unitMatrixApp;
                                                 
                                                 @if ($isParkingRow)
                                                     @php 
-                                                        $isOccupied = in_array(strtolower($unit->status), ['sold', 'blocked']); 
+                                                        $pStatus = strtolower($unit->status);
+                                                        $isOccupied = in_array($pStatus, ['sold', 'blocked']); 
                                                     @endphp
-                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
+                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
                                                          @click="fetchUnit({{ $unit->id }})"
-                                                         :class="selectedStatus && selectedStatus !== 'all' && selectedStatus !== '' && !isStatusMatching('{{ $isOccupied ? 'sold' : 'available' }}') ? 'opacity-20 grayscale-[70%] scale-95 pointer-events-none' : 'opacity-100 scale-100'"
+                                                         :class="selectedStatus && selectedStatus !== 'all' && selectedStatus !== '' && !isStatusMatching('{{ $pStatus }}') ? 'opacity-20 grayscale-[70%] scale-95 pointer-events-none' : 'opacity-100 scale-100'"
                                                          class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05)] border border-transparent transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer
                                                          @if($isOccupied) bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500 @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
                                                         <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">{{ $unit->door_no }}</span>
@@ -1336,7 +1373,10 @@ window.unitMatrixApp = unitMatrixApp;
                         <span class="w-5 h-5 rounded-lg bg-[#0B1E36] shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Parking</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $parkingCount }}</span>
+                            <div class="flex items-baseline gap-1.5 mt-0.5">
+                                <span class="text-slate-800 font-black text-xl font-mono block">{{ $parkingCount }}</span>
+                                <span class="text-[9px] text-slate-400 font-bold font-mono">({{ $parkingSoldCount }} sold)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
