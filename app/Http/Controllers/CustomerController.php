@@ -48,10 +48,20 @@ class CustomerController extends Controller
             $query->where('is_active', $request->status);
         }
  
-        $customers = $query->withCount('sales')
-            ->withSum('sales as total_purchase', 'total_amount')
+        $customers = $query->withCount([
+                'sales as sales_count' => function ($q) {
+                    $q->where('status', 'active');
+                },
+                'sales as all_sales_count',
+            ])
+            ->withSum(['sales as total_purchase' => function ($q) {
+                $q->where('status', 'active');
+            }], 'total_amount')
             ->withSum(['receipts as total_paid' => function($q) {
                 $q->whereNull('partner_id')
+                  ->whereHas('sale', function($sq) {
+                      $sq->where('status', 'active');
+                  })
                   ->where(function($sub) {
                       $sub->where('realization_status', 'realized')
                           ->orWhereNull('realization_status');
@@ -59,6 +69,9 @@ class CustomerController extends Controller
             }], 'amount')
             ->withSum(['receipts as total_pending' => function($q) {
                 $q->whereNull('partner_id')
+                  ->whereHas('sale', function($sq) {
+                      $sq->where('status', 'active');
+                  })
                   ->whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited']);
             }], 'amount')
             ->orderBy('name')
@@ -262,16 +275,16 @@ class CustomerController extends Controller
                 ];
             }
 
-            // If cancelled sale, add Sales Return credit
-            if ($sale->status === 'cancelled') {
-                $cancelDate = $sale->updated_at ?? $saleDate;
-                $refundVal = (float)($sale->refund_amount > 0 ? $sale->refund_amount : ($sale->total_amount ?? 0));
+            // If cancelled or exchanged sale, add credit to offset the original debit
+            if ($sale->status === 'cancelled' || $sale->status === 'exchanged') {
+                $cancelDate = $sale->cancelled_at ?? $sale->updated_at ?? $saleDate;
+                $refundVal = (float)($sale->status === 'cancelled' && $sale->refund_amount > 0 ? $sale->refund_amount : ($sale->total_amount ?? 0));
                 $transactions[] = [
                     'date' => $cancelDate ? $cancelDate->format('n/j/Y') : 'N/A',
                     'date_dmy' => $cancelDate ? $cancelDate->format('d/m/Y') : 'N/A',
                     'timestamp' => $cancelDate ? $cancelDate->timestamp : 0,
-                    'v_no' => 'SR-' . $sale->id,
-                    'description' => 'Sales Return' . ($uName ? " ({$uName})" : ''),
+                    'v_no' => ($sale->status === 'exchanged' ? 'EX-' : 'SR-') . $sale->id,
+                    'description' => ($sale->status === 'exchanged' ? 'Unit Exchanged' : 'Sales Return') . ($uName ? " ({$uName})" : ''),
                     'payment_type' => 'Cheque',
                     'debit' => 0,
                     'credit' => $refundVal,
