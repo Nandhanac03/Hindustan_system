@@ -420,7 +420,7 @@
                                                 <a href="{{ route('cheque-realization.queue', ['customer_id' => $cs['customer_id']]) }}" 
                                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 hover:text-amber-900 hover:underline block mt-0.5"
                                                    title="View Cheque Realization Queue for {{ $cs['customer_name'] }}">
-                                                    <span>⏳ ₹{{ number_format($cs['pending_amount'], 2) }} uncleared</span>
+                                                    <span>⏳ ₹{{ number_format($cs['pending_amount'], 2) }} Pending Realization</span>
                                                     <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                                 </a>
                                             @endif
@@ -891,7 +891,7 @@
                                 <span class="text-sm font-extrabold text-emerald-600 font-mono block mt-1" x-text="fmtMoney(selectedCustomerSale?.financials?.total_paid)"></span>
                             </div>
                             <div class="text-center p-1.5">
-                                <span class="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Uncleared (Pending)</span>
+                                <span class="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Pending Realization</span>
                                 <span class="text-sm font-extrabold font-mono block mt-1" 
                                       :class="(selectedCustomerSale?.financials?.pending_amount > 0) ? 'text-amber-700 font-black' : 'text-slate-400'"
                                       x-text="fmtMoney(selectedCustomerSale?.financials?.pending_amount)"></span>
