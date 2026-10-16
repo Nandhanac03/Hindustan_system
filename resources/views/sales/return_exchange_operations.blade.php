@@ -93,7 +93,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().returnAmount)">₹0.00</span>
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmt(getReturnStats().returnAmount)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Gross value of cancelled bookings</p>
             </div>
         </div>
@@ -112,7 +112,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().payableToCustomer)">₹0.00</span>
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmt(getReturnStats().payableToCustomer)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Pending refund payout to customer</p>
             </div>
         </div>
@@ -131,7 +131,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">₹0.00</span>
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmt(getReturnStats().receivableFromCustomer)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Pending fee & charges to be recovered</p>
             </div>
         </div>
@@ -1370,7 +1370,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().totalDiff)">₹0.00</span>
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmt(getExchangeStats().totalDiff)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Cumulative contract differential</p>
             </div>
         </div>
@@ -1389,7 +1389,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().payableByCustomer)">₹0.00</span>
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmt(getExchangeStats().payableByCustomer)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Additional payment required</p>
             </div>
         </div>
@@ -1408,7 +1408,7 @@
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">₹0.00</span>
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmt(getExchangeStats().refundableToCustomer)">₹0.00</span>
                 <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Downgrade equity to refund</p>
             </div>
         </div>
