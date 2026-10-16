@@ -4951,4 +4951,310 @@ class ReportController extends Controller
             'summaryTotals'
         )));
     }
+
+    public function customerCollectionDues(Request $request, CollectionAgeingService $ageingService): View
+    {
+        $lookups = $this->getCommonLookups($request);
+        $activeTab = 'customer_collection_dues';
+
+        $allProjects = Project::where('is_active', true)->orderBy('name')->get();
+        $selectedProjectId = $request->input('project_id', 'all');
+        $selectedUnitType = $request->input('unit_type', 'all');
+        $asOfDate = $request->filled('as_of_date') ? Carbon::parse($request->as_of_date) : Carbon::today();
+
+        $salesQuery = Sale::with([
+            'customer',
+            'project',
+            'unit.unitType',
+            'unit.floor',
+            'saleUnits.unit.unitType',
+            'saleUnits.unit.floor',
+            'receipts.bank',
+            'customerInstallments' => function($q) {
+                $q->orderBy('installment_no');
+            }
+        ])
+        ->where('status', 'active');
+
+        if ($selectedProjectId && $selectedProjectId !== 'all') {
+            $salesQuery->where('project_id', $selectedProjectId);
+        }
+
+        if ($request->filled('customer_id')) {
+            $custIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $salesQuery->whereIn('customer_id', $custIds);
+        }
+
+        $sales = $salesQuery->get();
+
+        $rows = [];
+        $totalAgreementValue = 0.0;
+        $totalCollected = 0.0;
+        $totalOutstanding = 0.0;
+        $totalOverdue = 0.0;
+        $customerIds = collect();
+
+        $agingSummary = [
+            '0-30' => ['label' => '0 - 30 Days', 'count' => 0, 'amount' => 0.0, 'color' => '#10B981'],
+            '31-60' => ['label' => '31 - 60 Days', 'count' => 0, 'amount' => 0.0, 'color' => '#F59E0B'],
+            '61-90' => ['label' => '61 - 90 Days', 'count' => 0, 'amount' => 0.0, 'color' => '#F97316'],
+            '90+' => ['label' => '90+ Days', 'count' => 0, 'amount' => 0.0, 'color' => '#EF4444'],
+            'current' => ['label' => 'Current / Not Due', 'count' => 0, 'amount' => 0.0, 'color' => '#3B82F6'],
+        ];
+
+        $paymentModeTotals = [
+            'Bank Transfer' => 0.0,
+            'Cheque' => 0.0,
+            'UPI' => 0.0,
+            'Cash' => 0.0,
+            'Online' => 0.0,
+        ];
+
+        foreach ($sales as $sale) {
+            // Filter by unit type if requested
+            $unitTypesList = collect();
+            if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                foreach ($sale->saleUnits as $su) {
+                    if ($su->unit && $su->unit->unitType) {
+                        $unitTypesList->push(strtolower($su->unit->unitType->name));
+                    }
+                }
+            } elseif ($sale->unit && $sale->unit->unitType) {
+                $unitTypesList->push(strtolower($sale->unit->unitType->name));
+            }
+
+            if ($selectedUnitType && $selectedUnitType !== 'all') {
+                if (!$unitTypesList->contains(strtolower($selectedUnitType))) {
+                    continue;
+                }
+            }
+
+            $agreementValue = (float)($sale->total_amount > 0 ? $sale->total_amount : $sale->computed_total_amount);
+
+            // Valid receipts (excluding bounced / cancelled)
+            $validReceipts = $sale->receipts->filter(function($r) {
+                $st = strtolower($r->realization_status ?? 'realized');
+                return !in_array($st, ['bounced', 'cancelled'], true);
+            });
+
+            $collectedAmount = (float)$validReceipts->sum('amount');
+            $realizedAmount = (float)$validReceipts->filter(fn($r) => strtolower($r->realization_status ?? 'realized') === 'realized')->sum('amount');
+            $pendingRealization = (float)$validReceipts->filter(fn($r) => in_array(strtolower($r->realization_status ?? ''), ['pending', 'cheque_in_hand', 'deposited']))->sum('amount');
+            $outstandingAmount = max(0.0, round($agreementValue - $collectedAmount, 2));
+            $collectedPct = $agreementValue > 0 ? round(($collectedAmount / $agreementValue) * 100, 1) : 0.0;
+            $outstandingPct = $agreementValue > 0 ? round(($outstandingAmount / $agreementValue) * 100, 1) : 0.0;
+
+            // Payment modes for this sale
+            $salePaymentModes = [];
+            foreach ($validReceipts as $vr) {
+                $rawMode = trim($vr->payment_mode ?? 'Cash');
+                $normMode = 'Other';
+                if (stripos($rawMode, 'bank') !== false || stripos($rawMode, 'neft') !== false || stripos($rawMode, 'rtgs') !== false || stripos($rawMode, 'transfer') !== false) {
+                    $normMode = 'Bank Transfer';
+                } elseif (stripos($rawMode, 'cheque') !== false || stripos($rawMode, 'dd') !== false) {
+                    $normMode = 'Cheque';
+                } elseif (stripos($rawMode, 'upi') !== false || stripos($rawMode, 'gpay') !== false || stripos($rawMode, 'phonepe') !== false) {
+                    $normMode = 'UPI';
+                } elseif (stripos($rawMode, 'cash') !== false) {
+                    $normMode = 'Cash';
+                } elseif (stripos($rawMode, 'online') !== false || stripos($rawMode, 'card') !== false) {
+                    $normMode = 'Online';
+                }
+
+                $salePaymentModes[$normMode] = ($salePaymentModes[$normMode] ?? 0.0) + (float)$vr->amount;
+                $paymentModeTotals[$normMode] = ($paymentModeTotals[$normMode] ?? 0.0) + (float)$vr->amount;
+            }
+
+            // Installment schedule
+            $installments = $sale->customerInstallments;
+            $saleOverdueAmount = 0.0;
+            $maxDaysOverdue = 0;
+            $allocated = $collectedAmount;
+            $milestones = [];
+
+            if ($installments->isNotEmpty()) {
+                foreach ($installments as $inst) {
+                    $instAmt = (float)$inst->amount;
+                    if ($allocated >= $instAmt) {
+                        $instPaid = $instAmt;
+                        $allocated -= $instAmt;
+                        $st = 'Paid';
+                    } elseif ($allocated > 0) {
+                        $instPaid = $allocated;
+                        $allocated = 0;
+                        $st = 'Outstanding';
+                    } else {
+                        $instPaid = 0.0;
+                        $st = ($inst->due_date && Carbon::parse($inst->due_date)->startOfDay()->isPast()) ? 'Outstanding' : 'Pending';
+                    }
+
+                    $instBal = max(0.0, round($instAmt - $instPaid, 2));
+                    $daysOver = 0;
+                    if ($inst->due_date && $instBal > 0) {
+                        $due = Carbon::parse($inst->due_date);
+                        if ($due->startOfDay()->isBefore($asOfDate->startOfDay())) {
+                            $daysOver = (int)$due->startOfDay()->diffInDays($asOfDate->startOfDay());
+                            $saleOverdueAmount += $instBal;
+                            if ($daysOver > $maxDaysOverdue) {
+                                $maxDaysOverdue = $daysOver;
+                            }
+                        }
+                    }
+
+                    $milestones[] = [
+                        'installment_no' => $inst->installment_no,
+                        'label'          => $inst->label ?? ('Milestone #' . $inst->installment_no),
+                        'due_date'       => $inst->due_date ? Carbon::parse($inst->due_date)->format('d/m/Y') : '—',
+                        'amount'         => $instAmt,
+                        'paid_amount'    => $instPaid,
+                        'balance'        => $instBal,
+                        'status'         => $st,
+                        'days_overdue'   => $daysOver,
+                    ];
+                }
+            } else {
+                $baseDate = $sale->first_installment_date ?? $sale->agreement_date ?? $sale->sale_date;
+                $daysOver = 0;
+                if ($baseDate && $outstandingAmount > 0) {
+                    $bd = Carbon::parse($baseDate);
+                    if ($bd->startOfDay()->isBefore($asOfDate->startOfDay())) {
+                        $daysOver = (int)$bd->startOfDay()->diffInDays($asOfDate->startOfDay());
+                        $saleOverdueAmount = $outstandingAmount;
+                        $maxDaysOverdue = $daysOver;
+                    }
+                }
+                $milestones[] = [
+                    'installment_no' => 1,
+                    'label'          => 'Agreement / Booking Amount',
+                    'due_date'       => $baseDate ? Carbon::parse($baseDate)->format('d/m/Y') : '—',
+                    'amount'         => $agreementValue,
+                    'paid_amount'    => $collectedAmount,
+                    'balance'        => $outstandingAmount,
+                    'status'         => $outstandingAmount <= 0 ? 'Paid' : 'Outstanding',
+                    'days_overdue'   => $daysOver,
+                ];
+            }
+
+            // Bucket classification
+            if ($maxDaysOverdue <= 0 || $saleOverdueAmount <= 0) {
+                $bucketKey = 'current';
+                $bucketLabel = 'Current';
+                $agingSummary['current']['count']++;
+                $agingSummary['current']['amount'] += $outstandingAmount;
+            } elseif ($maxDaysOverdue <= 30) {
+                $bucketKey = '0-30';
+                $bucketLabel = '0 - 30 Days';
+                $agingSummary['0-30']['count']++;
+                $agingSummary['0-30']['amount'] += $saleOverdueAmount;
+            } elseif ($maxDaysOverdue <= 60) {
+                $bucketKey = '31-60';
+                $bucketLabel = '31 - 60 Days';
+                $agingSummary['31-60']['count']++;
+                $agingSummary['31-60']['amount'] += $saleOverdueAmount;
+            } elseif ($maxDaysOverdue <= 90) {
+                $bucketKey = '61-90';
+                $bucketLabel = '61 - 90 Days';
+                $agingSummary['61-90']['count']++;
+                $agingSummary['61-90']['amount'] += $saleOverdueAmount;
+            } else {
+                $bucketKey = '90+';
+                $bucketLabel = '90+ Days';
+                $agingSummary['90+']['count']++;
+                $agingSummary['90+']['amount'] += $saleOverdueAmount;
+            }
+
+            // Receipts history
+            $receiptsHistory = $validReceipts->sortByDesc('receipt_date')->values()->map(function($r, $idx) {
+                return [
+                    'index'              => $idx + 1,
+                    'id'                 => $r->id,
+                    'receipt_no'         => $r->reference_no ? $r->reference_no : ('REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT)),
+                    'receipt_date'       => $r->receipt_date ? Carbon::parse($r->receipt_date)->format('d/m/Y') : '—',
+                    'payment_mode'       => $r->payment_mode ?? 'Cash',
+                    'reference_no'       => $r->reference_no ?? '—',
+                    'drawee_bank'        => $r->drawee_bank ?? ($r->bank?->name ?? '—'),
+                    'amount'             => (float)$r->amount,
+                    'realization_status' => $r->realization_status ?? 'realized',
+                    'realization_label'  => ucfirst(str_replace('_', ' ', $r->realization_status ?? 'realized')),
+                ];
+            })->all();
+
+            // Units display
+            $unitsDisplay = '—';
+            $floorDisplay = '—';
+            if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                $unitsDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->door_no)->filter()->implode(', ');
+                $floorDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->floor?->name)->filter()->unique()->implode(', ');
+            } elseif ($sale->unit) {
+                $unitsDisplay = $sale->unit->door_no;
+                $floorDisplay = $sale->unit->floor?->name ?? '—';
+            }
+
+            $customer = $sale->customer;
+            if ($customer) {
+                $customerIds->push($customer->id);
+            }
+
+            $totalAgreementValue += $agreementValue;
+            $totalCollected += $collectedAmount;
+            $totalOutstanding += $outstandingAmount;
+            $totalOverdue += $saleOverdueAmount;
+
+            $rows[] = [
+                'sale_id'             => $sale->id,
+                'customer_id'         => $customer?->id,
+                'customer_name'       => $customer?->name ?? 'Customer #' . $sale->customer_id,
+                'customer_phone'      => $customer?->phone ?? '—',
+                'customer_email'      => $customer?->email ?? '—',
+                'customer_address'    => $customer?->address ?? '—',
+                'project_id'          => $sale->project_id,
+                'project_name'        => $sale->project?->name ?? '—',
+                'unit_display'        => $unitsDisplay,
+                'floor_display'       => $floorDisplay,
+                'agreement_date'      => $sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d/m/Y') : ($sale->sale_date ? Carbon::parse($sale->sale_date)->format('d/m/Y') : '—'),
+                'agreement_value'     => $agreementValue,
+                'collected_amount'    => $collectedAmount,
+                'realized_amount'     => $realizedAmount,
+                'pending_realization' => $pendingRealization,
+                'collected_pct'       => $collectedPct,
+                'outstanding_amount'  => $outstandingAmount,
+                'outstanding_pct'     => $outstandingPct,
+                'overdue_amount'      => $saleOverdueAmount,
+                'days_overdue'        => $maxDaysOverdue,
+                'aging_bucket'        => $bucketKey,
+                'aging_bucket_label'  => $bucketLabel,
+                'payment_modes'       => $salePaymentModes,
+                'milestones'          => $milestones,
+                'receipts'            => $receiptsHistory,
+            ];
+        }
+
+        $uniqueCustomersCount = $customerIds->unique()->count();
+        $totalCollectedPct = $totalAgreementValue > 0 ? round(($totalCollected / $totalAgreementValue) * 100, 1) : 0.0;
+        $totalOutstandingPct = $totalAgreementValue > 0 ? round(($totalOutstanding / $totalAgreementValue) * 100, 1) : 0.0;
+        $totalOverduePct = $totalOutstanding > 0 ? round(($totalOverdue / $totalOutstanding) * 100, 1) : 0.0;
+
+        $kpis = [
+            'total_customers'       => $uniqueCustomersCount,
+            'total_agreement_value' => $totalAgreementValue,
+            'total_collected'       => $totalCollected,
+            'total_collected_pct'   => $totalCollectedPct,
+            'total_outstanding'     => $totalOutstanding,
+            'total_outstanding_pct' => $totalOutstandingPct,
+            'total_overdue'         => $totalOverdue,
+            'total_overdue_pct'     => $totalOverduePct,
+        ];
+
+        return view('reports.customer-collection-dues', array_merge($lookups, compact(
+            'activeTab',
+            'allProjects',
+            'selectedProjectId',
+            'selectedUnitType',
+            'asOfDate',
+            'kpis',
+            'agingSummary',
+            'paymentModeTotals',
+            'rows'
+        )));
+    }
 }

@@ -51,7 +51,15 @@ class CustomerController extends Controller
         $customers = $query->withCount('sales')
             ->withSum('sales as total_purchase', 'total_amount')
             ->withSum(['receipts as total_paid' => function($q) {
-                $q->whereNull('partner_id');
+                $q->whereNull('partner_id')
+                  ->where(function($sub) {
+                      $sub->where('realization_status', 'realized')
+                          ->orWhereNull('realization_status');
+                  });
+            }], 'amount')
+            ->withSum(['receipts as total_pending' => function($q) {
+                $q->whereNull('partner_id')
+                  ->whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited']);
             }], 'amount')
             ->orderBy('name')
             ->get();
@@ -233,6 +241,7 @@ class CustomerController extends Controller
                 'payment_type' => 'Cheque',
                 'debit' => (float)($sale->total_amount ?? $sale->sale_amount ?? 0),
                 'credit' => 0,
+                'pending_amount' => 0,
                 'is_cash' => false,
             ];
 
@@ -248,6 +257,7 @@ class CustomerController extends Controller
                     'payment_type' => 'Cheque',
                     'debit' => (float)($work->line_total ?? $work->amount ?? 0),
                     'credit' => 0,
+                    'pending_amount' => 0,
                     'is_cash' => false,
                 ];
             }
@@ -265,6 +275,7 @@ class CustomerController extends Controller
                     'payment_type' => 'Cheque',
                     'debit' => 0,
                     'credit' => $refundVal,
+                    'pending_amount' => 0,
                     'is_cash' => false,
                 ];
             }
@@ -276,6 +287,9 @@ class CustomerController extends Controller
             $rDate = $r->receipt_date ?? $r->created_at;
             $mode = $r->payment_mode ?? 'Cheque';
             $isCash = (strcasecmp($mode, 'cash') === 0);
+            $rst = strtolower($r->realization_status ?? 'realized');
+            $isRealized = ($rst === 'realized' || empty($r->realization_status));
+            $isPending = in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true);
             
             $ordinal = ($idx + 1) . 'th Installment';
             if ($idx === 0) $ordinal = '1st Installment';
@@ -285,6 +299,11 @@ class CustomerController extends Controller
             elseif ($idx === 4) $ordinal = '5th Installment';
 
             $desc = $r->remarks ?: $ordinal;
+            if ($isPending) {
+                $desc .= ' (⏳ Pending Realization)';
+            } elseif ($rst === 'bounced') {
+                $desc .= ' (❌ Cheque Bounced)';
+            }
 
             $transactions[] = [
                 'date' => $rDate ? $rDate->format('n/j/Y') : 'N/A',
@@ -294,7 +313,9 @@ class CustomerController extends Controller
                 'description' => $desc,
                 'payment_type' => $mode ?: 'Cheque',
                 'debit' => 0,
-                'credit' => (float)($r->amount ?? 0),
+                'credit' => $isRealized ? (float)($r->amount ?? 0) : 0,
+                'pending_amount' => $isPending ? (float)($r->amount ?? 0) : 0,
+                'is_realized' => $isRealized,
                 'is_cash' => $isCash,
             ];
         }

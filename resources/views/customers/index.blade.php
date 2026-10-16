@@ -376,7 +376,26 @@
                                 <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[10px]" x-text="(customer.sales_count || 0) + ' Units'"></span>
                             </td>
                             <td class="px-3 py-3 border text-right font-bold text-slate-800" x-text="'₹' + Number(customer.total_purchase || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></td>
-                            <td class="px-3 py-3 border text-right font-bold text-emerald-600" x-text="'₹' + Number(customer.total_paid || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></td>
+                            <td class="px-3 py-3 border text-right">
+                                <div class="font-bold text-emerald-600 leading-tight text-xs" x-text="'₹' + Number(customer.total_paid || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></div>
+                                <template x-if="Number(customer.total_pending || 0) > 0">
+                                    <div class="mt-1.5 flex justify-end">
+                                        <a :href="'{{ route('cheque-realization.queue') }}?customer_id=' + customer.id" 
+                                           class="flex flex-col items-end px-2 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs cursor-pointer"
+                                           title="Click to view & process in Cheque Realization Queue">
+                                            <div class="inline-flex items-center gap-1 font-bold text-amber-950 text-[11px] leading-tight">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                                <span class="text-[10px]">⏳</span>
+                                                <span x-text="'₹' + Number(customer.total_pending || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                                            </div>
+                                            <div class="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider text-amber-800 group-hover:text-amber-950 mt-0.5 leading-tight">
+                                                <span>Pending Realization</span>
+                                                <svg class="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:translate-x-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </template>
+                            </td>
                             <td class="px-3 py-3 border text-right font-bold" :class="Number(customer.total_purchase || 0) - Number(customer.total_paid || 0) > 0 ? 'text-rose-600' : 'text-slate-500'" x-text="'₹' + Number(Math.max(0, (customer.total_purchase || 0) - (customer.total_paid || 0))).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></td>
                             <td class="px-3 py-3 border text-center">
                                 <span class="badge-pill" :class="customer.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'" x-text="customer.is_active ? 'Active' : 'Inactive'"></span>
@@ -1465,8 +1484,12 @@ function customersApp() {
             let totalChequePaid = 0;
             let totalCashPaid = 0;
             let totalReturns = 0;
+            let totalPendingCheques = 0;
 
             allTransactions.forEach(t => {
+                if (t.pending_amount > 0) {
+                    totalPendingCheques += Number(t.pending_amount);
+                }
                 if (t.debit > 0) {
                     if (t.description && t.description.toLowerCase().includes('additional')) {
                         totalExtraWork += Number(t.debit);
@@ -1503,6 +1526,15 @@ function customersApp() {
                 { idx: 4, metric: 'Total Paid via Cash', amount: totalCashPaid, notes: 'Realized Cash Payments' },
                 { idx: 5, metric: 'Total Sales Returns / Cancellation Refunds', amount: totalReturns, notes: 'Cancelled Units / Adjustments' }
             ];
+
+            if (totalPendingCheques > 0) {
+                summaryItems.push({
+                    idx: summaryItems.length + 1,
+                    metric: 'Total Cheques Pending Realization',
+                    amount: totalPendingCheques,
+                    notes: 'Awaiting Bank Realization (Not Deducted)'
+                });
+            }
 
             summaryItems.forEach(item => {
                 const row = wsSum.addRow([item.idx, item.metric, item.amount, item.notes]);

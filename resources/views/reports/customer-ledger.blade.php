@@ -389,7 +389,7 @@
                                         <th class="px-5 py-3.5 text-white font-extrabold">Customer Name & Contact</th>
                                         <th class="px-5 py-3.5 text-white font-extrabold">Unit Details</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Sale (₹)</th>
-                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Paid (₹)</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold whitespace-nowrap">Total Paid (₹)</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Outstanding (₹)</th>
                                         <th class="px-5 py-3.5 text-center text-white font-extrabold">Last Payment</th>
                                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Action</th>
@@ -414,16 +414,27 @@
                                         <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">
                                             ₹{{ number_format($cs['total_amount'], 2) }}
                                         </td>
-                                        <td class="px-5 py-4 text-right font-mono">
-                                            <span class="font-bold text-emerald-700 block">₹{{ number_format($cs['paid_amount'], 2) }}</span>
-                                            @if(!empty($cs['pending_amount']) && $cs['pending_amount'] > 0)
-                                                <a href="{{ route('cheque-realization.queue', ['customer_id' => $cs['customer_id']]) }}" 
-                                                   class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 hover:text-amber-900 hover:underline block mt-0.5"
-                                                   title="View Cheque Realization Queue for {{ $cs['customer_name'] }}">
-                                                    <span>⏳ ₹{{ number_format($cs['pending_amount'], 2) }} Pending Realization</span>
-                                                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                                </a>
-                                            @endif
+                                        <td class="px-5 py-3.5 text-right font-mono whitespace-nowrap">
+                                            <div class="flex flex-col items-end justify-center gap-1">
+                                                <span class="font-bold text-xs {{ $cs['paid_amount'] > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-400 font-semibold' }}">
+                                                    ₹{{ number_format($cs['paid_amount'], 2) }}
+                                                </span>
+                                                @if(!empty($cs['pending_amount']) && $cs['pending_amount'] > 0)
+                                                    <a href="{{ route('cheque-realization.queue', ['customer_id' => $cs['customer_id']]) }}" 
+                                                       class="mt-1 flex flex-col items-end px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs hover:shadow-xs"
+                                                       title="View Cheque Realization Queue for {{ $cs['customer_name'] }}">
+                                                        <div class="inline-flex items-center gap-1 font-mono font-black text-amber-950 text-xs">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                                            <span class="text-xs">⏳</span>
+                                                            <span>₹{{ number_format($cs['pending_amount'], 2) }}</span>
+                                                        </div>
+                                                        <div class="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-extrabold text-amber-800 group-hover:text-amber-950 mt-0.5">
+                                                            <span>Pending Realization</span>
+                                                            <svg class="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:translate-x-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                        </div>
+                                                    </a>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-5 py-4 text-right font-mono font-black text-rose-600">
                                             ₹{{ number_format($cs['outstanding'], 2) }}
@@ -560,21 +571,22 @@
                                             <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-600 inline-block">{{ $row['payment_mode'] }}</span>
                                         </td>
                                         <td class="px-5 py-3.5 text-right text-rose-600 font-bold">{{ $row['debit'] > 0 ? '₹'.number_format($row['debit'], 2) : '—' }}</td>
-                                        <td class="px-5 py-3.5 text-right font-mono">
+                                        <td class="px-5 py-3.5 text-right font-mono whitespace-nowrap">
                                             @if($row['credit'] > 0)
-                                                <span class="{{ (!empty($row['is_pending'])) ? 'text-amber-700 font-bold' : ((!empty($row['is_bounced'])) ? 'text-rose-400 line-through' : 'text-emerald-700 font-bold') }}">
-                                                    ₹{{ number_format($row['credit'], 2) }}
-                                                </span>
-                                                @if(!empty($row['is_pending']))
-                                                    <div class="mt-0.5">
+                                                <div class="flex flex-col items-end gap-0.5">
+                                                    <span class="{{ (!empty($row['is_pending'])) ? 'text-amber-800 font-black' : ((!empty($row['is_bounced'])) ? 'text-rose-400 line-through' : 'text-emerald-700 font-bold') }}">
+                                                        ₹{{ number_format($row['credit'], 2) }}
+                                                    </span>
+                                                    @if(!empty($row['is_pending']))
                                                         <a href="{{ route('cheque-realization.queue', array_filter(['customer_id' => $row['customer_id'] ?? null])) }}" 
-                                                           class="inline-flex items-center gap-1 text-[9px] font-sans font-bold text-amber-700 hover:underline"
+                                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[9px] font-sans font-extrabold whitespace-nowrap shadow-2xs transition-all group"
                                                            title="View in Cheque Realization Queue">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                             <span>Pending realization</span>
-                                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                            <svg class="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                                         </a>
-                                                    </div>
-                                                @endif
+                                                    @endif
+                                                </div>
                                             @else
                                                 <span class="text-slate-400">—</span>
                                             @endif
