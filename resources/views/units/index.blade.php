@@ -576,6 +576,10 @@
                 $blockedCount = 0;
                 $soldCount = 0;
                 $parkingCount = 0;
+                $parkingSoldCount = 0;
+                $parkingAvailableCount = 0;
+                $parkingBlockedCount = 0;
+
                 foreach ($floorMatrix as $row) {
                     foreach ($row['columns'] as $u) {
                         if ($u) {
@@ -590,8 +594,21 @@
                 
                 if (!empty($parkingRows)) {
                     foreach ($parkingRows as $pRow) {
-                        if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
-                        $parkingCount += $pRow['units']->count();
+                        foreach ($pRow['units'] as $pUnit) {
+                            $parkingCount++;
+                            $totalUnitsCount++;
+                            $pst = strtolower($pUnit->status);
+                            if ($pst === 'sold') {
+                                $soldCount++;
+                                $parkingSoldCount++;
+                            } elseif ($pst === 'blocked') {
+                                $blockedCount++;
+                                $parkingBlockedCount++;
+                            } elseif ($pst === 'available') {
+                                $availableCount++;
+                                $parkingAvailableCount++;
+                            }
+                        }
                     }
                 }
             @endphp
@@ -724,13 +741,30 @@
                                                 
                                                 @if ($isParkingRow)
                                                     @php 
-                                                        $isOccupied = in_array(strtolower($unit->status), ['sold', 'blocked']); 
+                                                        $pStatus = strtolower($unit->status);
+                                                        $isSold = ($pStatus === 'sold');
+                                                        $isBlocked = ($pStatus === 'blocked');
+                                                        $pCustName = '';
+                                                        if ($isSold) {
+                                                            if ($unit->sale && $unit->sale->customer) {
+                                                                $pCustName = $unit->sale->customer->name;
+                                                            } elseif ($unit->saleUnits && $unit->saleUnits->isNotEmpty()) {
+                                                                $activeSaleUnit = $unit->saleUnits->first(function($su) {
+                                                                    return $su->sale && $su->sale->status === 'active';
+                                                                });
+                                                                if ($activeSaleUnit && $activeSaleUnit->sale && $activeSaleUnit->sale->customer) {
+                                                                    $pCustName = $activeSaleUnit->sale->customer->name;
+                                                                }
+                                                            }
+                                                        }
                                                     @endphp
-                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
+                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}', customer: '{{ addslashes($pCustName) }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
                                                          @click="fetchUnit({{ $unit->id }})"
                                                          class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer duration-200
-                                                         @if($isOccupied) bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500 @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
+                                                         @if($isSold) bg-rose-600 text-white shadow-rose-200/50 hover:shadow-rose-300/50 hover:border-rose-400
+                                                         @elseif($isBlocked) bg-amber-500 text-white shadow-amber-200/50 hover:shadow-amber-300/50 hover:border-amber-400
+                                                         @else bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500 @endif">
                                                         <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">{{ $unit->door_no }}</span>
                                                         <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-sm">Parking</span>
                                                     </div>
@@ -739,6 +773,7 @@
                                                         $status = strtolower($unit->status);
                                                         $isSold     = in_array($status, ['sold']);
                                                         $isBlocked  = ($status === 'blocked');
+                                                        $isParkingUnit = ($unit->unitType && stripos($unit->unitType->name, 'park') !== false) || stripos($unit->door_no, 'P') === 0;
                                                         $custName = '';
                                                         if ($isSold) {
                                                             if ($unit->sale && $unit->sale->customer) {
@@ -759,6 +794,7 @@
                                                          class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer duration-200
                                                          @if ($isSold) bg-rose-600 text-white shadow-rose-200/50 hover:shadow-rose-300/50 hover:border-rose-400
                                                          @elseif ($isBlocked) bg-amber-500 text-white shadow-amber-200/50 hover:shadow-amber-300/50 hover:border-amber-400
+                                                         @elseif ($isParkingUnit) bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500
                                                          @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
 
                                                         <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">
@@ -861,7 +897,10 @@
                         <span class="w-5 h-5 rounded-lg bg-[#0B1E36] shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Parking</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $parkingCount }}</span>
+                            <div class="flex items-baseline gap-1.5 mt-0.5">
+                                <span class="text-slate-800 font-black text-xl font-mono block">{{ $parkingCount }}</span>
+                                <span class="text-[9px] text-slate-400 font-bold font-mono">({{ $parkingSoldCount }} sold)</span>
+                            </div>
                         </div>
                     </div>
                 </div>

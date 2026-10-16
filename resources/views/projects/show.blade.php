@@ -198,7 +198,13 @@
                                         || str_starts_with(strtoupper($ut->door_no), 'P');
 
                                     if ($isParking) {
-                                        $class = 'bg-[#0B1E36] text-white border-slate-700 shadow-slate-300/50 hover:bg-[#163459]';
+                                        if ($ut->status === 'sold') {
+                                            $class = 'bg-rose-600 text-white border-rose-700 shadow-rose-200/50 hover:bg-rose-700';
+                                        } elseif ($ut->status === 'blocked') {
+                                            $class = 'bg-amber-500 text-white border-amber-600 shadow-amber-200/50 hover:bg-amber-600';
+                                        } else {
+                                            $class = 'bg-[#0B1E36] text-white border-slate-700 shadow-slate-300/50 hover:bg-[#163459]';
+                                        }
                                     } else {
                                         $unitClasses = [
                                             'available' => 'bg-emerald-500 text-white border-emerald-600 shadow-emerald-200/50 hover:bg-emerald-600',
