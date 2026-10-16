@@ -19,6 +19,7 @@ use App\Models\VoucherType;
 use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -103,7 +104,7 @@ class BrokerController extends Controller
 
 
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -112,7 +113,7 @@ class BrokerController extends Controller
 
         $systemId = Auth::user()->system_id;
 
-        DB::transaction(function () use ($validated, $systemId) {
+        $broker = DB::transaction(function () use ($validated, $systemId) {
             $account = Account::create([
                 'system_id' => $systemId,
                 'code' => 'BRK-' . strtoupper(bin2hex(random_bytes(3))),
@@ -132,7 +133,17 @@ class BrokerController extends Controller
                 'broker.created',
                 "Registered new broker '{$broker->name}' with default commission of {$broker->default_commission_pct}%. Linked ledger account: {$account->code}."
             );
+
+            return $broker;
         });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Broker registered successfully.',
+                'broker'  => $broker,
+            ], 201);
+        }
 
         return redirect()->route('brokers.index')
             ->with('status', 'Broker profile registered successfully with linked liability ledger account.');

@@ -387,7 +387,7 @@
          ADD SALE MODAL (Redesigned)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeAddModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !modals.quickBroker.open && !confirmDeleteUnitModal.open) closeAddModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -411,7 +411,12 @@
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span>Live Calculation Summary</span>
                             </span>
-                            <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                            <div class="flex items-center gap-2">
+                                <template x-if="Number(forms.add.final_discount || 0) > 0">
+                                    <span class="text-xs font-bold text-rose-400 bg-rose-950/80 border border-rose-500/40 px-2 py-0.5 rounded-lg font-mono shadow-xs" x-text="'Discount: −₹' + Number(forms.add.final_discount || 0).toLocaleString()"></span>
+                                </template>
+                                <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                             <!-- 1. Total Sale Amount -->
@@ -453,7 +458,12 @@
                             </div>
                             <!-- 7. Total Contract Value -->
                             <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
-                                <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                    <template x-if="Number(forms.add.final_discount || 0) > 0">
+                                        <span class="text-[8px] font-bold text-rose-400 font-mono" x-text="'−₹' + Number(forms.add.final_discount || 0).toLocaleString()"></span>
+                                    </template>
+                                </div>
                                 <span class="font-black text-[#d9bf3b] text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
                             </div>
                         </div>
@@ -821,14 +831,22 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                    <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
-                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                        <option value="">— Select Broker —</option>
-                                        @foreach($brokers as $broker)
-                                            <option value="{{ $broker->id }}">{{ $broker->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <template x-if="errors.broker_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.broker_id[0]"></p></template>
+                                    <div class="flex gap-2">
+                                        <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
+                                                :class="errors.broker_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                                class="flex-1 min-w-0 w-full h-9 px-3 py-1.5 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            <option value="">— Select Broker —</option>
+                                            <template x-for="b in brokerList" :key="b.id">
+                                                <option :value="b.id" x-text="b.name"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" @click="openQuickAddBroker('add')"
+                                                title="Quick Add Broker"
+                                                class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition shadow-xs">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                    </div>
+                                    <template x-if="errors.broker_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.broker_id) ? errors.broker_id[0] : errors.broker_id"></p></template>
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
@@ -942,6 +960,48 @@
                                 <span class="text-xs font-bold text-slate-200 capitalize tracking-wide ml-1" x-text="numberToWords(forms.add.total_amount)"></span>
                             </div>
                         </template>
+                    </div>
+                    {{-- ── Section 6 — Final Discount ── --}}
+                    <div class="bg-white p-5 rounded-xl border border-rose-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-rose-750 uppercase tracking-widest border-b border-rose-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            <span>🏷️ Final Discount (Applied to Total Contract Value)</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                            {{-- Discount Amount Input --}}
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Discount Amount(₹)</label>
+                                <input type="number" step="0.01" min="0" x-model="forms.add.final_discount"
+                                       @input="recalculateAllTotals('add')"
+                                       @focus="if(parseFloat(forms.add.final_discount) === 0 || forms.add.final_discount === '0' || !forms.add.final_discount) forms.add.final_discount = ''"
+                                       @blur="if(forms.add.final_discount === '' || forms.add.final_discount === null || forms.add.final_discount === undefined) { forms.add.final_discount = 0; recalculateAllTotals('add'); }"
+                                       placeholder="e.g. 50000"
+                                       class="w-full h-9 px-3 py-1.5 bg-rose-50/50 border border-rose-200 focus:bg-white focus:ring-4 focus:ring-rose-400/10 focus:border-rose-400 rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
+                                <template x-if="parseFloat(forms.add.final_discount) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.add.final_discount)"></div>
+                                </template>
+                                
+                                <template x-if="!(parseFloat(forms.add.final_discount) > 0)">
+                                    <p class="text-[9px] text-slate-400">Enter 0 for no discount</p>
+                                </template>
+                            </div>
+                            {{-- Gross Contract Value --}}
+                            <div class="space-y-1.5">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gross Contract Value</p>
+                                <div class="w-full h-9 px-3 bg-slate-100/90 border border-slate-250 rounded-xl font-bold text-slate-700 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></div>
+                                <template x-if="parseFloat(forms.add.total_amount) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.add.total_amount)"></div>
+                                </template>
+                            </div>
+                            {{-- Final Contract Value (After Discount) --}}
+                            <div class="space-y-1.5">
+                                <p class="text-[10px] font-black text-rose-600 uppercase tracking-wider">Final Contract Value (After Discount)</p>
+                                <div class="w-full h-9 px-3 bg-amber-50 border border-amber-300 rounded-xl font-black text-amber-700 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></div>
+                                <template x-if="parseFloat(forms.add.total_contract_value) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.add.total_contract_value)"></div>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                     {{-- ── Section 4 — Initial Payment ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
@@ -1083,7 +1143,7 @@
                             </div>
                         </div>
                     </div>
-                    {{-- ── Section 6 — Remarks ── --}}
+                    {{-- ── Section 7 — Remarks ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
@@ -1138,10 +1198,49 @@
         </div>
     </div>
     {{-- ═══════════════════════════════════════════
+         QUICK ADD BROKER MODAL (nested)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="modals.quickBroker.open" @click.self.stop="modals.quickBroker.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.stop>
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Quick Add Broker</h3>
+                <button @click="modals.quickBroker.open = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <form @submit.prevent="submitQuickBroker()">
+                <div class="p-6 space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Broker / Agency Name *</label>
+                        <input type="text" x-model="quickBroker.name" placeholder="e.g. Apex Realty Brokers"
+                               :class="quickBrokerErrors.name ? 'border-rose-500 bg-rose-50/30 ring-2 ring-rose-500/20' : 'border-slate-250'"
+                               class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all">
+                        <template x-if="quickBrokerErrors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1 pl-1" x-text="Array.isArray(quickBrokerErrors.name) ? quickBrokerErrors.name[0] : quickBrokerErrors.name"></p></template>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Default Commission % *</label>
+                        <div class="relative">
+                            <input type="number" step="0.01" min="0.01" max="100.00" x-model="quickBroker.default_commission_pct" placeholder="2.00"
+                                   :class="quickBrokerErrors.default_commission_pct ? 'border-rose-500 bg-rose-50/30 ring-2 ring-rose-500/20' : 'border-slate-250'"
+                                   class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs pr-8 font-mono focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                        </div>
+                        <template x-if="quickBrokerErrors.default_commission_pct"><p class="text-[10px] text-rose-600 font-semibold mt-1 pl-1" x-text="Array.isArray(quickBrokerErrors.default_commission_pct) ? quickBrokerErrors.default_commission_pct[0] : quickBrokerErrors.default_commission_pct"></p></template>
+                    </div>
+                    <div class="p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-[10px] text-amber-900">
+                        <p class="font-medium">A linked liability ledger account will be created automatically for tracking commissions payable.</p>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="modals.quickBroker.open = false" class="px-4 py-2 border border-slate-200 text-slate-650 text-xs font-bold rounded-xl uppercase">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl uppercase">Add & Select</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {{-- ═══════════════════════════════════════════
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeEditModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !modals.quickBroker.open && !confirmDeleteUnitModal.open) closeEditModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/20">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -1165,7 +1264,12 @@
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span>Live Calculation Summary</span>
                             </span>
-                            <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                            <div class="flex items-center gap-2">
+                                <template x-if="Number(forms.edit.final_discount || 0) > 0">
+                                    <span class="text-xs font-bold text-rose-400 bg-rose-950/80 border border-rose-500/40 px-2 py-0.5 rounded-lg font-mono shadow-xs" x-text="'Discount: −₹' + Number(forms.edit.final_discount || 0).toLocaleString()"></span>
+                                </template>
+                                <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                             <!-- 1. Total Sale Amount -->
@@ -1207,7 +1311,12 @@
                             </div>
                             <!-- 7. Total Contract Value -->
                             <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
-                                <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                    <template x-if="Number(forms.edit.final_discount || 0) > 0">
+                                        <span class="text-[8px] font-bold text-rose-400 font-mono" x-text="'−₹' + Number(forms.edit.final_discount || 0).toLocaleString()"></span>
+                                    </template>
+                                </div>
                                 <span class="font-black text-[#d9bf3b] text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
                             </div>
                         </div>
@@ -1520,13 +1629,20 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                    <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
-                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                        <option value="">— Select Broker —</option>
-                                        @foreach($brokers as $broker)
-                                            <option value="{{ $broker->id }}">{{ $broker->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="flex gap-2">
+                                        <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
+                                                class="flex-1 min-w-0 w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            <option value="">— Select Broker —</option>
+                                            <template x-for="b in brokerList" :key="b.id">
+                                                <option :value="b.id" x-text="b.name"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" @click="openQuickAddBroker('edit')"
+                                                title="Quick Add Broker"
+                                                class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition shadow-xs">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
@@ -1721,7 +1837,48 @@
                             </div>
                         </div>
                     </div>
-                    {{-- ── Section 7 — Remarks ── --}}
+                    {{-- ── Section 7 — Final Discount ── --}}
+                    <div class="bg-white p-5 rounded-xl border border-rose-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-rose-750 uppercase tracking-widest border-b border-rose-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            <span>🏷️ Final Discount (Applied to Total Contract Value)</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                            {{-- Discount Amount Input --}}
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Discount Amount (₹)</label>
+                                <input type="number" step="0.01" min="0" x-model="forms.edit.final_discount"
+                                       @input="recalculateAllTotals('edit')"
+                                       @focus="if(parseFloat(forms.edit.final_discount) === 0 || forms.edit.final_discount === '0' || !forms.edit.final_discount) forms.edit.final_discount = ''"
+                                       @blur="if(forms.edit.final_discount === '' || forms.edit.final_discount === null || forms.edit.final_discount === undefined) { forms.edit.final_discount = 0; recalculateAllTotals('edit'); }"
+                                       placeholder="e.g. 50000"
+                                       class="w-full h-9 px-3 py-1.5 bg-rose-50/50 border border-rose-200 focus:bg-white focus:ring-4 focus:ring-rose-400/10 focus:border-rose-400 rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
+                                <template x-if="parseFloat(forms.edit.final_discount) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.edit.final_discount)"></div>
+                                </template>
+                                <template x-if="!(parseFloat(forms.edit.final_discount) > 0)">
+                                    <p class="text-[9px] text-slate-400">Enter 0 for no discount</p>
+                                </template>
+                            </div>
+                            {{-- Gross Contract Value --}}
+                            <div class="space-y-1.5">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gross Contract Value</p>
+                                <div class="w-full h-9 px-3 bg-slate-100/90 border border-slate-250 rounded-xl font-bold text-slate-700 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></div>
+                                <template x-if="parseFloat(forms.edit.total_amount) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.edit.total_amount)"></div>
+                                </template>
+                            </div>
+                            {{-- Final Contract Value (After Discount) --}}
+                            <div class="space-y-1.5">
+                                <p class="text-[10px] font-black text-rose-600 uppercase tracking-wider">Final Contract Value (After Discount)</p>
+                                <div class="w-full h-9 px-3 bg-amber-50 border border-amber-300 rounded-xl font-black text-amber-700 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></div>
+                                <template x-if="parseFloat(forms.edit.total_contract_value) > 0">
+                                    <div class="amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs" x-text="numberToWords(forms.edit.total_contract_value)"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- ── Section 8 — Remarks ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
@@ -1877,6 +2034,12 @@
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Contract Value</span>
                             <span class="font-extrabold text-[#a38c29] text-base mt-1 block font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
                         </div>
+                        <template x-if="Number(activeSale.final_discount || 0) > 0">
+                            <div>
+                                <span class="text-[9px] text-rose-500 font-bold uppercase block tracking-wider">Final Discount</span>
+                                <span class="font-extrabold text-rose-600 text-sm mt-1 block font-mono" x-text="'−₹' + Number(activeSale.final_discount || 0).toLocaleString()"></span>
+                            </div>
+                        </template>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-5 -mb-5 p-5 rounded-b-xl">
                         <div>
@@ -2076,7 +2239,7 @@ function salesApp() {
             const map = { active: 'Active', cancelled: 'Cancelled', returned: 'Returned', exchanged: 'Exchanged', resale: 'Resale', inactive: 'Inactive' };
             return map[this.filters.status] || (this.filters.status.charAt(0).toUpperCase() + this.filters.status.slice(1));
         },
-        modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
+        modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false }, quickBroker: { open: false } },
         confirmDeleteUnitModal: { open: false, index: null, mode: 'add', doorNo: '', hasEmis: false, hasReceipts: false, isEmiPlan: false },
         confirmDeactivateModal: { open: false, saleId: null, saleNumber: '', doorNo: '', hasEmis: false, hasReceipts: false },
         availableUnits: { add: [], edit: [] },
@@ -2088,11 +2251,14 @@ function salesApp() {
         quickCustomerErrors: {},
         customerSearch: '',
         customerDropdownOpen: false,
+        quickBroker: { name: '', default_commission_pct: '2.00' },
+        quickBrokerErrors: {},
+        quickBrokerMode: 'add',
         forms: {
             add: {
                 project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
-                gst_amount: 0, base_amount: '', total_amount: '',
+                gst_amount: 0, base_amount: '', total_amount: '', final_discount: 0,
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 brokerage_type: 'percentage', brokerage_value: '',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
@@ -2103,7 +2269,7 @@ function salesApp() {
             },
             edit: {
                 project_id: '', sale_amount: '', sale_date: '', gst_type: 'none',
-                gst_percentage: '', gst_amount: 0, base_amount: '', total_amount: '', notes: '',
+                gst_percentage: '', gst_amount: 0, base_amount: '', total_amount: '', final_discount: 0, notes: '',
                 payment_plan: 'lump_sum', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(),
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 brokerage_type: 'percentage', brokerage_value: '', broker_id: '',
@@ -3996,13 +4162,15 @@ function salesApp() {
 
             this.forms[mode].base_amount = Math.round((totalBase + extraBase) * 100) / 100;
             this.forms[mode].gst_amount = Math.round((totalGst + extraGst) * 100) / 100;
-            this.forms[mode].total_amount = Math.round((totalVal + extraVal) * 100) / 100;
-            this.forms[mode].total_contract_value = Math.round((totalVal + extraVal) * 100) / 100;
+            const grossVal = Math.round((totalVal + extraVal) * 100) / 100;
+            const discount = parseFloat(this.forms[mode].final_discount) || 0;
+            this.forms[mode].total_amount = grossVal;
+            this.forms[mode].total_contract_value = Math.max(0, Math.round((grossVal - discount) * 100) / 100);
             this.forms[mode].brokerage_amount = Math.round(totalBrokerage * 100) / 100;
             this.forms[mode].sale_amount = Math.round(totalBase * 100) / 100;
 
             const paid = parseFloat(this.forms[mode].initial_payment_amount) || 0;
-            const totalContract = this.forms[mode].total_amount || 0;
+            const totalContract = this.forms[mode].total_contract_value || 0;
             this.forms[mode].remaining_balance = Math.max(0, Math.round((totalContract - paid) * 100) / 100);
             if (totalContract > 0) {
                 this.forms[mode].initial_payment_percentage = Math.round((paid / totalContract * 100) * 100) / 100;
@@ -4157,6 +4325,44 @@ function salesApp() {
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
         },
+        openQuickAddBroker(mode = 'add') {
+            this.quickBrokerMode = mode;
+            this.quickBroker = { name: '', default_commission_pct: '2.00' };
+            this.quickBrokerErrors = {};
+            this.modals.quickBroker.open = true;
+        },
+        submitQuickBroker() {
+            fetch('{{ route('brokers.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.quickBroker)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (res.status === 422) {
+                    this.quickBrokerErrors = data.errors || {};
+                } else if (!res.ok) {
+                    this.showToast(data.message || data.error || 'Failed to add broker.', 'error');
+                } else {
+                    const newBroker = {
+                        id: data.broker.id,
+                        name: data.broker.name,
+                        default_commission_pct: data.broker.default_commission_pct !== undefined ? data.broker.default_commission_pct : Number(this.quickBroker.default_commission_pct)
+                    };
+                    this.brokerList.push(newBroker);
+                    const mode = this.quickBrokerMode || 'add';
+                    this.forms[mode].broker_id = newBroker.id;
+                    this.onBrokerSelect(mode);
+                    this.modals.quickBroker.open = false;
+                    this.showToast('Broker added and selected.');
+                }
+            })
+            .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
+        },
         getFilteredCustomersList(search = '') {
             const q = (search || '').toLowerCase().trim();
             if (!q) return this.customerList;
@@ -4204,12 +4410,14 @@ function salesApp() {
             this.forms.add = {
                 project_id: '{{ request('project_id') }}', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
-                gst_amount: 0, base_amount: '', total_amount: '',
+                gst_amount: 0, base_amount: '', total_amount: '', final_discount: 0,
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
+                brokerage_type: 'percentage', brokerage_value: '',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(), milestones: [], remaining_balance: 0,
                 notes: '',
-                units: []
+                units: [],
+                extra_works: []
             };
             this.addUnitRow();
             this.modals.add.open = true;
@@ -4223,7 +4431,7 @@ function salesApp() {
             let hasError = false;
 
             const paidAdd = parseFloat(this.forms.add.initial_payment_amount) || 0;
-            const totalAdd = parseFloat(this.forms.add.total_amount) || parseFloat(this.forms.add.sale_amount) || 0;
+            const totalAdd = parseFloat(this.forms.add.total_contract_value) || parseFloat(this.forms.add.total_amount) || parseFloat(this.forms.add.sale_amount) || 0;
             if (totalAdd > 0 && paidAdd > totalAdd) {
                 this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
                 hasError = true;
@@ -4343,6 +4551,7 @@ function salesApp() {
                     gst_amount: this.activeSale.gst_amount,
                     base_amount: this.activeSale.base_amount,
                     total_amount: this.activeSale.total_amount,
+                    final_discount: parseFloat(this.activeSale.final_discount) || 0,
                     broker_involved: this.activeSale.brokerage ? true : false,
                     broker_id: this.activeSale.brokerage ? this.activeSale.brokerage.broker_id : '',
                     brokerage_type: this.activeSale.brokerage ? this.activeSale.brokerage.commission_type : 'percentage',
@@ -4472,7 +4681,7 @@ function salesApp() {
         closeEditModal() { this.modals.edit.open = false; this.statusChange.pending = false; },
         submitEditSale() {
             const paidEdit = parseFloat(this.forms.edit.initial_payment_amount) || 0;
-            const totalEdit = parseFloat(this.forms.edit.total_amount) || parseFloat(this.forms.edit.sale_amount) || 0;
+            const totalEdit = parseFloat(this.forms.edit.total_contract_value) || parseFloat(this.forms.edit.total_amount) || parseFloat(this.forms.edit.sale_amount) || 0;
             if (totalEdit > 0 && paidEdit > totalEdit) {
                 this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
                 return;

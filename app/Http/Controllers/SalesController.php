@@ -198,6 +198,7 @@ class SalesController extends Controller
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
             'brokerage_value'        => ['nullable', 'numeric', 'min:0'],
             'brokerage_status'       => ['nullable', Rule::in(['pending', 'paid'])],
+            'final_discount'         => ['nullable', 'numeric', 'min:0'],
             'extra_works'            => ['nullable', 'array'],
             'extra_works.*.description' => ['required', 'string'],
             'extra_works.*.amount'      => ['required', 'numeric', 'min:0'],
@@ -292,6 +293,8 @@ class SalesController extends Controller
                 $totalBaseAmount += $baseAmount;
                 $totalContractAmount += $lineTotal;
             }
+            $finalDiscount = isset($validated['final_discount']) ? (float)$validated['final_discount'] : 0.0;
+            $finalContractAmount = max(0, round($totalContractAmount - $finalDiscount, 2));
             $brokerInvolved = (bool)($validated['broker_involved'] ?? false);
             $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
             // Populating first unit's info in main table to prevent backward compatibility issues
@@ -309,7 +312,8 @@ class SalesController extends Controller
                 'gst_percentage'         => $totalGstAmount > 0 ? 18 : null,
                 'gst_amount'             => $totalGstAmount,
                 'base_amount'            => $totalBaseAmount,
-                'total_amount'           => $totalContractAmount,
+                'total_amount'           => $finalContractAmount,
+                'final_discount'         => $finalDiscount,
                 'sale_date'              => $validated['agreement_date'],
                 'agreement_date'         => $validated['agreement_date'],
                 'registration_date'      => $validated['registration_date'] ?? null,
@@ -323,7 +327,7 @@ class SalesController extends Controller
                 'initial_payment'        => $initialPayment,
                 'payment_mode'           => $validated['payment_mode'] ?? null,
                 'reference_no'           => $validated['reference_no'] ?? null,
-                'remaining_balance'      => round($totalContractAmount - $initialPayment, 2),
+                'remaining_balance'      => round($finalContractAmount - $initialPayment, 2),
                 'notes'                  => $validated['notes'] ?? null,
                 'created_by'             => auth()->id(),
                 'bank_id'                => $validated['bank_id'] ?? null,
@@ -437,11 +441,11 @@ class SalesController extends Controller
                 ]);
 
                 // 1. Customer Receivable (Debit total receivable)
-                if ($totalContractAmount > 0) {
+                if ($finalContractAmount > 0) {
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,
                         'account_id'     => '1010',
-                        'debit_amount'   => $totalContractAmount,
+                        'debit_amount'   => $finalContractAmount,
                         'credit_amount'  => 0.00,
                         'entity_type'    => 'CUSTOMER',
                         'entity_id'      => $validated['customer_id'],
@@ -571,6 +575,7 @@ class SalesController extends Controller
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
             'brokerage_value'        => ['nullable', 'numeric', 'min:0'],
             'brokerage_status'       => ['nullable', Rule::in(['pending', 'paid'])],
+            'final_discount'         => ['nullable', 'numeric', 'min:0'],
             'extra_works'            => ['nullable', 'array'],
             'extra_works.*.description' => ['required', 'string'],
             'extra_works.*.amount'      => ['required', 'numeric', 'min:0'],
@@ -675,6 +680,8 @@ class SalesController extends Controller
                 $totalBaseAmount += $baseAmount;
                 $totalContractAmount += $lineTotal;
             }
+            $finalDiscount = isset($validated['final_discount']) ? (float)$validated['final_discount'] : 0.0;
+            $finalContractAmount = max(0, round($totalContractAmount - $finalDiscount, 2));
             $brokerInvolved = (bool)($validated['broker_involved'] ?? false);
             $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
             // Populating first unit's info in main table to prevent backward compatibility issues
@@ -689,7 +696,8 @@ class SalesController extends Controller
                 'gst_percentage'         => $totalGstAmount > 0 ? 18 : null,
                 'gst_amount'             => $totalGstAmount,
                 'base_amount'            => $totalBaseAmount,
-                'total_amount'           => $totalContractAmount,
+                'total_amount'           => $finalContractAmount,
+                'final_discount'         => $finalDiscount,
                 'sale_date'              => $validated['sale_date'],
                 'agreement_date'         => $validated['sale_date'],
                 'registration_date'      => $validated['registration_date'] ?? null,
