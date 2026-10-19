@@ -4958,7 +4958,7 @@ class ReportController extends Controller
         $activeTab = 'customer_collection_dues';
 
         $allProjects = Project::where('is_active', true)->orderBy('name')->get();
-        $selectedProjectId = $request->input('project_id', 'all');
+        $selectedProjectId = 'all';
         $selectedUnitType = $request->input('unit_type', 'all');
         $asOfDate = $request->filled('as_of_date') ? Carbon::parse($request->as_of_date) : Carbon::today();
 
@@ -4976,10 +4976,6 @@ class ReportController extends Controller
         ])
         ->where('status', 'active');
 
-        if ($selectedProjectId && $selectedProjectId !== 'all') {
-            $salesQuery->where('project_id', $selectedProjectId);
-        }
-
         if ($request->filled('customer_id')) {
             $custIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
             $salesQuery->whereIn('customer_id', $custIds);
@@ -4990,6 +4986,7 @@ class ReportController extends Controller
         $rows = [];
         $totalAgreementValue = 0.0;
         $totalCollected = 0.0;
+        $totalPendingRealization = 0.0;
         $totalOutstanding = 0.0;
         $totalOverdue = 0.0;
         $customerIds = collect();
@@ -5037,10 +5034,16 @@ class ReportController extends Controller
                 return !in_array($st, ['bounced', 'cancelled'], true);
             });
 
-            $collectedAmount = (float)$validReceipts->sum('amount');
-            $realizedAmount = (float)$validReceipts->filter(fn($r) => strtolower($r->realization_status ?? 'realized') === 'realized')->sum('amount');
-            $pendingRealization = (float)$validReceipts->filter(fn($r) => in_array(strtolower($r->realization_status ?? ''), ['pending', 'cheque_in_hand', 'deposited']))->sum('amount');
-            $outstandingAmount = max(0.0, round($agreementValue - $collectedAmount, 2));
+            // Accurate realization: Before realization, collected amount only counts bank-cleared receipts!
+            $realizedReceipts = $validReceipts->filter(fn($r) => strtolower($r->realization_status ?? 'realized') === 'realized');
+            $pendingReceipts = $validReceipts->filter(fn($r) => in_array(strtolower($r->realization_status ?? ''), ['pending', 'cheque_in_hand', 'deposited']));
+
+            $realizedAmount = (float)$realizedReceipts->sum('amount');
+            $pendingRealization = (float)$pendingReceipts->sum('amount');
+            $collectedAmount = $realizedAmount;
+
+            // Before realization, outstanding dues are NOT deducted by unrealized cheques!
+            $outstandingAmount = max(0.0, round($agreementValue - $realizedAmount, 2));
             $collectedPct = $agreementValue > 0 ? round(($collectedAmount / $agreementValue) * 100, 1) : 0.0;
             $outstandingPct = $agreementValue > 0 ? round(($outstandingAmount / $agreementValue) * 100, 1) : 0.0;
 
@@ -5065,11 +5068,11 @@ class ReportController extends Controller
                 $paymentModeTotals[$normMode] = ($paymentModeTotals[$normMode] ?? 0.0) + (float)$vr->amount;
             }
 
-            // Installment schedule
+            // Installment schedule - only allocate realized cleared receipts
             $installments = $sale->customerInstallments;
             $saleOverdueAmount = 0.0;
             $maxDaysOverdue = 0;
-            $allocated = $collectedAmount;
+            $allocated = $realizedAmount;
             $milestones = [];
 
             if ($installments->isNotEmpty()) {
@@ -5128,7 +5131,7 @@ class ReportController extends Controller
                     'label'          => 'Agreement / Booking Amount',
                     'due_date'       => $baseDate ? Carbon::parse($baseDate)->format('d/m/Y') : '—',
                     'amount'         => $agreementValue,
-                    'paid_amount'    => $collectedAmount,
+                    'paid_amount'    => $realizedAmount,
                     'balance'        => $outstandingAmount,
                     'status'         => $outstandingAmount <= 0 ? 'Paid' : 'Outstanding',
                     'days_overdue'   => $daysOver,
@@ -5165,6 +5168,7 @@ class ReportController extends Controller
 
             // Receipts history
             $receiptsHistory = $validReceipts->sortByDesc('receipt_date')->values()->map(function($r, $idx) {
+                $rst = strtolower($r->realization_status ?? 'realized');
                 return [
                     'index'              => $idx + 1,
                     'id'                 => $r->id,
@@ -5174,21 +5178,38 @@ class ReportController extends Controller
                     'reference_no'       => $r->reference_no ?? '—',
                     'drawee_bank'        => $r->drawee_bank ?? ($r->bank?->name ?? '—'),
                     'amount'             => (float)$r->amount,
-                    'realization_status' => $r->realization_status ?? 'realized',
-                    'realization_label'  => ucfirst(str_replace('_', ' ', $r->realization_status ?? 'realized')),
+                    'realization_status' => $rst,
+                    'realization_label'  => ucfirst(str_replace('_', ' ', $rst)),
+                    'is_realized'        => $rst === 'realized',
+                    'is_pending'         => in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true),
                 ];
             })->all();
 
             // Units display
             $unitsDisplay = '—';
             $floorDisplay = '—';
+            $primaryUnitType = 'Apartment';
+            $ratePerSqft = (float)($sale->rate_per_sqft ?? 0);
+            $totalArea = 0.0;
             if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
                 $unitsDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->door_no)->filter()->implode(', ');
                 $floorDisplay = $sale->saleUnits->map(fn($su) => $su->unit?->floor?->name)->filter()->unique()->implode(', ');
+                $primaryUnitType = $sale->saleUnits->map(fn($su) => $su->unit?->unitType?->name)->filter()->first() ?? 'Apartment';
+                $totalArea = (float)$sale->saleUnits->sum('area_sqft');
+                if ($ratePerSqft <= 0) {
+                    $ratePerSqft = (float)($sale->saleUnits->first()?->rate_per_sqft ?? 0);
+                }
             } elseif ($sale->unit) {
                 $unitsDisplay = $sale->unit->door_no;
                 $floorDisplay = $sale->unit->floor?->name ?? '—';
+                $primaryUnitType = $sale->unit->unitType?->name ?? 'Apartment';
+                $totalArea = (float)($sale->unit->built_up_area ?? 0);
+                if ($ratePerSqft <= 0) {
+                    $ratePerSqft = (float)($sale->unit->sale_rate_per_sqft ?? $sale->unit->expected_rate_per_sqft ?? 0);
+                }
             }
+
+            $isExchanged = !empty($sale->notes) && stripos($sale->notes, 'Exchanged from') !== false;
 
             $customer = $sale->customer;
             if ($customer) {
@@ -5196,36 +5217,54 @@ class ReportController extends Controller
             }
 
             $totalAgreementValue += $agreementValue;
-            $totalCollected += $collectedAmount;
+            $totalCollected += $realizedAmount;
+            $totalPendingRealization += $pendingRealization;
             $totalOutstanding += $outstandingAmount;
             $totalOverdue += $saleOverdueAmount;
 
+            $saleDateRaw = $sale->agreement_date ?? $sale->sale_date;
+            $saleFY = '—';
+            if ($saleDateRaw) {
+                $cDate = Carbon::parse($saleDateRaw);
+                $y = $cDate->year;
+                $m = $cDate->month;
+                $saleFY = ($m >= 4) ? ('FY ' . $y . '-' . substr((string)($y + 1), -2)) : ('FY ' . ($y - 1) . '-' . substr((string)$y, -2));
+            }
+
             $rows[] = [
-                'sale_id'             => $sale->id,
-                'customer_id'         => $customer?->id,
-                'customer_name'       => $customer?->name ?? 'Customer #' . $sale->customer_id,
-                'customer_phone'      => $customer?->phone ?? '—',
-                'customer_email'      => $customer?->email ?? '—',
-                'customer_address'    => $customer?->address ?? '—',
-                'project_id'          => $sale->project_id,
-                'project_name'        => $sale->project?->name ?? '—',
-                'unit_display'        => $unitsDisplay,
-                'floor_display'       => $floorDisplay,
-                'agreement_date'      => $sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d/m/Y') : ($sale->sale_date ? Carbon::parse($sale->sale_date)->format('d/m/Y') : '—'),
-                'agreement_value'     => $agreementValue,
-                'collected_amount'    => $collectedAmount,
-                'realized_amount'     => $realizedAmount,
-                'pending_realization' => $pendingRealization,
-                'collected_pct'       => $collectedPct,
-                'outstanding_amount'  => $outstandingAmount,
-                'outstanding_pct'     => $outstandingPct,
-                'overdue_amount'      => $saleOverdueAmount,
-                'days_overdue'        => $maxDaysOverdue,
-                'aging_bucket'        => $bucketKey,
-                'aging_bucket_label'  => $bucketLabel,
-                'payment_modes'       => $salePaymentModes,
-                'milestones'          => $milestones,
-                'receipts'            => $receiptsHistory,
+                'sale_id'                 => $sale->id,
+                'customer_id'             => $customer?->id,
+                'customer_name'           => $customer?->name ?? 'Customer #' . $sale->customer_id,
+                'customer_phone'          => $customer?->phone ?? '—',
+                'customer_email'          => $customer?->email ?? '—',
+                'customer_address'        => $customer?->address ?? '—',
+                'project_id'              => $sale->project_id,
+                'project_name'            => $sale->project?->name ?? '—',
+                'unit_display'            => $unitsDisplay,
+                'unit_type'               => $primaryUnitType,
+                'floor_display'           => $floorDisplay,
+                'rate_per_sqft'           => $ratePerSqft,
+                'area_sqft'               => $totalArea,
+                'is_exchanged'            => $isExchanged,
+                'exchange_notes'          => $isExchanged ? $sale->notes : null,
+                'agreement_date'          => $sale->agreement_date ? Carbon::parse($sale->agreement_date)->format('d/m/Y') : ($sale->sale_date ? Carbon::parse($sale->sale_date)->format('d/m/Y') : '—'),
+                'financial_year'          => $saleFY,
+                'agreement_value'         => $agreementValue,
+                'collected_amount'        => $realizedAmount, // Realized collected funds
+                'realized_amount'         => $realizedAmount,
+                'pending_realization'     => $pendingRealization,
+                'has_pending_realization' => $pendingRealization > 0,
+                'collected_pct'           => $collectedPct,
+                'outstanding_amount'      => $outstandingAmount, // Dues not deducting unrealized cheques
+                'outstanding_pct'         => $outstandingPct,
+                'overdue_amount'          => $saleOverdueAmount,
+                'is_overdue'              => $saleOverdueAmount > 0,
+                'days_overdue'            => $maxDaysOverdue,
+                'aging_bucket'            => $bucketKey,
+                'aging_bucket_label'      => $bucketLabel,
+                'payment_modes'           => $salePaymentModes,
+                'milestones'              => $milestones,
+                'receipts'                => $receiptsHistory,
             ];
         }
 
@@ -5235,19 +5274,36 @@ class ReportController extends Controller
         $totalOverduePct = $totalOutstanding > 0 ? round(($totalOverdue / $totalOutstanding) * 100, 1) : 0.0;
 
         $kpis = [
-            'total_customers'       => $uniqueCustomersCount,
-            'total_agreement_value' => $totalAgreementValue,
-            'total_collected'       => $totalCollected,
-            'total_collected_pct'   => $totalCollectedPct,
-            'total_outstanding'     => $totalOutstanding,
-            'total_outstanding_pct' => $totalOutstandingPct,
-            'total_overdue'         => $totalOverdue,
-            'total_overdue_pct'     => $totalOverduePct,
+            'total_customers'           => $uniqueCustomersCount,
+            'total_agreement_value'     => $totalAgreementValue,
+            'total_collected'           => $totalCollected,
+            'total_collected_pct'       => $totalCollectedPct,
+            'total_pending_realization' => $totalPendingRealization,
+            'total_outstanding'         => $totalOutstanding,
+            'total_outstanding_pct'     => $totalOutstandingPct,
+            'total_overdue'             => $totalOverdue,
+            'total_overdue_pct'         => $totalOverduePct,
         ];
+
+        $allCustomers = Customer::orderBy('name')->select('id', 'name', 'phone')->get();
+
+        $allFinancialYears = collect($rows)->pluck('financial_year')->filter(fn($fy) => $fy && $fy !== '—')->unique()->values();
+        if (!$allFinancialYears->contains('FY 2026-27')) {
+            $allFinancialYears->prepend('FY 2026-27');
+        }
+        if (!$allFinancialYears->contains('FY 2025-26')) {
+            $allFinancialYears->push('FY 2025-26');
+        }
+        if (!$allFinancialYears->contains('FY 2024-25')) {
+            $allFinancialYears->push('FY 2024-25');
+        }
+        $allFinancialYears = $allFinancialYears->unique()->values();
 
         return view('reports.customer-collection-dues', array_merge($lookups, compact(
             'activeTab',
             'allProjects',
+            'allCustomers',
+            'allFinancialYears',
             'selectedProjectId',
             'selectedUnitType',
             'asOfDate',
