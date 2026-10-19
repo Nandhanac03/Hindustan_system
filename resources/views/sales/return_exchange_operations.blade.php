@@ -2172,26 +2172,50 @@
                                 Unit Exchange Details
                             </h3>
                             <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                                {{-- Bundle notice: all units are always fully exchanged together --}}
+                                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-1">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span class="text-[10px] text-amber-800 font-bold">All units in this sale are exchanged together as a bundle. Partial unit exchange is not permitted.</span>
+                                </div>
                                 <div>
-                                    <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                        Old Unit(s):
+                                    <div class="flex items-center mb-2">
+                                        <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                            Units Being Exchanged (All):
+                                        </div>
                                     </div>
-                                    <div class="text-xs font-bold text-slate-800 space-y-1 pl-5">
+                                    <div class="text-xs font-bold text-slate-800 space-y-2">
                                         <template x-if="selectedExchangeSale && selectedExchangeSale.sale_units && selectedExchangeSale.sale_units.length > 0">
-                                            <template x-for="su in selectedExchangeSale.sale_units" :key="su.id">
-                                                <div>
-                                                    <span x-text="su.unit ? su.unit.door_no : ''"></span> 
-                                                    <span class="text-slate-500 font-normal" x-text="su.unit && su.unit.unit_type ? '(' + su.unit.unit_type.name + ')' : ''"></span> — 
-                                                    <span class="text-slate-500 font-normal" x-text="su.unit && su.unit.floor ? su.unit.floor.name : ''"></span>
-                                                </div>
-                                            </template>
+                                            <div class="space-y-1.5">
+                                                <template x-for="su in selectedExchangeSale.sale_units" :key="su.id">
+                                                    <div class="flex items-center gap-2.5 p-2.5 rounded-xl border bg-rose-50/60 border-rose-200 select-none">
+                                                        <div class="w-4 h-4 rounded flex items-center justify-center bg-rose-100 border border-rose-300 shrink-0">
+                                                            <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                        </div>
+                                                        <div class="flex-1 flex items-center justify-between min-w-0">
+                                                            <div class="truncate">
+                                                                <span class="font-extrabold text-slate-900" x-text="su.unit ? su.unit.door_no : ''"></span>
+                                                                <span class="text-slate-500 font-normal" x-text="su.unit && su.unit.unit_type ? ' (' + su.unit.unit_type.name + ')' : ''"></span>
+                                                                <span class="text-slate-400 font-normal" x-text="su.unit && su.unit.floor ? ' — ' + su.unit.floor.name : ''"></span>
+                                                            </div>
+                                                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded tracking-wider shrink-0 ml-2 bg-rose-100 text-rose-700 border border-rose-200">
+                                                                Exchanging (Release to Available)
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
                                         </template>
                                         <template x-if="selectedExchangeSale && (!selectedExchangeSale.sale_units || selectedExchangeSale.sale_units.length === 0)">
-                                            <div>
-                                                <span x-text="selectedExchangeSale?.unit ? selectedExchangeSale.unit.door_no : ''"></span> 
-                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.unit_type ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span> — 
-                                                <span class="text-slate-500 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.floor ? selectedExchangeSale.unit.floor.name : ''"></span>
+                                            <div class="p-2.5 rounded-xl bg-rose-50/60 border border-rose-200 text-slate-800 flex items-center justify-between">
+                                                <div>
+                                                    <span class="font-extrabold text-slate-900" x-text="selectedExchangeSale?.unit ? selectedExchangeSale.unit.door_no : ''"></span>
+                                                    <span class="text-slate-500 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.unit_type ? ' (' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
+                                                    <span class="text-slate-400 font-normal" x-text="selectedExchangeSale?.unit && selectedExchangeSale.unit.floor ? ' — ' + selectedExchangeSale.unit.floor.name : ''"></span>
+                                                </div>
+                                                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded tracking-wider bg-rose-100 text-rose-700 border border-rose-200">
+                                                    Exchanging (Release to Available)
+                                                </span>
                                             </div>
                                         </template>
                                     </div>

@@ -855,6 +855,8 @@ class SalesController extends Controller
             'refund_amount'            => ['nullable', 'numeric', 'min:0'],
             'revert_unsold'          => ['nullable', 'boolean'],
             'new_unit_id'            => ['nullable', 'exists:hindustan_units,id'],
+            'exchanged_unit_ids'     => ['nullable', 'array'],
+            'exchanged_unit_ids.*'   => ['nullable', 'integer'],
             'carry_forward'          => ['nullable', 'boolean'],
             'payment_plan'           => ['nullable', Rule::in(['lump_sum', 'emi'])],
             'emi_type'               => ['nullable', Rule::in(['equal', 'milestone'])],
@@ -928,49 +930,33 @@ class SalesController extends Controller
                 }
             }
 
-            // Identify the unit to carry forward from the old sale:
-            // - If the target unit is a parking unit, we carry forward the non-parking unit (apartment)
-            // - If the target unit is a non-parking unit, we carry forward the parking unit
-            $carryUnitId = null;
-            $carrySaleUnit = null;
-            if ($sale->saleUnits->count() > 1) {
-                foreach ($sale->saleUnits as $su) {
-                    if ($su->unit && $su->unit->unitType) {
-                        $cat = strtolower($su->unit->unitType->category ?? '');
-                        $name = strtolower($su->unit->unitType->name ?? '');
-                        $isParking = ($cat === 'parking' || $name === 'parking');
-                        
-                        if ($newUnitIsParking) {
-                            // Carrying forward apartment (non-parking)
-                            if (!$isParking) {
-                                $carryUnitId = $su->unit_id;
-                                $carrySaleUnit = $su;
-                                break;
-                            }
-                        } else {
-                            // Carrying forward parking
-                            if ($isParking) {
-                                $carryUnitId = $su->unit_id;
-                                $carrySaleUnit = $su;
-                                break;
-                            }
-                        }
-                    }
-                }
+            // Determine which units of the old sale are being exchanged vs kept:
+            // By default, ALL units in the old sale are exchanged (released to available inventory).
+            // If the user explicitly excluded any unit from exchanged_unit_ids, that unit is kept & carried forward.
+            $submittedExchanged = $request->input('exchanged_unit_ids');
+            if (is_array($submittedExchanged)) {
+                $exchangedUnitIds = array_map('intval', $submittedExchanged);
+            } else {
+                $exchangedUnitIds = $sale->saleUnits->pluck('unit_id')->map(fn($id) => (int)$id)->all();
             }
 
+            // Unexchanged units that will remain with the customer & carry forward
+            $carriedSaleUnits = $sale->saleUnits->filter(function ($su) use ($exchangedUnitIds) {
+                return !in_array((int)$su->unit_id, $exchangedUnitIds, true);
+            });
+
+            // Free up all units that are being exchanged (set status = available in inventory)
             foreach ($sale->saleUnits as $su) {
-                if ($carryUnitId && $su->unit_id === $carryUnitId) {
-                    continue; // Do not free up the carried forward unit; it will carry forward
+                if (in_array((int)$su->unit_id, $exchangedUnitIds, true)) {
+                    Unit::where('id', $su->unit_id)->update([
+                        'status'             => 'available',
+                        'sale_rate_per_sqft' => null,
+                        'sale_amount'        => null,
+                        'difference'         => null,
+                        'gst_behavior'       => 'none',
+                        'gst_amount'         => 0.00,
+                    ]);
                 }
-                Unit::where('id', $su->unit_id)->update([
-                    'status'             => 'available',
-                    'sale_rate_per_sqft' => null,
-                    'sale_amount'        => null,
-                    'difference'         => null,
-                    'gst_behavior'       => 'none',
-                    'gst_amount'         => 0.00,
-                ]);
             }
             $inputExpectedRate = isset($validated['expected_rate_per_sqft']) 
                 ? (float)$validated['expected_rate_per_sqft'] 
@@ -1005,11 +991,11 @@ class SalesController extends Controller
             $finalGstAmount = $gstAmount;
             $finalTotalAmount = $totalAmount;
 
-            if ($carrySaleUnit) {
-                $finalSaleAmount += (float)$carrySaleUnit->base_amount;
-                $finalBaseAmount += (float)$carrySaleUnit->base_amount;
-                $finalGstAmount += (float)$carrySaleUnit->gst_amount;
-                $finalTotalAmount += (float)$carrySaleUnit->line_total;
+            foreach ($carriedSaleUnits as $csu) {
+                $finalSaleAmount += (float)$csu->base_amount;
+                $finalBaseAmount += (float)$csu->base_amount;
+                $finalGstAmount += (float)$csu->gst_amount;
+                $finalTotalAmount += (float)$csu->line_total;
             }
             
             $paymentPlan = $validated['payment_plan'] ?? $sale->payment_plan ?? 'lump_sum';
@@ -1026,7 +1012,7 @@ class SalesController extends Controller
                 'broker_id'              => $sale->broker_id,
                 'rate_per_sqft'          => $newRate,
                 'sale_amount'            => $finalSaleAmount,
-                'gst_applicable'         => $gstType !== 'none' || ($carrySaleUnit && (float)$carrySaleUnit->gst_amount > 0),
+                'gst_applicable'         => $gstType !== 'none' || $carriedSaleUnits->contains(fn($csu) => (float)$csu->gst_amount > 0),
                 'gst_type'               => $gstType,
                 'gst_percentage'         => $gstType !== 'none' ? 18 : null,
                 'gst_amount'             => $finalGstAmount,
@@ -1062,21 +1048,21 @@ class SalesController extends Controller
                 'brokerage_amount' => 0.0,
             ]);
 
-            if ($carrySaleUnit) {
+            foreach ($carriedSaleUnits as $csu) {
                 \App\Models\SaleUnit::create([
                     'sale_id'          => $newSale->id,
-                    'unit_id'          => $carrySaleUnit->unit_id,
-                    'wing'             => $carrySaleUnit->wing,
-                    'rate_per_sqft'    => $carrySaleUnit->rate_per_sqft,
-                    'area_sqft'        => $carrySaleUnit->area_sqft,
-                    'base_amount'      => $carrySaleUnit->base_amount,
-                    'gst_type'         => $carrySaleUnit->gst_type,
-                    'gst_percentage'   => $carrySaleUnit->gst_percentage,
-                    'gst_amount'       => $carrySaleUnit->gst_amount,
-                    'line_total'       => $carrySaleUnit->line_total,
-                    'brokerage_type'   => $carrySaleUnit->brokerage_type,
-                    'brokerage_value'  => $carrySaleUnit->brokerage_value,
-                    'brokerage_amount' => $carrySaleUnit->brokerage_amount,
+                    'unit_id'          => $csu->unit_id,
+                    'wing'             => $csu->wing,
+                    'rate_per_sqft'    => $csu->rate_per_sqft,
+                    'area_sqft'        => $csu->area_sqft,
+                    'base_amount'      => $csu->base_amount,
+                    'gst_type'         => $csu->gst_type,
+                    'gst_percentage'   => $csu->gst_percentage,
+                    'gst_amount'       => $csu->gst_amount,
+                    'line_total'       => $csu->line_total,
+                    'brokerage_type'   => $csu->brokerage_type,
+                    'brokerage_value'  => $csu->brokerage_value,
+                    'brokerage_amount' => $csu->brokerage_amount,
                 ]);
             }
 
