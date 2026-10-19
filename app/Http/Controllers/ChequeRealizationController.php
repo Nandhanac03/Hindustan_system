@@ -37,8 +37,10 @@ class ChequeRealizationController extends Controller
         $inProgressCount    = Receipt::whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->count();
         $inProgressAmount   = (float) Receipt::whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->sum('amount');
 
-        $realizedCount      = Receipt::where('realization_status', 'realized')->count();
-        $realizedAmount     = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $realizedCount       = Receipt::where('realization_status', 'realized')->count();
+        $grossRealizedAmount = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $totalRefundsPaid    = $this->getTotalCustomerRefunds();
+        $realizedAmount      = max(0.00, $grossRealizedAmount - $totalRefundsPaid);
 
         $bouncedCount       = Receipt::where('realization_status', 'bounced')->count();
         $bouncedAmount      = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
@@ -61,6 +63,8 @@ class ChequeRealizationController extends Controller
             'inProgressAmount',
             'realizedCount',
             'realizedAmount',
+            'grossRealizedAmount',
+            'totalRefundsPaid',
             'bouncedCount',
             'bouncedAmount',
             'customers',
@@ -89,8 +93,10 @@ class ChequeRealizationController extends Controller
         $inProgressCount    = Receipt::whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->count();
         $inProgressAmount   = (float) Receipt::whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->sum('amount');
 
-        $realizedCount      = Receipt::where('realization_status', 'realized')->count();
-        $realizedAmount     = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $realizedCount       = Receipt::where('realization_status', 'realized')->count();
+        $grossRealizedAmount = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $totalRefundsPaid    = $this->getTotalCustomerRefunds();
+        $realizedAmount      = max(0.00, $grossRealizedAmount - $totalRefundsPaid);
 
         $bouncedCount       = Receipt::where('realization_status', 'bounced')->count();
         $bouncedAmount      = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
@@ -113,11 +119,38 @@ class ChequeRealizationController extends Controller
             'inProgressAmount',
             'realizedCount',
             'realizedAmount',
+            'grossRealizedAmount',
+            'totalRefundsPaid',
             'bouncedCount',
             'bouncedAmount',
             'customers',
             'chequeStatuses'
         ));
+    }
+
+    /**
+     * Get total customer refunds paid out on cancelled or returned sales.
+     */
+    private function getTotalCustomerRefunds(): float
+    {
+        $postedRefundVouchers = \Illuminate\Support\Facades\DB::table('vouchers')
+            ->whereIn('type', ['Receipt', 'Payment'])
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['id', 'reference_no']);
+
+        $totalRefundsPaid = 0.0;
+        foreach ($postedRefundVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $totalRefundsPaid += (float)($alloc['amount'] ?? 0);
+                    }
+                }
+            }
+        }
+        return $totalRefundsPaid;
     }
 
     /**

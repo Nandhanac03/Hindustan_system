@@ -191,11 +191,16 @@
                     {{ $totalRealizedCount ?? 0 }} Cleared
                 </span>
             </div>
-            <div class="relative z-10 mt-1">
+            <div class="relative z-10 mt-1" title="Gross Realized: ₹{{ number_format($grossRealizedAmount ?? $totalRealizedAmount, 2) }} - Refund Paid: ₹{{ number_format($totalRefundsPaid ?? 0, 2) }}">
                 <span class="text-2xl font-black text-indigo-600 font-mono tracking-tight block group-hover:text-indigo-700 transition-colors duration-300">
                     ₹{{ number_format($totalRealizedAmount ?? 0, 2) }}
                 </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Today: +₹{{ number_format($todayRealizedAmount ?? 0, 2) }} ({{ $todayRealizedCount }} receipts)</p>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
+                    Today: +₹{{ number_format($todayRealizedAmount ?? 0, 2) }} ({{ $todayRealizedCount }} receipts)
+                    @if(!empty($totalRefundsPaid) && $totalRefundsPaid > 0)
+                        <span class="text-rose-600 font-semibold block sm:inline mt-0.5 sm:mt-0">(After ₹{{ number_format($totalRefundsPaid, 2) }} Refund Deducted)</span>
+                    @endif
+                </p>
             </div>
         </a>
 
@@ -266,9 +271,15 @@
                             <div class="text-[10px] text-slate-400">{{ $account->branch_name ?: 'Main Branch' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-center align-middle">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-[11px]">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-[11px]"
+                                  @if(!empty($account->refund_sum) && $account->refund_sum > 0) title="Gross Realized: ₹{{ number_format($account->gross_realized_sum ?? $account->realized_sum, 2) }} - Refund Paid: ₹{{ number_format($account->refund_sum, 2) }}" @endif>
                                 {{ $account->realized_count }} (₹{{ number_format($account->realized_sum, 2) }})
                             </span>
+                            @if(!empty($account->refund_sum) && $account->refund_sum > 0)
+                                <div class="text-[9px] text-rose-600 font-semibold mt-0.5 whitespace-nowrap">
+                                    (-₹{{ number_format($account->refund_sum, 2) }} Refund)
+                                </div>
+                            @endif
                         </td>
                         <td class="px-5 py-3.5 text-center align-middle">
                             @if($account->pending_count > 0)

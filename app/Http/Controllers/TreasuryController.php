@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 
 class TreasuryController extends Controller
@@ -33,8 +34,10 @@ class TreasuryController extends Controller
         $totalPendingAmount = (float) Receipt::whereIn('realization_status', $pendingStatuses)->sum('amount');
 
         // Realized Metrics
-        $totalRealizedCount = Receipt::where('realization_status', 'realized')->count();
-        $totalRealizedAmount = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $totalRealizedCount  = Receipt::where('realization_status', 'realized')->count();
+        $grossRealizedAmount = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $totalRefundsPaid    = $this->getTotalCustomerRefunds();
+        $totalRealizedAmount = max(0.00, $grossRealizedAmount - $totalRefundsPaid);
 
         // Today's Realized
         $todayRealizedCount = Receipt::where('realization_status', 'realized')
@@ -47,6 +50,8 @@ class TreasuryController extends Controller
         // Bounced / Attention Required
         $bouncedCount = Receipt::where('realization_status', 'bounced')->count();
         $bouncedAmount = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
+
+        $refundsByBank = $this->getCustomerRefundsByBankAccount();
 
         // Populate per-bank metrics (Receipts + Partner Contributions)
         foreach ($bankAccounts as $account) {
@@ -64,8 +69,11 @@ class TreasuryController extends Controller
             $pcCount = (clone $pcBase)->count();
             $pcSum = (float) (clone $pcBase)->sum('amount');
 
+            $bankRefund = (float) ($refundsByBank[$account->id] ?? 0.0);
+            $account->refund_sum = $bankRefund;
             $account->realized_count = $rcptCount + $pcCount;
-            $account->realized_sum = $rcptSum + $pcSum;
+            $account->gross_realized_sum = $rcptSum + $pcSum;
+            $account->realized_sum = max(0.00, ($rcptSum + $pcSum) - $bankRefund);
 
             $account->pending_count = Receipt::where('company_bank_account_id', $account->id)
                 ->whereIn('realization_status', $pendingStatuses)
@@ -473,6 +481,8 @@ class TreasuryController extends Controller
             'totalPendingCount',
             'totalPendingAmount',
             'totalRealizedCount',
+            'grossRealizedAmount',
+            'totalRefundsPaid',
             'totalRealizedAmount',
             'todayRealizedCount',
             'todayRealizedAmount',
@@ -928,6 +938,67 @@ class TreasuryController extends Controller
             'inflowCategories',
             'outflowCategories'
         ));
+    }
+
+    /**
+     * Get total customer refunds paid out from posted vouchers.
+     */
+    private function getTotalCustomerRefunds(): float
+    {
+        $postedRefundVouchers = DB::table('vouchers')
+            ->whereIn('type', ['Receipt', 'Payment'])
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['id', 'reference_no']);
+
+        $totalRefundsPaid = 0.0;
+        foreach ($postedRefundVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $totalRefundsPaid += (float)($alloc['amount'] ?? 0);
+                    }
+                }
+            }
+        }
+        return $totalRefundsPaid;
+    }
+
+    /**
+     * Get customer refunds broken down by company bank account ID.
+     */
+    private function getCustomerRefundsByBankAccount(): array
+    {
+        $postedRefundVouchers = DB::table('vouchers')
+            ->whereIn('type', ['Receipt', 'Payment'])
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['id', 'company_bank_account_id', 'reference_no']);
+
+        $refundsByBank = [];
+        foreach ($postedRefundVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $amount = (float)($alloc['amount'] ?? 0);
+                        $bankId = $v->company_bank_account_id;
+                        if (!$bankId) {
+                            $bankId = DB::table('voucher_lines')
+                                ->join('company_bank_accounts', 'voucher_lines.account_id', '=', 'company_bank_accounts.chart_of_account_id')
+                                ->where('voucher_lines.voucher_id', $v->id)
+                                ->where('voucher_lines.credit', '>', 0)
+                                ->value('company_bank_accounts.id');
+                        }
+                        if ($bankId) {
+                            $refundsByBank[$bankId] = ($refundsByBank[$bankId] ?? 0.0) + $amount;
+                        }
+                    }
+                }
+            }
+        }
+        return $refundsByBank;
     }
 }
 
