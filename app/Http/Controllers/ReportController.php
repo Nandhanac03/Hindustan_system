@@ -2702,15 +2702,7 @@ class ReportController extends Controller
         // 3. Old Unit Details
         if ($sale->relationLoaded('saleUnits') && $sale->saleUnits->isNotEmpty()) {
             $oldUnitParts = $sale->saleUnits->map(function ($su) {
-                $door = $su->unit?->door_no;
-                $type = $su->unit?->unitType?->name;
-                $floor = $su->unit?->floor?->name;
-                $str = $door ?: '';
-                $meta = array_filter([$floor, $type]);
-                if ($meta && $door) {
-                    $str .= ' (' . implode(', ', $meta) . ')';
-                }
-                return $str;
+                return $this->formatExchangeUnitDetails($su->unit?->door_no, $su->unit?->unitType?->name, $su->unit?->floor?->name);
             })->filter()->implode(', ');
             $oldUnitStr = $oldUnitParts ?: '—';
         } else {
@@ -2718,11 +2710,7 @@ class ReportController extends Controller
             $oldUnitType = $exLog?->snapshot_data['old_unit']['unit_type_name'] ?? $sale->unit?->unitType?->name;
             $oldUnitFloor = $exLog?->snapshot_data['old_unit']['floor_name'] ?? $sale->unit?->floor?->name;
 
-            $oldUnitStr = $oldUnitDoor ?: '—';
-            $oldMeta = array_filter([$oldUnitFloor, $oldUnitType]);
-            if ($oldMeta && $oldUnitDoor) {
-                $oldUnitStr .= ' (' . implode(', ', $oldMeta) . ')';
-            }
+            $oldUnitStr = $this->formatExchangeUnitDetails($oldUnitDoor, $oldUnitType, $oldUnitFloor);
         }
         $sale->old_unit_details = $oldUnitStr;
 
@@ -2746,17 +2734,18 @@ class ReportController extends Controller
 
         // 6. New Unit Details & Customer Name & Contract Value
         if ($newSale && $newSale->unit) {
-            $newUnitStr = (string)$newSale->unit->door_no;
-            $newMeta = array_filter([$newSale->unit->floor?->name, $newSale->unit->unitType?->name]);
-            if ($newMeta) {
-                $newUnitStr .= ' (' . implode(', ', $newMeta) . ')';
-            }
-            $sale->new_unit_details = $newUnitStr;
+            $sale->new_unit_details = $this->formatExchangeUnitDetails(
+                $newSale->unit->door_no,
+                $newSale->unit->unitType?->name ?? $newSale->unit->type,
+                $newSale->unit->floor?->name
+            );
             $sale->new_customer_name = $newSale->customer?->name ?? $sale->old_customer_name;
             $sale->new_unit_value = (float)$newSale->total_amount;
         } else {
             $targetDoor = $exLog?->snapshot_data['exchange_meta']['target_door_no'] ?? null;
-            $sale->new_unit_details = $targetDoor ? (string)$targetDoor : '—';
+            $targetType = $exLog?->snapshot_data['exchange_meta']['target_unit_type'] ?? null;
+            $targetFloor = $exLog?->snapshot_data['exchange_meta']['target_floor'] ?? null;
+            $sale->new_unit_details = $targetDoor ? $this->formatExchangeUnitDetails($targetDoor, $targetType, $targetFloor) : '—';
             $sale->new_customer_name = $sale->old_customer_name;
             $sale->new_unit_value = (float)($sale->total_amount ?? 0);
         }
@@ -2791,6 +2780,37 @@ class ReportController extends Controller
         $sale->equity_paid      = $oldDownPayment + $newDownPayment;
 
         return $sale;
+    }
+
+    private function formatExchangeUnitDetails($door, $type = null, $floor = null): string
+    {
+        $doorStr = trim((string)($door ?? ''));
+        $typeStr = trim((string)($type ?? ''));
+        $floorStr = trim((string)($floor ?? ''));
+
+        if ($doorStr === '—') {
+            $doorStr = '';
+        }
+        if ($floorStr === '—') {
+            $floorStr = '';
+        }
+
+        if ($doorStr === '' && $typeStr === '' && $floorStr === '') {
+            return '—';
+        }
+
+        if ($floorStr !== '' && is_numeric($floorStr)) {
+            $floorStr = 'Floor ' . $floorStr;
+        }
+
+        $result = $doorStr;
+        if ($typeStr !== '') {
+            $result .= '(' . $typeStr . ')';
+        }
+        if ($floorStr !== '') {
+            $result .= ($result !== '' ? ' - ' : '') . $floorStr;
+        }
+        return $result ?: '—';
     }
 
     public function pettyCash(Request $request): View

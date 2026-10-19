@@ -126,12 +126,21 @@
         line-height: 1.3 !important;
     }
     th, table#reportsTable th {
-        background-color: #a38c29 !important;
+        background-color: var(--erp-table-header-bg, #534E47) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         font-size: 6.8pt !important;
         padding: 7px 3.5px !important;
+        border: 0.5pt solid rgba(255, 255, 255, 0.25) !important;
+    }
+    table#reportsTable th.bg-black\/20 {
+        background-color: #433e38 !important;
+        color: #ffffff !important;
+    }
+    table#reportsTable th.bg-black\/30 {
+        background-color: #3b3631 !important;
+        color: #ffffff !important;
     }
     td, table#reportsTable td {
         border-bottom: 0.5pt solid #e2e8f0 !important;
@@ -328,27 +337,45 @@
                                 $snap = $exLog?->snapshot_data ?? [];
                                 $newSale = $row->new_sale ?? null;
                                 
+                                // Unit display formatting helper
+                                $formatUnitBlade = function($door, $type = null, $floor = null) {
+                                    $doorStr = trim((string)($door ?? ''));
+                                    $typeStr = trim((string)($type ?? ''));
+                                    $floorStr = trim((string)($floor ?? ''));
+                                    if ($doorStr === '—') $doorStr = '';
+                                    if ($floorStr === '—') $floorStr = '';
+                                    if ($doorStr === '' && $typeStr === '' && $floorStr === '') return '—';
+                                    if ($floorStr !== '' && is_numeric($floorStr)) $floorStr = 'Floor ' . $floorStr;
+                                    $res = $doorStr;
+                                    if ($typeStr !== '') $res .= '(' . $typeStr . ')';
+                                    if ($floorStr !== '') $res .= ($res !== '' ? ' - ' : '') . $floorStr;
+                                    return $res ?: '—';
+                                };
+
                                 // Old unit display formatting
                                 $oldDoor = $snap['old_unit']['door_no'] ?? ($row->unit?->door_no ?? '—');
                                 $oldType = $snap['old_unit']['unit_type_name'] ?? ($row->unit?->unitType?->name ?? 'Shop');
                                 $oldFloor = $snap['old_unit']['floor_name'] ?? ($row->unit?->floor?->name ?? '—');
 
-                                if ($row->saleUnits && $row->saleUnits->count() > 0) {
-                                    $oldUnitStr = $row->saleUnits->map(function ($su) {
-                                        $door = $su->unit?->door_no ?? '—';
-                                        $type = $su->unit?->unitType?->name ?? 'Shop';
-                                        $floor = $su->unit?->floor?->name ?? '—';
-                                        return $door . ($type ? "({$type})" : "") . ($floor ? " - {$floor}" : "");
+                                if (!empty($row->old_unit_details)) {
+                                    $oldUnitStr = $row->old_unit_details;
+                                } elseif ($row->saleUnits && $row->saleUnits->count() > 0) {
+                                    $oldUnitStr = $row->saleUnits->map(function ($su) use ($formatUnitBlade) {
+                                        return $formatUnitBlade($su->unit?->door_no, $su->unit?->unitType?->name, $su->unit?->floor?->name);
                                     })->filter()->implode(', ');
                                 } else {
-                                    $oldUnitStr = $oldDoor . ($oldType ? "({$oldType})" : "") . ($oldFloor ? " - {$oldFloor}" : "");
+                                    $oldUnitStr = $formatUnitBlade($oldDoor, $oldType, $oldFloor);
                                 }
                                 
                                 // New unit display formatting
-                                $newDoor = $newSale?->unit?->door_no ?? ($snap['exchange_meta']['target_door_no'] ?? '—');
-                                $newType = $newSale?->unit?->unitType?->name ?? ($newSale?->unit?->type ?? 'Shop');
-                                $newFloor = $newSale?->unit?->floor?->name ?? '—';
-                                $newUnitStr = $newDoor . ($newType ? "({$newType})" : "") . ($newFloor ? " - {$newFloor}" : "");
+                                if (!empty($row->new_unit_details)) {
+                                    $newUnitStr = $row->new_unit_details;
+                                } else {
+                                    $newDoor = $newSale?->unit?->door_no ?? ($snap['exchange_meta']['target_door_no'] ?? '—');
+                                    $newType = $newSale?->unit?->unitType?->name ?? ($newSale?->unit?->type ?? ($snap['exchange_meta']['target_unit_type'] ?? 'Shop'));
+                                    $newFloor = $newSale?->unit?->floor?->name ?? ($snap['exchange_meta']['target_floor'] ?? '—');
+                                    $newUnitStr = $formatUnitBlade($newDoor, $newType, $newFloor);
+                                }
                                 
                                 $oldVal = (float)($snap['old_sale']['total_amount'] ?? $row->total_amount ?? 0);
                                 $oldDownPayment = (float)($row->old_down_payment ?? 0);

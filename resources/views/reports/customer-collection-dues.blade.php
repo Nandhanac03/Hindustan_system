@@ -7,24 +7,63 @@
 @media print {
     @page {
         size: landscape;
-        margin: 5mm 6mm 5mm 6mm;
+        margin: 6mm 8mm 6mm 8mm;
     }
     html, body {
         background: #ffffff !important;
         color: #0f172a !important;
-        font-size: 8.5pt !important;
+        font-size: 8pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
-    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar {
+    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar, [class*="nav"], [class*="sidebar"] {
         display: none !important;
     }
     .print\:block {
         display: block !important;
     }
+    .print\:grid {
+        display: grid !important;
+    }
+    .print\:flex {
+        display: flex !important;
+    }
+    .print\:table {
+        display: table !important;
+    }
+    .print\:table-column-group {
+        display: table-column-group !important;
+    }
+    
+    /* Container Reset for Print */
+    .max-w-\[1850px\], .max-w-\[1800px\], .max-w-3xl, .overflow-x-auto {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* Executive Print Header */
+    .print-exec-header {
+        display: block !important;
+        margin-bottom: 12px !important;
+        padding-bottom: 8px !important;
+    }
+
+    /* Table Formatting for Print */
     table {
         width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        table-layout: fixed !important;
         border-collapse: collapse !important;
+        font-size: 7.2pt !important;
     }
     thead {
         display: table-header-group !important;
@@ -32,7 +71,36 @@
     tr {
         page-break-inside: avoid !important;
     }
-    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
+    th, td {
+        padding: 5.5px 3.5px !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        box-sizing: border-box !important;
+        line-height: 1.25 !important;
+    }
+    th {
+        background-color: #a38c29 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 6.8pt !important;
+        padding: 6px 3.5px !important;
+    }
+    td {
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+        font-size: 7pt !important;
+    }
+    
+    /* Allow cell text to break and wrap nicely */
+    .whitespace-nowrap {
+        white-space: normal !important;
+    }
+    .truncate {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: normal !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs, .shadow-xs {
         box-shadow: none !important;
     }
     .border-slate-200, .border-slate-100 {
@@ -43,6 +111,25 @@
 
 <div class="max-w-[1850px] mx-auto space-y-6" 
      x-data="customerCollectionDuesApp()">
+
+    <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Customer Contract & Collection Audit</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">CUSTOMER COLLECTION & DUES REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">As On Date:</span> <span class="font-mono font-bold text-slate-800">{{ $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('d M Y') : 'Current Live Date' }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]" x-text="filteredRows.length + ' Records'">{{ count($rows) }} Records</span></div>
+            </div>
+        </div>
+    </div>
 
     {{-- ── 1. EXECUTIVE TOP HEADER BANNER (GOLDEN & WHITE COMBINATION) ── --}}
     <div class="bg-gradient-to-r from-[#fdfaf3] via-[#f8f3e6] to-white rounded-2xl border border-[#a38c29]/30 p-5 sm:p-6 shadow-sm relative overflow-hidden text-slate-900">
@@ -80,78 +167,85 @@
     </div>
 
     {{-- ── 2. EXECUTIVE 5 FINANCIAL KPI METRIC CARDS (EXACT AMOUNTS) ── --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+    <div id="dashboard-stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {{-- Card 1: Total Agreement Value --}}
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 border-l-[6px] border-l-slate-800 shadow-2xs hover:shadow-md transition-all">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Total Agreement</span>
-                <div class="w-6 h-6 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL AGREEMENT VALUE</span>
+                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
-            <span class="text-base sm:text-lg 2xl:text-xl font-black text-slate-900 font-mono tracking-tight block truncate" 
-                  :title="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"
-                  x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></span>
-            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1 block">Contract Value</span>
+            <div>
+                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors truncate"
+                     :title="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"
+                     x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5">Total Contract Value</div>
+            </div>
         </div>
 
         {{-- Card 2: Total Collected (Realized) --}}
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 border-l-[6px] border-l-emerald-600 shadow-2xs hover:shadow-md transition-all">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Realized Collected</span>
-                <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSED (PAID)</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
             </div>
-            <span class="text-base sm:text-lg 2xl:text-xl font-black text-emerald-700 font-mono tracking-tight block truncate" 
-                  :title="'₹ ' + formatMoney(summaryKPIs.total_collected)"
-                  x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></span>
-            <span class="text-[9px] text-emerald-600 font-bold tracking-wide mt-1 block" x-text="summaryKPIs.total_collected_pct + '% Cleared'"></span>
+            <div>
+                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors truncate"
+                     :title="'₹ ' + formatMoney(summaryKPIs.total_collected)"
+                     x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5" x-text="summaryKPIs.total_collected_pct + '% Cleared Collections'"></div>
+            </div>
         </div>
 
         {{-- Card 3: Cheques Pending Realization --}}
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 border-l-[6px] border-l-amber-500 shadow-2xs hover:shadow-md transition-all">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-extrabold text-amber-700 uppercase tracking-wider">Pending Realization</span>
-                <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <span class="text-xs">⏳</span>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">PENDING REALIZATION</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-            <span class="text-base sm:text-lg 2xl:text-xl font-black text-amber-900 font-mono tracking-tight block truncate" 
-                  :title="'₹ ' + formatMoney(summaryKPIs.total_pending_realization)"
-                  x-text="'₹ ' + formatMoney(summaryKPIs.total_pending_realization)"></span>
-            <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                <span class="text-[9px] text-amber-700 font-extrabold uppercase tracking-wider">Uncleared Cheques</span>
+            <div>
+                <div class="text-xl font-mono font-black text-amber-900 tracking-tight group-hover:text-amber-800 transition-colors truncate"
+                     :title="'₹ ' + formatMoney(summaryKPIs.total_pending_realization)"
+                     x-text="'₹ ' + formatMoney(summaryKPIs.total_pending_realization)"></div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5">Uncleared / Bank In-Transit</div>
             </div>
         </div>
 
         {{-- Card 4: Outstanding Dues --}}
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 border-l-[6px] border-l-rose-600 shadow-2xs hover:shadow-md transition-all">
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Outstanding Dues</span>
-                <div class="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">OUTSTANDING DUES</span>
+                <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-            <span class="text-base sm:text-lg 2xl:text-xl font-black text-rose-700 font-mono tracking-tight block truncate" 
-                  :title="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"
-                  x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></span>
-            <span class="text-[9px] text-rose-600 font-bold tracking-wide mt-1 block" x-text="summaryKPIs.total_outstanding_pct + '% Remaining'"></span>
+            <div>
+                <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors truncate"
+                     :title="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"
+                     x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></div>
+                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5" x-text="summaryKPIs.total_outstanding_pct + '% Outstanding Balance Remaining'"></div>
+            </div>
         </div>
 
-        {{-- Card 5: Overdue Amount --}}
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 border-l-[6px] border-l-red-700 shadow-2xs hover:shadow-md transition-all">
+        {{-- Card 5: Overdue Amount (Royal Purple / Violet) --}}
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-purple-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Total Overdue</span>
-                <div class="w-6 h-6 rounded-lg bg-red-50 text-red-700 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL OVERDUE</span>
+                <div class="w-7 h-7 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 transition-all duration-300 group-hover:bg-purple-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
             </div>
-            <span class="text-base sm:text-lg 2xl:text-xl font-black text-red-700 font-mono tracking-tight block truncate" 
-                  :title="'₹ ' + formatMoney(summaryKPIs.total_overdue)"
-                  x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></span>
-            <span class="text-[9px] text-red-600 font-bold tracking-wide mt-1 block" x-text="summaryKPIs.total_overdue_pct + '% of Dues'"></span>
+            <div>
+                <div class="text-xl font-mono font-black text-purple-900 tracking-tight group-hover:text-purple-800 transition-colors truncate"
+                     :title="'₹ ' + formatMoney(summaryKPIs.total_overdue)"
+                     x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></div>
+                <div class="text-[10px] text-purple-600 font-bold mt-1.5 pt-1.5" x-text="summaryKPIs.total_overdue_pct + '% of Dues Delinquent'"></div>
+            </div>
         </div>
     </div>
 
@@ -509,9 +603,9 @@
     </div>
 
     {{-- ── 5. PROFESSIONAL DATA TABLE CARD (Matched to collection-forecast.blade.php) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:hidden">
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
         {{-- Table Card Header --}}
-        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white">
+        <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                     <div class="w-1 h-4 bg-[#a38c29] rounded-full"></div>
@@ -519,30 +613,21 @@
                 </h3>
                 <p class="text-[10px] font-bold text-slate-500 mt-1 pl-3" x-text="filteredRows.length + ' / ' + rows.length + ' Active Records'"></p>
             </div>
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 print:hidden">
                 <button type="button" @click="exportToExcel()" class="h-[38px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>EXPORT EXCEL</span>
                 </button>
-                <button type="button" onclick="window.print()" class="h-[38px] px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                <button type="button" @click="printReport()" class="h-[38px] px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     <span>PRINT</span>
                 </button>
             </div>
         </div>
 
-        {{-- Table Legend Bar --}}
-        <!-- <div class="px-5 py-2.5 bg-amber-50/40 border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-3 text-[10px] font-bold text-slate-500">
-            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Realized Funds</span>
-            <span class="text-slate-300">|</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> ⏳ Pending Cheque</span>
-            <span class="text-slate-300">|</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Overdue Dues</span>
-        </div> -->
-
-        <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-xs text-left border-collapse min-w-[1300px] table-fixed">
-                <colgroup>
+        <div class="overflow-x-auto custom-scrollbar print:overflow-visible">
+            <table class="w-full text-xs text-left border-collapse min-w-[1300px] table-fixed print:min-w-full print:w-full">
+                <colgroup class="print:hidden">
                     <col style="width: 50px;">
                     <col style="width: 220px;">
                     <col style="width: 185px;">
@@ -552,6 +637,16 @@
                     <col style="width: 130px;">
                     <col style="width: 155px;">
                     <col style="width: 90px;">
+                </colgroup>
+                <colgroup class="hidden print:table-column-group">
+                    <col style="width: 4%;">   {{-- # --}}
+                    <col style="width: 16%;">  {{-- Customer Details --}}
+                    <col style="width: 16%;">  {{-- Property Details --}}
+                    <col style="width: 13%;">  {{-- Agreement Value --}}
+                    <col style="width: 14%;">  {{-- Collected Amount --}}
+                    <col style="width: 13%;">  {{-- Outstanding Dues --}}
+                    <col style="width: 11%;">  {{-- Overdue --}}
+                    <col style="width: 13%;">  {{-- Aging Risk --}}
                 </colgroup>
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                     <tr class="erp-table-header border-b border-[#443f38] text-center">
@@ -563,7 +658,7 @@
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Overdue (₹)</th>
                         <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Aging Risk</th>
-                        <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Actions</th>
+                        <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px] print:hidden">Actions</th>
                     </tr>
                 </thead>
                 <template x-for="(row, idx) in paginatedRows" :key="row.sale_id">
@@ -677,7 +772,7 @@
                             </td>
 
                             {{-- 9. Actions --}}
-                            <td class="px-3 py-3.5 text-center w-20" @click.stop>
+                            <td class="px-3 py-3.5 text-center w-20 print:hidden" @click.stop>
                                 <div class="flex items-center justify-center gap-1.5">
                                     {{-- Toggle Accordion Button --}}
                                     <button type="button" 
@@ -706,7 +801,7 @@
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 -translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
-                            class="bg-white border-b border-slate-200">
+                            class="bg-white border-b border-slate-200 print:hidden">
                             <td colspan="9" class="p-4 sm:p-5">
                                 <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-5">
                                         {{-- 4 Snapshot Cards (Premium White Cards) --}}
@@ -977,7 +1072,7 @@
                             <td class="px-4 py-3.5 text-right font-black font-mono text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></td>
                             <td class="px-4 py-3.5 text-right font-black font-mono text-rose-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></td>
                             <td class="px-4 py-3.5 text-right font-black font-mono text-red-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></td>
-                            <td colspan="2" class="px-4 py-3.5 text-center font-sans text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            <td :colspan="isPrinting ? 1 : 2" class="px-4 py-3.5 text-center font-sans text-[10px] font-black text-slate-500 uppercase tracking-wider">
                                 Audited Totals
                             </td>
                         </tr>
@@ -986,7 +1081,7 @@
             </div>
 
             {{-- Dynamic Reactive Pagination (collection-forecast style, 50 entries per page default) --}}
-            <div class="px-5 py-3 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+            <div class="px-5 py-3 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500 print:hidden">
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="font-medium">
                         Showing <span class="font-bold text-slate-800" x-text="filteredRows.length ? (currentPage - 1) * perPage + 1 : 0"></span> to 
@@ -1057,11 +1152,28 @@ function customerCollectionDuesApp() {
 
         expandedRows: [],
         charts: {},
+        isPrinting: false,
 
         init() {
             this.$nextTick(() => {
                 this.initCharts();
             });
+            window.addEventListener('beforeprint', () => {
+                this.isPrinting = true;
+            });
+            window.addEventListener('afterprint', () => {
+                this.isPrinting = false;
+            });
+        },
+
+        printReport() {
+            this.isPrinting = true;
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    this.isPrinting = false;
+                }, 500);
+            }, 150);
         },
 
         resetFilters() {
@@ -1219,6 +1331,9 @@ function customerCollectionDuesApp() {
         },
 
         get paginatedRows() {
+            if (this.isPrinting) {
+                return this.filteredRows;
+            }
             const start = (this.currentPage - 1) * this.perPage;
             return this.filteredRows.slice(start, start + this.perPage);
         },
@@ -1445,83 +1560,139 @@ function customerCollectionDuesApp() {
                     views: [{ showGridLines: true }]
                 });
 
-                const goldBorder = {
-                    top: { style: 'thin', color: { argb: 'FF8A7522' } },
-                    bottom: { style: 'thin', color: { argb: 'FF8A7522' } },
-                    left: { style: 'thin', color: { argb: 'FF8A7522' } },
-                    right: { style: 'thin', color: { argb: 'FF8A7522' } }
+                const slateBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
                 };
 
-                const thinBorder = {
-                    top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                    bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                    left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                    right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                const dataBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                 };
 
                 sheet.columns = [
-                    { key: 'idx', width: 6 },
+                    { key: 'idx', width: 8 },
                     { key: 'customer', width: 28 },
-                    { key: 'phone', width: 16 },
-                    { key: 'unit', width: 24 },
-                    { key: 'agreement', width: 22 },
-                    { key: 'collected', width: 22 },
-                    { key: 'pending', width: 22 },
+                    { key: 'phone', width: 18 },
+                    { key: 'unit', width: 50 },
+                    { key: 'agreement', width: 24 },
+                    { key: 'collected', width: 24 },
+                    { key: 'pending', width: 26 },
                     { key: 'outstanding', width: 24 },
-                    { key: 'overdue', width: 18 },
-                    { key: 'aging', width: 18 }
+                    { key: 'overdue', width: 20 },
+                    { key: 'aging', width: 20 }
                 ];
 
-                // Row 1: Title Banner
+                // ── Row 1: Top Empty Spacer ──
                 sheet.mergeCells('A1:J1');
-                const titleCell = sheet.getCell('A1');
-                titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS  |  CUSTOMER COLLECTION & DUES REPORT';
-                titleCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
-                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet.getRow(1).height = 32;
+                const spacer1 = sheet.getCell('A1');
+                spacer1.value = '';
+                spacer1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(1).height = 18;
 
-                // Row 2: KPI Summary Banner
-                const kpis = this.summaryKPIs;
+                // ── Row 2: Main Title Banner (#2C3E50 Dark Slate Navy) ──
                 sheet.mergeCells('A2:J2');
-                const kpiCell = sheet.getCell('A2');
-                kpiCell.value = `TOTAL AGREEMENT: ₹${this.formatMoney(kpis.total_agreement_value)}  |  REALIZED COLLECTED: ₹${this.formatMoney(kpis.total_collected)} (${kpis.total_collected_pct}%)  |  PENDING CHEQUES: ₹${this.formatMoney(kpis.total_pending_realization)}  |  OUTSTANDING DUES: ₹${this.formatMoney(kpis.total_outstanding)}  |  OVERDUE: ₹${this.formatMoney(kpis.total_overdue)}`;
-                kpiCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                kpiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
-                kpiCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet.getRow(2).height = 22;
+                const titleCell = sheet.getCell('A2');
+                titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - CUSTOMER COLLECTION & DUES REPORT';
+                titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(2).height = 30;
+                sheet.getRow(2).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
 
-                // Row 4: Table Headers
-                const headers = ['#', 'CUSTOMER NAME', 'PHONE NUMBER', 'PROPERTY / PROJECT', 'AGREEMENT VALUE (₹)', 'REALIZED COLLECTED (₹)', 'PENDING REALIZATION (₹)', 'OUTSTANDING DUES (₹)', 'OVERDUE (₹)', 'AGING RISK'];
-                const hRow = sheet.getRow(4);
+                // ── Row 3: Subtitle Banner (#007398 Ocean Teal Blue) ──
+                sheet.mergeCells('A3:J3');
+                const subTitleCell = sheet.getCell('A3');
+                subTitleCell.value = 'Customer Contract Audit & Realized Recovery Register';
+                subTitleCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                subTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                subTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(3).height = 24;
+                sheet.getRow(3).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 4: Section Banner (#006039 Deep Forest Green) ──
+                sheet.mergeCells('A4:J4');
+                const secCell = sheet.getCell('A4');
+                secCell.value = 'TRANSACTION DETAILS';
+                secCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                secCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                secCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(4).height = 24;
+                sheet.getRow(4).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 5: Middle Empty Spacer ──
+                sheet.mergeCells('A5:J5');
+                const spacer2 = sheet.getCell('A5');
+                spacer2.value = '';
+                spacer2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(5).height = 14;
+
+                // ── Row 6: Table Headers (Unified in #34495E Navy Slate Blue) ──
+                const headers = [
+                    '#',
+                    'Customer Name',
+                    'Phone Number',
+                    'Property / Project',
+                    'Agreement Value (₹)',
+                    'Realized Collected (₹)',
+                    'Pending Realization (₹)',
+                    'Outstanding Dues (₹)',
+                    'Overdue (₹)',
+                    'Aging Risk'
+                ];
+
+                const hRow = sheet.getRow(6);
                 hRow.values = headers;
-                hRow.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                hRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-                hRow.alignment = { vertical: 'middle', horizontal: 'center' };
-                hRow.height = 28;
-                hRow.eachCell(c => c.border = goldBorder);
+                hRow.height = 30;
+                hRow.eachCell({ includeEmpty: true }, (c) => {
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } }; // Blue color across all headers
+                    c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    c.alignment = { vertical: 'middle', horizontal: 'center' };
+                    c.border = slateBorder;
+                });
 
-                let rIdx = 5;
+                let rIdx = 7;
                 this.filteredRows.forEach((r, i) => {
                     const row = sheet.getRow(rIdx);
                     row.values = [
                         i + 1,
                         r.customer_name,
-                        r.customer_phone,
+                        r.customer_phone || '—',
                         `${r.unit_display}${r.is_exchanged ? ' [Exchanged]' : ''} (${r.project_name})${r.rate_per_sqft > 0 ? ' @ ₹' + Number(r.rate_per_sqft).toLocaleString('en-IN') + '/sq.ft' : ''}`,
                         Number(r.agreement_value || 0),
                         Number(r.collected_amount || 0),
                         Number(r.pending_realization || 0),
                         Number(r.outstanding_amount || 0),
                         Number(r.overdue_amount || 0),
-                        r.aging_bucket_label
+                        (r.aging_bucket_label || 'CURRENT').toUpperCase()
                     ];
 
-                    row.height = 20;
+                    row.height = 24;
+                    // Alternating background: Row 1 is #F0F8FF (Ice Blue), Row 2 is #FFFFFF (White)
+                    const rowBg = (i % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
+
                     row.eachCell({ includeEmpty: true }, (c, col) => {
-                        c.border = thinBorder;
-                        c.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
-                        c.alignment = { vertical: 'middle', horizontal: (col >= 5 && col <= 9) ? 'right' : (col === 1 ? 'center' : 'left') };
+                        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        c.border = dataBorder;
+                        c.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                        if (col === 2) {
+                            // Customer Name bold
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                        } else if (col === 6) {
+                            // Realized Collected: Bold Forest Green (#008000)
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
+                        } else if (col === 10) {
+                            // Aging Risk / Status: Bold Royal Blue (#1D4ED8)
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1D4ED8' } };
+                        } else {
+                            c.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        }
+
                         if (col >= 5 && col <= 9) {
                             c.numFmt = '#,##0.00';
                         }
@@ -1530,30 +1701,37 @@ function customerCollectionDuesApp() {
                     rIdx++;
                 });
 
-                // Grand Total Row
+                // ── Footer Row: Grand Total Summary (#2C3E50 Dark Slate Navy, 36pt Height, Bold White 12pt Text, Centered in Blank Space) ──
                 const totRow = sheet.getRow(rIdx);
-                totRow.values = [
-                    '',
-                    'GRAND TOTAL',
-                    '',
-                    '',
-                    Number(kpis.total_agreement_value),
-                    Number(kpis.total_collected),
-                    Number(kpis.total_pending_realization),
-                    Number(kpis.total_outstanding),
-                    Number(kpis.total_overdue),
-                    ''
-                ];
-                totRow.height = 26;
-                totRow.eachCell({ includeEmpty: true }, (c, col) => {
-                    c.border = goldBorder;
-                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
-                    c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                    c.alignment = { vertical: 'middle', horizontal: (col >= 5 && col <= 9) ? 'right' : 'center' };
-                    if (col >= 5 && col <= 9) {
-                        c.numFmt = '#,##0.00';
+                totRow.height = 36;
+                const kpis = this.summaryKPIs;
+
+                // Explicitly set values on cells
+                sheet.getCell(`A${rIdx}`).value = 'TOTAL COLLECTION & DUES SUMMARY';
+                sheet.getCell(`B${rIdx}`).value = '';
+                sheet.getCell(`C${rIdx}`).value = '';
+                sheet.getCell(`D${rIdx}`).value = '';
+                sheet.getCell(`E${rIdx}`).value = Number(kpis.total_agreement_value || 0);
+                sheet.getCell(`F${rIdx}`).value = Number(kpis.total_collected || 0);
+                sheet.getCell(`G${rIdx}`).value = Number(kpis.total_pending_realization || 0);
+                sheet.getCell(`H${rIdx}`).value = Number(kpis.total_outstanding || 0);
+                sheet.getCell(`I${rIdx}`).value = Number(kpis.total_overdue || 0);
+                sheet.getCell(`J${rIdx}`).value = '';
+
+                // Perform merge AFTER values are set so master-slave relationship is preserved
+                sheet.mergeCells(`A${rIdx}:D${rIdx}`);
+
+                // Style all cells from Col 1 to 10
+                for (let c = 1; c <= 10; c++) {
+                    const cell = sheet.getRow(rIdx).getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: false };
+                    cell.border = slateBorder;
+                    if (c >= 5 && c <= 9) {
+                        cell.numFmt = '#,##0.00';
                     }
-                });
+                }
 
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
