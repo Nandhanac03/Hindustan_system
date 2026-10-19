@@ -2705,7 +2705,7 @@ class ReportController extends Controller
                 $door = $su->unit?->door_no;
                 $type = $su->unit?->unitType?->name;
                 $floor = $su->unit?->floor?->name;
-                $str = $door ? ('Door ' . $door) : '';
+                $str = $door ?: '';
                 $meta = array_filter([$floor, $type]);
                 if ($meta && $door) {
                     $str .= ' (' . implode(', ', $meta) . ')';
@@ -2718,7 +2718,7 @@ class ReportController extends Controller
             $oldUnitType = $exLog?->snapshot_data['old_unit']['unit_type_name'] ?? $sale->unit?->unitType?->name;
             $oldUnitFloor = $exLog?->snapshot_data['old_unit']['floor_name'] ?? $sale->unit?->floor?->name;
 
-            $oldUnitStr = $oldUnitDoor ? ('Door ' . $oldUnitDoor) : '—';
+            $oldUnitStr = $oldUnitDoor ?: '—';
             $oldMeta = array_filter([$oldUnitFloor, $oldUnitType]);
             if ($oldMeta && $oldUnitDoor) {
                 $oldUnitStr .= ' (' . implode(', ', $oldMeta) . ')';
@@ -2746,7 +2746,7 @@ class ReportController extends Controller
 
         // 6. New Unit Details & Customer Name & Contract Value
         if ($newSale && $newSale->unit) {
-            $newUnitStr = 'Door ' . $newSale->unit->door_no;
+            $newUnitStr = (string)$newSale->unit->door_no;
             $newMeta = array_filter([$newSale->unit->floor?->name, $newSale->unit->unitType?->name]);
             if ($newMeta) {
                 $newUnitStr .= ' (' . implode(', ', $newMeta) . ')';
@@ -2756,7 +2756,7 @@ class ReportController extends Controller
             $sale->new_unit_value = (float)$newSale->total_amount;
         } else {
             $targetDoor = $exLog?->snapshot_data['exchange_meta']['target_door_no'] ?? null;
-            $sale->new_unit_details = $targetDoor ? ('Door ' . $targetDoor) : '—';
+            $sale->new_unit_details = $targetDoor ? (string)$targetDoor : '—';
             $sale->new_customer_name = $sale->old_customer_name;
             $sale->new_unit_value = (float)($sale->total_amount ?? 0);
         }
