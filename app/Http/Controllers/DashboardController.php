@@ -23,22 +23,60 @@ class DashboardController extends Controller
         // ── KPI Cards ────────────────────────────────────────────────────────
         $activeProject      = Project::where('is_active', true)->first();
         $totalProjects      = Project::count();
+        $currentYear        = Carbon::now()->year;
 
         $unitQuery    = fn() => $activeProject ? Unit::where('project_id', $activeProject->id) : Unit::query();
         $bookingQuery = fn() => $activeProject ? Sale::where('project_id', $activeProject->id) : Sale::query();
-        $paymentQuery = fn() => $activeProject ? Receipt::where('project_id', $activeProject->id) : Receipt::query();
+        $paymentQuery = fn() => ($activeProject ? Receipt::where('project_id', $activeProject->id) : Receipt::query())
+            ->whereNull('partner_id')
+            ->where('realization_status', 'realized');
 
-        $totalUnits         = $unitQuery()->count();
-        $availableUnits     = $unitQuery()->where('status', 'available')->count();
-        $bookedUnits        = $unitQuery()->whereIn('status', ['booked', 'sold'])->count();
-        $soldUnitsCount     = $unitQuery()->where('status', 'sold')->count();
-        $soldUnitsValue     = $unitQuery()->where('status', 'sold')->sum('expected_sale_amount');
-        $reservedUnits      = $unitQuery()->where('status', 'reserved')->count();
-        $totalCustomers     = Customer::count();
-        $totalSales         = (float) $bookingQuery()->where('status', 'active')->sum('total_amount');
-        $totalBookingsCount = $bookingQuery()->where('status', 'active')->count();
-        $totalCollections   = (float) $paymentQuery()->sum('amount');
-        $pendingApprovals   = Approval::where('status', 'pending')->count();
+        // Customer refunds paid out of company bank account on cancelled/returned sales
+        $projectSaleIds = $activeProject ? Sale::where('project_id', $activeProject->id)->pluck('id')->all() : null;
+
+        $postedRefundVouchers = DB::table('vouchers')
+            ->whereIn('type', ['Receipt', 'Payment'])
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['id', 'date', 'reference_no']);
+
+        $totalRefundsPaid = 0.0;
+        $monthlyRefunds   = [];
+        foreach ($postedRefundVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        if ($projectSaleIds === null || in_array($sId, $projectSaleIds, true)) {
+                            $amt = (float)($alloc['amount'] ?? 0);
+                            $totalRefundsPaid += $amt;
+
+                            if (!empty($v->date)) {
+                                $vDate = Carbon::parse($v->date);
+                                if ($vDate->year === $currentYear) {
+                                    $m = (int)$vDate->month;
+                                    $monthlyRefunds[$m] = ($monthlyRefunds[$m] ?? 0.0) + $amt;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $totalUnits               = $unitQuery()->count();
+        $availableUnits           = $unitQuery()->where('status', 'available')->count();
+        $bookedUnits              = $unitQuery()->whereIn('status', ['booked', 'sold'])->count();
+        $soldUnitsCount           = $unitQuery()->where('status', 'sold')->count();
+        $soldUnitsValue           = $unitQuery()->where('status', 'sold')->sum('expected_sale_amount');
+        $reservedUnits            = $unitQuery()->where('status', 'reserved')->count();
+        $totalCustomers           = Customer::count();
+        $totalSales               = (float) $bookingQuery()->where('status', 'active')->sum('total_amount');
+        $totalBookingsCount       = $bookingQuery()->where('status', 'active')->count();
+        $grossRealizedCollections = (float) $paymentQuery()->sum('amount');
+        $totalCollections         = max(0.00, $grossRealizedCollections - $totalRefundsPaid);
+        $pendingApprovals         = Approval::where('status', 'pending')->count();
 
         // Outstanding = Sales - Collections
         $outstanding = max(0.00, $totalSales - $totalCollections);
@@ -50,7 +88,10 @@ class DashboardController extends Controller
 
         // ── Top Customers (by total payment amount / sales volume) ───────────────
         $topCustomers = Customer::withSum(
-                ['receipts' => fn ($q) => $activeProject ? $q->where('project_id', $activeProject->id) : $q],
+                ['receipts' => fn ($q) => ($activeProject ? $q->where('project_id', $activeProject->id) : $q)
+                    ->whereNull('partner_id')
+                    ->where('realization_status', 'realized')
+                ],
                 'amount'
             )
             ->withSum(
@@ -92,8 +133,6 @@ class DashboardController extends Controller
             });
 
         // ── Revenue Chart (monthly bookings + payments for current year) ──────
-        $currentYear = Carbon::now()->year;
-
         $monthlyBookings = $bookingQuery()->where('status', 'active')
             ->whereYear('sale_date', $currentYear)
             ->selectRaw('MONTH(sale_date) as month, SUM(total_amount) as total')
@@ -113,7 +152,8 @@ class DashboardController extends Controller
         $collectionsData = [];
         for ($m = 1; $m <= 12; $m++) {
             $revenueData[]     = round(($monthlyBookings[$m] ?? 0) / 100000, 2);  // in Lakhs
-            $collectionsData[] = round(($monthlyPayments[$m] ?? 0) / 100000, 2);
+            $netMonthCollected = max(0.0, ($monthlyPayments[$m] ?? 0) - ($monthlyRefunds[$m] ?? 0));
+            $collectionsData[] = round($netMonthCollected / 100000, 2);
         }
 
         // ── Unit Status Donut ─────────────────────────────────────────────────
@@ -137,7 +177,7 @@ class DashboardController extends Controller
 
         $cashFlowSeries = [];
         for ($m = 1; $m <= 12; $m++) {
-            $cashFlowSeries[] = round(($cashFlowData[$m] ?? 0) / 100000, 2);
+            $cashFlowSeries[] = round(max(0.0, ($cashFlowData[$m] ?? 0) - ($monthlyRefunds[$m] ?? 0)) / 100000, 2);
         }
 
         return view('dashboard', compact(
@@ -153,6 +193,8 @@ class DashboardController extends Controller
             'totalSales',
             'totalBookingsCount',
             'totalCollections',
+            'grossRealizedCollections',
+            'totalRefundsPaid',
             'outstanding',
             'pendingApprovals',
             'recentUnits',

@@ -170,9 +170,14 @@
                 </div>
                 <span class="text-[9px] text-[#a38c29] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider">Receipts</span>
             </div>
-            <div class="relative z-10 mt-1">
+            <div class="relative z-10 mt-1" title="Gross Realized: {!! $currencySymbol !!}{{ number_format($grossRealizedCollections ?? $totalCollections, 2) }} - Refund Paid: {!! $currencySymbol !!}{{ number_format($totalRefundsPaid ?? 0, 2) }}">
                 <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">{!! $colFormatted !!}</span>
-                <p class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider mt-1.5">EMI Receipts</p>
+                <p class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider mt-1.5">
+                    Realized Collections
+                    @if(!empty($totalRefundsPaid) && $totalRefundsPaid > 0)
+                        <span class="text-rose-600 font-semibold normal-case ml-1 tracking-normal">(After {!! $currencySymbol !!}{{ number_format($totalRefundsPaid, 2) }} Refund Deducted)</span>
+                    @endif
+                </p>
             </div>
         </div>
     </div>
