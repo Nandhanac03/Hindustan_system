@@ -1198,7 +1198,7 @@ class SalesController extends Controller
     }
     private function buildSaleSnapshot(int $saleId, array $extraMeta = []): array
     {
-        $saleFull = Sale::with(['unit.unitType', 'unit.floor', 'project', 'customer', 'receipts', 'saleUnits.unit'])->findOrFail($saleId);
+        $saleFull = Sale::with(['unit.unitType', 'unit.floor', 'project', 'customer', 'receipts', 'saleUnits.unit.unitType', 'saleUnits.unit.floor'])->findOrFail($saleId);
         $installments = \App\Models\CustomerInstallment::where('sale_id', $saleId)->orderBy('installment_no')->get();
 
         $snapshot = [
@@ -1230,6 +1230,16 @@ class SalesController extends Controller
                 'built_up_area'        => (float)($saleFull->unit?->built_up_area ?? 0),
                 'expected_sale_amount' => (float)($saleFull->unit?->expected_sale_amount ?? 0),
             ],
+            'old_units' => $saleFull->saleUnits->map(function ($su) {
+                return [
+                    'id'                   => $su->unit?->id,
+                    'door_no'              => $su->unit?->door_no,
+                    'floor_name'           => $su->unit?->floor?->name,
+                    'unit_type_name'       => $su->unit?->unitType?->name,
+                    'built_up_area'        => (float)($su->unit?->built_up_area ?? 0),
+                    'expected_sale_amount' => (float)($su->unit?->expected_sale_amount ?? 0),
+                ];
+            })->values()->toArray(),
             'customer' => [
                 'id'    => $saleFull->customer?->id,
                 'name'  => $saleFull->customer?->name,

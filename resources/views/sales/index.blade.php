@@ -2404,6 +2404,17 @@ function salesApp() {
             if (sale.sale_units && sale.sale_units.length) {
                 return sale.sale_units.map(su => this.formatUnitDisplay(su.unit)).filter(Boolean).join(', ');
             }
+            if (sale.status_logs && sale.status_logs.length) {
+                const exLog = sale.status_logs.find(l => l.event_type === 'exchanged');
+                if (exLog && exLog.snapshot_data && exLog.snapshot_data.old_units && exLog.snapshot_data.old_units.length) {
+                    return exLog.snapshot_data.old_units.map(u => {
+                        let door = u.door_no || '';
+                        let type = u.unit_type_name ? `(${u.unit_type_name})` : '';
+                        let floor = u.floor_name ? ` - ${u.floor_name}` : '';
+                        return `${door}${type}${floor}`.trim();
+                    }).filter(Boolean).join(', ');
+                }
+            }
             return this.formatUnitDisplay(sale.unit);
         },
         fetchSales() {
@@ -2886,6 +2897,10 @@ function salesApp() {
             if (sale.new_sale) return sale.new_sale;
             if (!sale.sale_number) return null;
             return this.sales.find(s => s.notes && (s.notes.includes('Exchanged from sale ' + sale.sale_number) || s.notes.includes('Exchanged from ' + sale.sale_number)));
+        },
+        getOldUnitDoorNo(sale) {
+            if (!sale) return '—';
+            return this.formatSaleUnits(sale) || (sale.unit ? this.formatUnitDisplay(sale.unit) : '—');
         },
         getNewUnitDoorNo(sale) {
             if (!sale || sale.status !== 'exchanged') return '—';

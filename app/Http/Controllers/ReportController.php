@@ -2629,7 +2629,7 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'exchange_report';
 
-        $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts'])->where('status', 'exchanged');
+        $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts', 'saleUnits.unit.unitType', 'saleUnits.unit.floor'])->where('status', 'exchanged');
         if ($request->filled('project_id')) {
             $exQuery->where('project_id', $request->project_id);
         }
@@ -2643,7 +2643,7 @@ class ReportController extends Controller
             return $this->enrichExchangeSale($sale);
         });
 
-        $allExSales = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts'])
+        $allExSales = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs', 'receipts', 'saleUnits.unit.unitType', 'saleUnits.unit.floor'])
             ->where('status', 'exchanged')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
             ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
@@ -2700,14 +2700,29 @@ class ReportController extends Controller
         $sale->exchange_date = $exDate;
 
         // 3. Old Unit Details
-        $oldUnitDoor = $exLog?->snapshot_data['old_unit']['door_no'] ?? $sale->unit?->door_no;
-        $oldUnitType = $exLog?->snapshot_data['old_unit']['unit_type_name'] ?? $sale->unit?->unitType?->name;
-        $oldUnitFloor = $exLog?->snapshot_data['old_unit']['floor_name'] ?? $sale->unit?->floor?->name;
+        if ($sale->relationLoaded('saleUnits') && $sale->saleUnits->isNotEmpty()) {
+            $oldUnitParts = $sale->saleUnits->map(function ($su) {
+                $door = $su->unit?->door_no;
+                $type = $su->unit?->unitType?->name;
+                $floor = $su->unit?->floor?->name;
+                $str = $door ? ('Door ' . $door) : '';
+                $meta = array_filter([$floor, $type]);
+                if ($meta && $door) {
+                    $str .= ' (' . implode(', ', $meta) . ')';
+                }
+                return $str;
+            })->filter()->implode(', ');
+            $oldUnitStr = $oldUnitParts ?: '—';
+        } else {
+            $oldUnitDoor = $exLog?->snapshot_data['old_unit']['door_no'] ?? $sale->unit?->door_no;
+            $oldUnitType = $exLog?->snapshot_data['old_unit']['unit_type_name'] ?? $sale->unit?->unitType?->name;
+            $oldUnitFloor = $exLog?->snapshot_data['old_unit']['floor_name'] ?? $sale->unit?->floor?->name;
 
-        $oldUnitStr = $oldUnitDoor ? ('Door ' . $oldUnitDoor) : '—';
-        $oldMeta = array_filter([$oldUnitFloor, $oldUnitType]);
-        if ($oldMeta && $oldUnitDoor) {
-            $oldUnitStr .= ' (' . implode(', ', $oldMeta) . ')';
+            $oldUnitStr = $oldUnitDoor ? ('Door ' . $oldUnitDoor) : '—';
+            $oldMeta = array_filter([$oldUnitFloor, $oldUnitType]);
+            if ($oldMeta && $oldUnitDoor) {
+                $oldUnitStr .= ' (' . implode(', ', $oldMeta) . ')';
+            }
         }
         $sale->old_unit_details = $oldUnitStr;
 
@@ -5085,10 +5100,10 @@ class ReportController extends Controller
                     } elseif ($allocated > 0) {
                         $instPaid = $allocated;
                         $allocated = 0;
-                        $st = 'Outstanding';
+                        $st = 'Pending';
                     } else {
                         $instPaid = 0.0;
-                        $st = ($inst->due_date && Carbon::parse($inst->due_date)->startOfDay()->isPast()) ? 'Outstanding' : 'Pending';
+                        $st = 'Pending';
                     }
 
                     $instBal = max(0.0, round($instAmt - $instPaid, 2));
@@ -5133,7 +5148,7 @@ class ReportController extends Controller
                     'amount'         => $agreementValue,
                     'paid_amount'    => $realizedAmount,
                     'balance'        => $outstandingAmount,
-                    'status'         => $outstandingAmount <= 0 ? 'Paid' : 'Outstanding',
+                    'status'         => $outstandingAmount <= 0 ? 'Paid' : 'Pending',
                     'days_overdue'   => $daysOver,
                 ];
             }

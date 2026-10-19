@@ -332,7 +332,17 @@
                                 $oldDoor = $snap['old_unit']['door_no'] ?? ($row->unit?->door_no ?? '—');
                                 $oldType = $snap['old_unit']['unit_type_name'] ?? ($row->unit?->unitType?->name ?? 'Shop');
                                 $oldFloor = $snap['old_unit']['floor_name'] ?? ($row->unit?->floor?->name ?? '—');
-                                $oldUnitStr = $oldDoor . ($oldType ? "({$oldType})" : "") . ($oldFloor ? " - {$oldFloor}" : "");
+
+                                if ($row->saleUnits && $row->saleUnits->count() > 0) {
+                                    $oldUnitStr = $row->saleUnits->map(function ($su) {
+                                        $door = $su->unit?->door_no ?? '—';
+                                        $type = $su->unit?->unitType?->name ?? 'Shop';
+                                        $floor = $su->unit?->floor?->name ?? '—';
+                                        return $door . ($type ? "({$type})" : "") . ($floor ? " - {$floor}" : "");
+                                    })->filter()->implode(', ');
+                                } else {
+                                    $oldUnitStr = $oldDoor . ($oldType ? "({$oldType})" : "") . ($oldFloor ? " - {$oldFloor}" : "");
+                                }
                                 
                                 // New unit display formatting
                                 $newDoor = $newSale?->unit?->door_no ?? ($snap['exchange_meta']['target_door_no'] ?? '—');

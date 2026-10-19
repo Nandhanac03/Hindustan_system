@@ -319,7 +319,7 @@
                             </td>
                             <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.cancelled_at || sale.updated_at)"></td>
                             <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
-                            <td class="px-3 py-2.5 text-left" x-text="sale.unit ? formatUnitDisplay(sale.unit) : 'N/A'"></td>
+                            <td class="px-3 py-2.5 text-left" x-text="formatSaleUnits(sale) || 'N/A'"></td>
                             <td class="px-3 py-2.5 text-left font-bold text-slate-900" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                             <td class="px-3 py-2.5 text-left" x-text="sale.status === 'cancelled' ? 'Cancellation' : 'Return'"></td>
                             <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="fmt(sale.total_amount)"></td>
@@ -1646,7 +1646,7 @@
 
                             {{-- Old Unit Details --}}
                             <td class="px-3 py-3 text-left text-slate-700 bg-amber-50/20 border-l border-slate-100"
-                                x-text="sale.unit ? formatUnitDisplay(sale.unit) : '—'"></td>
+                                x-text="getOldUnitDoorNo(sale)"></td>
 
                             {{-- Old Customer --}}
                             <td class="px-3 py-3 text-left font-bold text-slate-900 bg-amber-50/20 border-r border-slate-100"
@@ -2774,7 +2774,7 @@
                                 </div>
                                 <div>
                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">UNIT DETAILS</span>
-                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : '—'"></span>
+                                    <span class="text-slate-800 font-semibold text-xs leading-snug block truncate" x-text="getOldUnitDoorNo(viewExchangeSale)"></span>
                                 </div>
                                 <div>
                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">ORIGINAL VALUE</span>
