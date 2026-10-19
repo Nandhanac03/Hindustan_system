@@ -554,14 +554,14 @@
                     <col style="width: 90px;">
                 </colgroup>
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                    <tr class="erp-table-header border-b border-[#443f38] text-left">
+                    <tr class="erp-table-header border-b border-[#443f38] text-center">
                         <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">#</th>
-                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Customer Details</th>
-                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Property Details</th>
-                        <th class="px-4 py-3.5 text-right whitespace-nowrap text-white font-extrabold text-[10px]">Agreement Value (₹)</th>
-                        <th class="px-4 py-3.5 text-right whitespace-nowrap text-white font-extrabold text-[10px]">Collected Amount (₹)</th>
-                        <th class="px-4 py-3.5 text-right whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
-                        <th class="px-4 py-3.5 text-right whitespace-nowrap text-white font-extrabold text-[10px]">Overdue (₹)</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Customer Details</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Property Details</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Agreement Value (₹)</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Collected Amount (₹)</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Overdue (₹)</th>
                         <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Aging Risk</th>
                         <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Actions</th>
                     </tr>
@@ -875,14 +875,14 @@
                                             <div x-show="subTab === 'milestones'" class="pt-3 overflow-x-auto">
                                                 <table class="w-full text-left border-collapse text-xs">
                                                     <thead>
-                                                        <tr class="bg-slate-100 text-[9.5px] font-black text-slate-600 uppercase tracking-wider border-b">
+                                                        <tr class="bg-slate-100 text-[9.5px] font-black text-slate-600 uppercase tracking-wider border-b text-center">
                                                             <th class="py-2.5 px-3 w-10 text-center">#</th>
-                                                            <th class="py-2.5 px-3">Milestone Stage</th>
-                                                            <th class="py-2.5 px-3">Due Date</th>
-                                                            <th class="py-2.5 px-3 text-right">Milestone Amount (₹)</th>
+                                                            <th class="py-2.5 px-3 text-center">Milestone Stage</th>
+                                                            <th class="py-2.5 px-3 text-center">Due Date</th>
+                                                            <th class="py-2.5 px-3 text-center">Milestone Amount (₹)</th>
                                                             <th class="py-2.5 px-3 text-center">Status</th>
-                                                            <th class="py-2.5 px-3 text-right">Amount Paid (₹)</th>
-                                                            <th class="py-2.5 px-3 text-right">Balance Due (₹)</th>
+                                                            <th class="py-2.5 px-3 text-center">Amount Paid (₹)</th>
+                                                            <th class="py-2.5 px-3 text-center">Balance Due (₹)</th>
                                                             <th class="py-2.5 px-3 text-center">Overdue Days</th>
                                                         </tr>
                                                     </thead>
@@ -895,10 +895,12 @@
                                                                 <td class="py-2 px-3 text-right font-mono font-bold text-slate-900" x-text="'₹ ' + formatMoney(m.amount)"></td>
                                                                 <td class="py-2 px-3 text-center">
                                                                     <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                                                                          :class="m.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (m.status === 'Outstanding' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-50 text-slate-600 border-slate-200')"
+                                                                          :class="m.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
                                                                           x-text="m.status"></span>
                                                                 </td>
-                                                                <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold" x-text="'₹ ' + formatMoney(m.paid_amount)"></td>
+                                                                <td class="py-2 px-3 text-right font-mono font-bold" 
+                                                                    :class="m.status === 'Paid' ? 'text-emerald-700' : 'text-slate-900'"
+                                                                    x-text="'₹ ' + formatMoney(m.paid_amount)"></td>
                                                                 <td class="py-2 px-3 text-right font-mono font-black" 
                                                                     :class="m.balance > 0 ? 'text-amber-700' : 'text-slate-400'"
                                                                     x-text="'₹ ' + formatMoney(m.balance)"></td>
@@ -915,13 +917,13 @@
                                             <div x-show="subTab === 'payments'" class="pt-3 overflow-x-auto" style="display: none;">
                                                 <table class="w-full text-left border-collapse text-xs">
                                                     <thead>
-                                                        <tr class="bg-slate-100 text-[9.5px] font-black text-slate-600 uppercase tracking-wider border-b">
+                                                        <tr class="bg-slate-100 text-[9.5px] font-black text-slate-600 uppercase tracking-wider border-b text-center">
                                                             <th class="py-2.5 px-3 w-10 text-center">#</th>
-                                                            <th class="py-2.5 px-3">Receipt / Ref No</th>
-                                                            <th class="py-2.5 px-3">Receipt Date</th>
-                                                            <th class="py-2.5 px-3">Payment Mode</th>
-                                                            <th class="py-2.5 px-3">Bank Details</th>
-                                                            <th class="py-2.5 px-3 text-right">Amount (₹)</th>
+                                                            <th class="py-2.5 px-3 text-center">Receipt / Ref No</th>
+                                                            <th class="py-2.5 px-3 text-center">Receipt Date</th>
+                                                            <th class="py-2.5 px-3 text-center">Payment Mode</th>
+                                                            <th class="py-2.5 px-3 text-center">Bank Details</th>
+                                                            <th class="py-2.5 px-3 text-center">Amount (₹)</th>
                                                             <th class="py-2.5 px-3 text-center">Realization Status</th>
                                                         </tr>
                                                     </thead>
