@@ -629,30 +629,30 @@
             <table class="w-full text-xs text-left border-collapse min-w-[1300px] table-fixed print:min-w-full print:w-full">
                 <colgroup class="print:hidden">
                     <col style="width: 50px;">
-                    <col style="width: 220px;">
-                    <col style="width: 185px;">
+                    <col style="width: 210px;">
+                    <col style="width: 230px;">
+                    <col style="width: 145px;">
+                    <col style="width: 165px;">
+                    <col style="width: 145px;">
+                    <col style="width: 125px;">
                     <col style="width: 150px;">
-                    <col style="width: 170px;">
-                    <col style="width: 150px;">
-                    <col style="width: 130px;">
-                    <col style="width: 155px;">
                     <col style="width: 90px;">
                 </colgroup>
                 <colgroup class="hidden print:table-column-group">
                     <col style="width: 4%;">   {{-- # --}}
                     <col style="width: 16%;">  {{-- Customer Details --}}
-                    <col style="width: 16%;">  {{-- Property Details --}}
+                    <col style="width: 18%;">  {{-- Unit Details --}}
                     <col style="width: 13%;">  {{-- Agreement Value --}}
                     <col style="width: 14%;">  {{-- Collected Amount --}}
-                    <col style="width: 13%;">  {{-- Outstanding Dues --}}
+                    <col style="width: 12%;">  {{-- Outstanding Dues --}}
                     <col style="width: 11%;">  {{-- Overdue --}}
-                    <col style="width: 13%;">  {{-- Aging Risk --}}
+                    <col style="width: 12%;">  {{-- Aging Risk --}}
                 </colgroup>
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                     <tr class="erp-table-header border-b border-[#443f38] text-center">
                         <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">#</th>
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Customer Details</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Property Details</th>
+                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Unit Details</th>
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Agreement Value (₹)</th>
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Collected Amount (₹)</th>
                         <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
@@ -672,11 +672,11 @@
                             <td class="px-3 py-3.5 text-center font-bold text-slate-400 font-mono" x-text="(currentPage - 1) * perPage + idx + 1"></td>
 
                             {{-- 2. Customer Details --}}
-                            <td class="px-4 py-3.5 text-left">
-                                <div class="flex items-center gap-2.5">
+                            <td class="px-4 py-3.5 text-center">
+                                <div class="flex items-center justify-center gap-2.5">
                                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white flex items-center justify-center font-bold text-[10px] shrink-0 uppercase shadow-xs"
                                          x-text="row.customer_name ? row.customer_name.substring(0,2).toUpperCase() : 'CU'"></div>
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 text-left">
                                         <span class="font-extrabold text-slate-900 block group-hover:text-[#a38c29] transition-colors leading-tight" x-text="row.customer_name"></span>
                                         <div class="flex items-center gap-1.5 text-[10.5px] font-mono text-slate-500 font-semibold mt-0.5">
                                             <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -686,52 +686,45 @@
                                 </div>
                             </td>
 
-                            {{-- 3. Property Details --}}
-                            <td class="px-4 py-3.5 text-left">
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="font-black text-slate-900 font-mono uppercase text-xs" x-text="row.unit_display"></span>
-                                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold text-[9px] border border-slate-200" x-text="row.unit_type"></span>
+                            {{-- 3. Unit Details --}}
+                            <td class="px-4 py-3.5 text-center">
+                                <div class="flex items-center justify-center gap-1.5 flex-wrap text-center">
+                                    <span class="font-bold text-slate-900 text-xs leading-snug text-center" x-text="formatUnitDetails(row)"></span>
                                     <template x-if="row.is_exchanged">
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-black text-[8.5px] uppercase tracking-wider border border-amber-200 shadow-2xs" title="Unit was exchanged with revised rate">Exchanged</span>
-                                    </template>
-                                </div>
-                                <div class="flex items-center justify-between gap-1.5 mt-0.5">
-                                    <span class="text-[10px] text-slate-500 font-medium block truncate max-w-[115px]" x-text="row.project_name"></span>
-                                    <template x-if="row.rate_per_sqft > 0">
-                                        <span class="text-[9.5px] font-mono text-slate-600 font-extrabold whitespace-nowrap" x-text="'₹' + Number(row.rate_per_sqft).toLocaleString('en-IN') + '/sq.ft'"></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-black text-[8.5px] uppercase tracking-wider border border-amber-200 shadow-2xs shrink-0" title="Unit was exchanged with revised rate">Exchanged</span>
                                     </template>
                                 </div>
                             </td>
 
                             {{-- 4. Agreement Value --}}
-                            <td class="px-4 py-3.5 text-right font-mono">
-                                <span class="font-mono font-black text-slate-900 block" x-text="'₹ ' + formatMoney(row.agreement_value)"></span>
-                                <span class="text-[9.5px] text-slate-400 font-mono block mt-0.5" x-text="row.agreement_date"></span>
+                            <td class="px-4 py-3.5 text-center font-mono">
+                                <span class="font-mono font-black text-slate-900 block text-center" x-text="'₹ ' + formatMoney(row.agreement_value)"></span>
+                                <span class="text-[9.5px] text-slate-400 font-mono block mt-0.5 text-center" x-text="row.agreement_date"></span>
                             </td>
 
                             {{-- 5. Collected Amount (Realized + Pending Realization on 2nd Line) --}}
-                            <td class="px-4 py-3.5 text-right font-mono">
+                            <td class="px-4 py-3.5 text-center font-mono">
                                 {{-- Line 1: Realized Amount --}}
-                                <div class="font-extrabold text-emerald-700 leading-tight">
+                                <div class="font-extrabold text-emerald-700 leading-tight text-center">
                                     <span x-text="'₹ ' + formatMoney(row.collected_amount)"></span>
                                     <span class="text-[9px] font-bold text-emerald-600 font-sans ml-1" x-text="'(' + row.collected_pct + '%)'"></span>
                                 </div>
 
                                 {{-- Line 2: Pending Realization Badge (Separated on second line) --}}
                                 <template x-if="row.pending_realization > 0">
-                                    <div class="mt-1.5 flex justify-end">
+                                    <div class="mt-1.5 flex justify-center">
                                         <a :href="'{{ route('cheque-realization.queue') }}?customer_id=' + row.customer_id" 
                                            @click.stop
-                                           class="flex flex-col items-end px-2 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs cursor-pointer"
+                                           class="flex flex-col items-center px-2 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs cursor-pointer text-center"
                                            title="Click to view & process in Cheque Realization Queue">
                                             {{-- Line 1 of badge: Amount with hourglass --}}
-                                            <div class="inline-flex items-center gap-1 font-bold text-amber-950 text-[10.5px] leading-tight">
+                                            <div class="inline-flex items-center justify-center gap-1 font-bold text-amber-950 text-[10.5px] leading-tight">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
                                                 <span class="text-[10px]">⏳</span>
                                                 <span x-text="'₹ ' + formatMoney(row.pending_realization)"></span>
                                             </div>
                                             {{-- Line 2 of badge: Pending Realization text --}}
-                                            <div class="inline-flex items-center gap-1 text-[8.5px] font-extrabold uppercase tracking-wider text-amber-800 group-hover:text-amber-950 mt-0.5 leading-tight font-sans">
+                                            <div class="inline-flex items-center justify-center gap-1 text-[8.5px] font-extrabold uppercase tracking-wider text-amber-800 group-hover:text-amber-950 mt-0.5 leading-tight font-sans">
                                                 <span>Pending Realization</span>
                                                 <svg class="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:translate-x-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                             </div>
@@ -741,17 +734,17 @@
                             </td>
 
                             {{-- 6. Outstanding Dues (Not deducting unrealized amount) --}}
-                            <td class="px-4 py-3.5 text-right font-mono">
-                                <span class="font-black block text-xs" 
+                            <td class="px-4 py-3.5 text-center font-mono">
+                                <span class="font-black block text-xs text-center" 
                                       :class="row.outstanding_amount > 0 ? 'text-rose-600' : 'text-slate-400'"
                                       x-text="'₹ ' + formatMoney(row.outstanding_amount)"></span>
-                                <span class="text-[9px] font-bold text-slate-400 font-sans block mt-0.5" 
+                                <span class="text-[9px] font-bold text-slate-400 font-sans block mt-0.5 text-center" 
                                       x-text="row.outstanding_pct + '% Dues'"></span>
                             </td>
 
                             {{-- 7. Overdue Amount --}}
-                            <td class="px-4 py-3.5 text-right font-mono">
-                                <span class="font-black block" 
+                            <td class="px-4 py-3.5 text-center font-mono">
+                                <span class="font-black block text-center" 
                                       :class="row.overdue_amount > 0 ? 'text-rose-700' : 'text-slate-400'"
                                       x-text="row.overdue_amount > 0 ? '₹ ' + formatMoney(row.overdue_amount) : '₹ 0.00'"></span>
                             </td>
@@ -835,10 +828,10 @@
                                                 </div>
                                             </div>
 
-                                            {{-- 2. Property Information --}}
+                                            {{-- 2. Unit Details --}}
                                             <div class="p-4 rounded-xl bg-white border border-slate-200/90 border-l-[5px] border-l-indigo-600 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
                                                 <div class="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100">
-                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Property Details</span>
+                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Unit Details</span>
                                                     <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                                     </div>
@@ -985,18 +978,18 @@
                                                         <template x-for="m in row.milestones" :key="m.installment_no">
                                                             <tr class="hover:bg-slate-50">
                                                                 <td class="py-2 px-3 text-center font-mono text-slate-400" x-text="m.installment_no"></td>
-                                                                <td class="py-2 px-3 font-bold text-slate-800" x-text="m.label"></td>
-                                                                <td class="py-2 px-3 font-mono text-slate-600" x-text="m.due_date"></td>
-                                                                <td class="py-2 px-3 text-right font-mono font-bold text-slate-900" x-text="'₹ ' + formatMoney(m.amount)"></td>
+                                                                <td class="py-2 px-3 text-center font-bold text-slate-800" x-text="m.label"></td>
+                                                                <td class="py-2 px-3 text-center font-mono text-slate-600" x-text="m.due_date"></td>
+                                                                <td class="py-2 px-3 text-center font-mono font-bold text-slate-900" x-text="'₹ ' + formatMoney(m.amount)"></td>
                                                                 <td class="py-2 px-3 text-center">
                                                                     <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
                                                                           :class="m.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
                                                                           x-text="m.status"></span>
                                                                 </td>
-                                                                <td class="py-2 px-3 text-right font-mono font-bold" 
+                                                                <td class="py-2 px-3 text-center font-mono font-bold" 
                                                                     :class="m.status === 'Paid' ? 'text-emerald-700' : 'text-slate-900'"
                                                                     x-text="'₹ ' + formatMoney(m.paid_amount)"></td>
-                                                                <td class="py-2 px-3 text-right font-mono font-black" 
+                                                                <td class="py-2 px-3 text-center font-mono font-black" 
                                                                     :class="m.balance > 0 ? 'text-amber-700' : 'text-slate-400'"
                                                                     x-text="'₹ ' + formatMoney(m.balance)"></td>
                                                                 <td class="py-2 px-3 text-center font-mono font-bold"
@@ -1026,11 +1019,11 @@
                                                         <template x-for="r in row.receipts" :key="r.id">
                                                             <tr class="hover:bg-slate-50">
                                                                 <td class="py-2 px-3 text-center font-mono text-slate-400" x-text="r.index"></td>
-                                                                <td class="py-2 px-3 font-mono font-bold text-slate-900" x-text="r.receipt_no"></td>
-                                                                <td class="py-2 px-3 font-mono text-slate-600" x-text="r.receipt_date"></td>
-                                                                <td class="py-2 px-3 font-semibold text-slate-700" x-text="r.payment_mode"></td>
-                                                                <td class="py-2 px-3 text-slate-600 truncate max-w-[150px]" x-text="r.drawee_bank || '—'"></td>
-                                                                <td class="py-2 px-3 text-right font-mono font-black text-emerald-700" x-text="'₹ ' + formatMoney(r.amount)"></td>
+                                                                <td class="py-2 px-3 text-center font-mono font-bold text-slate-900" x-text="r.receipt_no"></td>
+                                                                <td class="py-2 px-3 text-center font-mono text-slate-600" x-text="r.receipt_date"></td>
+                                                                <td class="py-2 px-3 text-center font-semibold text-slate-700" x-text="r.payment_mode"></td>
+                                                                <td class="py-2 px-3 text-center text-slate-600 truncate max-w-[150px]" x-text="r.drawee_bank || '—'"></td>
+                                                                <td class="py-2 px-3 text-center font-mono font-black text-emerald-700" x-text="'₹ ' + formatMoney(r.amount)"></td>
                                                                 <td class="py-2 px-3 text-center">
                                                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border shadow-2xs inline-flex items-center gap-1"
                                                                           :class="r.realization_status === 'realized' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-300'">
@@ -1068,10 +1061,10 @@
                             <td colspan="3" class="px-4 py-3.5 text-center font-sans font-black uppercase tracking-wider text-slate-800">
                                 <span class="text-[#8a7522]">Grand Summary</span> (<span x-text="filteredRows.length"></span> Bookings)
                             </td>
-                            <td class="px-4 py-3.5 text-right font-black font-mono text-slate-900 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></td>
-                            <td class="px-4 py-3.5 text-right font-black font-mono text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></td>
-                            <td class="px-4 py-3.5 text-right font-black font-mono text-rose-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></td>
-                            <td class="px-4 py-3.5 text-right font-black font-mono text-red-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></td>
+                            <td class="px-4 py-3.5 text-center font-black font-mono text-slate-900 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></td>
+                            <td class="px-4 py-3.5 text-center font-black font-mono text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></td>
+                            <td class="px-4 py-3.5 text-center font-black font-mono text-rose-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></td>
+                            <td class="px-4 py-3.5 text-center font-black font-mono text-red-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></td>
                             <td :colspan="isPrinting ? 1 : 2" class="px-4 py-3.5 text-center font-sans text-[10px] font-black text-slate-500 uppercase tracking-wider">
                                 Audited Totals
                             </td>
@@ -1230,6 +1223,22 @@ function customerCollectionDuesApp() {
             return this.formatMoney(val);
         },
 
+        formatUnitDetails(row) {
+            if (!row) return '—';
+            if (row.unit_details_display) return row.unit_details_display;
+            let str = row.unit_display || '—';
+            if (row.unit_type) {
+                str += '(' + row.unit_type + ')';
+            }
+            if (row.floor_display && row.floor_display !== '—') {
+                str += ' - ' + row.floor_display;
+            }
+            if (row.rate_per_sqft && Number(row.rate_per_sqft) > 0) {
+                str += ' - ₹' + Number(row.rate_per_sqft).toLocaleString('en-IN') + '/sq.ft';
+            }
+            return str;
+        },
+
         getBucketBadgeClass(bucket) {
             switch(bucket) {
                 case '0-30':
@@ -1272,7 +1281,9 @@ function customerCollectionDuesApp() {
                     const matchName = (row.customer_name || '').toLowerCase().includes(q);
                     const matchPhone = (row.customer_phone || '').toLowerCase().includes(q);
                     const matchEmail = (row.customer_email || '').toLowerCase().includes(q);
-                    const matchUnit = (row.unit_display || '').toLowerCase().includes(q);
+                    const matchUnit = (row.unit_display || '').toLowerCase().includes(q)
+                                   || (row.floor_display || '').toLowerCase().includes(q)
+                                   || (row.unit_details_display || '').toLowerCase().includes(q);
                     const matchProject = (row.project_name || '').toLowerCase().includes(q);
                     if (!matchName && !matchPhone && !matchEmail && !matchUnit && !matchProject) {
                         return false;
@@ -1636,7 +1647,7 @@ function customerCollectionDuesApp() {
                     '#',
                     'Customer Name',
                     'Phone Number',
-                    'Property / Project',
+                    'Unit Details',
                     'Agreement Value (₹)',
                     'Realized Collected (₹)',
                     'Pending Realization (₹)',
@@ -1662,7 +1673,7 @@ function customerCollectionDuesApp() {
                         i + 1,
                         r.customer_name,
                         r.customer_phone || '—',
-                        `${r.unit_display}${r.is_exchanged ? ' [Exchanged]' : ''} (${r.project_name})${r.rate_per_sqft > 0 ? ' @ ₹' + Number(r.rate_per_sqft).toLocaleString('en-IN') + '/sq.ft' : ''}`,
+                        `${this.formatUnitDetails(r)}${r.is_exchanged ? ' [Exchanged]' : ''}`,
                         Number(r.agreement_value || 0),
                         Number(r.collected_amount || 0),
                         Number(r.pending_realization || 0),

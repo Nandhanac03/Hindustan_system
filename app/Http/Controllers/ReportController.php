@@ -5244,6 +5244,17 @@ class ReportController extends Controller
                 }
             }
 
+            $unitDetailsDisplay = $unitsDisplay;
+            if ($primaryUnitType) {
+                $unitDetailsDisplay .= '(' . $primaryUnitType . ')';
+            }
+            if (!empty($floorDisplay) && $floorDisplay !== '—') {
+                $unitDetailsDisplay .= ' - ' . $floorDisplay;
+            }
+            if ($ratePerSqft > 0) {
+                $unitDetailsDisplay .= ' - ₹' . number_format($ratePerSqft) . '/sq.ft';
+            }
+
             $isExchanged = !empty($sale->notes) && stripos($sale->notes, 'Exchanged from') !== false;
 
             $customer = $sale->customer;
@@ -5279,6 +5290,7 @@ class ReportController extends Controller
                 'unit_type'               => $primaryUnitType,
                 'floor_display'           => $floorDisplay,
                 'rate_per_sqft'           => $ratePerSqft,
+                'unit_details_display'    => $unitDetailsDisplay,
                 'area_sqft'               => $totalArea,
                 'is_exchanged'            => $isExchanged,
                 'exchange_notes'          => $isExchanged ? $sale->notes : null,
