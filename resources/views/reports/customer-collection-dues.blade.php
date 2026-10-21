@@ -626,17 +626,17 @@
         </div>
 
         <div class="overflow-x-auto custom-scrollbar print:overflow-visible">
-            <table class="w-full text-xs text-left border-collapse min-w-[1300px] table-fixed print:min-w-full print:w-full">
+            <table class="w-full text-xs text-left border-collapse table-fixed print:min-w-full print:w-full">
                 <colgroup class="print:hidden">
-                    <col style="width: 50px;">
-                    <col style="width: 210px;">
-                    <col style="width: 230px;">
-                    <col style="width: 145px;">
-                    <col style="width: 165px;">
-                    <col style="width: 145px;">
-                    <col style="width: 125px;">
-                    <col style="width: 150px;">
-                    <col style="width: 90px;">
+                    <col style="width: 4%;">   {{-- # --}}
+                    <col style="width: 17%;">  {{-- Customer Details --}}
+                    <col style="width: 18%;">  {{-- Unit Details --}}
+                    <col style="width: 13%;">  {{-- Agreement Value --}}
+                    <col style="width: 14%;">  {{-- Collected Amount --}}
+                    <col style="width: 12%;">  {{-- Outstanding Dues --}}
+                    <col style="width: 11%;">  {{-- Overdue --}}
+                    <col style="width: 7%;">   {{-- Aging Risk --}}
+                    <col style="width: 4%;">   {{-- Actions --}}
                 </colgroup>
                 <colgroup class="hidden print:table-column-group">
                     <col style="width: 4%;">   {{-- # --}}
@@ -649,16 +649,16 @@
                     <col style="width: 12%;">  {{-- Aging Risk --}}
                 </colgroup>
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                    <tr class="erp-table-header border-b border-[#443f38] text-center">
-                        <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">#</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Customer Details</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Unit Details</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Agreement Value (₹)</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Collected Amount (₹)</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
-                        <th class="px-4 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Overdue (₹)</th>
-                        <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px]">Aging Risk</th>
-                        <th class="px-3 py-3.5 text-center whitespace-nowrap text-white font-extrabold text-[10px] print:hidden">Actions</th>
+                    <tr class="erp-table-header border-b border-[#443f38] text-left">
+                        <th class="px-3 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">#</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Customer Details</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Unit Details</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Agreement Value (₹)</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Collected Amount (₹)</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Outstanding Dues (₹)</th>
+                        <th class="px-4 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Overdue (₹)</th>
+                        <th class="px-3 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px]">Aging Risk</th>
+                        <th class="px-3 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px] print:hidden">Actions</th>
                     </tr>
                 </thead>
                 <template x-for="(row, idx) in paginatedRows" :key="row.sale_id">
@@ -669,15 +669,15 @@
                             :class="expandedRows.includes(row.sale_id) ? 'bg-[#a38c29]/10' : ''">
                             
                             {{-- 1. Index # --}}
-                            <td class="px-3 py-3.5 text-center font-bold text-slate-400 font-mono" x-text="(currentPage - 1) * perPage + idx + 1"></td>
+                            <td class="px-3 py-3.5 text-left font-bold text-slate-400 font-mono" x-text="(currentPage - 1) * perPage + idx + 1"></td>
 
                             {{-- 2. Customer Details --}}
-                            <td class="px-4 py-3.5 text-center">
-                                <div class="flex items-center justify-center gap-2.5">
+                            <td class="px-4 py-3.5 text-left">
+                                <div class="flex items-center justify-start gap-2.5">
                                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white flex items-center justify-center font-bold text-[10px] shrink-0 uppercase shadow-xs"
                                          x-text="row.customer_name ? row.customer_name.substring(0,2).toUpperCase() : 'CU'"></div>
                                     <div class="min-w-0 text-left">
-                                        <span class="font-extrabold text-slate-900 block group-hover:text-[#a38c29] transition-colors leading-tight" x-text="row.customer_name"></span>
+                                        <span class="font-extrabold text-slate-900 block group-hover:text-[#a38c29] transition-colors leading-tight truncate" x-text="row.customer_name"></span>
                                         <div class="flex items-center gap-1.5 text-[10.5px] font-mono text-slate-500 font-semibold mt-0.5">
                                             <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                             <span x-text="row.customer_phone || 'No phone'"></span>
@@ -687,9 +687,9 @@
                             </td>
 
                             {{-- 3. Unit Details --}}
-                            <td class="px-4 py-3.5 text-center">
-                                <div class="flex items-center justify-center gap-1.5 flex-wrap text-center">
-                                    <span class="font-bold text-slate-900 text-xs leading-snug text-center" x-text="formatUnitDetails(row)"></span>
+                            <td class="px-4 py-3.5 text-left">
+                                <div class="flex items-center justify-start gap-1.5 flex-wrap text-left">
+                                    <span class="font-bold text-slate-900 text-xs leading-snug text-left" x-text="formatUnitDetails(row)"></span>
                                     <template x-if="row.is_exchanged">
                                         <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-black text-[8.5px] uppercase tracking-wider border border-amber-200 shadow-2xs shrink-0" title="Unit was exchanged with revised rate">Exchanged</span>
                                     </template>
@@ -697,34 +697,34 @@
                             </td>
 
                             {{-- 4. Agreement Value --}}
-                            <td class="px-4 py-3.5 text-center font-mono">
-                                <span class="font-mono font-black text-slate-900 block text-center" x-text="'₹ ' + formatMoney(row.agreement_value)"></span>
-                                <span class="text-[9.5px] text-slate-400 font-mono block mt-0.5 text-center" x-text="row.agreement_date"></span>
+                            <td class="px-4 py-3.5 text-left font-mono">
+                                <span class="font-mono font-black text-slate-900 block text-left" x-text="'₹ ' + formatMoney(row.agreement_value)"></span>
+                                <span class="text-[9.5px] text-slate-400 font-mono block mt-0.5 text-left" x-text="row.agreement_date"></span>
                             </td>
 
                             {{-- 5. Collected Amount (Realized + Pending Realization on 2nd Line) --}}
-                            <td class="px-4 py-3.5 text-center font-mono">
+                            <td class="px-4 py-3.5 text-left font-mono">
                                 {{-- Line 1: Realized Amount --}}
-                                <div class="font-extrabold text-emerald-700 leading-tight text-center">
+                                <div class="font-extrabold text-emerald-700 leading-tight text-left">
                                     <span x-text="'₹ ' + formatMoney(row.collected_amount)"></span>
                                     <span class="text-[9px] font-bold text-emerald-600 font-sans ml-1" x-text="'(' + row.collected_pct + '%)'"></span>
                                 </div>
 
                                 {{-- Line 2: Pending Realization Badge (Separated on second line) --}}
                                 <template x-if="row.pending_realization > 0">
-                                    <div class="mt-1.5 flex justify-center">
+                                    <div class="mt-1.5 flex justify-start">
                                         <a :href="'{{ route('cheque-realization.queue') }}?customer_id=' + row.customer_id" 
                                            @click.stop
-                                           class="flex flex-col items-center px-2 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs cursor-pointer text-center"
+                                           class="inline-flex flex-col items-start px-2 py-1 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100/90 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 hover:border-amber-400 transition-all group shadow-2xs cursor-pointer text-left"
                                            title="Click to view & process in Cheque Realization Queue">
                                             {{-- Line 1 of badge: Amount with hourglass --}}
-                                            <div class="inline-flex items-center justify-center gap-1 font-bold text-amber-950 text-[10.5px] leading-tight">
+                                            <div class="inline-flex items-center justify-start gap-1 font-bold text-amber-950 text-[10.5px] leading-tight">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
                                                 <span class="text-[10px]">⏳</span>
                                                 <span x-text="'₹ ' + formatMoney(row.pending_realization)"></span>
                                             </div>
                                             {{-- Line 2 of badge: Pending Realization text --}}
-                                            <div class="inline-flex items-center justify-center gap-1 text-[8.5px] font-extrabold uppercase tracking-wider text-amber-800 group-hover:text-amber-950 mt-0.5 leading-tight font-sans">
+                                            <div class="inline-flex items-center justify-start gap-1 text-[8.5px] font-extrabold uppercase tracking-wider text-amber-800 group-hover:text-amber-950 mt-0.5 leading-tight font-sans">
                                                 <span>Pending Realization</span>
                                                 <svg class="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:translate-x-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                             </div>
@@ -734,24 +734,24 @@
                             </td>
 
                             {{-- 6. Outstanding Dues (Not deducting unrealized amount) --}}
-                            <td class="px-4 py-3.5 text-center font-mono">
-                                <span class="font-black block text-xs text-center" 
+                            <td class="px-4 py-3.5 text-left font-mono">
+                                <span class="font-black block text-xs text-left" 
                                       :class="row.outstanding_amount > 0 ? 'text-rose-600' : 'text-slate-400'"
                                       x-text="'₹ ' + formatMoney(row.outstanding_amount)"></span>
-                                <span class="text-[9px] font-bold text-slate-400 font-sans block mt-0.5 text-center" 
+                                <span class="text-[9px] font-bold text-slate-400 font-sans block mt-0.5 text-left" 
                                       x-text="row.outstanding_pct + '% Dues'"></span>
                             </td>
 
                             {{-- 7. Overdue Amount --}}
-                            <td class="px-4 py-3.5 text-center font-mono">
-                                <span class="font-black block text-center" 
+                            <td class="px-4 py-3.5 text-left font-mono">
+                                <span class="font-black block text-left" 
                                       :class="row.overdue_amount > 0 ? 'text-rose-700' : 'text-slate-400'"
                                       x-text="row.overdue_amount > 0 ? '₹ ' + formatMoney(row.overdue_amount) : '₹ 0.00'"></span>
                             </td>
 
                             {{-- 8. Aging Risk & Bucket --}}
-                            <td class="px-2 py-3.5 text-center">
-                                <div class="flex flex-col items-center gap-1">
+                            <td class="px-2 py-3.5 text-left">
+                                <div class="flex flex-col items-start gap-1">
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border shadow-2xs whitespace-nowrap"
                                           :class="getBucketBadgeClass(row.aging_bucket)"
                                           x-text="row.aging_bucket_label"></span>
@@ -765,8 +765,8 @@
                             </td>
 
                             {{-- 9. Actions --}}
-                            <td class="px-3 py-3.5 text-center w-20 print:hidden" @click.stop>
-                                <div class="flex items-center justify-center gap-1.5">
+                            <td class="px-3 py-3.5 text-left w-20 print:hidden" @click.stop>
+                                <div class="flex items-center justify-start gap-1.5">
                                     {{-- Toggle Accordion Button --}}
                                     <button type="button" 
                                             @click="toggleRow(row.sale_id)"
@@ -1057,15 +1057,15 @@
 
                     {{-- ── GRAND TOTAL SUMMARY FOOTER (NORMAL LIGHT THEME) ── --}}
                     <tfoot class="bg-slate-100 border-t-2 border-slate-300 border-b-2 border-slate-200 font-mono text-xs shadow-2xs">
-                        <tr class="font-bold text-slate-900">
-                            <td colspan="3" class="px-4 py-3.5 text-center font-sans font-black uppercase tracking-wider text-slate-800">
+                        <tr class="font-bold text-slate-900 text-left">
+                            <td colspan="3" class="px-4 py-3.5 text-left font-sans font-black uppercase tracking-wider text-slate-800">
                                 <span class="text-[#8a7522]">Grand Summary</span> (<span x-text="filteredRows.length"></span> Bookings)
                             </td>
-                            <td class="px-4 py-3.5 text-center font-black font-mono text-slate-900 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></td>
-                            <td class="px-4 py-3.5 text-center font-black font-mono text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></td>
-                            <td class="px-4 py-3.5 text-center font-black font-mono text-rose-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></td>
-                            <td class="px-4 py-3.5 text-center font-black font-mono text-red-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></td>
-                            <td :colspan="isPrinting ? 1 : 2" class="px-4 py-3.5 text-center font-sans text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            <td class="px-4 py-3.5 text-left font-black font-mono text-slate-900 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_agreement_value)"></td>
+                            <td class="px-4 py-3.5 text-left font-black font-mono text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_collected)"></td>
+                            <td class="px-4 py-3.5 text-left font-black font-mono text-rose-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_outstanding)"></td>
+                            <td class="px-4 py-3.5 text-left font-black font-mono text-red-700 text-xs" x-text="'₹ ' + formatMoney(summaryKPIs.total_overdue)"></td>
+                            <td :colspan="isPrinting ? 1 : 2" class="px-4 py-3.5 text-left font-sans text-[10px] font-black text-slate-500 uppercase tracking-wider">
                                 Audited Totals
                             </td>
                         </tr>
@@ -1662,7 +1662,7 @@ function customerCollectionDuesApp() {
                 hRow.eachCell({ includeEmpty: true }, (c) => {
                     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } }; // Blue color across all headers
                     c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                    c.alignment = { vertical: 'middle', horizontal: 'center' };
+                    c.alignment = { vertical: 'middle', horizontal: 'left' };
                     c.border = slateBorder;
                 });
 
@@ -1689,7 +1689,7 @@ function customerCollectionDuesApp() {
                     row.eachCell({ includeEmpty: true }, (c, col) => {
                         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         c.border = dataBorder;
-                        c.alignment = { vertical: 'middle', horizontal: 'center' };
+                        c.alignment = { vertical: 'middle', horizontal: 'left' };
 
                         if (col === 2) {
                             // Customer Name bold

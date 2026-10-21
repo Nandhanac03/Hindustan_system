@@ -3047,7 +3047,7 @@ class ReportController extends Controller
         return view('reports.loan-schedules', array_merge($lookups, compact('activeTab', 'loanSchedules', 'loanChartData')));
     }
 
-    public function trialBalance(Request $request): View
+   public function trialBalance(Request $request): View
     {
         $activeTab = 'trial_balance';
 
@@ -3107,6 +3107,14 @@ class ReportController extends Controller
                     $sub->select('ra_bill_payments.id')->from('ra_bill_payments')
                         ->join('ra_bills', 'ra_bill_payments.ra_bill_id', '=', 'ra_bills.id')
                         ->where('ra_bills.project_id', $selectedProjectId);
+                })
+                ->orWhereIn('journal_vouchers.reference_id', function($sub) use ($selectedProjectId) {
+                    $sub->select('id')->from('site_expenses')->where('project_id', $selectedProjectId);
+                })
+                ->orWhereIn('journal_vouchers.reference_id', function($sub) use ($selectedProjectId) {
+                    $sub->select('site_expense_payments.id')->from('site_expense_payments')
+                        ->join('site_expenses', 'site_expense_payments.site_expense_id', '=', 'site_expenses.id')
+                        ->where('site_expenses.project_id', $selectedProjectId);
                 });
             });
         }
@@ -3123,11 +3131,16 @@ class ReportController extends Controller
             ->join('accounts', 'voucher_lines.account_id', '=', 'accounts.id')
             ->where('vouchers.status', 'Posted')
             ->where(function($q) {
-                // Exclude contractor payment PVs already covered in journal_entries (JV-RA-* / JV-CP-*)
+                // Exclude contractor & site expense payment PVs already covered in journal_entries (JV-RA-* / JV-CP-* / JV-SE-* / JV-SEP-*)
                 $q->whereNot(function($sub) {
                     $sub->where('vouchers.voucher_number', 'like', 'PV-%')
-                        ->where('vouchers.narration', 'like', '%RA Bill%');
+                        ->where(function($n) {
+                            $n->where('vouchers.narration', 'like', '%RA Bill%')
+                              ->orWhere('vouchers.narration', 'like', '%Site Expense%');
+                        });
                 });
+                // Exclude site expense bill vouchers already covered in journal_entries
+                $q->where('vouchers.voucher_number', 'not like', 'BILL-EXP-%');
                 // Exclude loan EMI payment vouchers already covered in journal_entries (JV-EMI-*)
                 $q->where('vouchers.voucher_number', 'not like', 'PAY-LOAN-%');
             });
@@ -5360,4 +5373,24 @@ class ReportController extends Controller
             'rows'
         )));
     }
+
+    /**
+     * Contractor RA Bill & Payout Register Report
+     */
+    public function contractorPayoutReport(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+
+        $service = new \App\Services\ContractorPayoutReportService();
+        $reportData = $service->getReportData([
+            'project'    => $request->input('project', 'All Projects'),
+            'contractor' => $request->input('contractor', 'All Contractors'),
+            'from_date'  => $request->input('from_date', ''),
+            'to_date'    => $request->input('to_date', ''),
+            'status'     => $request->input('status', 'All'),
+        ]);
+
+        return view('reports.contractor-payout-report', array_merge($lookups, $reportData));
+    }
 }
+

@@ -252,6 +252,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/revenue-cost-breakdown', [\App\Http\Controllers\ReportController::class, 'revenueCostBreakdown'])->name('revenue_cost_breakdown');
         Route::get('/project-margin-analysis', [\App\Http\Controllers\ReportController::class, 'projectMarginAnalysis'])->name('project_margin_analysis');
         Route::get('/supplier-contractor', [\App\Http\Controllers\ReportController::class, 'supplierContractor'])->name('supplier_contractor');
+        Route::get('/contractor-payout-report', [\App\Http\Controllers\ReportController::class, 'contractorPayoutReport'])->name('contractor_payout_report');
         Route::get('/sales-return', [\App\Http\Controllers\ReportController::class, 'salesReturn'])->name('sales_return');
         Route::get('/exchange', [\App\Http\Controllers\ReportController::class, 'exchange'])->name('exchange_report');
         Route::get('/petty-cash', [\App\Http\Controllers\ReportController::class, 'pettyCash'])->name('petty_cash');
@@ -265,6 +266,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     });
 
     Route::get('/trial-balance', fn() => redirect()->route('reports.trial_balance'));
+    Route::get('/contractor-payout-report', fn() => redirect()->route('reports.contractor_payout_report'));
 
     // Sales Module
     Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');
