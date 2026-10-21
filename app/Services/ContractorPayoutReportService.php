@@ -128,9 +128,52 @@ class ContractorPayoutReportService
             ];
         }
 
-        // 3. Apply Filters
-        // Filter by Project
+        // 3. Lookups for Projects and Contractors from actual Database records
+        $allProjects = Project::where('is_active', true)->orderBy('name')->pluck('name')->toArray();
+        if (empty($allProjects)) {
+            $allProjects = Project::orderBy('name')->pluck('name')->toArray();
+        }
+
+        $allContractors = Payee::whereIn('type', ['Contractor', 'Supplier'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'email', 'pan', 'gstin'])
+            ->map(function ($c) {
+                return [
+                    'id'    => $c->pan ?: ($c->gstin ?: ('CON-' . str_pad((string)$c->id, 3, '0', STR_PAD_LEFT))),
+                    'name'  => $c->name,
+                    'phone' => $c->phone,
+                    'email' => $c->email,
+                ];
+            })
+            ->toArray();
+
+        // Fallback for contractor names present on bills
+        $existingContractorNames = array_column($allContractors, 'name');
+        foreach ($allDbBills as $b) {
+            $cName = $b->contractor_name ?: ($b->contractor?->name);
+            if ($cName && !in_array($cName, $existingContractorNames)) {
+                $allContractors[] = [
+                    'id'    => 'CON-' . str_pad((string)($b->contractor_id ?: $b->id), 3, '0', STR_PAD_LEFT),
+                    'name'  => $cName,
+                    'phone' => '',
+                    'email' => '',
+                ];
+                $existingContractorNames[] = $cName;
+            }
+        }
+
+        // Keep all unfiltered rows for client-side search/switch capability
+        $allUnfilteredRows = $rows;
+
+        // Default selected project to the first project from database if not explicitly set
+        $firstProject = !empty($allProjects) ? $allProjects[0] : 'All Projects';
         $selectedProject = $filters['project'] ?? null;
+        if ($selectedProject === null || $selectedProject === '') {
+            $selectedProject = $firstProject;
+        }
+
+        // 4. Apply Filters
+        // Filter by Project
         if ($selectedProject && $selectedProject !== 'All' && $selectedProject !== 'All Projects') {
             $rows = array_values(array_filter($rows, function ($r) use ($selectedProject) {
                 return stripos($r['project_phase'], $selectedProject) !== false;
@@ -176,7 +219,7 @@ class ContractorPayoutReportService
             }));
         }
 
-        // 4. Compute Dynamic Financial KPIs directly from Database
+        // 5. Compute Dynamic Financial KPIs directly from Database for the selected scope
         $totalBills = count($rows);
         $totalGross = (float) array_sum(array_column($rows, 'gross_amount'));
         $totalDeduc = (float) array_sum(array_column($rows, 'advance_deduction'));
@@ -197,50 +240,18 @@ class ContractorPayoutReportService
             'paid_pct'            => $paidPct,
         ];
 
-        // 5. Lookups from actual Database records
-        $allProjects = Project::where('is_active', true)->orderBy('name')->pluck('name')->toArray();
-        if (empty($allProjects)) {
-            $allProjects = Project::orderBy('name')->pluck('name')->toArray();
-        }
-
-        $allContractors = Payee::whereIn('type', ['Contractor', 'Supplier'])
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'email', 'pan', 'gstin'])
-            ->map(function ($c) {
-                return [
-                    'id'    => $c->pan ?: ($c->gstin ?: ('CON-' . str_pad((string)$c->id, 3, '0', STR_PAD_LEFT))),
-                    'name'  => $c->name,
-                    'phone' => $c->phone,
-                    'email' => $c->email,
-                ];
-            })
-            ->toArray();
-
-        // Fallback for contractor names present on bills
-        $existingContractorNames = array_column($allContractors, 'name');
-        foreach ($allDbBills as $b) {
-            $cName = $b->contractor_name ?: ($b->contractor?->name);
-            if ($cName && !in_array($cName, $existingContractorNames)) {
-                $allContractors[] = [
-                    'id'    => 'CON-' . str_pad((string)($b->contractor_id ?: $b->id), 3, '0', STR_PAD_LEFT),
-                    'name'  => $cName,
-                    'phone' => '',
-                    'email' => '',
-                ];
-                $existingContractorNames[] = $cName;
-            }
-        }
-
-        // Default selected bill is the first bill from the active database
-        $selectedBill = !empty($rows) ? $rows[0] : null;
+        // Default selected bill is the first bill from the filtered subset (or first bill overall)
+        $selectedBill = !empty($rows) ? $rows[0] : (!empty($allUnfilteredRows) ? $allUnfilteredRows[0] : null);
 
         return [
             'kpis'               => $kpis,
             'rows'               => $rows,
+            'allRows'            => $allUnfilteredRows,
             'allProjects'        => $allProjects,
+            'firstProject'       => $firstProject,
             'allContractors'     => $allContractors,
             'selectedBill'       => $selectedBill,
-            'selectedProject'    => $selectedProject ?? 'All Projects',
+            'selectedProject'    => $selectedProject,
             'selectedContractor' => $selectedContractor ?? 'All Contractors',
             'fromDate'           => $fromDate ?? '',
             'toDate'             => $toDate ?? '',

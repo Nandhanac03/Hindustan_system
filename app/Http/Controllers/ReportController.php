@@ -5383,7 +5383,7 @@ class ReportController extends Controller
 
         $service = new \App\Services\ContractorPayoutReportService();
         $reportData = $service->getReportData([
-            'project'    => $request->input('project', 'All Projects'),
+            'project'    => $request->has('project') ? $request->input('project') : null,
             'contractor' => $request->input('contractor', 'All Contractors'),
             'from_date'  => $request->input('from_date', ''),
             'to_date'    => $request->input('to_date', ''),

@@ -362,7 +362,7 @@
                         :class="open ? 'active' : ''">
                     <div class="flex items-center gap-1.5 truncate">
                         <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <span class="truncate" x-text="filterProject">All Projects</span>
+                        <span class="truncate" :class="filterProject !== 'All Projects' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'" x-text="filterProject">All Projects</span>
                     </div>
                     <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
@@ -670,7 +670,7 @@
             </div>
 
             {{-- Top Right Actions: Direct Link to Contractor Payment Release Desk --}}
-            <div class="flex items-center gap-2">
+            <!-- <div class="flex items-center gap-2">
                 <a href="{{ route('expenses.ra-bills.payment-release') }}"
                    class="h-[36px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-1.5 uppercase tracking-wider cursor-pointer active:scale-95">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -692,7 +692,7 @@
                         <a href="{{ route('expenses.ra-bills.ledger') }}" class="block px-3 py-1.5 text-slate-700 hover:bg-slate-50">View Contractor Ledger</a>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         {{-- Tab 1 Content: RA Bill Details (4-Column Layout) --}}
@@ -871,20 +871,23 @@
 {{-- Alpine.js Application Component Script --}}
 <script>
 function contractorPayoutApp() {
-    const rawRows = @json($rows);
+    const rawRows = @json($allRows ?? $rows);
     const initialSelected = @json($selectedBill);
     const allContractors = @json($allContractors);
+    const allProjects = @json($allProjects);
+    const defaultProject = '{{ $selectedProject }}' || (allProjects.length > 0 ? allProjects[0] : 'All Projects');
 
     return {
         // Data arrays
         allRows: rawRows,
         filteredRows: rawRows,
         allContractorsList: allContractors,
+        allProjectsList: allProjects,
 
         // Filtering state
         searchQuery: '',
         filterStatus: '{{ $selectedStatus ?? "All" }}',
-        filterProject: '{{ $selectedProject ?? "All Projects" }}',
+        filterProject: defaultProject,
         filterContractor: '{{ $selectedContractor ?? "All Contractors" }}',
 
         // Pagination
@@ -902,7 +905,7 @@ function contractorPayoutApp() {
         resetFilters() {
             this.searchQuery = '';
             this.filterStatus = 'All';
-            this.filterProject = 'All Projects';
+            this.filterProject = this.allProjectsList.length > 0 ? this.allProjectsList[0] : 'All Projects';
             this.filterContractor = 'All Contractors';
             this.currentPage = 1;
             this.applyFilters();
