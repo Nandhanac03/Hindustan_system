@@ -50,6 +50,14 @@ class JournalEntry extends Model
     }
 
     /**
+     * Vendor entity relation
+     */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'entity_id');
+    }
+
+    /**
      * Contractor entity relation
      */
     public function contractor(): BelongsTo
@@ -100,6 +108,7 @@ class JournalEntry extends Model
 
         return match (strtoupper($this->entity_type)) {
             'CUSTOMER'       => Customer::find($this->entity_id),
+            'VENDOR'         => Vendor::find($this->entity_id) ?? Payee::find($this->entity_id),
             'SUPPLIER', 
             'CONTRACTOR',
             'PARTNER'        => Payee::find($this->entity_id) ?? Vendor::find($this->entity_id),

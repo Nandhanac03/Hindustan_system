@@ -20,6 +20,9 @@ use App\Models\Unit;
 use App\Models\SiteExpensePayment;
 use App\Models\PaymentMode;
 use App\Models\Vendor;
+use App\Models\JournalVoucher;
+use App\Models\JournalEntry;
+use App\Models\VoucherType;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -223,9 +226,9 @@ class SiteExpenseController extends Controller
             'sgst_amount'              => 'nullable|numeric|min:0',
             'igst_amount'              => 'nullable|numeric|min:0',
             'net_amount'               => 'required|numeric|min:0.01',
-            'payment_source_type'      => 'required|in:bank,loan',
-            'company_bank_account_id'  => 'required_if:payment_source_type,bank|nullable|exists:company_bank_accounts,id',
-            'loan_id'                  => 'required_if:payment_source_type,loan|nullable|exists:loans,id',
+            'payment_source_type'      => 'nullable|in:bank,loan',
+            'company_bank_account_id'  => 'nullable|exists:company_bank_accounts,id',
+            'loan_id'                  => 'nullable|exists:loans,id',
             'transaction_reference_no' => 'required|string|max:100',
             'narration'                => 'nullable|string|max:1000',
             'attachment'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -289,9 +292,12 @@ class SiteExpenseController extends Controller
                 $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->where('account_type', 'like', '%EXPENSE%')->first();
             }
             if (!$chartOfAccount || (string)$chartOfAccount->account_code === '4001') {
-                // Land Acquisition & Legal Cost / Admin belongs to Site Office & Administrative (4003)
-                $chartOfAccount = ChartOfAccount::where('account_code', '4003')->first();
+                // Default to Construction Material Expenses (4005) or Site Office & Administrative (4003)
+                $chartOfAccount = ChartOfAccount::where('account_code', '4005')->first() 
+                    ?: ChartOfAccount::where('account_code', '4003')->first();
             }
+
+            $paymentSourceType = $validated['payment_source_type'] ?? 'bank';
 
             $siteExpense = SiteExpense::create([
                 'system_id'                => Auth::user()->system_id ?? 1,
@@ -314,9 +320,9 @@ class SiteExpenseController extends Controller
                 'igst_amount'              => $igst,
                 'total_gst_amount'         => $totalGst,
                 'net_amount'               => $net,
-                'payment_source_type'      => $validated['payment_source_type'],
-                'company_bank_account_id'  => $validated['payment_source_type'] === 'bank' ? $validated['company_bank_account_id'] : null,
-                'loan_id'                  => $validated['payment_source_type'] === 'loan' ? $validated['loan_id'] : null,
+                'payment_source_type'      => $paymentSourceType,
+                'company_bank_account_id'  => $paymentSourceType === 'bank' ? ($validated['company_bank_account_id'] ?? null) : null,
+                'loan_id'                  => $paymentSourceType === 'loan' ? ($validated['loan_id'] ?? null) : null,
                 'transaction_reference_no' => $validated['transaction_reference_no'],
                 'narration'                => $validated['narration'] ?? null,
                 'attachment_path'          => $attachmentPath,
@@ -348,11 +354,16 @@ class SiteExpenseController extends Controller
                 } catch (\Exception $e) {}
             }
 
+            // 4. Double-Entry Accounting Ledger Posting (Scenario A: Credit Purchase)
+            if ($status === 'Approved') {
+                $this->recordSiteExpenseJournalVoucher($siteExpense);
+            }
+
             DB::commit();
 
             $msg = ($status === 'Draft') 
                 ? "Draft Expense {$voucherNumber} saved successfully." 
-                : "Site Expense Voucher {$voucherNumber} of ₹" . number_format($net, 2) . " submitted for approval!";
+                : "Site Expense Voucher {$voucherNumber} of ₹" . number_format($net, 2) . " registered and posted to Control Account 2001 (Sundry Creditors)!";
 
             return redirect()->route('site-expenses.index')->with('success', $msg);
         } catch (\Exception $e) {
@@ -384,9 +395,9 @@ class SiteExpenseController extends Controller
             'sgst_amount'              => 'nullable|numeric|min:0',
             'igst_amount'              => 'nullable|numeric|min:0',
             'net_amount'               => 'required|numeric|min:0.01',
-            'payment_source_type'      => 'required|in:bank,loan',
-            'company_bank_account_id'  => 'required_if:payment_source_type,bank|nullable|exists:company_bank_accounts,id',
-            'loan_id'                  => 'required_if:payment_source_type,loan|nullable|exists:loans,id',
+            'payment_source_type'      => 'nullable|in:bank,loan',
+            'company_bank_account_id'  => 'nullable|exists:company_bank_accounts,id',
+            'loan_id'                  => 'nullable|exists:loans,id',
             'transaction_reference_no' => 'required|string|max:100',
             'narration'                => 'nullable|string|max:1000',
             'attachment'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -449,9 +460,12 @@ class SiteExpenseController extends Controller
                 $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->where('account_type', 'like', '%EXPENSE%')->first();
             }
             if (!$chartOfAccount || (string)$chartOfAccount->account_code === '4001') {
-                // Land Acquisition & Legal Cost / Admin belongs to Site Office & Administrative (4003)
-                $chartOfAccount = ChartOfAccount::where('account_code', '4003')->first();
+                // Default to Construction Material Expenses (4005) or Site Office & Administrative (4003)
+                $chartOfAccount = ChartOfAccount::where('account_code', '4005')->first() 
+                    ?: ChartOfAccount::where('account_code', '4003')->first();
             }
+
+            $paymentSourceType = $validated['payment_source_type'] ?? 'bank';
 
             $siteExpense->update([
                 'project_id'               => $validated['project_id'],
@@ -473,14 +487,21 @@ class SiteExpenseController extends Controller
                 'total_gst_amount'         => $totalGst,
                 'net_amount'               => $net,
                 'balance_amount'           => max(0, $net - (float)$siteExpense->paid_amount),
-                'payment_source_type'      => $validated['payment_source_type'],
-                'company_bank_account_id'  => $validated['payment_source_type'] === 'bank' ? $validated['company_bank_account_id'] : null,
-                'loan_id'                  => $validated['payment_source_type'] === 'loan' ? $validated['loan_id'] : null,
+                'payment_source_type'      => $paymentSourceType,
+                'company_bank_account_id'  => $paymentSourceType === 'bank' ? ($validated['company_bank_account_id'] ?? null) : null,
+                'loan_id'                  => $paymentSourceType === 'loan' ? ($validated['loan_id'] ?? null) : null,
                 'transaction_reference_no' => $validated['transaction_reference_no'],
                 'narration'                => $validated['narration'] ?? null,
                 'attachment_path'          => $attachmentPath,
                 'status'                   => $status,
             ]);
+
+            // Double-Entry Accounting Ledger Posting Sync
+            if ($status === 'Approved') {
+                $this->recordSiteExpenseJournalVoucher($siteExpense);
+            } else {
+                $this->revertSiteExpenseJournalVoucher($siteExpense);
+            }
 
             DB::commit();
 
@@ -511,10 +532,13 @@ class SiteExpenseController extends Controller
                 'status' => 'Approved',
             ]);
 
+            // Post double-entry accounting records (Debit Expense, Credit Control Account 2001 Sundry Creditors)
+            $this->recordSiteExpenseJournalVoucher($siteExpense);
+
             DB::commit();
 
             return redirect()->route('site-expenses.index')
-                ->with('success', "Voucher {$siteExpense->voucher_number} approved! Liability confirmed and forwarded to Payment Release desk.");
+                ->with('success', "Voucher {$siteExpense->voucher_number} approved! Liability posted to Control Account 2001 (Sundry Creditors) and forwarded to Payment Release desk.");
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to approve voucher: ' . $e->getMessage());
@@ -526,9 +550,17 @@ class SiteExpenseController extends Controller
      */
     public function reject(SiteExpense $siteExpense): RedirectResponse
     {
-        $siteExpense->update(['status' => 'Rejected']);
-        return redirect()->route('site-expenses.index')
-            ->with('info', "Voucher {$siteExpense->voucher_number} sent back / rejected.");
+        DB::beginTransaction();
+        try {
+            $siteExpense->update(['status' => 'Rejected']);
+            $this->revertSiteExpenseJournalVoucher($siteExpense);
+            DB::commit();
+            return redirect()->route('site-expenses.index')
+                ->with('info', "Voucher {$siteExpense->voucher_number} sent back / rejected.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to reject voucher: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -547,19 +579,26 @@ class SiteExpenseController extends Controller
     {
         DB::beginTransaction();
         try {
-            if ($siteExpense->status === 'Approved') {
-                if ($siteExpense->payment_source_type === 'bank' && $siteExpense->company_bank_account_id) {
-                    $bankAccount = CompanyBankAccount::find($siteExpense->company_bank_account_id);
-                    if ($bankAccount) {
-                        $bankAccount->increment('current_balance', (float)$siteExpense->net_amount);
-                    }
-                } elseif ($siteExpense->payment_source_type === 'loan' && $siteExpense->loan_id) {
-                    $loan = Loan::find($siteExpense->loan_id);
-                    if ($loan) {
-                        $loan->decrement('outstanding_balance', (float)$siteExpense->net_amount);
+            if ($siteExpense->status === 'Approved' && (float)$siteExpense->paid_amount > 0) {
+                // Revert any disbursements already paid
+                foreach ($siteExpense->payments as $payment) {
+                    if (!$payment->is_historical) {
+                        if ($payment->payment_source_type === 'bank' && $payment->company_bank_account_id) {
+                            $bankAccount = CompanyBankAccount::find($payment->company_bank_account_id);
+                            if ($bankAccount) {
+                                $bankAccount->increment('current_balance', (float)$payment->paid_amount);
+                            }
+                        } elseif ($payment->payment_source_type === 'loan' && $payment->loan_id) {
+                            $loan = Loan::find($payment->loan_id);
+                            if ($loan) {
+                                $loan->decrement('outstanding_balance', (float)$payment->paid_amount);
+                            }
+                        }
                     }
                 }
             }
+
+            $this->revertSiteExpenseJournalVoucher($siteExpense);
 
             if ($siteExpense->attachment_path && Storage::disk('public')->exists($siteExpense->attachment_path)) {
                 Storage::disk('public')->delete($siteExpense->attachment_path);
@@ -754,7 +793,7 @@ class SiteExpenseController extends Controller
             }
 
             // 2. Record disbursement payment
-            SiteExpensePayment::create([
+            $payment = SiteExpensePayment::create([
                 'system_id'               => $systemId,
                 'site_expense_id'         => $siteExpense->id,
                 'payment_date'            => $validated['payment_date'],
@@ -789,6 +828,9 @@ class SiteExpenseController extends Controller
             // 4. Update site expense balance and status
             $siteExpense->recalculateBalances();
 
+            // 5. Post Payment Release to Double-Entry Accounting Ledger (Debit 2001 Sundry Creditors, Credit 1001 Bank)
+            $this->recordSiteExpensePaymentJournalVoucher($siteExpense, $payment, $validated);
+
             DB::commit();
 
             $formattedPaid = number_format($paidAmount, 2);
@@ -803,6 +845,451 @@ class SiteExpenseController extends Controller
             return redirect()->back()
                 ->with('error', 'Disbursement release failed: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    /**
+     * Post Scenario A: Credit Purchase to Double-Entry Accounting Ledger
+     * Debit: Expense Account (e.g. 4005 - Construction Material Expenses)
+     * Credit: Control Account 2001 - Sundry Creditors (Sub-ledger: entity_type = Vendor, entity_id = Vendor_ID)
+     */
+    protected function recordSiteExpenseJournalVoucher(SiteExpense $siteExpense): void
+    {
+        if ($siteExpense->status !== 'Approved') {
+            $this->revertSiteExpenseJournalVoucher($siteExpense);
+            return;
+        }
+
+        $netAmount = (float) $siteExpense->net_amount;
+        if ($netAmount <= 0) {
+            return;
+        }
+
+        try {
+            $systemId = Auth::user()->system_id ?? 1;
+
+            // 1. Determine Expense Account Code (4005 default or mapped category COA)
+            $expenseAccCode = null;
+            if ($siteExpense->chart_of_account_id) {
+                $coa = ChartOfAccount::find($siteExpense->chart_of_account_id);
+                if ($coa && in_array((string)$coa->account_code, ['4002', '4003', '4004', '4005'])) {
+                    $expenseAccCode = (string)$coa->account_code;
+                }
+            }
+            if (!$expenseAccCode) {
+                $categoryCode = (string)$siteExpense->expense_category_code;
+                if (in_array($categoryCode, ['4002', '4003', '4004', '4005'])) {
+                    $expenseAccCode = $categoryCode;
+                }
+            }
+            if (!$expenseAccCode) {
+                $expenseAccCode = '4005'; // Default Construction Material Expenses
+            }
+
+            $requiredAccounts = [
+                $expenseAccCode => ['name' => $siteExpense->expense_category_name ?: 'Construction Material Expenses', 'type' => 'EXPENSE'],
+                '2001'          => ['name' => 'Sundry Creditors (Material & Service Vendors)', 'type' => 'LIABILITY'],
+                '1001'          => ['name' => 'Bank Balances', 'type' => 'ASSET'],
+            ];
+
+            foreach ($requiredAccounts as $accCode => $accInfo) {
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => $accCode],
+                    [
+                        'account_name' => $accInfo['name'],
+                        'account_type' => $accInfo['type'],
+                        'is_active'    => true,
+                    ]
+                );
+            }
+
+            // 2. Ensure VoucherType exists (Code: SITE_EXPENSE_BILL, Prefix: JV-SE)
+            $voucherType = VoucherType::firstOrCreate(
+                ['code' => 'SITE_EXPENSE_BILL'],
+                [
+                    'name'        => 'Site Expense Bill Voucher',
+                    'prefix'      => 'JV-SE',
+                    'description' => 'Generated on site expense verification/approval (Credit Purchase to Sundry Creditors)',
+                    'is_active'   => true,
+                ]
+            );
+
+            $payeeName = $siteExpense->payee_display_name;
+            $date = $siteExpense->voucher_date ? Carbon::parse($siteExpense->voucher_date)->format('Y-m-d') : date('Y-m-d');
+            $year = date('Y', strtotime($date));
+
+            // 3. Resolve unique voucher number
+            $existingVoucher = JournalVoucher::where('voucher_type_id', $voucherType->id)
+                ->where('reference_id', $siteExpense->id)
+                ->first();
+
+            if ($existingVoucher) {
+                $voucherNo = $existingVoucher->voucher_no;
+            } else {
+                $baseVoucherNo = 'JV-SE-' . $year . '-' . str_pad((string) $siteExpense->id, 4, '0', STR_PAD_LEFT);
+                $voucherNo = $baseVoucherNo;
+                $suffix = 1;
+                while (JournalVoucher::where('voucher_no', $voucherNo)->exists()) {
+                    $voucherNo = $baseVoucherNo . '-' . $suffix;
+                    $suffix++;
+                }
+            }
+
+            // 4. Create or update Journal Voucher header
+            $journalVoucher = JournalVoucher::updateOrCreate(
+                [
+                    'voucher_type_id' => $voucherType->id,
+                    'reference_id'    => $siteExpense->id,
+                ],
+                [
+                    'voucher_no'   => $voucherNo,
+                    'voucher_date' => $date,
+                    'reference_no' => $siteExpense->transaction_reference_no,
+                    'narration'    => "Site Expense Bill #{$siteExpense->voucher_number} - Ref #{$siteExpense->transaction_reference_no} ({$payeeName}) - {$siteExpense->expense_category_name}",
+                    'status'       => 'Posted',
+                    'is_active'    => true,
+                ]
+            );
+
+            // 5. Clear previous entries for this voucher (avoids duplicates)
+            JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
+
+            $entityType = ($siteExpense->payee_type === 'registered' && $siteExpense->vendor_id) ? 'VENDOR' : 'PAYEE';
+            $entityId = $siteExpense->vendor_id ?: $siteExpense->payee_id;
+
+            // 6. Debit: Expense Account (4005 - Construction Material Expenses)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => $expenseAccCode,
+                'entity_type'    => $entityType,
+                'entity_id'      => $entityId,
+                'debit_amount'   => $netAmount,
+                'credit_amount'  => 0.00,
+                'line_narration' => "Debit: Expense Account ({$siteExpense->expense_category_name} - Ref: {$siteExpense->transaction_reference_no})",
+            ]);
+
+            // 7. Credit: Control Account 2001 - Sundry Creditors (Sub-ledger: entity_type = Vendor, entity_id = Vendor_ID)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '2001',
+                'entity_type'    => $entityType,
+                'entity_id'      => $entityId,
+                'debit_amount'   => 0.00,
+                'credit_amount'  => $netAmount,
+                'line_narration' => "Credit: Control Account 2001 - Sundry Creditors ({$payeeName} - Ref: {$siteExpense->transaction_reference_no})",
+            ]);
+
+            // 8. Secondary Double-Entry Posting for Entity Sub-Ledger (Voucher, VoucherLine, LedgerEntry)
+            if ($siteExpense->vendor && $siteExpense->vendor->linked_account_id) {
+                $expenseAccount = Account::where('system_id', $systemId)
+                    ->where(function($q) {
+                        $q->where('code', 'EXP-SITE')->orWhere('code', '4005')->orWhere('name', 'like', '%Site Expense%');
+                    })
+                    ->first();
+
+                if (!$expenseAccount) {
+                    $expenseAccount = Account::create([
+                        'system_id' => $systemId,
+                        'code'      => 'EXP-SITE',
+                        'name'      => 'Site Expenses',
+                        'type'      => 'Expense',
+                        'is_active' => true,
+                    ]);
+                }
+
+                $primaryVoucher = Voucher::updateOrCreate(
+                    [
+                        'voucher_number' => 'BILL-' . $siteExpense->voucher_number,
+                    ],
+                    [
+                        'system_id'    => $systemId,
+                        'type'         => 'Purchase',
+                        'date'         => $date,
+                        'narration'    => "Bill {$siteExpense->transaction_reference_no} for Vendor {$payeeName}",
+                        'reference_no' => $siteExpense->transaction_reference_no,
+                        'status'       => 'Posted',
+                        'created_by'   => Auth::id() ?? 1,
+                    ]
+                );
+
+                // Clear previous lines
+                $prevLines = VoucherLine::where('voucher_id', $primaryVoucher->id)->pluck('id');
+                LedgerEntry::whereIn('voucher_line_id', $prevLines)->delete();
+                VoucherLine::where('voucher_id', $primaryVoucher->id)->delete();
+
+                // Debit Site Expense Account
+                $debitLine = VoucherLine::create([
+                    'voucher_id'     => $primaryVoucher->id,
+                    'account_id'     => $expenseAccount->id,
+                    'debit'          => $netAmount,
+                    'credit'         => 0.00,
+                    'line_narration' => "Debit: Site Expenses for Ref #{$siteExpense->transaction_reference_no}",
+                ]);
+
+                LedgerEntry::create([
+                    'system_id'       => $systemId,
+                    'account_id'      => $expenseAccount->id,
+                    'voucher_id'      => $primaryVoucher->id,
+                    'voucher_line_id' => $debitLine->id,
+                    'date'            => $date,
+                    'debit'           => $netAmount,
+                    'credit'          => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+
+                // Credit Vendor's Linked Payable Account
+                $creditLine = VoucherLine::create([
+                    'voucher_id'     => $primaryVoucher->id,
+                    'account_id'     => $siteExpense->vendor->linked_account_id,
+                    'debit'          => 0.00,
+                    'credit'         => $netAmount,
+                    'line_narration' => "Credit: Vendor Payable for Ref #{$siteExpense->transaction_reference_no}",
+                ]);
+
+                LedgerEntry::create([
+                    'system_id'       => $systemId,
+                    'account_id'      => $siteExpense->vendor->linked_account_id,
+                    'voucher_id'      => $primaryVoucher->id,
+                    'voucher_line_id' => $creditLine->id,
+                    'date'            => $date,
+                    'debit'           => 0.00,
+                    'credit'          => $netAmount,
+                    'running_balance' => 0.00,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Site Expense #' . $siteExpense->id . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Post Payment Release to Double-Entry Accounting Ledger
+     * Debit: Control Account 2001 - Sundry Creditors (Sub-ledger: entity_id = Vendor_ID) — Decreases liability owed
+     * Credit: Bank Account (1001) / Loan (2201)
+     */
+    protected function recordSiteExpensePaymentJournalVoucher(SiteExpense $siteExpense, SiteExpensePayment $payment, array $validated): void
+    {
+        $paidAmount = (float) $payment->paid_amount;
+        if ($paidAmount <= 0.00) {
+            return;
+        }
+
+        try {
+            $systemId = Auth::user()->system_id ?? 1;
+
+            $bankModel = !empty($validated['company_bank_account_id'])
+                ? CompanyBankAccount::find($validated['company_bank_account_id'])
+                : null;
+            $bankName = $bankModel?->bank_name ?? 'Bank Balances';
+
+            $requiredAccounts = [
+                '2001' => ['name' => 'Sundry Creditors (Material & Service Vendors)', 'type' => 'LIABILITY'],
+                '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET'],
+                '2201' => ['name' => 'Bank Construction Loans / Project Credit Limits', 'type' => 'LIABILITY'],
+            ];
+
+            foreach ($requiredAccounts as $accCode => $accInfo) {
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => $accCode],
+                    [
+                        'account_name' => $accInfo['name'],
+                        'account_type' => $accInfo['type'],
+                        'is_active'    => true,
+                    ]
+                );
+            }
+
+            // Ensure VoucherType exists (Code: SITE_EXPENSE_PAYMENT, Prefix: JV-SEP)
+            $voucherType = VoucherType::firstOrCreate(
+                ['code' => 'SITE_EXPENSE_PAYMENT'],
+                [
+                    'name'        => 'Site Expense Payment Release',
+                    'prefix'      => 'JV-SEP',
+                    'description' => 'Generated on site expense payment disbursement (Debits Sundry Creditors, Credits Bank)',
+                    'is_active'   => true,
+                ]
+            );
+
+            $payeeName = $siteExpense->payee_display_name;
+            $date = $payment->payment_date ? Carbon::parse($payment->payment_date)->format('Y-m-d') : date('Y-m-d');
+            $year = date('Y', strtotime($date));
+
+            // Resolve unique voucher number
+            $existingVoucher = JournalVoucher::where('voucher_type_id', $voucherType->id)
+                ->where('reference_id', $payment->id)
+                ->first();
+
+            if ($existingVoucher) {
+                $voucherNo = $existingVoucher->voucher_no;
+            } else {
+                $baseVoucherNo = 'JV-SEP-' . $year . '-' . str_pad((string) $payment->id, 4, '0', STR_PAD_LEFT);
+                $voucherNo = $baseVoucherNo;
+                $suffix = 1;
+                while (JournalVoucher::where('voucher_no', $voucherNo)->exists()) {
+                    $voucherNo = $baseVoucherNo . '-' . $suffix;
+                    $suffix++;
+                }
+            }
+
+            // Create or update Journal Voucher header
+            $journalVoucher = JournalVoucher::updateOrCreate(
+                [
+                    'voucher_type_id' => $voucherType->id,
+                    'reference_id'    => $payment->id,
+                ],
+                [
+                    'voucher_no'   => $voucherNo,
+                    'voucher_date' => $date,
+                    'reference_no' => $validated['reference_no'] ?? $siteExpense->transaction_reference_no,
+                    'narration'    => "Site Expense Payment Release for Voucher #{$siteExpense->voucher_number} (Ref: {$siteExpense->transaction_reference_no}) to {$payeeName} via {$bankName}",
+                    'status'       => 'Posted',
+                    'is_active'    => true,
+                ]
+            );
+
+            // Clear previous entries for this voucher (avoids duplicates)
+            JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
+
+            $entityType = ($siteExpense->payee_type === 'registered' && $siteExpense->vendor_id) ? 'VENDOR' : 'PAYEE';
+            $entityId = $siteExpense->vendor_id ?: $siteExpense->payee_id;
+            $bankAccountId = $validated['company_bank_account_id'] ?? $bankModel?->id ?? null;
+
+            // 1. Debit: Control Account 2001 - Sundry Creditors (Sub-ledger: entity_id = Vendor_ID) — Decreases liability owed
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '2001',
+                'entity_type'    => $entityType,
+                'entity_id'      => $entityId,
+                'debit_amount'   => $paidAmount,
+                'credit_amount'  => 0.00,
+                'line_narration' => "Debit: Control Account 2001 - Sundry Creditors Cleared ({$payeeName} - Ref: {$siteExpense->transaction_reference_no})",
+            ]);
+
+            // 2. Credit: Bank Account (1001) / Loan (2201)
+            $isLoan = ($validated['payment_source_type'] ?? 'bank') === 'loan';
+            $creditAccId = $isLoan ? '2201' : '1001';
+            $creditEntityType = $isLoan ? 'LOAN' : 'BANK';
+            $creditEntityId = $isLoan ? ($validated['loan_id'] ?? null) : $bankAccountId;
+
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => $creditAccId,
+                'entity_type'    => $creditEntityType,
+                'entity_id'      => $creditEntityId,
+                'debit_amount'   => 0.00,
+                'credit_amount'  => $paidAmount,
+                'line_narration' => "Credit: Bank Account (1001) Payment Disbursed via {$bankName} (Ref: " . ($validated['reference_no'] ?? 'N/A') . ")",
+            ]);
+
+            // 3. Secondary Double-Entry Posting for Entity Sub-Ledger (Voucher, VoucherLine, LedgerEntry)
+            if ($siteExpense->vendor && $siteExpense->vendor->linked_account_id && $payment->voucher_id) {
+                $disburseVoucher = Voucher::find($payment->voucher_id);
+                if ($disburseVoucher) {
+                    $bankAccountModel = $bankModel ? Account::where('system_id', $systemId)
+                        ->where(function($q) use ($bankModel) {
+                            $q->where('code', 'like', 'BANK-' . $bankModel->id)
+                              ->orWhere('name', 'like', '%' . $bankModel->bank_name . '%');
+                        })->first() : null;
+
+                    if (!$bankAccountModel) {
+                        $bankAccountModel = Account::where('system_id', $systemId)->where('type', 'Asset')->first();
+                    }
+
+                    if ($bankAccountModel) {
+                        $prevLines = VoucherLine::where('voucher_id', $disburseVoucher->id)->pluck('id');
+                        LedgerEntry::whereIn('voucher_line_id', $prevLines)->delete();
+                        VoucherLine::where('voucher_id', $disburseVoucher->id)->delete();
+
+                        // Debit Vendor Payable
+                        $debitLine = VoucherLine::create([
+                            'voucher_id'     => $disburseVoucher->id,
+                            'account_id'     => $siteExpense->vendor->linked_account_id,
+                            'debit'          => $paidAmount,
+                            'credit'         => 0.00,
+                            'line_narration' => "Debit: Vendor Payable Cleared ({$payeeName})",
+                        ]);
+
+                        LedgerEntry::create([
+                            'system_id'       => $systemId,
+                            'account_id'      => $siteExpense->vendor->linked_account_id,
+                            'voucher_id'      => $disburseVoucher->id,
+                            'voucher_line_id' => $debitLine->id,
+                            'date'            => $date,
+                            'debit'           => $paidAmount,
+                            'credit'          => 0.00,
+                            'running_balance' => 0.00,
+                        ]);
+
+                        // Credit Bank Account
+                        $creditLine = VoucherLine::create([
+                            'voucher_id'     => $disburseVoucher->id,
+                            'account_id'     => $bankAccountModel->id,
+                            'debit'          => 0.00,
+                            'credit'         => $paidAmount,
+                            'line_narration' => "Credit: Disbursed via {$bankName}",
+                        ]);
+
+                        LedgerEntry::create([
+                            'system_id'       => $systemId,
+                            'account_id'      => $bankAccountModel->id,
+                            'voucher_id'      => $disburseVoucher->id,
+                            'voucher_line_id' => $creditLine->id,
+                            'date'            => $date,
+                            'debit'           => 0.00,
+                            'credit'          => $paidAmount,
+                            'running_balance' => 0.00,
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Site Expense Payment #' . $payment->id . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Revert / Delete Journal Voucher entries when a site expense is rejected or deleted
+     */
+    protected function revertSiteExpenseJournalVoucher(SiteExpense $siteExpense): void
+    {
+        try {
+            // 1. Revert bill journal voucher
+            $billVoucherType = VoucherType::where('code', 'SITE_EXPENSE_BILL')->first();
+            if ($billVoucherType) {
+                $jvs = JournalVoucher::where('voucher_type_id', $billVoucherType->id)
+                    ->where('reference_id', $siteExpense->id)
+                    ->get();
+                foreach ($jvs as $jv) {
+                    JournalEntry::where('voucher_id', $jv->id)->delete();
+                    $jv->delete();
+                }
+            }
+
+            // 2. Revert bill voucher and lines
+            $billVoucher = Voucher::where('voucher_number', 'BILL-' . $siteExpense->voucher_number)->first();
+            if ($billVoucher) {
+                $lines = VoucherLine::where('voucher_id', $billVoucher->id)->pluck('id');
+                LedgerEntry::whereIn('voucher_line_id', $lines)->delete();
+                VoucherLine::where('voucher_id', $billVoucher->id)->delete();
+                $billVoucher->delete();
+            }
+
+            // 3. Revert payment journal vouchers if any
+            $paymentIds = SiteExpensePayment::where('site_expense_id', $siteExpense->id)->pluck('id');
+            if ($paymentIds->isNotEmpty()) {
+                $paymentVoucherType = VoucherType::where('code', 'SITE_EXPENSE_PAYMENT')->first();
+                if ($paymentVoucherType) {
+                    $pJvs = JournalVoucher::where('voucher_type_id', $paymentVoucherType->id)
+                        ->whereIn('reference_id', $paymentIds)
+                        ->get();
+                    foreach ($pJvs as $pjv) {
+                        JournalEntry::where('voucher_id', $pjv->id)->delete();
+                        $pjv->delete();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error reverting Journal Voucher on Site Expense #' . $siteExpense->id . ': ' . $e->getMessage());
         }
     }
 }
