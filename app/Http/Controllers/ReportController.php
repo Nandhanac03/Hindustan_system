@@ -3840,30 +3840,35 @@ class ReportController extends Controller
 
         $netEquity = max(0.0, $totalAssets - $totalLiabilities);
 
-        // Fetch dynamic Partner Capital / Share Capital (Account 3001) balance:
-        // Partner (Total Allocated Net Profit + Capital Contributions) - Journal Entries (3001) Debits
-        $allPartnerSharesForBS = PartnerShare::all();
-        $allReceiptsForPartnersBS = Receipt::whereNull('partner_id')->get();
-        $allPartnerContribsBS = \App\Models\PartnerContribution::all();
+        // ── Share Capital (Account 3001) ────────────────────────────────────────
+        // Use ACTUAL JE net credit for account 3001 (i.e. what was credited as
+        // partner capital in double-entry).  If no JE exists for 3001, fall back
+        // to the sum of PartnerContribution records.
+        // NOTE: Customer receipts are REVENUE, NOT equity – they must NOT be used
+        // here (the previous incorrect approach inflated equity by the full receipt
+        // total, causing Assets ≠ Liabilities + Equity).
+        $allPartnerContribsBS      = \App\Models\PartnerContribution::all();
+        $totalCapitalContribsBS    = (float)$allPartnerContribsBS->sum('amount');
 
-        $totalAllocatedProfitBS = 0.0;
-        foreach ($allReceiptsForPartnersBS as $r) {
-            $tShares = $allPartnerSharesForBS->where('project_id', $r->project_id);
-            foreach ($tShares as $s) {
-                $totalAllocatedProfitBS += (float)$r->amount * ((float)$s->share_pct / 100);
-            }
+        // Net JE credit for account 3001 (credit side = capital received)
+        $je3001Net = (float)\App\Models\JournalEntry::where('account_id', '3001')
+            ->selectRaw('SUM(credit_amount - debit_amount) as net')
+            ->value('net');
+
+        // Prefer JE-based capital; fall back to PartnerContribution table
+        if ($je3001Net > 0) {
+            $shareCapital3001 = round($je3001Net, 2);
+        } elseif ($totalCapitalContribsBS > 0) {
+            $shareCapital3001 = round($totalCapitalContribsBS, 2);
+        } else {
+            // No explicit capital entries – show 0 and let retained earnings balance
+            $shareCapital3001 = 0.0;
         }
-        $totalCapitalContribsBS = (float)$allPartnerContribsBS->sum('amount');
 
-        $je3001Debits = (float)\App\Models\JournalEntry::where('account_id', '3001')->sum('debit_amount');
-        if ($je3001Debits <= 0) {
-            $je3001Debits = (float)\App\Models\PartnerAllocation::sum('allocated_amount');
-        }
-
-        $shareCapital3001 = round(($totalAllocatedProfitBS + $totalCapitalContribsBS) - $je3001Debits, 2);
-        $totalPartnerCapital = $shareCapital3001;
-        $retainedEarnings = max(0.0, $netEquity - $totalPartnerCapital);
-        $totalEquity = $netEquity;
+        // Retained Earnings = residual equity after subtracting Share Capital
+        // This ensures: Assets = Liabilities + ShareCapital + RetainedEarnings
+        $retainedEarnings = max(0.0, round($netEquity - $shareCapital3001, 2));
+        $totalEquity      = $netEquity;
 
         $calculatedAmounts = [
             '1001' => $bankAssets,
@@ -3882,7 +3887,6 @@ class ReportController extends Controller
             '2130' => $customerAdvances,
             '2201' => $bankLoans,
             '3001' => $shareCapital3001,
-            '5001' => $totalCapitalContribsBS,
             '3010' => $retainedEarnings,
         ];
 
