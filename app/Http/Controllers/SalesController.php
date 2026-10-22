@@ -401,7 +401,7 @@ class SalesController extends Controller
                     // '5010' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
                     '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
-                    // '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
+                    '4001' => ['name' => 'Agent Payable Expense', 'type' => 'EXPENSE'],
                     '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
@@ -494,13 +494,13 @@ class SalesController extends Controller
 
                 // 4. Brokerage Expense & Liability (Debit expense & credit agent liability if broker involved)
                 if ($brokerInvolved && isset($brokerageAmount) && $brokerageAmount > 0) {
-                    // JournalEntry::create([
-                    //     'voucher_id'     => $journalVoucher->id,
-                    //     'account_id'     => '4003',
-                    //     'debit_amount'   => $brokerageAmount,
-                    //     'credit_amount'  => 0.00,
-                    //     'line_narration' => 'Brokerage Expense',
-                    // ]);
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '4001',
+                        'debit_amount'   => $brokerageAmount,
+                        'credit_amount'  => 0.00,
+                        'line_narration' => 'Agent Payable Expense',
+                    ]);
 
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,

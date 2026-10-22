@@ -3123,7 +3123,9 @@ class ReportController extends Controller
             'journal_entries.account_id',
             'journal_entries.debit_amount',
             'journal_entries.credit_amount',
-            'journal_vouchers.voucher_date'
+            'journal_vouchers.voucher_date',
+            'journal_vouchers.voucher_no',
+            'journal_vouchers.id as jv_id'
         )->get();
 
         // 2. Fetch Dynamic Movements from voucher_lines & vouchers (excluding duplicates already covered in journal_entries)
@@ -3143,6 +3145,10 @@ class ReportController extends Controller
                 $q->where('vouchers.voucher_number', 'not like', 'BILL-EXP-%');
                 // Exclude loan EMI payment vouchers already covered in journal_entries (JV-EMI-*)
                 $q->where('vouchers.voucher_number', 'not like', 'PAY-LOAN-%');
+                // Exclude broker payout vouchers already covered in journal_entries (JV-AP-*)
+                $q->where('vouchers.voucher_number', 'not like', 'PV-BROKER-%');
+                // Exclude contra cash withdrawal vouchers already covered in journal_entries (JV-PC-*)
+                $q->where('vouchers.voucher_number', 'not like', 'PCON-%');
             });
 
         if ($selectedProjectId !== 'all' && $selectedProjectId) {
@@ -3282,6 +3288,17 @@ class ReportController extends Controller
         // Ensure all groups are visible even when empty (so grand totals balance)
         // Note: groups with zero amounts will be hidden if hideZero is on
 
+        // Precompute unbacked sales booking contract amounts on 1010 to reflect realized collections
+        $sbUnbacked = [];
+        $sbVouchers = $allJe->filter(fn($e) => str_starts_with((string)($e->voucher_no ?? ''), 'JV-SB-'))->groupBy('jv_id');
+        foreach ($sbVouchers as $jvId => $entries) {
+            $dr1010 = (float)$entries->where('account_id', '1010')->sum('debit_amount');
+            $taxCr = (float)$entries->whereIn('account_id', ['2021', '2022'])->sum('credit_amount');
+            if ($dr1010 > $taxCr) {
+                $sbUnbacked[$jvId] = round($dr1010 - $taxCr, 2);
+            }
+        }
+
         // Process each COA account
         foreach ($coas as $coa) {
             $code = (string) $coa->account_code;
@@ -3330,15 +3347,22 @@ class ReportController extends Controller
             $periodCr = 0.0;
 
             // 1. From Journal Entries
+            $appliedSb = [];
             foreach ($allJe as $je) {
                 if ($je->account_id === $code) {
+                    $dr = (float) $je->debit_amount;
+                    if ($code === '1010' && isset($sbUnbacked[$je->jv_id]) && !isset($appliedSb[$je->jv_id])) {
+                        $dr = max(0.0, $dr - $sbUnbacked[$je->jv_id]);
+                        $appliedSb[$je->jv_id] = true;
+                    }
+                    $cr = (float) $je->credit_amount;
                     $vDate = $je->voucher_date ? Carbon::parse($je->voucher_date)->format('Y-m-d') : null;
                     if ($vDate && $vDate < $fromDate) {
-                        $priorDr += (float) $je->debit_amount;
-                        $priorCr += (float) $je->credit_amount;
+                        $priorDr += $dr;
+                        $priorCr += $cr;
                     } elseif (!$vDate || ($vDate >= $fromDate && $vDate <= $toDate)) {
-                        $periodDr += (float) $je->debit_amount;
-                        $periodCr += (float) $je->credit_amount;
+                        $periodDr += $dr;
+                        $periodCr += $cr;
                     }
                 }
             }
@@ -3415,6 +3439,11 @@ class ReportController extends Controller
             $grp['closing_balance'] = abs($grp['closing_balance']);
         }
         unset($grp);
+
+        // Filter out groups that have no accounts and zero movements (e.g. 5000 REVENUE if 5010 is removed)
+        $groupsData = array_filter($groupsData, function($grp) {
+            return !empty($grp['accounts']) || $grp['period_debit'] > 0 || $grp['period_credit'] > 0 || $grp['opening_balance'] != 0;
+        });
 
         $diff = abs($grandTotalDebit - $grandTotalCredit);
         $isBalanced = ($diff < 0.01);
@@ -3853,7 +3882,7 @@ class ReportController extends Controller
             '2130' => $customerAdvances,
             '2201' => $bankLoans,
             '3001' => $shareCapital3001,
-            '5001' => $totalPartnerCapital,
+            '5001' => $totalCapitalContribsBS,
             '3010' => $retainedEarnings,
         ];
 
