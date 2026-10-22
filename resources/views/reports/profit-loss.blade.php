@@ -295,11 +295,22 @@
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-[#385B17] font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
-                    Rs. {{ number_format($pnlData['kpis']['total_income']['curr'] ?? 124580000, 0) }}
+                    Rs. {{ number_format($pnlData['kpis']['total_income']['curr'] ?? 0, 0) }}
                 </span>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
-                    <span>↑ {{ $pnlData['kpis']['total_income']['var'] ?? '18.42' }}% vs Last Year</span>
-                </p>
+                <div class="text-[10px] font-bold mt-1.5 flex items-center gap-1.5">
+                    @if(!empty($pnlData['kpis']['total_income']['var']['is_new']))
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold">
+                            ★ Founding Period
+                        </span>
+                    @elseif(($pnlData['kpis']['total_income']['var']['type'] ?? '') === 'up')
+                        <span class="text-emerald-600 font-bold">↑ {{ $pnlData['kpis']['total_income']['var']['text'] ?? '' }} vs Prior</span>
+                    @elseif(($pnlData['kpis']['total_income']['var']['type'] ?? '') === 'down')
+                        <span class="text-rose-600 font-bold">↓ {{ $pnlData['kpis']['total_income']['var']['text'] ?? '' }} vs Prior</span>
+                    @else
+                        <span class="text-slate-400 font-medium">— Baseline Period</span>
+                    @endif
+                    <span class="text-slate-400 font-normal">| {{ sprintf('%.0f', $pnlData['kpis']['total_income']['realization'] ?? 0) }}% Collected</span>
+                </div>
             </div>
         </div>
 
@@ -318,11 +329,17 @@
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
-                    Rs. {{ number_format($pnlData['kpis']['total_expenses']['curr'] ?? 81560000, 0) }}
+                    Rs. {{ number_format($pnlData['kpis']['total_expenses']['curr'] ?? 0, 0) }}
                 </span>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
-                    <span>↑ {{ $pnlData['kpis']['total_expenses']['var'] ?? '12.08' }}% vs Last Year</span>
-                </p>
+                <div class="text-[10px] font-bold mt-1.5 flex items-center gap-1.5">
+                    @if(!empty($pnlData['kpis']['total_expenses']['var']['is_new']))
+                        <span class="text-slate-500 font-semibold">{{ $pnlData['expenses']['total_pct_of_rev'] ?? '39.54%' }} of Revenue</span>
+                    @elseif(($pnlData['kpis']['total_expenses']['var']['type'] ?? '') === 'up')
+                        <span class="text-rose-600 font-bold">↑ {{ $pnlData['kpis']['total_expenses']['var']['text'] ?? '' }} vs Prior</span>
+                    @else
+                        <span class="text-slate-400 font-medium">— Baseline Period</span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -336,16 +353,16 @@
                     <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Gross Profit</span>
                 </div>
                 <span class="text-[9px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-purple-300 group-hover:bg-purple-100/60">
-                    MARGIN
+                    {{ sprintf('%.1f', $pnlData['kpis']['gross_profit']['margin'] ?? 64.7) }}% MARGIN
                 </span>
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-purple-600 font-mono tracking-tight block group-hover:text-purple-700 transition-colors duration-300">
-                    Rs. {{ number_format($pnlData['kpis']['gross_profit']['curr'] ?? 43020000, 0) }}
+                    Rs. {{ number_format($pnlData['kpis']['gross_profit']['curr'] ?? 0, 0) }}
                 </span>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
-                    <span>↑ {{ $pnlData['kpis']['gross_profit']['var'] ?? '28.35' }}% vs Last Year</span>
-                </p>
+                <div class="text-[10px] font-bold mt-1.5 flex items-center gap-1.5">
+                    <span class="text-purple-600 font-semibold">{{ sprintf('%.1f', $pnlData['kpis']['gross_profit']['margin'] ?? 0) }}% Gross Return</span>
+                </div>
             </div>
         </div>
 
@@ -359,16 +376,16 @@
                     <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Net Profit</span>
                 </div>
                 <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
-                    NET RESULT
+                    AFTER TAX
                 </span>
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
-                    Rs. {{ number_format($pnlData['kpis']['net_profit']['curr'] ?? 28575000, 0) }}
+                    Rs. {{ number_format($pnlData['kpis']['net_profit']['curr'] ?? 0, 0) }}
                 </span>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
-                    <span>↑ {{ $pnlData['kpis']['net_profit']['var'] ?? '32.71' }}% vs Last Year</span>
-                </p>
+                <div class="text-[10px] font-bold mt-1.5 flex items-center gap-1.5">
+                    <span class="text-amber-600 font-semibold">Net Bottom Line (30% Tax Applied)</span>
+                </div>
             </div>
         </div>
 
@@ -381,17 +398,110 @@
                     </div>
                     <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Net Profit Margin</span>
                 </div>
-                <span class="text-[9px] text-slate-700 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-slate-300 group-hover:bg-slate-100">
-                    RATIO
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100">
+                    EXCELLENT
                 </span>
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-slate-900 transition-colors duration-300">
-                    {{ $pnlData['kpis']['net_margin']['curr'] ?? '22.94' }}%
+                    {{ $pnlData['kpis']['net_margin']['curr'] ?? '0.00' }}%
                 </span>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
-                    <span>↑ {{ $pnlData['kpis']['net_margin']['var'] ?? '2.31' }}% vs Last Year</span>
-                </p>
+                <div class="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1">
+                    <span>★ Real Estate Target: >25%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- EXECUTIVE PERFORMANCE & EXPENSE DISTRIBUTION BANNER --}}
+    <div id="pnlExecutiveBanner" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col xl:flex-row gap-6 justify-between items-stretch">
+        {{-- Left Widget: Profitability Flow & Realization --}}
+        <div class="flex-1 flex flex-col justify-between space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">Profitability & Margin Overview</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ $pnlData['labels']['curr'] ?? 'Current Period' }}
+                    </span>
+                    @if(!empty($pnlData['analytics']['is_first_year']))
+                        <span class="text-[10px] font-bold px-3 py-1 rounded-full bg-amber-50 text-[#8C6D27] border border-[#E6DEC9]">
+                            ★ Baseline Operating Year (DB Real Data)
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Visual Multi-Segment Waterfall Progress Bar --}}
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span class="uppercase tracking-wider">Revenue Flow Distribution</span>
+                    <span class="text-emerald-700 font-mono font-extrabold text-xs">Net Profit Margin: {{ $pnlData['kpis']['net_margin']['curr'] ?? '0' }}%</span>
+                </div>
+                <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex p-0.5 gap-0.5 border border-slate-200/80">
+                    @php
+                        $costPct = (float)rtrim($pnlData['expenses']['total_pct_of_rev'] ?? '39.54%', '%');
+                        $profitPct = (float)rtrim($pnlData['profit_before_tax']['pct_of_rev'] ?? '60.46%', '%');
+                    @endphp
+                    <div class="h-full bg-rose-500 rounded-l-full transition-all duration-500" style="width: {{ min(100, max(5, $costPct)) }}%" title="Operating Expenses: {{ $costPct }}%"></div>
+                    <div class="h-full bg-emerald-500 rounded-r-full transition-all duration-500" style="width: {{ min(100, max(5, $profitPct)) }}%" title="Profit Before Tax: {{ $profitPct }}%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-600 pt-0.5">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Total Expenses: <strong class="text-slate-800">{{ $pnlData['expenses']['total_pct_of_rev'] ?? '39.54%' }}</strong></span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Profit Before Tax: <strong class="text-slate-800">{{ $pnlData['profit_before_tax']['pct_of_rev'] ?? '60.46%' }}</strong></span>
+                    </div>
+                    <span class="text-slate-800 font-bold">Gross Margin: <strong class="text-slate-900 font-mono">{{ sprintf('%.2f', $pnlData['kpis']['gross_profit']['margin'] ?? 64.67) }}%</strong></span>
+                </div>
+            </div>
+
+            {{-- Realization / Cash Collections Sub-bar (Matching Screenshot 2 Realized Collections Cards) --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 shadow-2xs">
+                    <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider block">Customer Cash Collected</span>
+                    <span class="text-base font-black text-slate-900 font-mono mt-0.5 block">Rs. {{ number_format($pnlData['kpis']['total_income']['cash_collected'] ?? 0, 0) }}</span>
+                </div>
+                <div class="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-3 shadow-2xs">
+                    <span class="text-emerald-800 text-[10px] font-bold uppercase tracking-wider block">Cash Realization Rate</span>
+                    <span class="text-base font-black text-emerald-700 font-mono mt-0.5 block">{{ sprintf('%.1f', $pnlData['kpis']['total_income']['realization'] ?? 0) }}%</span>
+                </div>
+                <div class="bg-[#FDFBF7] border border-[#D5C28A] rounded-xl p-3 shadow-2xs">
+                    <span class="text-[#8C6D27] text-[10px] font-bold uppercase tracking-wider block">Accounts Receivable</span>
+                    <span class="text-base font-black text-[#8C6D27] font-mono mt-0.5 block">Rs. {{ number_format(max(0, ($pnlData['kpis']['total_income']['curr'] ?? 0) - ($pnlData['kpis']['total_income']['cash_collected'] ?? 0)), 0) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right Widget: Expense Allocation Breakdown (Matching Screenshot 2 Champagne/Gold Hero Box Theme) --}}
+        <div class="xl:w-[480px] bg-[#FEFDF9] rounded-xl p-4 border border-[#E6DEC9] flex flex-col justify-between space-y-3 shadow-2xs">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-800">Expense Allocation Breakdown</span>
+                <span class="text-xs font-black text-[#8C6D27] font-mono px-2.5 py-0.5 rounded-full bg-amber-50 border border-[#E6DEC9]">
+                    Rs. {{ number_format($pnlData['kpis']['total_expenses']['curr'] ?? 0, 0) }}
+                </span>
+            </div>
+
+            {{-- Segmented Bar --}}
+            <div class="h-2.5 w-full bg-slate-200/70 rounded-full overflow-hidden flex gap-0.5 p-0.5">
+                @foreach($pnlData['analytics']['expense_distribution'] ?? [] as $dist)
+                    <div class="h-full {{ $dist['bg'] }} transition-all duration-500 first:rounded-l-full last:rounded-r-full"
+                         style="width: {{ $dist['pct'] }}%" title="{{ $dist['label'] }}: {{ $dist['pct'] }}%"></div>
+                @endforeach
+            </div>
+
+            {{-- Legend List --}}
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                @foreach($pnlData['analytics']['expense_distribution'] ?? [] as $dist)
+                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/80 shadow-2xs">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ $dist['color'] }}"></span>
+                            <span class="truncate text-slate-700 font-semibold">{{ $dist['label'] }}</span>
+                        </div>
+                        <span class="font-black text-slate-900 font-mono ml-2 shrink-0">{{ $dist['pct'] }}%</span>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -400,188 +510,165 @@
     <div id="pnlTableContainer" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full">
         <div class="overflow-x-auto flex-1">
             <table id="pnlStatementTable" class="w-full text-left border-collapse">
-                {{-- TABLE HEADER (EXACT STANDARD ERP THEME) --}}
+                {{-- TABLE HEADER (EXACT STANDARD ERP THEME WITH % OF REVENUE) --}}
                 <thead class="erp-table-header bg-[#17365D] border-b border-slate-700 font-black text-white uppercase tracking-wider text-[10px]">
                     <tr>
-                        <th class="px-5 py-3.5 text-left w-2/5">Particulars</th>
+                        <th class="px-5 py-3.5 text-left w-2/5">Particulars & Account Details</th>
+                        <th class="px-5 py-3.5 text-right w-1/10">% of Revenue</th>
                         <th class="px-5 py-3.5 text-right w-1/5">
-                            <div>{{ $pnlData['labels']['curr'] ?? 'FY 2026-27 (01/04/2026 - 31/03/2027)' }}</div>
+                            <div>{{ $pnlData['labels']['curr'] ?? 'Current Period' }}</div>
                         </th>
                         <th class="px-5 py-3.5 text-right w-1/5">
-                            <div>{{ $pnlData['labels']['prior'] ?? 'FY 2025-26 (01/04/2025 - 31/03/2026)' }}</div>
+                            <div>{{ $pnlData['labels']['prior'] ?? 'Prior Period' }}</div>
                         </th>
-                        <th class="px-5 py-3.5 text-right w-1/5">Variance (%)</th>
+                        <th class="px-5 py-3.5 text-right w-1/10">Variance / Trend</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs font-semibold text-slate-705">
 
                     {{-- SECTION A: INCOME BANNER --}}
                     <tr class="bg-[#EEF7EE] hover:bg-[#e4f3e4] cursor-pointer transition" @click="showIncome = !showIncome">
-                        <td colspan="4" class="py-3 px-6 font-extrabold text-[#1E4D2B]">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] transition-transform duration-200" :class="{ '-rotate-90': !showIncome }">▼</span>
-                                <span>A. INCOME</span>
+                        <td colspan="5" class="py-3 px-6 font-extrabold text-[#1E4D2B]">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] transition-transform duration-200" :class="{ '-rotate-90': !showIncome }">▼</span>
+                                    <span>A. INCOME</span>
+                                </div>
+                                <span class="text-[10px] font-mono text-[#1E4D2B]/80 font-bold">Rs. {{ number_format($pnlData['income']['total_curr'] ?? 0, 0) }}</span>
                             </div>
                         </td>
                     </tr>
 
                     {{-- SECTION A SUB-ROWS --}}
-                    <template x-if="showIncome">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">1. Revenue from Operations</td>
+                    @foreach($pnlData['income']['items'] as $item)
+                        <tr class="hover:bg-slate-50/80 transition" x-show="showIncome && matchesSearch('{{ addslashes($item['name']) }}')">
+                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $item['name'] }}</span>
+                                    <span class="text-[9px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $item['account'] }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-6 text-right font-mono font-medium text-slate-500">
+                                {{ $item['pct_of_rev'] ?? '0.00%' }}
+                            </td>
                             <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['income']['items'][0]['curr'] ?? 118560000, 0) }}
+                                {{ number_format($item['curr'] ?? 0, 0) }}
                             </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['income']['items'][0]['prior'] ?? 100230000, 0) }}
+                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-500">
+                                {{ number_format($item['prior'] ?? 0, 0) }}
                             </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-emerald-600">
-                                {{ $pnlData['income']['items'][0]['var'] ?? '18.27' }}%
+                            <td class="py-3 px-6 text-right">
+                                @if(!empty($item['var']['is_new']))
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        ★ New
+                                    </span>
+                                @elseif(($item['var']['type'] ?? '') === 'up')
+                                    <span class="font-bold text-emerald-600 font-mono text-xs">↑ {{ $item['var']['text'] ?? '' }}</span>
+                                @elseif(($item['var']['type'] ?? '') === 'down')
+                                    <span class="font-bold text-rose-600 font-mono text-xs">↓ {{ $item['var']['text'] ?? '' }}</span>
+                                @else
+                                    <span class="text-slate-400 font-mono text-xs">—</span>
+                                @endif
                             </td>
                         </tr>
-                    </template>
-
-                    <template x-if="showIncome">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">2. Other Income</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['income']['items'][1]['curr'] ?? 6020000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['income']['items'][1]['prior'] ?? 4510000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-emerald-600">
-                                {{ $pnlData['income']['items'][1]['var'] ?? '33.44' }}%
-                            </td>
-                        </tr>
-                    </template>
+                    @endforeach
 
                     {{-- TOTAL INCOME (A) ROW --}}
                     <tr class="bg-emerald-50/40 border-t border-b border-emerald-100 font-bold">
                         <td class="py-3.5 px-6 pl-6 text-[#1E4D2B]">Total Income (A)</td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['income']['total_curr'] ?? 124580000, 0) }}
+                            {{ $pnlData['income']['total_pct_of_rev'] ?? '100.00%' }}
                         </td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['income']['total_prior'] ?? 104740000, 0) }}
+                            {{ number_format($pnlData['income']['total_curr'] ?? 0, 0) }}
                         </td>
-                        <td class="py-3.5 px-6 text-right font-mono text-emerald-600">
-                            {{ $pnlData['income']['total_var'] ?? '18.95' }}%
+                        <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]/80">
+                            {{ number_format($pnlData['income']['total_prior'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-3.5 px-6 text-right">
+                            @if(!empty($pnlData['income']['total_var']['is_new']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                    ★ New Period
+                                </span>
+                            @elseif(($pnlData['income']['total_var']['type'] ?? '') === 'up')
+                                <span class="font-bold text-emerald-600 font-mono text-xs">↑ {{ $pnlData['income']['total_var']['text'] ?? '' }}</span>
+                            @elseif(($pnlData['income']['total_var']['type'] ?? '') === 'down')
+                                <span class="font-bold text-rose-600 font-mono text-xs">↓ {{ $pnlData['income']['total_var']['text'] ?? '' }}</span>
+                            @else
+                                <span class="text-slate-400 font-mono text-xs">—</span>
+                            @endif
                         </td>
                     </tr>
 
                     {{-- SECTION B: EXPENSES BANNER --}}
                     <tr class="bg-[#FCF0F0] hover:bg-[#fae6e6] cursor-pointer transition" @click="showExpenses = !showExpenses">
-                        <td colspan="4" class="py-3 px-6 font-extrabold text-[#881337]">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] transition-transform duration-200" :class="{ '-rotate-90': !showExpenses }">▼</span>
-                                <span>B. EXPENSES</span>
+                        <td colspan="5" class="py-3 px-6 font-extrabold text-[#881337]">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] transition-transform duration-200" :class="{ '-rotate-90': !showExpenses }">▼</span>
+                                    <span>B. EXPENSES</span>
+                                </div>
+                                <span class="text-[10px] font-mono text-[#881337]/80 font-bold">Rs. {{ number_format($pnlData['expenses']['total_curr'] ?? 0, 0) }}</span>
                             </div>
                         </td>
                     </tr>
 
                     {{-- SECTION B SUB-ROWS --}}
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">1. Cost of Sales / Direct Costs</td>
+                    @foreach($pnlData['expenses']['items'] as $item)
+                        <tr class="hover:bg-slate-50/80 transition" x-show="showExpenses && matchesSearch('{{ addslashes($item['name']) }}')">
+                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $item['name'] }}</span>
+                                    <span class="text-[9px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $item['account'] }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-6 text-right font-mono font-medium text-slate-500">
+                                {{ $item['pct_of_rev'] ?? '0.00%' }}
+                            </td>
                             <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][0]['curr'] ?? 62030000, 0) }}
+                                {{ number_format($item['curr'] ?? 0, 0) }}
                             </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][0]['prior'] ?? 50820000, 0) }}
+                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-500">
+                                {{ number_format($item['prior'] ?? 0, 0) }}
                             </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][0]['var'] ?? '22.05' }}%
+                            <td class="py-3 px-6 text-right">
+                                @if(!empty($item['var']['is_new']))
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        ★ New
+                                    </span>
+                                @elseif(($item['var']['type'] ?? '') === 'up')
+                                    <span class="font-bold text-rose-600 font-mono text-xs">↑ {{ $item['var']['text'] ?? '' }}</span>
+                                @elseif(($item['var']['type'] ?? '') === 'down')
+                                    <span class="font-bold text-emerald-600 font-mono text-xs">↓ {{ $item['var']['text'] ?? '' }}</span>
+                                @else
+                                    <span class="text-slate-400 font-mono text-xs">—</span>
+                                @endif
                             </td>
                         </tr>
-                    </template>
-
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">2. Employee Benefits Expense</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][1]['curr'] ?? 8540000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][1]['prior'] ?? 7230000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][1]['var'] ?? '18.13' }}%
-                            </td>
-                        </tr>
-                    </template>
-
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">3. Administrative & Office Expenses</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][2]['curr'] ?? 4560000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][2]['prior'] ?? 3870000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][2]['var'] ?? '17.83' }}%
-                            </td>
-                        </tr>
-                    </template>
-
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">4. Selling & Marketing Expenses</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][3]['curr'] ?? 2870000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][3]['prior'] ?? 2410000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][3]['var'] ?? '19.09' }}%
-                            </td>
-                        </tr>
-                    </template>
-
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">5. Finance Costs</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][4]['curr'] ?? 1230000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][4]['prior'] ?? 980000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][4]['var'] ?? '25.51' }}%
-                            </td>
-                        </tr>
-                    </template>
-
-                    <template x-if="showExpenses">
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-3 px-6 pl-10 text-slate-700 font-medium">6. Depreciation & Amortization</td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-800">
-                                {{ number_format($pnlData['expenses']['items'][5]['curr'] ?? 2310000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-semibold text-slate-600">
-                                {{ number_format($pnlData['expenses']['items'][5]['prior'] ?? 2050000, 0) }}
-                            </td>
-                            <td class="py-3 px-6 text-right font-mono font-bold text-rose-600">
-                                {{ $pnlData['expenses']['items'][5]['var'] ?? '12.68' }}%
-                            </td>
-                        </tr>
-                    </template>
+                    @endforeach
 
                     {{-- TOTAL EXPENSES (B) ROW --}}
                     <tr class="bg-rose-50/40 border-t border-b border-rose-100 font-bold">
                         <td class="py-3.5 px-6 pl-6 text-[#991B1B]">Total Expenses (B)</td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#DC2626]">
-                            {{ number_format($pnlData['expenses']['total_curr'] ?? 81560000, 0) }}
+                            {{ $pnlData['expenses']['total_pct_of_rev'] ?? '0.00%' }}
                         </td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#DC2626]">
-                            {{ number_format($pnlData['expenses']['total_prior'] ?? 69390000, 0) }}
+                            {{ number_format($pnlData['expenses']['total_curr'] ?? 0, 0) }}
                         </td>
-                        <td class="py-3.5 px-6 text-right font-mono text-rose-600">
-                            {{ $pnlData['expenses']['total_var'] ?? '17.55' }}%
+                        <td class="py-3.5 px-6 text-right font-mono text-[#DC2626]/80">
+                            {{ number_format($pnlData['expenses']['total_prior'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-3.5 px-6 text-right">
+                            @if(!empty($pnlData['expenses']['total_var']['is_new']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    ★ New
+                                </span>
+                            @elseif(($pnlData['expenses']['total_var']['type'] ?? '') === 'up')
+                                <span class="font-bold text-rose-600 font-mono text-xs">↑ {{ $pnlData['expenses']['total_var']['text'] ?? '' }}</span>
+                            @else
+                                <span class="text-slate-400 font-mono text-xs">—</span>
+                            @endif
                         </td>
                     </tr>
 
@@ -589,41 +676,84 @@
                     <tr class="bg-emerald-50/30 hover:bg-emerald-50/60 font-extrabold border-b border-slate-100 transition">
                         <td class="py-3.5 px-6 text-[#1E4D2B]">C. Profit Before Tax (A - B)</td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['profit_before_tax']['curr'] ?? 43020000, 0) }}
+                            {{ $pnlData['profit_before_tax']['pct_of_rev'] ?? '0.00%' }}
                         </td>
                         <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['profit_before_tax']['prior'] ?? 35350000, 0) }}
+                            {{ number_format($pnlData['profit_before_tax']['curr'] ?? 0, 0) }}
                         </td>
-                        <td class="py-3.5 px-6 text-right font-mono text-emerald-600">
-                            {{ $pnlData['profit_before_tax']['var'] ?? '21.69' }}%
+                        <td class="py-3.5 px-6 text-right font-mono text-[#1E4D2B]/80">
+                            {{ number_format($pnlData['profit_before_tax']['prior'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-3.5 px-6 text-right">
+                            @if(!empty($pnlData['profit_before_tax']['var']['is_new']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    ★ New
+                                </span>
+                            @elseif(($pnlData['profit_before_tax']['var']['type'] ?? '') === 'up')
+                                <span class="font-bold text-emerald-600 font-mono text-xs">↑ {{ $pnlData['profit_before_tax']['var']['text'] ?? '' }}</span>
+                            @else
+                                <span class="text-slate-400 font-mono text-xs">—</span>
+                            @endif
                         </td>
                     </tr>
 
                     {{-- ROW D: TAX EXPENSE --}}
                     <tr class="hover:bg-slate-50/80 font-medium border-b border-slate-100 transition">
-                        <td class="py-3.5 px-6 text-slate-800">D. Tax Expense</td>
-                        <td class="py-3.5 px-6 text-right font-mono text-slate-800">
-                            {{ number_format($pnlData['tax_expense']['curr'] ?? 14445000, 0) }}
+                        <td class="py-3.5 px-6 text-slate-800">
+                            <div class="flex items-center gap-2">
+                                <span>D. Tax Provision (30% Corporate Tax Estimate)</span>
+                                <span class="text-[9px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Statutory Tax</span>
+                            </div>
                         </td>
                         <td class="py-3.5 px-6 text-right font-mono text-slate-600">
-                            {{ number_format($pnlData['tax_expense']['prior'] ?? 11880000, 0) }}
+                            {{ $pnlData['tax_expense']['pct_of_rev'] ?? '0.00%' }}
                         </td>
-                        <td class="py-3.5 px-6 text-right font-mono font-bold text-emerald-600">
-                            {{ $pnlData['tax_expense']['var'] ?? '21.59' }}%
+                        <td class="py-3.5 px-6 text-right font-mono text-slate-800">
+                            {{ number_format($pnlData['tax_expense']['curr'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-3.5 px-6 text-right font-mono text-slate-500">
+                            {{ number_format($pnlData['tax_expense']['prior'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-3.5 px-6 text-right">
+                            @if(!empty($pnlData['tax_expense']['var']['is_new']))
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    ★ New
+                                </span>
+                            @elseif(($pnlData['tax_expense']['var']['type'] ?? '') === 'up')
+                                <span class="font-bold text-rose-600 font-mono text-xs">↑ {{ $pnlData['tax_expense']['var']['text'] ?? '' }}</span>
+                            @else
+                                <span class="text-slate-400 font-mono text-xs">—</span>
+                            @endif
                         </td>
                     </tr>
 
                     {{-- ROW E: NET PROFIT AFTER TAX (C - D) --}}
-                    <tr class="bg-emerald-100/40 hover:bg-emerald-100/60 font-extrabold text-sm border-t-2 border-emerald-200 transition">
-                        <td class="py-4 px-6 text-[#1E4D2B]">E. Net Profit After Tax (C - D)</td>
-                        <td class="py-4 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['net_profit_after_tax']['curr'] ?? 28575000, 0) }}
+                    <tr class="bg-emerald-100/40 hover:bg-emerald-100/60 font-extrabold text-sm border-t-2 border-emerald-300 transition">
+                        <td class="py-4 px-6 text-[#1E4D2B]">
+                            <div class="flex items-center gap-2">
+                                <span>E. Net Profit After Tax (C - D)</span>
+                                <span class="text-[9px] font-mono text-emerald-800 bg-emerald-200/60 px-2 py-0.5 rounded-full font-black">NET BOTTOM LINE</span>
+                            </div>
                         </td>
                         <td class="py-4 px-6 text-right font-mono text-[#1E4D2B]">
-                            {{ number_format($pnlData['net_profit_after_tax']['prior'] ?? 23470000, 0) }}
+                            {{ $pnlData['net_profit_after_tax']['pct_of_rev'] ?? '0.00%' }}
                         </td>
-                        <td class="py-4 px-6 text-right font-mono text-emerald-600">
-                            {{ $pnlData['net_profit_after_tax']['var'] ?? '21.76' }}%
+                        <td class="py-4 px-6 text-right font-mono text-[#1E4D2B]">
+                            {{ number_format($pnlData['net_profit_after_tax']['curr'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-4 px-6 text-right font-mono text-[#1E4D2B]/80">
+                            {{ number_format($pnlData['net_profit_after_tax']['prior'] ?? 0, 0) }}
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            @if(!empty($pnlData['net_profit_after_tax']['var']['is_new']))
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-emerald-600 text-white shadow-xs">
+                                    ★ New Period
+                                </span>
+                            @elseif(($pnlData['net_profit_after_tax']['var']['type'] ?? '') === 'up')
+                                <span class="font-black text-emerald-700 font-mono text-sm">↑ {{ $pnlData['net_profit_after_tax']['var']['text'] ?? '' }}</span>
+                            @else
+                                <span class="text-slate-400 font-mono text-xs">—</span>
+                            @endif
                         </td>
                     </tr>
 
@@ -635,8 +765,8 @@
         <div class="px-5 py-3 border-t border-slate-200/80 bg-slate-50/60 flex items-center justify-between">
             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                 SHOWING <span class="text-slate-900 font-extrabold">1</span> TO 
-                <span class="text-slate-900 font-extrabold">10</span> OF 
-                <span class="text-slate-900 font-extrabold">10</span> ENTRIES
+                <span class="text-slate-900 font-extrabold">{{ count($pnlData['income']['items']) + count($pnlData['expenses']['items']) }}</span> OF 
+                <span class="text-slate-900 font-extrabold">{{ count($pnlData['income']['items']) + count($pnlData['expenses']['items']) }}</span> ENTRIES
             </div>
             <div class="flex items-center gap-1.5">
                 <button type="button" disabled
@@ -749,8 +879,12 @@ function pnlReportApp() {
                 const newKpis = doc.getElementById('pnlKpisContainer');
                 const newTable = doc.getElementById('pnlTableContainer');
 
+                const newBanner = doc.getElementById('pnlExecutiveBanner');
                 if (newKpis && document.getElementById('pnlKpisContainer')) {
                     document.getElementById('pnlKpisContainer').innerHTML = newKpis.innerHTML;
+                }
+                if (newBanner && document.getElementById('pnlExecutiveBanner')) {
+                    document.getElementById('pnlExecutiveBanner').innerHTML = newBanner.innerHTML;
                 }
                 if (newTable && document.getElementById('pnlTableContainer')) {
                     document.getElementById('pnlTableContainer').innerHTML = newTable.innerHTML;
@@ -760,6 +894,9 @@ function pnlReportApp() {
                 if (window.Alpine) {
                     if (document.getElementById('pnlKpisContainer')) {
                         window.Alpine.initTree(document.getElementById('pnlKpisContainer'));
+                    }
+                    if (document.getElementById('pnlExecutiveBanner')) {
+                        window.Alpine.initTree(document.getElementById('pnlExecutiveBanner'));
                     }
                     if (document.getElementById('pnlTableContainer')) {
                         window.Alpine.initTree(document.getElementById('pnlTableContainer'));

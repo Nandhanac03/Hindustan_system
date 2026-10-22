@@ -3470,240 +3470,436 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request): View
     {
-        $lookups = $this->getCommonLookups($request);
+        $lookups   = $this->getCommonLookups($request);
         $activeTab = 'profit_loss';
 
-        $filterSalesQuery = Sale::where('status', 'active');
-        $filterReceiptsQuery = Receipt::query();
-        $filterBrokerageQuery = Brokerage::query();
-        $filterBillsQuery = DB::table('bills');
-        $filterEmiQuery = EmiSchedule::where('status', 'Paid');
-
-        if ($request->filled('project_id')) {
-            $filterSalesQuery->where('project_id', $request->project_id);
-            $filterReceiptsQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
-            $filterBrokerageQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
-            $filterBillsQuery->where('project_id', $request->project_id);
-            $filterEmiQuery->whereHas('loan', fn($q) => $q->where('project_id', $request->project_id));
-        }
-        if ($request->filled('unit_type_id')) {
-            $filterSalesQuery->whereHas('unit', fn($q) => $q->where('unit_type_id', $request->unit_type_id));
-        }
-        if ($request->filled('customer_id')) {
-            $filterSalesQuery->where('customer_id', $request->customer_id);
-            $filterReceiptsQuery->where('customer_id', $request->customer_id);
-        }
-        if ($request->filled('broker_id')) {
-            $filterBrokerageQuery->where('broker_id', $request->broker_id);
-        }
-        if ($request->filled('payment_mode')) {
-            $filterReceiptsQuery->where('payment_mode', $request->payment_mode);
-        }
-        if ($request->filled('date_from')) {
-            $filterSalesQuery->whereDate('sale_date', '>=', $request->date_from);
-            $filterReceiptsQuery->whereDate('receipt_date', '>=', $request->date_from);
-            $filterBillsQuery->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $filterSalesQuery->whereDate('sale_date', '<=', $request->date_to);
-            $filterReceiptsQuery->whereDate('receipt_date', '<=', $request->date_to);
-            $filterBillsQuery->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        $totalProjectsCount = max(Project::where('is_active', true)->count(), 1);
-        $projectMultiplier = $request->filled('project_id') ? (1.0 / $totalProjectsCount) : 1.0;
-
-        $dbSales = (float)$filterSalesQuery->sum('total_amount');
-        $dbBills = (float)$filterBillsQuery->sum('final_amount');
-        $dbBrokerage = (float)$filterBrokerageQuery->sum('paid_amount');
-        $dbInterest = (float)$filterEmiQuery->sum('interest_component');
-
+        $projectId = $request->get('project_id');
         $financialYear = $request->get('financial_year', 'FY 2026-27');
-        
-        if ($financialYear == 'FY 2025-26') {
-            $currLabel = 'FY 2025-26 (01/04/2025 - 31/03/2026)';
-            $priorLabel = 'FY 2024-25 (01/04/2024 - 31/03/2025)';
-            $yearFactor = 0.835;
-        } elseif ($financialYear == 'FY 2024-25') {
-            $currLabel = 'FY 2024-25 (01/04/2024 - 31/03/2025)';
-            $priorLabel = 'FY 2023-24 (01/04/2023 - 31/03/2024)';
-            $yearFactor = 0.690;
+
+        // ── 1. Determine Date Ranges for Current & Prior Periods ────────────────
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $currFrom = $request->date_from;
+            $currTo   = $request->date_to;
+            $priorFrom = date('Y-m-d', strtotime("$currFrom -1 year"));
+            $priorTo   = date('Y-m-d', strtotime("$currTo -1 year"));
+
+            $currLabel  = date('d/m/Y', strtotime($currFrom)) . ' – ' . date('d/m/Y', strtotime($currTo));
+            $priorLabel = date('d/m/Y', strtotime($priorFrom)) . ' – ' . date('d/m/Y', strtotime($priorTo));
         } else {
-            $currLabel = 'FY 2026-27 (01/04/2026 - 31/03/2027)';
-            $priorLabel = 'FY 2025-26 (01/04/2025 - 31/03/2026)';
-            $yearFactor = 1.0;
+            if ($financialYear === 'FY 2025-26') {
+                $currFrom   = '2025-04-01';
+                $currTo     = '2026-03-31';
+                $priorFrom  = '2024-04-01';
+                $priorTo    = '2025-03-31';
+                $currLabel  = 'FY 2025-26 (01/04/2025 – 31/03/2026)';
+                $priorLabel = 'FY 2024-25 (01/04/2024 – 31/03/2025)';
+            } elseif ($financialYear === 'FY 2024-25') {
+                $currFrom   = '2024-04-01';
+                $currTo     = '2025-03-31';
+                $priorFrom  = '2023-04-01';
+                $priorTo    = '2024-03-31';
+                $currLabel  = 'FY 2024-25 (01/04/2024 – 31/03/2025)';
+                $priorLabel = 'FY 2023-24 (01/04/2023 – 31/03/2024)';
+            } else {
+                $currFrom   = '2026-04-01';
+                $currTo     = '2027-03-31';
+                $priorFrom  = '2025-04-01';
+                $priorTo    = '2026-03-31';
+                $currLabel  = 'FY 2026-27 (01/04/2026 – 31/03/2027)';
+                $priorLabel = 'FY 2025-26 (01/04/2025 – 31/03/2026)';
+            }
         }
 
-        $costCenterFactor = 1.0;
-        if ($request->filled('cost_center') && $request->cost_center !== 'All Cost Centers') {
-            if ($request->cost_center === 'Head Office') $costCenterFactor = 0.25;
-            elseif ($request->cost_center === 'Site Construction') $costCenterFactor = 0.60;
-            elseif ($request->cost_center === 'Marketing & Sales') $costCenterFactor = 0.15;
-        }
+        // ── 2. Accurate DB Query Helper for Any Period ──────────────────────────
+        $fetchPeriodData = function (string $from, string $to) use ($projectId, $request) {
+            $salesQ     = Sale::where('status', 'active')->whereBetween('sale_date', [$from, $to]);
+            $brokerageQ = Brokerage::whereBetween(DB::raw('DATE(created_at)'), [$from, $to]);
+            $emiQ       = EmiSchedule::where('status', 'Paid')->whereBetween('paid_date', [$from, $to]);
 
-        $baseMultiplier = $projectMultiplier * $yearFactor * $costCenterFactor;
+            // Realized customer receipts only (matches Dashboard "COLLECTIONS" logic)
+            $realizedReceiptsQ = Receipt::whereBetween('receipt_date', [$from, $to])
+                ->whereNull('partner_id')
+                ->where('realization_status', 'realized');
 
-        // Revenue & Incomes
-        $revenueOps = ($dbSales > 0 ? $dbSales : 118560000.00) * $baseMultiplier;
-        $otherIncome = 6020000.00 * $baseMultiplier;
-        $totalIncomeCurr = $revenueOps + $otherIncome;
+            if ($projectId && $projectId !== 'all') {
+                $salesQ->where('project_id', $projectId);
+                $realizedReceiptsQ->where('project_id', $projectId);
+                $brokerageQ->whereHas('sale', fn($q) => $q->where('project_id', $projectId));
+                $emiQ->whereHas('loan', fn($q) => $q->where('project_id', $projectId));
+            }
+            if ($request->filled('customer_id')) {
+                $salesQ->where('customer_id', $request->customer_id);
+                $realizedReceiptsQ->where('customer_id', $request->customer_id);
+            }
 
-        // Prior Period Incomes
-        $revenueOpsPrior = $revenueOps * 0.845;
-        $otherIncomePrior = $otherIncome * 0.749;
-        $totalIncomePrior = $revenueOpsPrior + $otherIncomePrior;
+            // Gross realized collections
+            $grossRealizedCollections = round((float)$realizedReceiptsQ->sum('amount'), 2);
 
-        // Expenses
-        $costOfSales = ($dbBills > 0 ? $dbBills * 0.5 : 62030000.00) * $baseMultiplier;
-        $employeeExpenses = 8540000.00 * $baseMultiplier;
-        $adminExpenses = 4560000.00 * $baseMultiplier;
-        $marketingExpenses = max($dbBrokerage, 2870000.00 * $baseMultiplier);
-        $financeCosts = max($dbInterest, 1230000.00 * $baseMultiplier);
-        $depreciation = 2310000.00 * $baseMultiplier;
+            // Deduct refunds paid (from Posted vouchers with refund allocations) — same as Dashboard
+            $projectSaleIds = ($projectId && $projectId !== 'all')
+                ? Sale::where('project_id', $projectId)->pluck('id')->all()
+                : null;
 
-        $totalExpensesCurr = $costOfSales + $employeeExpenses + $adminExpenses + $marketingExpenses + $financeCosts + $depreciation;
+            $postedRefundVouchers = DB::table('vouchers')
+                ->whereIn('type', ['Receipt', 'Payment'])
+                ->where('status', 'Posted')
+                ->whereNotNull('reference_no')
+                ->whereBetween('date', [$from, $to])
+                ->get(['id', 'date', 'reference_no']);
 
-        // Prior Period Expenses
-        $costOfSalesPrior = $costOfSales * 0.819;
-        $employeeExpensesPrior = $employeeExpenses * 0.846;
-        $adminExpensesPrior = $adminExpenses * 0.848;
-        $marketingExpensesPrior = $marketingExpenses * 0.840;
-        $financeCostsPrior = $financeCosts * 0.796;
-        $depreciationPrior = $depreciation * 0.887;
-        $totalExpensesPrior = $costOfSalesPrior + $employeeExpensesPrior + $adminExpensesPrior + $marketingExpensesPrior + $financeCostsPrior + $depreciationPrior;
+            $totalRefundsPaid = 0.0;
+            foreach ($postedRefundVouchers as $v) {
+                $refData = json_decode($v->reference_no, true);
+                if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                    foreach ($refData['allocations'] as $alloc) {
+                        if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                            $sId = (int)$alloc['target_id'];
+                            if ($projectSaleIds === null || in_array($sId, $projectSaleIds, true)) {
+                                $totalRefundsPaid += (float)($alloc['amount'] ?? 0);
+                            }
+                        }
+                    }
+                }
+            }
 
-        // Profits
-        $grossProfitCurr = $totalIncomeCurr - $costOfSales;
-        $grossProfitPrior = $totalIncomePrior - $costOfSalesPrior;
+            $revenueOps    = round((float)$salesQ->sum('total_amount'), 2);
+            $cashCollected = max(0.0, round($grossRealizedCollections - $totalRefundsPaid, 2));
+            $otherIncome   = max(0.0, round($cashCollected - $revenueOps, 2));
+            $totalIncome   = round($revenueOps + $otherIncome, 2);
 
-        $profitBeforeTaxCurr = $totalIncomeCurr - $totalExpensesCurr;
-        $profitBeforeTaxPrior = $totalIncomePrior - $totalExpensesPrior;
+            $jeDebit = function (string $accountId) use ($from, $to) {
+                return (float)JournalEntry::where('account_id', $accountId)
+                    ->whereBetween(DB::raw('DATE(created_at)'), [$from, $to])
+                    ->sum('debit_amount');
+            };
 
-        $taxExpenseCurr = round($profitBeforeTaxCurr * 0.335, 0);
-        $taxExpensePrior = round($profitBeforeTaxPrior * 0.317, 0);
+            $contractorExpense = round($jeDebit('4002'), 2);
+            $materialExpense   = round($jeDebit('4005'), 2);
+            $costOfSales       = round($contractorExpense + $materialExpense, 2);
 
-        $netProfitCurr = $profitBeforeTaxCurr - $taxExpenseCurr;
-        $netProfitPrior = $profitBeforeTaxPrior - $taxExpensePrior;
+            $marketingExpenses = round(
+                max($jeDebit('4001'), (float)$brokerageQ->sum('paid_amount')),
+                2
+            );
 
-        $netMarginCurr = $totalIncomeCurr > 0 ? round(($netProfitCurr / $totalIncomeCurr) * 100, 2) : 0;
-        $netMarginPrior = $totalIncomePrior > 0 ? round(($netProfitPrior / $totalIncomePrior) * 100, 2) : 0;
+            $gstCgst = (float)JournalEntry::where('account_id', '2021')
+                ->whereBetween(DB::raw('DATE(created_at)'), [$from, $to])
+                ->selectRaw('SUM(credit_amount - debit_amount) as net')
+                ->value('net') ?? 0.0;
+            $gstSgst = (float)JournalEntry::where('account_id', '2022')
+                ->whereBetween(DB::raw('DATE(created_at)'), [$from, $to])
+                ->selectRaw('SUM(credit_amount - debit_amount) as net')
+                ->value('net') ?? 0.0;
+            $statutoryCharges = round(max(0.0, $gstCgst + $gstSgst), 2);
 
-        $calcVar = function($curr, $prior) {
-            if ($prior == 0) return '0.00';
-            $v = (($curr - $prior) / abs($prior)) * 100;
-            return sprintf('%.2f', $v);
+            $financeCosts     = round($jeDebit('2202') + (float)$emiQ->sum('interest_component'), 2);
+            $adminExpenses    = round($jeDebit('4003'), 2);
+            $employeeExpenses = 0.0;
+            $depreciation     = 0.0;
+
+            $totalExpenses = round(
+                $costOfSales + $marketingExpenses + $statutoryCharges
+                + $financeCosts + $adminExpenses + $employeeExpenses + $depreciation,
+                2
+            );
+
+            $grossProfit     = round($revenueOps - $costOfSales, 2);
+            $profitBeforeTax = round($totalIncome - $totalExpenses, 2);
+            $taxExpense      = $profitBeforeTax > 0 ? round($profitBeforeTax * 0.30, 2) : 0.0;
+            $netProfit       = round($profitBeforeTax - $taxExpense, 2);
+
+            $grossMargin = $revenueOps > 0 ? round(($grossProfit / $revenueOps) * 100, 2) : 0.0;
+            $netMargin   = $totalIncome > 0 ? round(($netProfit / $totalIncome) * 100, 2) : 0.0;
+            $realization = $revenueOps > 0 ? round(($cashCollected / $revenueOps) * 100, 2) : 0.0;
+
+            return compact(
+                'revenueOps', 'cashCollected', 'otherIncome', 'totalIncome',
+                'contractorExpense', 'materialExpense', 'costOfSales',
+                'marketingExpenses', 'statutoryCharges', 'financeCosts',
+                'adminExpenses', 'employeeExpenses', 'depreciation',
+                'totalExpenses', 'grossProfit', 'grossMargin',
+                'profitBeforeTax', 'taxExpense', 'netProfit', 'netMargin',
+                'realization'
+            );
         };
 
+        // ── 3. Query Real Data from DB for Both Periods ─────────────────────────
+        $curr = $fetchPeriodData($currFrom, $currTo);
+        $prior = $fetchPeriodData($priorFrom, $priorTo);
+
+        // ── 4. Dynamic & Truthful Variance Calculation ──────────────────────────
+        $calcVar = function (float $cVal, float $pVal): array {
+            if ($pVal > 0) {
+                $pct = (($cVal - $pVal) / $pVal) * 100;
+                return [
+                    'text'   => ($pct >= 0 ? '+' : '') . sprintf('%.2f', $pct) . '%',
+                    'val'    => round($pct, 2),
+                    'is_new' => false,
+                    'type'   => $pct >= 0 ? 'up' : 'down',
+                ];
+            }
+            if ($cVal > 0 && $pVal == 0.0) {
+                return [
+                    'text'   => 'New',
+                    'val'    => 100.0,
+                    'is_new' => true,
+                    'type'   => 'new',
+                ];
+            }
+            return [
+                'text'   => '—',
+                'val'    => 0.0,
+                'is_new' => false,
+                'type'   => 'neutral',
+            ];
+        };
+
+        $calcPctOfRev = function (float $amount, float $baseRev): string {
+            if ($baseRev <= 0) return '0.00%';
+            return sprintf('%.2f', ($amount / $baseRev) * 100) . '%';
+        };
+
+        // ── 5. Expense Breakdown Distribution (Visual Analytics) ────────────────
+        $expDistribution = [];
+        if ($curr['totalExpenses'] > 0) {
+            $expDistribution = [
+                [
+                    'label' => 'Contractor Works',
+                    'code'  => '4002',
+                    'amount' => $curr['contractorExpense'],
+                    'pct'   => round(($curr['contractorExpense'] / $curr['totalExpenses']) * 100, 1),
+                    'color' => '#4F46E5', // Indigo
+                    'bg'    => 'bg-indigo-500',
+                ],
+                [
+                    'label' => 'Output GST (Statutory)',
+                    'code'  => '2021/2022',
+                    'amount' => $curr['statutoryCharges'],
+                    'pct'   => round(($curr['statutoryCharges'] / $curr['totalExpenses']) * 100, 1),
+                    'color' => '#10B981', // Emerald
+                    'bg'    => 'bg-emerald-500',
+                ],
+                [
+                    'label' => 'Construction Materials',
+                    'code'  => '4005',
+                    'amount' => $curr['materialExpense'],
+                    'pct'   => round(($curr['materialExpense'] / $curr['totalExpenses']) * 100, 1),
+                    'color' => '#F59E0B', // Amber
+                    'bg'    => 'bg-amber-500',
+                ],
+                [
+                    'label' => 'Brokerage & Commission',
+                    'code'  => '4001',
+                    'amount' => $curr['marketingExpenses'],
+                    'pct'   => round(($curr['marketingExpenses'] / $curr['totalExpenses']) * 100, 1),
+                    'color' => '#06B6D4', // Cyan
+                    'bg'    => 'bg-cyan-500',
+                ],
+            ];
+        }
+
+        // ── 6. Assemble Full P&L Dataset ────────────────────────────────────────
         $pnlData = [
             'labels' => [
-                'curr' => $currLabel,
+                'curr'  => $currLabel,
                 'prior' => $priorLabel,
+                'curr_dates' => ['from' => $currFrom, 'to' => $currTo],
+                'prior_dates' => ['from' => $priorFrom, 'to' => $priorTo],
             ],
             'kpis' => [
                 'total_income' => [
-                    'curr' => $totalIncomeCurr,
-                    'prior' => $totalIncomePrior,
-                    'var' => $calcVar($totalIncomeCurr, $totalIncomePrior),
+                    'curr'  => $curr['totalIncome'],
+                    'prior' => $prior['totalIncome'],
+                    'var'   => $calcVar($curr['totalIncome'], $prior['totalIncome']),
+                    'realization' => $curr['realization'],
+                    'cash_collected' => $curr['cashCollected'],
                 ],
                 'total_expenses' => [
-                    'curr' => $totalExpensesCurr,
-                    'prior' => $totalExpensesPrior,
-                    'var' => $calcVar($totalExpensesCurr, $totalExpensesPrior),
+                    'curr'  => $curr['totalExpenses'],
+                    'prior' => $prior['totalExpenses'],
+                    'var'   => $calcVar($curr['totalExpenses'], $prior['totalExpenses']),
                 ],
                 'gross_profit' => [
-                    'curr' => $grossProfitCurr,
-                    'prior' => $grossProfitPrior,
-                    'var' => $calcVar($grossProfitCurr, $grossProfitPrior),
+                    'curr'   => $curr['grossProfit'],
+                    'prior'  => $prior['grossProfit'],
+                    'margin' => $curr['grossMargin'],
+                    'var'    => $calcVar($curr['grossProfit'], $prior['grossProfit']),
                 ],
                 'net_profit' => [
-                    'curr' => $netProfitCurr,
-                    'prior' => $netProfitPrior,
-                    'var' => $calcVar($netProfitCurr, $netProfitPrior),
+                    'curr'  => $curr['netProfit'],
+                    'prior' => $prior['netProfit'],
+                    'var'   => $calcVar($curr['netProfit'], $prior['netProfit']),
                 ],
                 'net_margin' => [
-                    'curr' => sprintf('%.2f', $netMarginCurr),
-                    'prior' => sprintf('%.2f', $netMarginPrior),
-                    'var' => $calcVar($netMarginCurr, $netMarginPrior),
+                    'curr'  => sprintf('%.2f', $curr['netMargin']),
+                    'prior' => sprintf('%.2f', $prior['netMargin']),
+                    'var'   => $calcVar($curr['netMargin'], $prior['netMargin']),
                 ],
             ],
             'income' => [
                 'items' => [
-                    ['name' => '1. Revenue from Operations', 'curr' => $revenueOps, 'prior' => $revenueOpsPrior, 'var' => $calcVar($revenueOps, $revenueOpsPrior)],
-                    ['name' => '2. Other Income', 'curr' => $otherIncome, 'prior' => $otherIncomePrior, 'var' => $calcVar($otherIncome, $otherIncomePrior)],
+                    [
+                        'name'       => '1. Revenue from Operations (Apartment & Plot Sales)',
+                        'account'    => '5001 / Unit Sales',
+                        'curr'       => $curr['revenueOps'],
+                        'pct_of_rev' => $calcPctOfRev($curr['revenueOps'], $curr['revenueOps']),
+                        'prior'      => $prior['revenueOps'],
+                        'var'        => $calcVar($curr['revenueOps'], $prior['revenueOps']),
+                    ],
+                    [
+                        'name'       => '2. Other Income (Penalties, Cancellation Retention)',
+                        'account'    => 'Other Operating',
+                        'curr'       => $curr['otherIncome'],
+                        'pct_of_rev' => $calcPctOfRev($curr['otherIncome'], $curr['revenueOps']),
+                        'prior'      => $prior['otherIncome'],
+                        'var'        => $calcVar($curr['otherIncome'], $prior['otherIncome']),
+                    ],
                 ],
-                'total_curr' => $totalIncomeCurr,
-                'total_prior' => $totalIncomePrior,
-                'total_var' => $calcVar($totalIncomeCurr, $totalIncomePrior),
+                'total_curr'       => $curr['totalIncome'],
+                'total_pct_of_rev' => $calcPctOfRev($curr['totalIncome'], $curr['revenueOps']),
+                'total_prior'      => $prior['totalIncome'],
+                'total_var'        => $calcVar($curr['totalIncome'], $prior['totalIncome']),
             ],
             'expenses' => [
                 'items' => [
-                    ['name' => '1. Cost of Sales / Direct Costs', 'curr' => $costOfSales, 'prior' => $costOfSalesPrior, 'var' => $calcVar($costOfSales, $costOfSalesPrior)],
-                    ['name' => '2. Employee Benefits Expense', 'curr' => $employeeExpenses, 'prior' => $employeeExpensesPrior, 'var' => $calcVar($employeeExpenses, $employeeExpensesPrior)],
-                    ['name' => '3. Administrative & Office Expenses', 'curr' => $adminExpenses, 'prior' => $adminExpensesPrior, 'var' => $calcVar($adminExpenses, $adminExpensesPrior)],
-                    ['name' => '4. Selling & Marketing Expenses', 'curr' => $marketingExpenses, 'prior' => $marketingExpensesPrior, 'var' => $calcVar($marketingExpenses, $marketingExpensesPrior)],
-                    ['name' => '5. Finance Costs', 'curr' => $financeCosts, 'prior' => $financeCostsPrior, 'var' => $calcVar($financeCosts, $financeCostsPrior)],
-                    ['name' => '6. Depreciation & Amortization', 'curr' => $depreciation, 'prior' => $depreciationPrior, 'var' => $calcVar($depreciation, $depreciationPrior)],
+                    [
+                        'name'       => '1. Cost of Sales – Contractor Work & Structural Engineering',
+                        'account'    => 'Acc: 4002 (Contractor Work)',
+                        'curr'       => $curr['contractorExpense'],
+                        'pct_of_rev' => $calcPctOfRev($curr['contractorExpense'], $curr['revenueOps']),
+                        'prior'      => $prior['contractorExpense'],
+                        'var'        => $calcVar($curr['contractorExpense'], $prior['contractorExpense']),
+                    ],
+                    [
+                        'name'       => '2. Cost of Sales – Construction Material & Site Supply',
+                        'account'    => 'Acc: 4005 (Materials & CCTV)',
+                        'curr'       => $curr['materialExpense'],
+                        'pct_of_rev' => $calcPctOfRev($curr['materialExpense'], $curr['revenueOps']),
+                        'prior'      => $prior['materialExpense'],
+                        'var'        => $calcVar($curr['materialExpense'], $prior['materialExpense']),
+                    ],
+                    [
+                        'name'       => '3. Selling & Marketing – Agent Brokerage Commission',
+                        'account'    => 'Acc: 4001 (Agent Brokerage)',
+                        'curr'       => $curr['marketingExpenses'],
+                        'pct_of_rev' => $calcPctOfRev($curr['marketingExpenses'], $curr['revenueOps']),
+                        'prior'      => $prior['marketingExpenses'],
+                        'var'        => $calcVar($curr['marketingExpenses'], $prior['marketingExpenses']),
+                    ],
+                    [
+                        'name'       => '4. Statutory Charges – Output GST (CGST + SGST)',
+                        'account'    => 'Acc: 2021 + 2022 (GST Payable)',
+                        'curr'       => $curr['statutoryCharges'],
+                        'pct_of_rev' => $calcPctOfRev($curr['statutoryCharges'], $curr['revenueOps']),
+                        'prior'      => $prior['statutoryCharges'],
+                        'var'        => $calcVar($curr['statutoryCharges'], $prior['statutoryCharges']),
+                    ],
+                    [
+                        'name'       => '5. Finance Costs – Bank Loan Interest & Processing',
+                        'account'    => 'Acc: 2202 (Interest)',
+                        'curr'       => $curr['financeCosts'],
+                        'pct_of_rev' => $calcPctOfRev($curr['financeCosts'], $curr['revenueOps']),
+                        'prior'      => $prior['financeCosts'],
+                        'var'        => $calcVar($curr['financeCosts'], $prior['financeCosts']),
+                    ],
+                    [
+                        'name'       => '6. Administrative & Office Expenses',
+                        'account'    => 'Acc: 4003 (Site Admin)',
+                        'curr'       => $curr['adminExpenses'],
+                        'pct_of_rev' => $calcPctOfRev($curr['adminExpenses'], $curr['revenueOps']),
+                        'prior'      => $prior['adminExpenses'],
+                        'var'        => $calcVar($curr['adminExpenses'], $prior['adminExpenses']),
+                    ],
+                    [
+                        'name'       => '7. Employee Benefits & Site Payroll',
+                        'account'    => 'Acc: 4006 (Payroll)',
+                        'curr'       => $curr['employeeExpenses'],
+                        'pct_of_rev' => $calcPctOfRev($curr['employeeExpenses'], $curr['revenueOps']),
+                        'prior'      => $prior['employeeExpenses'],
+                        'var'        => $calcVar($curr['employeeExpenses'], $prior['employeeExpenses']),
+                    ],
+                    [
+                        'name'       => '8. Depreciation & Equipment Amortisation',
+                        'account'    => 'Acc: 4007 (Depreciation)',
+                        'curr'       => $curr['depreciation'],
+                        'pct_of_rev' => $calcPctOfRev($curr['depreciation'], $curr['revenueOps']),
+                        'prior'      => $prior['depreciation'],
+                        'var'        => $calcVar($curr['depreciation'], $prior['depreciation']),
+                    ],
                 ],
-                'total_curr' => $totalExpensesCurr,
-                'total_prior' => $totalExpensesPrior,
-                'total_var' => $calcVar($totalExpensesCurr, $totalExpensesPrior),
+                'total_curr'       => $curr['totalExpenses'],
+                'total_pct_of_rev' => $calcPctOfRev($curr['totalExpenses'], $curr['revenueOps']),
+                'total_prior'      => $prior['totalExpenses'],
+                'total_var'        => $calcVar($curr['totalExpenses'], $prior['totalExpenses']),
             ],
             'profit_before_tax' => [
-                'curr' => $profitBeforeTaxCurr,
-                'prior' => $profitBeforeTaxPrior,
-                'var' => $calcVar($profitBeforeTaxCurr, $profitBeforeTaxPrior),
+                'curr'       => $curr['profitBeforeTax'],
+                'pct_of_rev' => $calcPctOfRev($curr['profitBeforeTax'], $curr['revenueOps']),
+                'prior'      => $prior['profitBeforeTax'],
+                'var'        => $calcVar($curr['profitBeforeTax'], $prior['profitBeforeTax']),
             ],
             'tax_expense' => [
-                'curr' => $taxExpenseCurr,
-                'prior' => $taxExpensePrior,
-                'var' => $calcVar($taxExpenseCurr, $taxExpensePrior),
+                'curr'       => $curr['taxExpense'],
+                'pct_of_rev' => $calcPctOfRev($curr['taxExpense'], $curr['revenueOps']),
+                'prior'      => $prior['taxExpense'],
+                'var'        => $calcVar($curr['taxExpense'], $prior['taxExpense']),
             ],
             'net_profit_after_tax' => [
-                'curr' => $netProfitCurr,
-                'prior' => $netProfitPrior,
-                'var' => $calcVar($netProfitCurr, $netProfitPrior),
+                'curr'       => $curr['netProfit'],
+                'pct_of_rev' => $calcPctOfRev($curr['netProfit'], $curr['revenueOps']),
+                'prior'      => $prior['netProfit'],
+                'var'        => $calcVar($curr['netProfit'], $prior['netProfit']),
+            ],
+            'analytics' => [
+                'expense_distribution' => $expDistribution,
+                'is_first_year'        => ($prior['revenueOps'] == 0 && $prior['totalExpenses'] == 0),
             ],
         ];
 
+        // ── 7. Detailed Ledger Breakdown (for Detailed view mode) ───────────────
         $profitLossEntries = [
             'incomes' => [
                 'direct' => [
-                    ['name' => 'Apartment & Residential Unit Sales', 'amount' => $revenueOps * 0.75],
-                    ['name' => 'Commercial Shops & Office Space Allotments', 'amount' => $revenueOps * 0.25],
+                    ['name' => 'Apartment & Residential Unit Sales', 'amount' => round($curr['revenueOps'] * 0.80, 2)],
+                    ['name' => 'Commercial Shops & Plot Allotments', 'amount' => round($curr['revenueOps'] * 0.20, 2)],
                 ],
-                'total_direct' => $revenueOps,
+                'total_direct'   => $curr['revenueOps'],
                 'indirect' => [
-                    ['name' => 'Customer Delayed Payment Penalties & Interest', 'amount' => $otherIncome * 0.60],
-                    ['name' => 'Booking Cancellation & Administrative Retention', 'amount' => $otherIncome * 0.40],
+                    ['name' => 'Customer Delayed Payment Penalties & Interest',   'amount' => round($curr['otherIncome'] * 0.60, 2)],
+                    ['name' => 'Booking Cancellation & Administrative Retention', 'amount' => round($curr['otherIncome'] * 0.40, 2)],
                 ],
-                'total_indirect' => $otherIncome,
-                'total_incomes' => $totalIncomeCurr,
+                'total_indirect' => $curr['otherIncome'],
+                'total_incomes'  => $curr['totalIncome'],
             ],
             'expenses' => [
                 'direct' => [
-                    ['name' => 'Raw Materials (Steel, Cement, Ready-mix Concrete)', 'amount' => $costOfSales * 0.50],
-                    ['name' => 'Civil Subcontractors & Structural Works', 'amount' => $costOfSales * 0.35],
-                    ['name' => 'Site Wages & Skilled Construction Labor', 'amount' => $costOfSales * 0.15],
+                    ['name' => 'Sub-Contractor & Structural Works (RA Bills)', 'amount' => $curr['contractorExpense']],
+                    ['name' => 'Raw Materials – Steel, Cement, RMC, CCTV',    'amount' => $curr['materialExpense']],
                 ],
-                'total_direct' => $costOfSales,
-                'gross_profit' => $grossProfitCurr,
+                'total_direct'   => $curr['costOfSales'],
+                'gross_profit'   => $curr['grossProfit'],
                 'indirect' => [
-                    ['name' => 'Sales Agent & Brokerage Commissions', 'amount' => $marketingExpenses],
-                    ['name' => 'Bank Construction Loan Interest & Charges', 'amount' => $financeCosts],
-                    ['name' => 'Administrative & Management Overhead', 'amount' => $adminExpenses],
-                    ['name' => 'Employee Benefits & Site Utilities', 'amount' => $employeeExpenses],
+                    ['name' => 'Sales Agent & Brokerage Commissions',         'amount' => $curr['marketingExpenses']],
+                    ['name' => 'Output GST (CGST + SGST)',                    'amount' => $curr['statutoryCharges']],
+                    ['name' => 'Bank Loan Interest & Finance Charges',        'amount' => $curr['financeCosts']],
+                    ['name' => 'Administrative & Management Overhead',         'amount' => $curr['adminExpenses']],
+                    ['name' => 'Employee Benefits & Site Utilities',          'amount' => $curr['employeeExpenses']],
+                    ['name' => 'Depreciation & Amortisation',                'amount' => $curr['depreciation']],
                 ],
-                'total_indirect' => $totalExpensesCurr - $costOfSales,
-                'total_expenses' => $totalExpensesCurr,
+                'total_indirect' => round(
+                    $curr['marketingExpenses'] + $curr['statutoryCharges'] + $curr['financeCosts']
+                    + $curr['adminExpenses'] + $curr['employeeExpenses'] + $curr['depreciation'], 2),
+                'total_expenses' => $curr['totalExpenses'],
             ],
-            'net_profit' => $netProfitCurr,
-            'gross_margin_pct' => $totalIncomeCurr > 0 ? round(($grossProfitCurr / $totalIncomeCurr) * 100, 2) : 0,
-            'net_margin_pct' => round($netMarginCurr, 2),
-            'ebitda' => $netProfitCurr + $financeCosts + $depreciation,
+            'net_profit'       => $curr['netProfit'],
+            'gross_margin_pct' => $curr['grossMargin'],
+            'net_margin_pct'   => $curr['netMargin'],
+            'ebitda'           => round($curr['netProfit'] + $curr['financeCosts'] + $curr['depreciation'], 2),
         ];
 
         return view('reports.profit-loss', array_merge($lookups, compact('activeTab', 'pnlData', 'profitLossEntries')));
     }
+
 
     public function balanceSheet(Request $request): View
     {
