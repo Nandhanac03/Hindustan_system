@@ -441,14 +441,14 @@ function gstReportApp() {
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                     Output Tax
                 </button>
-                <button type="button" @click="tab = 'itc'" 
+                <!-- <button type="button" @click="tab = 'itc'" 
                     :class="tab === 'itc' 
                         ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white shadow-sm font-black' 
                         : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
                     class="px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     Input Tax Credit
-                </button>
+                </button> -->
                 <button type="button" @click="tab = 'liability'" 
                     :class="tab === 'liability' 
                         ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white shadow-sm font-black' 
