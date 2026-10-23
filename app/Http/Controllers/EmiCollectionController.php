@@ -15,6 +15,7 @@ use App\Models\EmiRescheduleLog;
 use App\Models\Payee;
 use App\Models\Bank;
 use App\Models\PaymentMode;
+use App\Services\RealizedCollectionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,10 +48,22 @@ class EmiCollectionController extends Controller
             ->latest()
             ->get();
 
-        $totalContractValue   = (float) Sale::where('status', 'active')->sum('total_amount');
-        $totalOutstanding     = (float) Sale::where('status', 'active')->sum('remaining_balance');
-        $totalPaidSales       = (float) $activeSales->sum(fn($s) => $s->receipts->sum('amount'));
-        $totalSales           = Sale::where('status', 'active')->count();
+        $totalContractValue = (float) Sale::where('status', 'active')->sum('total_amount');
+        $totalOutstanding   = (float) Sale::where('status', 'active')->sum('remaining_balance');
+        $totalSales         = Sale::where('status', 'active')->count();
+
+        // ── Match Dashboard exactly ──────────────────────────────────────────
+        // Collections are counted from RECEIPTS, not from active sales only.
+        // Cash received against a sale that was later cancelled / returned /
+        // exchanged is still realized money, and the refunds paid back on it
+        // are deducted. Sharing one service keeps this KPI identical to the
+        // Dashboard one forever. See RealizedCollectionService.
+        $collections               = RealizedCollectionService::summarize();
+        $grossRealizedCollections  = $collections['gross'];
+        $totalRefundsPaid          = $collections['refunds'];
+        $totalPaidSales            = $collections['net'];
+        // ─────────────────────────────────────────────────────────────────────
+
         $pendingPaymentsCount = Sale::where('status', 'active')->where('remaining_balance', '>', 0)->count();
         $fullyPaidCount       = Sale::where('status', 'active')->where('remaining_balance', '<=', 0)->count();
 
@@ -91,7 +104,7 @@ class EmiCollectionController extends Controller
         }
 
         $allSalesFormatted = $activeSales->map(function ($sale) {
-            $totalPaid = (float) $sale->receipts->sum('amount');
+            $totalPaid = (float) $sale->receipts->where('realization_status', 'realized')->sum('amount');
             $formattedUnitText = '';
             if($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
                 $unitStrings = [];
@@ -173,6 +186,8 @@ class EmiCollectionController extends Controller
             'sales',
             'totalContractValue',
             'totalPaidSales',
+            'grossRealizedCollections',
+            'totalRefundsPaid',
             'totalOutstanding',
             'totalSales',
             'pendingPaymentsCount',

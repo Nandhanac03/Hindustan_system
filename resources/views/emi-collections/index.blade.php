@@ -42,7 +42,11 @@
             
             <div class="relative z-10 mt-2">
                 <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format($totalPaidSales, 2) }}</span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Cleared milestone and intake collections</p>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Realized Collections
+                    @if($totalRefundsPaid > 0)
+                        <span class="text-rose-400">(After ₹{{ number_format($totalRefundsPaid, 2) }} Refund Deducted)</span>
+                    @endif
+                </p>
             </div>
         </div>
 
