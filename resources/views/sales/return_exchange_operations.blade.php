@@ -2369,7 +2369,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-4 border-t border-slate-100">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                         <div class="relative">
@@ -2381,15 +2381,6 @@
                                         <template x-if="errors.agreed_sale_amount">
                                             <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.agreed_sale_amount) ? errors.agreed_sale_amount[0] : errors.agreed_sale_amount"></p>
                                         </template>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">GST Type</label>
-                                        <select x-model="exchangeForm.gst_type" @change="calculateExchangeAmounts('gst_type')"
-                                                class="w-full px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-bold shadow-sm">
-                                            <option value="none">None</option>
-                                            <option value="exclusive">Exclusive</option>
-                                            <option value="inclusive">Inclusive</option>
-                                        </select>
                                     </div>
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">GST Percentage (%)</label>

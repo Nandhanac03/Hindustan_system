@@ -126,7 +126,7 @@ class SalesController extends Controller
             ->with(['floor', 'unitType'])
             ->get()
             ->sortBy([
-                fn($a, $b) => ($a->floor?->number ?? 0) <=> ($b->floor?->number ?? 0),
+                fn($a, $b) => ($a->floor?->floor_number ?? 0) <=> ($b->floor?->floor_number ?? 0),
                 fn($a, $b) => strnatcmp($a->door_no ?? '', $b->door_no ?? ''),
             ])
             ->map(function ($unit) {
@@ -134,7 +134,7 @@ class SalesController extends Controller
                     'id'                     => $unit->id,
                     'door_no'                => $unit->door_no,
                     'floor_name'             => $unit->floor?->name ?? '',
-                    'floor_number'           => $unit->floor?->number ?? 0,
+                    'floor_number'           => (int)($unit->floor?->floor_number ?? 0),
                     'built_up_area'          => $unit->built_up_area,
                     'expected_rate_per_sqft' => $unit->expected_rate_per_sqft,
                     'expected_sale_amount'   => $unit->expected_sale_amount,
@@ -975,13 +975,22 @@ class SalesController extends Controller
 
             $newAmount = isset($validated['agreed_sale_amount']) ? (float)$validated['agreed_sale_amount'] : (float)$newUnit->expected_sale_amount;
             $newRate = isset($validated['sale_rate']) ? (float)$validated['sale_rate'] : (isset($validated['sale_rate_per_sqft']) ? (float)$validated['sale_rate_per_sqft'] : (float)$newUnit->expected_rate_per_sqft);
-            $gstType = $validated['gst_type'] ?? $newUnit->gst_behavior ?? $sale->gst_type ?? 'none';
-            $gstPct = isset($validated['gst_percentage']) ? (float)$validated['gst_percentage'] : 18.0;
+            $gstPct = isset($validated['gst_percentage']) && $validated['gst_percentage'] !== '' && $validated['gst_percentage'] !== null ? (float)$validated['gst_percentage'] : null;
+            $gstAmtInput = isset($validated['gst_amount']) && $validated['gst_amount'] !== '' && $validated['gst_amount'] !== null ? (float)$validated['gst_amount'] : null;
+            $gstType = $validated['gst_type'] ?? (($gstPct > 0 || $gstAmtInput > 0) ? 'exclusive' : 'none');
+            if ($gstType !== 'inclusive') {
+                $gstType = ($gstPct > 0 || $gstAmtInput > 0) ? 'exclusive' : 'none';
+            }
+
             $gstAmount = 0.0;
             if ($gstType === 'exclusive') {
-                $gstAmount = isset($validated['gst_amount']) ? (float)$validated['gst_amount'] : round($newAmount * ($gstPct / 100), 2);
+                if ($gstAmtInput !== null) {
+                    $gstAmount = $gstAmtInput;
+                } elseif ($gstPct !== null && $gstPct > 0) {
+                    $gstAmount = round($newAmount * ($gstPct / 100), 2);
+                }
             } elseif ($gstType === 'inclusive') {
-                $gstAmount = isset($validated['gst_amount']) ? (float)$validated['gst_amount'] : round($newAmount - ($newAmount / (1 + ($gstPct / 100))), 2);
+                $gstAmount = $gstAmtInput !== null ? $gstAmtInput : ($gstPct !== null ? round($newAmount - ($newAmount / (1 + ($gstPct / 100))), 2) : 0.0);
             }
             $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
             $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : ($gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount);

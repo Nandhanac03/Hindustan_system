@@ -3263,9 +3263,9 @@ function salesApp() {
                 let gstType = unit.gst_behavior || (this.selectedExchangeSale?.gst_type || 'exclusive');
                 this.exchangeForm.gst_type = (gstType === 'none' || gstType === 'inclusive') ? gstType : 'exclusive';
                 if (this.exchangeForm.gst_type === 'none') {
-                    this.exchangeForm.gst_percentage = 0;
-                } else if (this.exchangeForm.gst_percentage === '' || this.exchangeForm.gst_percentage === undefined || this.exchangeForm.gst_percentage === 0) {
-                    this.exchangeForm.gst_percentage = 18;
+                    this.exchangeForm.gst_percentage = '';
+                } else if (this.exchangeForm.gst_percentage === '' || this.exchangeForm.gst_percentage === undefined) {
+                    this.exchangeForm.gst_percentage = '';
                 }
 
                 this.calculateExchangeAmounts(isParking ? 'agreed_amount' : 'rate');
@@ -3309,40 +3309,35 @@ function salesApp() {
             }
 
             let agreedAmount = parseFloat(form.agreed_sale_amount) || 0;
-            let gstType = form.gst_type || 'exclusive';
+            const pctStr = (form.gst_percentage !== null && form.gst_percentage !== undefined) ? String(form.gst_percentage).trim() : '';
+            const gstAmtStr = (form.gst_amount !== null && form.gst_amount !== undefined) ? String(form.gst_amount).trim() : '';
 
-            if (gstType === 'none') {
-                form.gst_percentage = 0;
-                form.gst_amount = 0;
-                form.new_unit_value = agreedAmount;
-            } else if (gstType === 'inclusive') {
-                let gstPct = parseFloat(form.gst_percentage) || 0;
-                if (source === 'gst_amount') {
-                    let gstAmt = parseFloat(form.gst_amount) || 0;
-                    if (agreedAmount > 0 && (agreedAmount - gstAmt) > 0) {
-                        form.gst_percentage = Math.round((gstAmt / (agreedAmount - gstAmt)) * 100 * 100) / 100;
-                    }
-                } else {
-                    let gstAmt = Math.round((agreedAmount - (agreedAmount / (1 + (gstPct / 100)))) * 100) / 100;
-                    form.gst_amount = gstAmt;
-                }
+            if (source === 'gst_amount') {
                 let gstAmt = parseFloat(form.gst_amount) || 0;
-                form.new_unit_value = Math.round((agreedAmount - gstAmt) * 100) / 100;
+                if (gstAmtStr !== '' && gstAmt > 0 && agreedAmount > 0) {
+                    form.gst_percentage = Math.round((gstAmt / agreedAmount * 100) * 100) / 100;
+                    form.gst_type = 'exclusive';
+                } else if (gstAmtStr === '' || gstAmt === 0) {
+                    form.gst_percentage = '';
+                    form.gst_amount = '';
+                    form.gst_type = 'none';
+                }
             } else {
-                // exclusive
-                if (source === 'gst_amount') {
-                    let gstAmt = parseFloat(form.gst_amount) || 0;
-                    if (agreedAmount > 0) {
-                        form.gst_percentage = Math.round((gstAmt / agreedAmount) * 100 * 100) / 100;
-                    }
-                } else {
-                    let gstPct = parseFloat(form.gst_percentage) || 0;
+                // source === 'gst_percentage', 'rate', 'agreed_amount', etc.
+                let gstPct = parseFloat(form.gst_percentage) || 0;
+                if (pctStr !== '' && gstPct > 0 && agreedAmount > 0) {
                     let gstAmt = Math.round(agreedAmount * (gstPct / 100) * 100) / 100;
                     form.gst_amount = gstAmt;
+                    form.gst_type = 'exclusive';
+                } else if (pctStr === '' || gstPct === 0) {
+                    form.gst_amount = '';
+                    form.gst_percentage = (pctStr === '' || gstPct === 0) ? '' : form.gst_percentage;
+                    form.gst_type = 'none';
                 }
-                let gstAmt = parseFloat(form.gst_amount) || 0;
-                form.new_unit_value = Math.round((agreedAmount + gstAmt) * 100) / 100;
             }
+
+            let effectiveGstAmt = parseFloat(form.gst_amount) || 0;
+            form.new_unit_value = Math.round((agreedAmount + effectiveGstAmt) * 100) / 100;
 
             if (this.calculateDifferentialDue() <= 0) {
                 form.emi_installment_count = 0;
@@ -3944,7 +3939,13 @@ function salesApp() {
         },
         getFilteredUnits(mode, search = '') {
             const s = (search || '').toLowerCase().trim();
-            const unitsList = this.availableUnits[mode] || [];
+            const sortFn = (a, b) => {
+                const fA = a.floor_number !== undefined && a.floor_number !== null ? Number(a.floor_number) : 0;
+                const fB = b.floor_number !== undefined && b.floor_number !== null ? Number(b.floor_number) : 0;
+                if (fA !== fB) return fA - fB;
+                return (a.door_no || '').localeCompare(b.door_no || '', undefined, { numeric: true, sensitivity: 'base' });
+            };
+            const unitsList = (this.availableUnits[mode] || []).slice().sort(sortFn);
             if (!s) return unitsList;
 
             const sClean = s.replace(/[\s\-_]+/g, '');
@@ -4673,10 +4674,13 @@ function salesApp() {
                                 const unit_type_name = unitObj?.unit_type?.name || '';
                                 const unit_type_category = unitObj?.unit_type?.category || '';
                                 
+                                const floor_number = (unitObj?.floor?.floor_number !== undefined && unitObj?.floor?.floor_number !== null) ? Number(unitObj.floor.floor_number) : 0;
+                                
                                 this.availableUnits.edit.push({
                                     id: u.unit_id,
                                     door_no: door_no,
                                     floor_name: floor_name,
+                                    floor_number: floor_number,
                                     built_up_area: built_up_area,
                                     expected_rate_per_sqft: expected_rate_per_sqft,
                                     expected_sale_amount: expected_sale_amount,
@@ -4684,6 +4688,12 @@ function salesApp() {
                                     unit_type_category: unit_type_category
                                 });
                             }
+                        });
+                        this.availableUnits.edit.sort((a, b) => {
+                            const fA = a.floor_number !== undefined ? Number(a.floor_number) : 0;
+                            const fB = b.floor_number !== undefined ? Number(b.floor_number) : 0;
+                            if (fA !== fB) return fA - fB;
+                            return (a.door_no || '').localeCompare(b.door_no || '', undefined, { numeric: true, sensitivity: 'base' });
                         });
                         this.recalculateAllTotals('edit');
                     })
