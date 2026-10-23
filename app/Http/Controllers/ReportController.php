@@ -1602,23 +1602,7 @@ class ReportController extends Controller
         }
         $partnerShares = $sharesQuery->get();
 
-        // 2. Fetch Receipts (Credits - Collection Share)
-        $receiptsQuery = Receipt::with(['sale.project', 'sale.unit', 'customer'])
-            ->whereNull('partner_id')
-            ->orderBy('receipt_date');
-
-        if ($projectId) {
-            $receiptsQuery->where('project_id', $projectId);
-        }
-        if ($dateFrom) {
-            $receiptsQuery->whereDate('receipt_date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $receiptsQuery->whereDate('receipt_date', '<=', $dateTo);
-        }
-        $receipts = $receiptsQuery->get();
-
-        // 3. Fetch Allocations (Debits - Payouts / Drawings Released)
+        // 2. Fetch Allocations (Debits - Payouts / Drawings Released)
         $allocQuery = PartnerAllocation::with(['partner', 'project', 'voucher', 'payment']);
         if ($partnerId) {
             $allocQuery->where('partner_id', $partnerId);
@@ -1634,7 +1618,7 @@ class ReportController extends Controller
         }
         $allocations = $allocQuery->orderBy('date')->get();
 
-        // 4. Additional Payouts (bill_payments & voucher_lines)
+        // 3. Additional Payouts (bill_payments & voucher_lines)
         $billPayoutsQuery = DB::table('bill_payments')->whereIn('payee_id', $partnerPayeeIds);
         if ($partnerId) {
             $billPayoutsQuery->where('payee_id', $partnerId);
@@ -1669,7 +1653,7 @@ class ReportController extends Controller
             'vouchers.narration'
         )->get();
 
-        // 4.5 Fetch Direct Partner Capital Contributions (Credits)
+        // 4. Fetch Direct Partner Capital Contributions
         $contribsQuery = \App\Models\PartnerContribution::with(['partner', 'project']);
         if ($partnerId) {
             $contribsQuery->where('partner_id', $partnerId);
@@ -1685,58 +1669,8 @@ class ReportController extends Controller
         }
         $partnerContributions = $contribsQuery->orderBy('contribution_date')->get();
 
-        // 5. Combine into Section A Running Ledger
+        // 5. Combine into Section A Table: ONLY Payouts / Drawings entries
         $ledgerTransactions = collect();
-
-        // Add Direct Partner Capital Contributions (Credits)
-        foreach ($partnerContributions as $contrib) {
-            $pName = $partners->firstWhere('id', $contrib->partner_id)?->name ?? ('Partner #' . $contrib->partner_id);
-            $dateStr = $contrib->contribution_date ? Carbon::parse($contrib->contribution_date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
-            $desc = 'Direct Capital Contribution'
-                . ($contrib->project?->name ? (' — ' . $contrib->project->name) : '')
-                . ($contrib->remarks ? (' (' . $contrib->remarks . ')') : '');
-
-            $ledgerTransactions->push((object)[
-                'date' => $dateStr,
-                'ref_no' => $contrib->reference_no ?: ('PRT-CONTR-' . str_pad((string)$contrib->id, 5, '0', STR_PAD_LEFT)),
-                'description' => $desc,
-                'payment_mode' => 'Bank Transfer',
-                'credit' => (float)$contrib->amount,
-                'debit' => 0.00,
-                'partner_id' => $contrib->partner_id,
-                'partner_name' => $pName,
-            ]);
-        }
-
-        // Add Receipts Collection Shares (Credits)
-        foreach ($receipts as $receipt) {
-            $targetShares = $allPartnerShares->where('project_id', $receipt->project_id);
-            if ($partnerId) {
-                $targetShares = $targetShares->where('partner_id', $partnerId);
-            }
-
-            foreach ($targetShares as $share) {
-                $sharePct = (float)$share->share_pct;
-                $partnerAmount = (float)$receipt->amount * ($sharePct / 100);
-                $partnerObj = $partners->firstWhere('id', $share->partner_id);
-
-                $desc = 'Share of collection (' . $sharePct . '%) from ' . ($receipt->customer?->name ?? 'Customer')
-                    . ' — ' . ($receipt->sale?->project?->name ?? 'Project')
-                    . ($receipt->sale?->unit?->door_no ? (' Unit ' . $receipt->sale->unit->door_no) : '')
-                    . ($receipt->reference_no ? (' (Ref: ' . $receipt->reference_no . ')') : '');
-
-                $ledgerTransactions->push((object)[
-                    'date' => Carbon::parse($receipt->receipt_date)->format('Y-m-d'),
-                    'ref_no' => $receipt->receipt_number ?: ($receipt->reference_no ?: ('RCT-' . str_pad((string)$receipt->id, 5, '0', STR_PAD_LEFT))),
-                    'description' => $desc,
-                    'payment_mode' => $receipt->payment_mode ?? 'Bank Transfer',
-                    'credit' => (float)$partnerAmount,
-                    'debit' => 0.00,
-                    'partner_id' => $share->partner_id,
-                    'partner_name' => $partnerObj?->name ?? ('Partner #' . $share->partner_id),
-                ]);
-            }
-        }
 
         // Add Allocations Payouts (Debits)
         foreach ($allocations as $alloc) {
@@ -1748,9 +1682,10 @@ class ReportController extends Controller
                 elseif (stripos($narration, 'Cheque') !== false) $paymentMode = 'Cheque';
                 elseif (stripos($narration, 'Cash') !== false) $paymentMode = 'Cash';
                 elseif (stripos($narration, 'UPI') !== false || stripos($narration, 'Online') !== false) $paymentMode = 'UPI / Online';
+                else $paymentMode = 'Bank Transfer';
             }
 
-            $baseDesc = ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . 'Profit Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
+            $baseDesc = ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . 'Partner Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
 
             $ledgerTransactions->push((object)[
                 'date' => $dateStr,
@@ -1759,6 +1694,7 @@ class ReportController extends Controller
                 'payment_mode' => $paymentMode,
                 'credit' => 0.00,
                 'debit' => (float)$alloc->allocated_amount,
+                'amount' => (float)$alloc->allocated_amount,
                 'partner_id' => $alloc->partner_id,
                 'partner_name' => $alloc->partner?->name ?? ('Partner #' . $alloc->partner_id),
             ]);
@@ -1771,10 +1707,11 @@ class ReportController extends Controller
             $ledgerTransactions->push((object)[
                 'date' => $dateStr,
                 'ref_no' => 'BILL-PAY-' . str_pad((string)$pay->id, 3, '0', STR_PAD_LEFT),
-                'description' => 'Profit Payout / Drawing',
-                'payment_mode' => '',
+                'description' => 'Partner Payout / Drawing',
+                'payment_mode' => 'Bank Transfer',
                 'credit' => 0.00,
                 'debit' => (float)$pay->amount,
+                'amount' => (float)$pay->amount,
                 'partner_id' => $pay->payee_id,
                 'partner_name' => $pName,
             ]);
@@ -1792,14 +1729,16 @@ class ReportController extends Controller
                 elseif (stripos($narr, 'Cheque') !== false) $paymentMode = 'Cheque';
                 elseif (stripos($narr, 'Cash') !== false) $paymentMode = 'Cash';
                 elseif (stripos($narr, 'UPI') !== false || stripos($narr, 'Online') !== false) $paymentMode = 'UPI / Online';
+                else $paymentMode = 'Bank Transfer';
 
                 $ledgerTransactions->push((object)[
                     'date' => $dateStr,
                     'ref_no' => $vp->voucher_number,
-                    'description' => $vp->line_narration ?: ($vp->narration ?: 'Profit Payout / Drawing'),
+                    'description' => $vp->line_narration ?: ($vp->narration ?: 'Partner Payout / Drawing'),
                     'payment_mode' => $paymentMode,
                     'credit' => 0.00,
                     'debit' => (float)$vp->debit,
+                    'amount' => (float)$vp->debit,
                     'partner_id' => $pId,
                     'partner_name' => $pName,
                 ]);
@@ -1809,41 +1748,27 @@ class ReportController extends Controller
         // Sort ledger transactions chronologically
         $sortedLedger = $ledgerTransactions->sortBy(fn($t) => Carbon::parse($t->date)->timestamp)->values();
 
-        // Calculate running payable balances
-        $runningBalance = 0.0;
-        $totalCredit = 0.0;
-        $totalDebit = 0.0;
+        // Calculate running cumulative payout totals
+        $runningCumulativePayout = 0.0;
         $runningLedger = collect();
 
         foreach ($sortedLedger as $row) {
-            $runningBalance += ($row->credit - $row->debit);
-            $totalCredit += $row->credit;
-            $totalDebit += $row->debit;
-
-            $row->running_balance = $runningBalance;
+            $runningCumulativePayout += $row->debit;
+            $row->running_balance = $runningCumulativePayout;
             $runningLedger->push($row);
         }
 
         // 6. Section B: Project-Wide Equity & Profit Distribution Matrix
         $matrixPartners = collect();
-        $totalMatrixAllocated = 0.0;
         $totalMatrixPayouts = 0.0;
+        $totalMatrixContribs = 0.0;
         $totalMatrixAgreedPct = 0.0;
 
         foreach ($partners as $partner) {
             $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
             $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
 
-            // Credits for this partner (from all receipts collection shares)
-            $partnerAllocTotal = 0.0;
-            foreach ($receipts as $receipt) {
-                $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
-                if ($targetShare) {
-                    $partnerAllocTotal += (float)$receipt->amount * ((float)$targetShare->share_pct / 100);
-                }
-            }
-
-            // Direct partner capital contributions (tracked separately)
+            // Direct partner capital contributions
             $partnerContribTotal = (float)$partnerContributions->where('partner_id', $partner->id)->sum('amount');
 
             // Debits for this partner (from allocations, bill payouts, voucher payouts)
@@ -1857,10 +1782,11 @@ class ReportController extends Controller
                 }
             }
 
-            $partnerNetBalance = ($partnerContribTotal + $partnerAllocTotal) - $partnerPayoutTotal;
+            // Net Balance = Capital Contributed - Payouts Released
+            $partnerNetBalance = $partnerContribTotal - $partnerPayoutTotal;
 
             $totalMatrixAgreedPct += $sharePct;
-            $totalMatrixAllocated += $partnerAllocTotal;
+            $totalMatrixContribs += $partnerContribTotal;
             $totalMatrixPayouts += $partnerPayoutTotal;
 
             $matrixPartners->push((object)[
@@ -1869,21 +1795,31 @@ class ReportController extends Controller
                 'role' => $partner->role ?? $partner->designation ?? ($partner->id == 1 ? 'Lead Developer' : 'JV Partner / Land Owner'),
                 'share_pct' => $sharePct,
                 'total_contribs' => $partnerContribTotal,
-                'total_allocated' => $partnerAllocTotal,
+                'total_allocated' => 0.0,
                 'total_payouts' => $partnerPayoutTotal,
                 'net_balance' => $partnerNetBalance,
             ]);
         }
 
-        // 7. KPI Card Metrics
+        // 7. KPI Card Metrics (Clean, logically correct according to new partner logic)
         $selectedPartnerObj = $partnerId ? $partners->firstWhere('id', $partnerId) : null;
         $agreedProfitShare = $selectedPartnerObj
             ? ($matrixPartners->firstWhere('id', $selectedPartnerObj->id)->share_pct ?? 0.0)
             : $totalMatrixAgreedPct;
 
-        $earnedProfitShare = (float)$totalCredit;
-        $totalPayoutsReleased = (float)$totalDebit;
-        $currentNetEquityBalance = $earnedProfitShare - $totalPayoutsReleased;
+        $totalCapitalContributed = $selectedPartnerObj
+            ? ($matrixPartners->firstWhere('id', $selectedPartnerObj->id)->total_contribs ?? 0.0)
+            : $totalMatrixContribs;
+
+        $totalPayoutsReleased = (float)$sortedLedger->sum('debit');
+        $netCapitalBalance = $totalCapitalContributed - $totalPayoutsReleased;
+
+        $totalCredit = $totalCapitalContributed;
+        $totalDebit = $totalPayoutsReleased;
+        $runningBalance = $netCapitalBalance;
+        $earnedProfitShare = $totalCapitalContributed;
+        $currentNetEquityBalance = $netCapitalBalance;
+        $totalMatrixAllocated = 0.0;
 
         $companyBankAccounts = \App\Models\CompanyBankAccount::orderByDesc('is_default')->orderBy('bank_name')->get();
         $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
@@ -1900,14 +1836,17 @@ class ReportController extends Controller
             'runningLedger',
             'totalCredit',
             'totalDebit',
+            'totalPayoutsReleased',
+            'totalCapitalContributed',
+            'netCapitalBalance',
             'runningBalance',
             'matrixPartners',
             'totalMatrixAgreedPct',
+            'totalMatrixContribs',
             'totalMatrixAllocated',
             'totalMatrixPayouts',
             'agreedProfitShare',
             'earnedProfitShare',
-            'totalPayoutsReleased',
             'currentNetEquityBalance',
             'partnerId',
             'projectId',

@@ -73,14 +73,14 @@
         {{-- 4 Metric KPI Cards Grid (Placed Above Filter) --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            {{-- Card 1: Agreed Profit Share --}}
+            {{-- Card 1: Agreed Equity Share --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
                 <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
                         </div>
-                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Agreed Profit Share</span>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Agreed Equity Share</span>
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
@@ -91,21 +91,21 @@
                 </div>
             </div>
 
-            {{-- Card 2: Earned Profit Share --}}
+            {{-- Card 2: Total Capital Contributed --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
                 <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Earned Profit Share</span>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Capital Contributed</span>
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="formatCurrency(totalCredit)">
-                        Rs. {{ number_format($earnedProfitShare, 0) }}
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="formatCurrency(totalCapitalContributed)">
+                        Rs. {{ number_format($totalCapitalContributed, 0) }}
                     </span>
-                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Partner's share of current project net profit</p>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total capital injected into projects</p>
                 </div>
             </div>
 
@@ -120,28 +120,28 @@
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="formatCurrency(totalDebit)">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="formatCurrency(totalPayoutsReleased)">
                         Rs. {{ number_format($totalPayoutsReleased, 0) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total profit payouts / drawings released to date</p>
                 </div>
             </div>
 
-            {{-- Card 4: Current Net Equity Balance --}}
+            {{-- Card 4: Net Capital Position --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
                 <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
                         </div>
-                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Current Net Equity Balance</span>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Net Capital Position</span>
                     </div>
                 </div>
                 <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-[#a38c29] font-mono tracking-tight block group-hover:text-[#8e7a23] transition-colors duration-300" x-text="formatCurrency(totalRunningBalance)">
-                        Rs. {{ number_format($currentNetEquityBalance, 0) }}
+                    <span class="text-2xl font-black text-[#a38c29] font-mono tracking-tight block group-hover:text-[#8e7a23] transition-colors duration-300" x-text="formatCurrency(netCapitalBalance)">
+                        Rs. {{ number_format($netCapitalBalance, 0) }}
                     </span>
-                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Earned Profit Share - Payouts Released</p>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Capital Contributed − Payouts Released</p>
                 </div>
             </div>
 
@@ -443,16 +443,16 @@
             </div>
         </div>
 
-        {{-- Section A: Individual Partner Statement of Account (Running Ledger) --}}
+        {{-- Section A: Partner Payouts & Drawings Statement (Running Ledger) --}}
         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
             <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
-                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">A. Individual Partner Statement of Account (Running Ledger)</h2>
+                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">A. Partner Payouts & Drawings Statement</h2>
                 </div>
-                <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
+                <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' payout records found'"></span>
             </div>
 
             <div class="w-full overflow-hidden">
@@ -463,9 +463,9 @@
                             <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner</th>
                             <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Voucher / Ref</th>
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600">Description / Particulars</th>
-                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Profit Share<br><span class="text-[9px] font-normal opacity-80">(Credit - Rs.)</span></th>
-                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Released<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
-                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Running Bal<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Payment Mode</th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Amount<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Cumulative Payout<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-2 py-3 erp-table-header text-center w-20 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
@@ -476,32 +476,34 @@
                                 <td class="px-2.5 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs truncate max-w-[120px]" :title="entry.partner_name" x-text="entry.partner_name"></td>
                                 <td class="px-2.5 py-2.5 font-mono text-slate-700 font-bold border-r border-slate-100 whitespace-nowrap text-[11px] truncate max-w-[110px]" :title="entry.ref_no" x-text="entry.ref_no"></td>
                                 <td class="px-3 py-2.5 font-semibold text-slate-800 border-r border-slate-100 text-xs">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="truncate max-w-[180px] sm:max-w-xs md:max-w-sm inline-block" :title="entry.description" x-text="entry.description"></span>
-                                        <template x-if="entry.payment_mode">
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8.5px] font-extrabold tracking-wider uppercase border shadow-2xs shrink-0"
-                                                  :class="{
-                                                      'bg-emerald-50 text-emerald-700 border-emerald-200': entry.payment_mode === 'Bank Transfer',
-                                                      'bg-blue-50 text-blue-700 border-blue-200': entry.payment_mode === 'Cheque',
-                                                      'bg-amber-50 text-amber-700 border-amber-200': entry.payment_mode === 'Cash',
-                                                      'bg-purple-50 text-purple-700 border-purple-200': entry.payment_mode === 'UPI / Online' || entry.payment_mode === 'Online'
-                                                  }"
-                                                  x-text="entry.payment_mode">
-                                            </span>
-                                        </template>
-                                    </div>
+                                    <span class="truncate max-w-[200px] sm:max-w-xs md:max-w-md inline-block" :title="entry.description" x-text="entry.description"></span>
                                 </td>
-                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.credit)"></td>
-                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.debit)"></td>
+                                <td class="px-2.5 py-2.5 text-center border-r border-slate-100 whitespace-nowrap">
+                                    <template x-if="entry.payment_mode">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase border shadow-2xs"
+                                              :class="{
+                                                  'bg-emerald-50 text-emerald-700 border-emerald-200': entry.payment_mode === 'Bank Transfer' || (entry.payment_mode && entry.payment_mode.toLowerCase().includes('bank')) || (entry.payment_mode && entry.payment_mode.toLowerCase().includes('transfer')),
+                                                  'bg-blue-50 text-blue-700 border-blue-200': entry.payment_mode === 'Cheque',
+                                                  'bg-amber-50 text-amber-700 border-amber-200': entry.payment_mode === 'Cash',
+                                                  'bg-purple-50 text-purple-700 border-purple-200': entry.payment_mode === 'UPI / Online' || entry.payment_mode === 'Online' || (entry.payment_mode && entry.payment_mode.toLowerCase().includes('upi'))
+                                              }"
+                                              x-text="entry.payment_mode">
+                                        </span>
+                                    </template>
+                                    <template x-if="!entry.payment_mode">
+                                        <span class="text-slate-400 text-[10px]">—</span>
+                                    </template>
+                                </td>
+                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.debit || entry.amount)"></td>
                                 <td class="px-2.5 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.running_balance)"></td>
                                 <td class="px-2 py-2.5 text-center whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center justify-center gap-1">
                                         {{-- View Transaction Modal Button --}}
                                         <button type="button" 
                                                 @click.stop="openViewModal(entry)" 
-                                                title="View Transaction Details"
+                                                title="View Payout Details"
                                                 class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/20 hover:border-[#a38c29]/40 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group active:scale-95"
-                                                aria-label="View Transaction Details">
+                                                aria-label="View Payout Details">
                                             <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -511,9 +513,9 @@
                                         {{-- PDF / Print Receipt Icon Button (Green Theme Style matching Cheque Receipt Entry) --}}
                                         <button type="button" 
                                                 @click="downloadReceiptPdf(entry)" 
-                                                title="Download Receipt"
+                                                title="Download Payout Receipt"
                                                 class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] border border-[#09876B]/20 hover:border-[#09876B]/40 transition inline-flex items-center justify-center shadow-2xs cursor-pointer group active:scale-95"
-                                                aria-label="Download Receipt">
+                                                aria-label="Download Payout Receipt">
                                             <svg class="w-3.5 h-3.5 text-[#09876B] transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/></svg>
                                         </button>
                                     </div>
@@ -523,16 +525,15 @@
 
                         <tr x-show="filteredLedger.length === 0">
                             <td colspan="8" class="px-5 py-8 text-center text-slate-400 font-semibold text-xs">
-                                No transactions found matching the selected filter criteria.
+                                No payout records found matching the selected filter criteria.
                             </td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
-                            <td colspan="4" class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">TOTALS</td>
-                            <td class="px-2.5 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalCredit)"></td>
-                            <td class="px-2.5 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalDebit)"></td>
-                            <td class="px-2.5 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
+                            <td colspan="5" class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">TOTAL PAYOUTS RELEASED</td>
+                            <td class="px-2.5 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs font-bold" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-2.5 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
                             <td class="px-2 py-2.5"></td>
                         </tr>
                     </tfoot>
@@ -577,7 +578,7 @@
                     <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
-                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">B. Project-Wide Equity & Profit Distribution Matrix</h2>
+                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">B. Project-Wide Equity & Capital Position Matrix</h2>
                 </div>
             </div>
 
@@ -587,10 +588,9 @@
                         <tr class="erp-table-header border-b border-slate-700 text-left">
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
                             <th class="px-2 py-3 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Agreed Share<br><span class="text-[9px] font-normal opacity-80">(%)</span></th>
-                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Allocated Net Profit<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Capital Contrib.<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payouts Released<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
-                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Net Balance Owed<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Net Capital Balance<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-2.5 py-3 erp-table-header text-center whitespace-nowrap w-28">Action</th>
                         </tr>
                     </thead>
@@ -602,10 +602,9 @@
                                     <span class="text-xs text-slate-500 font-normal" x-text="' (' + Number(pRow.share_pct).toFixed(1) + '%)'"></span>
                                 </td>
                                 <td class="px-2 py-2.5 text-center font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_allocated)"></td>
                                 <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
                                 <td class="px-3 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_payouts)"></td>
-                                <td class="px-3 py-2.5 text-right font-mono font-black text-[#a38c29] border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.net_balance)"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-black border-r border-slate-100 whitespace-nowrap text-xs" :class="Number(pRow.net_balance) >= 0 ? 'text-emerald-700' : 'text-slate-900'" x-text="formatCurrency(pRow.net_balance)"></td>
                                 <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                                     <button type="button" @click="openPayoutModal(pRow.id)" class="px-2.5 py-1 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white font-extrabold text-[10px] uppercase rounded-lg border border-[#a38c29]/30 transition-all cursor-pointer whitespace-nowrap shadow-2xs">
                                         Record Payout
@@ -618,10 +617,9 @@
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">PROJECT TOTALS</td>
                             <td class="px-2 py-2.5 text-center font-mono text-slate-900 border-r border-slate-200 text-xs" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixAllocated)"></td>
                             <td class="px-3 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixContribs)"></td>
                             <td class="px-3 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixPayouts)"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs + totalMatrixAllocated - totalMatrixPayouts)"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs - totalMatrixPayouts)"></td>
                             <td class="px-2.5 py-2.5"></td>
                         </tr>
                     </tfoot>
@@ -631,7 +629,7 @@
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
                 <div class="flex items-center gap-1.5 text-slate-500">
                     <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Net Balance Owed = (Capital Contributions + Total Allocated Net Profit) - Total Payouts Released</span>
+                    <span>Net Capital Balance = Total Capital Contributed − Total Payouts Released</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span x-text="'Showing ' + filteredMatrixList.length + ' entries'"></span>
@@ -641,16 +639,30 @@
 
         {{-- ── RECORD PARTNER PAYOUT MODAL ── --}}
         <div x-show="showPayoutModal" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
              style="display: none;">
-            <div @click.away="showPayoutModal = false" 
-                 class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col transform transition-all">
+            {{-- Smooth Backdrop Fade (clean overlay without blur) --}}
+            <div x-show="showPayoutModal"
+                 x-transition:enter="ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="showPayoutModal = false"
+                 class="absolute inset-0 bg-slate-900/40"></div>
+
+            {{-- Smooth Modal Dialog Float & Scale (no border, clean shadow) --}}
+            <div x-show="showPayoutModal"
+                 x-transition:enter="ease-out duration-250"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                 class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden max-h-[88vh] flex flex-col z-10 my-auto"
+                 @click.stop>
                 
                 {{-- Dark Header --}}
                 <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30 flex-shrink-0">
@@ -662,9 +674,9 @@
                 </div>
 
                 {{-- Modal Body Form --}}
-                <form action="{{ route('reports.partner_statements.payout') }}" method="POST" @submit="handlePayoutSubmit($event)" novalidate class="flex flex-col overflow-hidden">
+                <form action="{{ route('reports.partner_statements.payout') }}" method="POST" @submit="handlePayoutSubmit($event)" novalidate class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
-                    <div class="p-6 space-y-4 overflow-y-auto max-h-[calc(95vh-130px)]">
+                    <div class="p-5 sm:p-6 space-y-3.5 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
                         
                         {{-- 1. Partner & Project Selection (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -915,7 +927,7 @@
                         {{-- 5. Symmetrical 2-Card Financial Summary Grid --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                             {{-- Card 1: Bank Balance Summary --}}
-                            <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
                                 <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Source Bank Account</span>
                                     <span class="text-[11px] font-bold text-slate-800 truncate max-w-[150px]" x-text="modalSelectedBankAccount ? modalSelectedBankAccount.bank_name : 'Not Selected'"></span>
@@ -939,15 +951,15 @@
                             </div>
 
                             {{-- Card 2: Partner Balance Summary --}}
-                            <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
                                 <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Partner Equity Account</span>
                                     <span class="text-[11px] font-bold text-slate-800 truncate max-w-[150px]" x-text="selectedPartnerName"></span>
                                 </div>
                                 <div class="space-y-1.5 text-xs">
                                     <div class="flex items-center justify-between gap-2">
-                                        <span class="text-slate-600 font-semibold text-[11px]">Available Partner Balance:</span>
-                                        <span class="font-mono font-bold text-emerald-600 text-xs" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
+                                        <span class="text-slate-600 font-semibold text-[11px]">Net Capital Balance:</span>
+                                        <span class="font-mono font-bold text-xs" :class="modalSelectedPartnerBalance >= 0 ? 'text-emerald-600' : 'text-slate-800'" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="text-slate-600 font-semibold text-[11px]">Payout Released:</span>
@@ -955,7 +967,7 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
                                         <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Partner Balance After:</span>
-                                        <span class="font-mono font-black text-slate-900 text-xs" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                                        <span class="font-mono font-black text-xs" :class="modalBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-900'" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
                                     </div>
                                 </div>
                             </div>
@@ -1317,9 +1329,6 @@ function partnerStatementApp() {
             } else if (!this.modalData.is_historical && this.isBankInsufficient) {
                 this.modalErrors.allocated_amount = `Payout amount exceeds available bank balance (${this.formatCurrency(this.modalSelectedBankBalance)})`;
                 hasError = true;
-            } else if (this.isPartnerInsufficient) {
-                this.modalErrors.allocated_amount = `Payout amount exceeds available partner balance (${this.formatCurrency(this.modalSelectedPartnerBalance)})`;
-                hasError = true;
             }
 
             if (!this.modalData.date) {
@@ -1388,15 +1397,12 @@ function partnerStatementApp() {
         },
 
         get isPartnerInsufficient() {
-            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > this.modalSelectedPartnerBalance;
+            return false;
         },
 
         get modalErrorMessage() {
             if (this.isBankInsufficient) {
                 return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available balance in ${this.modalSelectedBankAccount?.bank_name || 'selected bank'} (${this.formatCurrency(this.modalSelectedBankBalance)}).`;
-            }
-            if (this.isPartnerInsufficient) {
-                return `Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available partner balance (${this.formatCurrency(this.modalSelectedPartnerBalance)}).`;
             }
             return '';
         },
@@ -1431,17 +1437,18 @@ function partnerStatementApp() {
                     (r.partner_name && String(r.partner_name).toLowerCase().includes(q)) ||
                     (r.ref_no && String(r.ref_no).toLowerCase().includes(q)) ||
                     (r.description && String(r.description).toLowerCase().includes(q)) ||
-                    (r.date && String(r.date).toLowerCase().includes(q))
+                    (r.date && String(r.date).toLowerCase().includes(q)) ||
+                    (r.payment_mode && String(r.payment_mode).toLowerCase().includes(q))
                 );
             }
 
-            // Recalculate running balance live
-            let bal = 0;
+            // Recalculate running cumulative payout live
+            let cum = 0;
             return list.map(item => {
-                bal += (Number(item.credit || 0) - Number(item.debit || 0));
+                cum += Number(item.debit || item.amount || 0);
                 return {
                     ...item,
-                    running_balance: bal
+                    running_balance: cum
                 };
             });
         },
@@ -1455,16 +1462,32 @@ function partnerStatementApp() {
             return Math.ceil(this.filteredLedger.length / this.pageSize) || 1;
         },
 
-        get totalCredit() {
-            return this.filteredLedger.reduce((sum, r) => sum + Number(r.credit || 0), 0);
+        get totalDebit() {
+            return this.filteredLedger.reduce((sum, r) => sum + Number(r.debit || r.amount || 0), 0);
         },
 
-        get totalDebit() {
-            return this.filteredLedger.reduce((sum, r) => sum + Number(r.debit || 0), 0);
+        get totalPayoutsReleased() {
+            return this.totalDebit;
+        },
+
+        get totalCapitalContributed() {
+            if (this.filters.partner_id) {
+                const p = this.matrixList.find(m => String(m.id) === String(this.filters.partner_id));
+                return p ? Number(p.total_contribs || 0) : 0;
+            }
+            return this.matrixList.reduce((sum, p) => sum + Number(p.total_contribs || 0), 0);
+        },
+
+        get netCapitalBalance() {
+            return this.totalCapitalContributed - this.totalPayoutsReleased;
+        },
+
+        get totalCredit() {
+            return this.totalCapitalContributed;
         },
 
         get totalRunningBalance() {
-            return this.totalCredit - this.totalDebit;
+            return this.netCapitalBalance;
         },
 
         get agreedProfitShareFormatted() {
@@ -1499,7 +1522,7 @@ function partnerStatementApp() {
         },
 
         get totalMatrixAllocated() {
-            return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.total_allocated || 0), 0);
+            return 0;
         },
 
         get totalMatrixPayouts() {

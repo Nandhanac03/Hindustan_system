@@ -554,10 +554,10 @@
                             {{-- 11. Actions --}}
                             <td class="px-2 py-3 text-left print:hidden" @click.stop>
                                 <button type="button" 
-                                        @click="selectBill(row)"
-                                        title="View Details"
-                                        class="w-7 h-7 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-[#a38c29] hover:bg-amber-50 transition-colors cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        @click="openViewModal(row)"
+                                        title="View RA Bill Details"
+                                        class="w-7 h-7 rounded-lg border border-[#a38c29]/30 bg-[#a38c29]/10 text-[#8a7522] hover:bg-[#a38c29] hover:text-white hover:border-[#a38c29] transition-all flex items-center justify-center cursor-pointer shadow-2xs group/btn">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
                             </td>
                         </tr>
@@ -626,244 +626,795 @@
         </div>
     </div>
 
-    {{-- ── 5. SELECTED RA BILL BOTTOM DETAIL CARD (FROM DATABASE DATA) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden mt-6" 
-         x-show="selectedRow"
+    {{-- ── 5. VIEW MODAL POPUP (EXECUTIVE ERP MODAL MATCHING CUSTOMER COLLECTION DUES & EXCHANGE) ── --}}
+    <div class="fixed inset-0 z-[120] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5" 
+         x-show="viewModalOpen" 
+         x-cloak
+         @keydown.escape.window="closeViewModal()"
          x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0">
-        
-        {{-- Detail Card Top Tabs & Action Button --}}
-        <div class="px-5 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
-            
-            {{-- Tabs: RA Bill Details, Deductions & Additions, Payment History, Linked Transactions --}}
-            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
-                <button type="button" 
-                        @click="activeTab = 'details'"
-                        :class="activeTab === 'details' ? 'bg-white text-[#8a7522] font-black border-b-2 border-[#a38c29] shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
-                        class="px-4 py-2 rounded-t-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>RA Bill Details</span>
-                </button>
-                <button type="button" 
-                        @click="activeTab = 'deductions'"
-                        :class="activeTab === 'deductions' ? 'bg-white text-[#8a7522] font-black border-b-2 border-[#a38c29] shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
-                        class="px-4 py-2 rounded-t-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                    <span>Deductions & Additions</span>
-                </button>
-                <button type="button" 
-                        @click="activeTab = 'payments'"
-                        :class="activeTab === 'payments' ? 'bg-white text-[#8a7522] font-black border-b-2 border-[#a38c29] shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
-                        class="px-4 py-2 rounded-t-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    <span>Payment History</span>
-                    <span class="text-[9px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold" x-text="selectedRow.payments ? selectedRow.payments.length : 0"></span>
-                </button>
-                <button type="button" 
-                        @click="activeTab = 'transactions'"
-                        :class="activeTab === 'transactions' ? 'bg-white text-[#8a7522] font-black border-b-2 border-[#a38c29] shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
-                        class="px-4 py-2 rounded-t-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                    <span>Linked Transactions</span>
-                </button>
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+
+        {{-- Backdrop click listener --}}
+        <div class="fixed inset-0" @click="closeViewModal()"></div>
+
+        {{-- Modal Dialog Card --}}
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto transform flex flex-col max-h-[92vh] z-10"
+             @click.stop
+             x-show="viewModalOpen"
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-3"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-3">
+
+            {{-- Modal Header Banner (Styled like Customer Collection Dues & Exchange Details Modal) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 shrink-0">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">
+                                Contractor Payout
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap border"
+                                  :class="getStatusBadgeClass(selectedRow?.payout_status)"
+                                  x-text="selectedRow?.payout_status || 'Draft'">
+                            </span>
+                            <!-- <template x-if="selectedRow?.ra_bill_no">
+                                <span class="px-2 py-0.5 rounded bg-white/10 text-slate-300 font-mono text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
+                                      x-text="'RA Bill #' + selectedRow.ra_bill_no">
+                                </span>
+                            </template> -->
+                        </div>
+                        <!-- <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-base sm:text-lg font-extrabold text-white tracking-wider uppercase" 
+                                x-text="selectedRow?.contractor_name || 'CONTRACTOR PAYOUT DETAILS'"></h2>
+                            <span class="text-xs font-semibold text-amber-200/80" 
+                                  x-show="selectedRow?.project_phase" 
+                                  x-text="'• ' + selectedRow.project_phase"></span>
+                        </div> -->
+                    </div>
+
+                    {{-- Close Button (Matching Screenshot) --}}
+                    <button type="button" 
+                            @click="closeViewModal()" 
+                            class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 cursor-pointer" 
+                            title="Close">
+                        ✕
+                    </button>
+                </div>
             </div>
 
-            {{-- Top Right Actions: Direct Link to Contractor Payment Release Desk --}}
-            <!-- <div class="flex items-center gap-2">
-                <a href="{{ route('expenses.ra-bills.payment-release') }}"
-                   class="h-[36px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-1.5 uppercase tracking-wider cursor-pointer active:scale-95">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    <span>Open Payment Desk</span>
-                </a>
-
-                <div class="relative" x-data="{ open: false }">
-                    <button type="button" 
-                            @click="open = !open" 
-                            @click.away="open = false"
-                            class="w-8 h-[36px] rounded-xl border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors cursor-pointer">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            {{-- Modal Segmented Navigation Tabs --}}
+            <div class="px-6 py-3 bg-slate-50/80 border-b border-slate-200/80 shrink-0 space-y-2.5">
+                {{-- Full-width Segmented Tabs Row (One Line, No Horizontal Scrollbar) --}}
+                <div class="bg-white p-1 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center w-full">
+                    {{-- Tab 1: RA Bill Details --}}
+                    <button type="button" @click="activeTab = 'details'" 
+                            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap min-w-0"
+                            :class="activeTab === 'details' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-4 h-4 rounded-md flex items-center justify-center transition-colors shrink-0"
+                             :class="activeTab === 'details' ? 'bg-white/20 text-white' : 'text-slate-500'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <span class="truncate">RA Bill Details</span>
                     </button>
-                    <div x-show="open" 
-                         x-transition
-                         class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-30 text-xs">
-                        <a href="javascript:void(0)" @click="window.print(); open=false" class="block px-3 py-1.5 text-slate-700 hover:bg-slate-50">Print RA Voucher</a>
-                        <a href="{{ route('expenses.ra-bills.verification') }}" class="block px-3 py-1.5 text-slate-700 hover:bg-slate-50">RA Bill Verification</a>
-                        <a href="{{ route('expenses.ra-bills.ledger') }}" class="block px-3 py-1.5 text-slate-700 hover:bg-slate-50">View Contractor Ledger</a>
-                    </div>
-                </div>
-            </div> -->
-        </div>
 
-        {{-- Tab 1 Content: RA Bill Details (4-Column Layout) --}}
-        <div x-show="activeTab === 'details'" class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
+                    {{-- Tab 2: Deductions & Additions --}}
+                    <button type="button" @click="activeTab = 'deductions'" 
+                            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap min-w-0"
+                            :class="activeTab === 'deductions' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-4 h-4 rounded-md flex items-center justify-center transition-colors shrink-0"
+                             :class="activeTab === 'deductions' ? 'bg-white/20 text-white' : 'text-slate-500'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        </div>
+                        <span class="truncate">Deductions & Additions</span>
+                    </button>
+
+                    {{-- Tab 3: Payment History --}}
+                    <button type="button" @click="activeTab = 'payments'" 
+                            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap min-w-0"
+                            :class="activeTab === 'payments' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-4 h-4 rounded-md flex items-center justify-center transition-colors shrink-0"
+                             :class="activeTab === 'payments' ? 'bg-white/20 text-white' : 'text-slate-500'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <span class="truncate">Payment History</span>
+                        <span class="px-1.5 py-0.2 rounded-md text-[10px] font-black shrink-0"
+                              :class="activeTab === 'payments' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'"
+                              x-text="selectedRow?.payments ? selectedRow.payments.length : 0"></span>
+                    </button>
+
+                    {{-- Tab 4: Linked Transactions --}}
+                    <button type="button" @click="activeTab = 'transactions'" 
+                            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap min-w-0"
+                            :class="activeTab === 'transactions' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-4 h-4 rounded-md flex items-center justify-center transition-colors shrink-0"
+                             :class="activeTab === 'transactions' ? 'bg-white/20 text-white' : 'text-slate-500'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        </div>
+                        <span class="truncate">Linked Transactions</span>
+                    </button>
+                </div>
+
+                {{-- Balance Pending Status (Lies below tabs) --}}
+                <div class="flex items-center justify-end pt-0.5 px-1">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-bold border border-slate-200/90 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full" :class="(selectedRow?.balance_amount || 0) <= 0 ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                        <span x-text="(selectedRow?.balance_amount || 0) <= 0 ? 'Fully Cleared' : 'Balance Pending'"></span>
+                        <span class="font-mono font-black" :class="(selectedRow?.balance_amount || 0) <= 0 ? 'text-emerald-700' : 'text-amber-800'" x-text="'(₹ ' + formatMoney(selectedRow?.balance_amount) + ')'"></span>
+                    </span>
+                </div>
+            </div>
+
+            {{-- Modal Body Content (Scrollable) --}}
+            <div class="p-5 sm:p-6 bg-slate-50/70 overflow-y-auto flex-1 custom-scrollbar space-y-5">
                 
-                {{-- Col 1: Contractor Information --}}
-                <div class="space-y-2.5 border-r border-slate-100 pr-5">
-                    <h4 class="text-xs font-black text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wide flex items-center gap-1.5">
-                        <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                        Contractor Information
-                    </h4>
-                    <div class="space-y-2 pt-1">
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Contractor Name</span><span class="font-bold text-slate-900 text-right" x-text="selectedRow.contractor_name"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Company / ID</span><span class="font-mono text-slate-700 text-right font-bold" x-text="selectedRow.company_id"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Contact Person</span><span class="text-slate-800 text-right" x-text="selectedRow.contact_person"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Phone</span><span class="font-mono text-slate-800 text-right" x-text="selectedRow.contact_phone"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Email</span><span class="font-mono text-[#8a7522] font-semibold text-right truncate max-w-[140px]" x-text="selectedRow.contact_email"></span></div>
+                {{-- ── TAB 1: RA BILL DETAILS ── --}}
+                <div x-show="activeTab === 'details'" class="space-y-5">
+                    
+                    {{-- Top 4 Financial Metric Cards (Executive Header Style) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                        {{-- Card 1: Certified Gross Work Done --}}
+                        <div class="bg-white rounded-2xl shadow-2xs border border-slate-200/90 border-l-[5px] border-l-blue-600 p-4 flex flex-col justify-between">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Gross Work Done</span>
+                                </div>
+                                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 uppercase tracking-wider">Certified</span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="text-xl font-black text-slate-900 font-mono tracking-tight block" x-text="'₹ ' + formatMoney(selectedRow?.gross_amount)"></span>
+                                <p class="text-[9px] text-slate-400 mt-1 font-medium">Total Measured Work</p>
+                            </div>
+                        </div>
+
+                        {{-- Card 2: Net Approved Liability --}}
+                        <div class="bg-white rounded-2xl shadow-2xs border border-slate-200/90 border-l-[5px] border-l-indigo-600 p-4 flex flex-col justify-between">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Approved Liability</span>
+                                </div>
+                                <span class="text-[9px] text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 uppercase tracking-wider">Net Payable</span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="text-xl font-black text-indigo-950 font-mono tracking-tight block" x-text="'₹ ' + formatMoney(selectedRow?.net_payable)"></span>
+                                <p class="text-[9px] text-slate-400 mt-1 font-medium">After Deductions & Additions</p>
+                            </div>
+                        </div>
+
+                        {{-- Card 3: Disbursed Paid Amount --}}
+                        <div class="bg-white rounded-2xl shadow-2xs border border-slate-200/90 border-l-[5px] border-l-emerald-500 p-4 flex flex-col justify-between">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Disbursed Paid</span>
+                                </div>
+                                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase tracking-wider" 
+                                      x-text="(selectedRow?.net_payable > 0 ? (selectedRow.paid_amount / selectedRow.net_payable * 100).toFixed(1) : 0) + '% Settled'"></span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="text-xl font-black text-emerald-600 font-mono tracking-tight block" x-text="'₹ ' + formatMoney(selectedRow?.paid_amount)"></span>
+                                <p class="text-[9px] text-slate-400 mt-1 font-medium">Cleared Bank Disbursals</p>
+                            </div>
+                        </div>
+
+                        {{-- Card 4: Remaining Balance Due --}}
+                        <div class="bg-white rounded-2xl shadow-2xs border border-slate-200/90 border-l-[5px] border-l-rose-500 p-4 flex flex-col justify-between">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Remaining Balance</span>
+                                </div>
+                                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200 uppercase tracking-wider"
+                                      x-text="(selectedRow?.net_payable > 0 ? (selectedRow.balance_amount / selectedRow.net_payable * 100).toFixed(1) : 0) + '% Pending'"></span>
+                            </div>
+                            <div class="mt-1">
+                                <span class="text-xl font-black text-rose-600 font-mono tracking-tight block" x-text="'₹ ' + formatMoney(selectedRow?.balance_amount)"></span>
+                                <p class="text-[9px] text-slate-400 mt-1 font-medium" x-text="(selectedRow?.balance_amount || 0) <= 0 ? 'Fully Disbursed' : 'Awaiting Release'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4 Detailed Specifications Cards (Arranged as 2x2 Balanced Grid) --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 text-xs">
+                        
+                        {{-- Box 1: Contractor Information --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Contractor Profile</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Vendor Identity & Contact</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Contractor Name</span>
+                                        <span class="font-black text-slate-900 text-right text-xs truncate" x-text="selectedRow?.contractor_name"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Company / Tax ID</span>
+                                        <span class="font-mono text-slate-800 font-bold text-right text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="selectedRow?.company_id || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Contact Person</span>
+                                        <span class="font-semibold text-slate-800 text-right text-xs" x-text="selectedRow?.contact_person || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Phone Number</span>
+                                        <span class="font-mono text-slate-800 font-bold text-right text-xs" x-text="selectedRow?.contact_phone || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 pt-0.5">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Email Address</span>
+                                        <span class="font-mono text-[#8a7522] font-semibold text-right text-xs truncate max-w-[280px]" :title="selectedRow?.contact_email" x-text="selectedRow?.contact_email || '—'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Box 2: RA Bill Scope & Project Details --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">RA Bill Information</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Invoice & Project Scope</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">RA Bill No.</span>
+                                        <span class="font-mono font-black text-[#8a7522] bg-[#a38c29]/10 px-2.5 py-0.5 rounded-full border border-[#a38c29]/25 text-right text-xs" x-text="selectedRow?.ra_bill_no"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Submission Date</span>
+                                        <span class="font-mono text-slate-800 font-bold text-right text-xs" x-text="selectedRow?.submission_date || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Project / Phase</span>
+                                        <span class="font-bold text-slate-900 text-right text-xs truncate max-w-[280px]" :title="selectedRow?.project_phase" x-text="selectedRow?.project_phase"></span>
+                                    </div>
+                                    <div class="flex items-baseline justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Work Description</span>
+                                        <span class="text-slate-700 text-right font-medium text-xs leading-snug break-words max-w-[280px]" x-text="selectedRow?.work_description || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 pt-0.5">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Certified Value</span>
+                                        <span class="font-mono font-black text-slate-900 text-sm text-right" x-text="'₹ ' + formatMoney(selectedRow?.gross_amount)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Box 3: Financial Valuation & Liability --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Financial Audit</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Valuation & Liability</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">₹ INR</span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-36 text-slate-500 font-semibold text-xs shrink-0 text-left">Gross Work Done</span>
+                                        <span class="font-mono font-bold text-slate-900 text-right text-xs" x-text="'₹ ' + formatMoney(selectedRow?.gross_amount)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-36 text-rose-600 font-semibold text-xs shrink-0 text-left">Less: Deductions</span>
+                                        <span class="font-mono font-bold text-rose-600 text-right text-xs" x-text="'-₹ ' + formatMoney(selectedRow?.advance_deduction)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-36 text-emerald-700 font-semibold text-xs shrink-0 text-left">Add: Additions</span>
+                                        <span class="font-mono font-bold text-emerald-700 text-right text-xs" x-text="'+₹ ' + formatMoney(selectedRow?.additional_amount)"></span>
+                                    </div>
+                                    <div class="bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-100 flex items-center justify-between gap-3">
+                                        <span class="text-[10px] font-black text-indigo-900 uppercase tracking-wider text-left">Net Approved Liability</span>
+                                        <span class="font-mono font-black text-indigo-950 text-sm text-right" x-text="'₹ ' + formatMoney(selectedRow?.net_payable)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 pt-0.5">
+                                        <span class="w-36 text-slate-500 font-semibold text-xs shrink-0 text-left">Disbursed / Paid</span>
+                                        <span class="font-mono font-bold text-emerald-700 text-right text-xs" x-text="'₹ ' + formatMoney(selectedRow?.paid_amount)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Box 4: Payout Verification & Banking Audit --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Payout Audit</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Verification & Audit Status</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide border shadow-2xs"
+                                          :class="getStatusBadgeClass(selectedRow?.payout_status)"
+                                          x-text="selectedRow?.payout_status"></span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Verified By</span>
+                                        <span class="font-semibold text-slate-800 text-right text-xs" x-text="selectedRow?.approved_by || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Verified Date</span>
+                                        <span class="font-mono text-slate-800 text-right text-xs font-medium" x-text="selectedRow?.approved_date || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Paid Date</span>
+                                        <span class="font-mono text-slate-800 text-right text-xs font-medium" x-text="selectedRow?.paid_date || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Bank Ref</span>
+                                        <span class="font-mono text-slate-900 font-bold text-right text-xs truncate max-w-[200px]" x-text="selectedRow?.bank_ref_no || '—'"></span>
+                                    </div>
+                                    <div class="flex items-baseline justify-between gap-3 pt-0.5">
+                                        <span class="w-28 text-slate-500 font-semibold text-xs shrink-0 text-left">Remarks</span>
+                                        <span class="text-slate-700 italic text-[11px] text-right truncate max-w-[280px]" x-text="selectedRow?.remarks || 'No remarks recorded.'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                {{-- Col 2: RA Bill Information --}}
-                <div class="space-y-2.5 border-r border-slate-100 pr-5">
-                    <h4 class="text-xs font-black text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wide flex items-center gap-1.5">
-                        <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                        RA Bill Information
-                    </h4>
-                    <div class="space-y-2 pt-1">
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">RA Bill No.</span><span class="font-mono font-black text-[#a38c29] text-right" x-text="selectedRow.ra_bill_no"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Submission Date</span><span class="font-mono text-slate-700 text-right" x-text="selectedRow.submission_date"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Project / Phase</span><span class="font-bold text-slate-800 text-right" x-text="selectedRow.project_phase"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Work Description</span><span class="text-slate-800 text-right truncate max-w-[150px]" :title="selectedRow.work_description" x-text="selectedRow.work_description"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Certified Value</span><span class="font-mono font-black text-slate-900 text-right" x-text="'₹ ' + formatMoney(selectedRow.gross_amount)"></span></div>
+                {{-- ── TAB 2: DEDUCTIONS & ADDITIONS ── --}}
+                <div x-show="activeTab === 'deductions'" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 text-xs">
+                        {{-- Box 1: Advance & Deductions --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Advance & Deductions</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Withholdings & Defect Adjustments</p>
+                                    </div>
+                                </div>
+                                <p class="text-slate-500 text-[11px] pt-3 leading-relaxed">Mobilization advance amortizations, defect corrections, or statutory retentions verified by site engineer.</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                                <span class="text-slate-500 font-medium text-[11px]">Total Deducted:</span>
+                                <span class="text-lg font-mono font-black text-rose-600" x-text="'-₹ ' + formatMoney(selectedRow?.advance_deduction)"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 2: Approved Scope Additions --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Approved Scope Additions</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Extra Variations & GST Schedule</p>
+                                    </div>
+                                </div>
+                                <p class="text-slate-500 text-[11px] pt-3 leading-relaxed">Site extra work orders, variations, approved scope adjustments, and additions for this RA progress cycle.</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                                <span class="text-slate-500 font-medium text-[11px]">Total Additions:</span>
+                                <span class="text-lg font-mono font-black text-emerald-700" x-text="'+₹ ' + formatMoney(selectedRow?.additional_amount) + ' (' + (selectedRow?.additional_pct || 0) + '%)'"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 3: Net Approved Liability --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Net Approved Liability</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Final Certified Payable Value</p>
+                                    </div>
+                                </div>
+                                <p class="text-slate-500 text-[11px] pt-3 leading-relaxed">Formula: Gross Certified Work Done − Total Deductions + Approved Scope Additions.</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                                <span class="text-slate-500 font-medium text-[11px]">Net Liability:</span>
+                                <span class="text-lg font-mono font-black text-indigo-950" x-text="'₹ ' + formatMoney(selectedRow?.net_payable)"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Col 3: Amount Details --}}
-                <div class="space-y-2.5 border-r border-slate-100 pr-5">
-                    <h4 class="text-xs font-black text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wide flex items-center gap-1.5">
-                        <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                        Amount Details <span class="text-[10px] font-normal text-slate-400">(₹)</span>
-                    </h4>
-                    <div class="space-y-2 pt-1">
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Gross Work Done</span><span class="font-mono font-black text-slate-900 text-right" x-text="'₹ ' + formatMoney(selectedRow.gross_amount)"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Less: Deductions</span><span class="font-mono font-bold text-rose-600 text-right" x-text="'-₹ ' + formatMoney(selectedRow.advance_deduction)"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Add: Additions</span><span class="font-mono font-bold text-emerald-700 text-right" x-text="'+₹ ' + formatMoney(selectedRow.additional_amount)"></span></div>
-                        <div class="flex justify-between items-center pt-1.5 border-t border-slate-200"><span class="text-blue-950 font-black">Net Approved Liability</span><span class="font-mono font-black text-blue-950 text-sm text-right" x-text="'₹ ' + formatMoney(selectedRow.net_payable)"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-emerald-700 font-bold">Disbursed Paid</span><span class="font-mono font-bold text-emerald-700 text-right" x-text="'₹ ' + formatMoney(selectedRow.paid_amount)"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-rose-600 font-bold">Remaining Balance</span><span class="font-mono font-black text-rose-600 text-right" x-text="'₹ ' + formatMoney(selectedRow.balance_amount)"></span></div>
+                {{-- ── TAB 3: PAYMENT HISTORY ── --}}
+                <div x-show="activeTab === 'payments'" class="space-y-5">
+                    {{-- Payment Summary Boxes --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 text-xs">
+                        {{-- Box 1: Disbursed Paid --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Disbursed Paid</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Cleared to Contractor</p>
+                                    </div>
+                                </div>
+                                <div class="pt-3">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Total Paid to Date</div>
+                                    <div class="font-mono font-black text-emerald-700 text-xl" x-text="'₹ ' + formatMoney(selectedRow?.paid_amount)"></div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Vouchers:</span>
+                                <span class="font-bold text-slate-800" x-text="(selectedRow?.payments ? selectedRow.payments.length : 0) + ' Payment(s)'"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 2: Outstanding Due --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Balance Outstanding</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Pending Release Clearance</p>
+                                    </div>
+                                </div>
+                                <div class="pt-3">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Remaining Due</div>
+                                    <div class="font-mono font-black text-rose-600 text-xl" x-text="'₹ ' + formatMoney(selectedRow?.balance_amount)"></div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Clearance:</span>
+                                <span class="font-extrabold uppercase text-[10.5px]" :class="(selectedRow?.balance_amount || 0) <= 0 ? 'text-emerald-700' : 'text-amber-700'" x-text="(selectedRow?.balance_amount || 0) <= 0 ? 'Fully Cleared' : 'Pending Payment'"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 3: Net Certified Liability --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Approved Liability</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Net Bill Valuation</p>
+                                    </div>
+                                </div>
+                                <div class="pt-3">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Approved Payable</div>
+                                    <div class="font-mono font-black text-indigo-950 text-xl" x-text="'₹ ' + formatMoney(selectedRow?.net_payable)"></div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">RA Bill No:</span>
+                                <span class="font-mono font-bold text-[#8a7522]" x-text="selectedRow?.ra_bill_no"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 4: Settlement Audit --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/70 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Settlement Audit</h4>
+                                        <p class="text-[10px] text-slate-400 font-medium">Banking Verification</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5 pt-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-500 font-medium">Bank Ref:</span>
+                                        <span class="font-mono font-bold text-slate-900 truncate" x-text="selectedRow?.bank_ref_no || (selectedRow?.payments && selectedRow?.payments[0] ? selectedRow.payments[0].bank_reference : '—')"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-500 font-medium">Paid Date:</span>
+                                        <span class="font-mono text-slate-800" x-text="selectedRow?.paid_date || (selectedRow?.payments && selectedRow?.payments[0] ? selectedRow.payments[0].payment_date : '—')"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Status:</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border"
+                                      :class="getStatusBadgeClass(selectedRow?.payout_status)"
+                                      x-text="selectedRow?.payout_status"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Disbursed Payments Table --}}
+                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5">
+                        <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Disbursed Payment Transactions</h4>
+                                    <p class="text-[10px] text-slate-400 font-medium">Bank Vouchers & Settlement Receipts</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"
+                                  x-text="(selectedRow?.payments ? selectedRow.payments.length : 0) + ' Record(s)'"></span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-100">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50/80 text-[10.5px] font-black uppercase text-slate-600 border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-2.5 px-3.5">Voucher #</th>
+                                        <th class="py-2.5 px-3.5">Payment Date</th>
+                                        <th class="py-2.5 px-3.5">Mode</th>
+                                        <th class="py-2.5 px-3.5">Bank Reference</th>
+                                        <th class="py-2.5 px-3.5">Bank Account</th>
+                                        <th class="py-2.5 px-3.5 text-right">Disbursed (₹)</th>
+                                        <th class="py-2.5 px-3.5 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs">
+                                    <template x-for="pmt in (selectedRow?.payments || [])" :key="pmt.voucher_no">
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="py-3 px-3.5 font-mono font-bold text-[#8a7522]" x-text="pmt.voucher_no"></td>
+                                            <td class="py-3 px-3.5 font-mono text-slate-700" x-text="pmt.payment_date"></td>
+                                            <td class="py-3 px-3.5 text-slate-800 font-medium">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold">
+                                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                                    <span x-text="pmt.payment_mode"></span>
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-3.5 font-mono font-bold text-slate-900" x-text="pmt.bank_reference"></td>
+                                            <td class="py-3 px-3.5 text-slate-600 font-mono text-[11px]" x-text="pmt.bank_account"></td>
+                                            <td class="py-3 px-3.5 font-mono font-black text-emerald-700 text-sm text-right" x-text="'₹ ' + formatMoney(pmt.paid_amount)"></td>
+                                            <td class="py-3 px-3.5 text-center">
+                                                <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full font-extrabold text-[10px] uppercase tracking-wide inline-flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    <span x-text="pmt.status"></span>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="!selectedRow?.payments || selectedRow.payments.length === 0">
+                                        <td colspan="7" class="py-10 text-center">
+                                            <div class="flex flex-col items-center justify-center text-slate-400">
+                                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                                                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </div>
+                                                <span class="font-bold text-slate-700 text-xs">No Disbursed Payments Recorded</span>
+                                                <span class="text-[11px] text-slate-400 mt-0.5">This RA Bill is currently pending approval or payment release.</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Col 4: Payout Status --}}
-                <div class="space-y-2.5">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
-                            <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                            Payout Status
-                        </h4>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide"
-                              :class="getStatusBadgeClass(selectedRow.payout_status)"
-                              x-text="selectedRow.payout_status"></span>
-                    </div>
-                    <div class="space-y-2 pt-1">
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Verified By</span><span class="text-slate-800 text-right font-medium" x-text="selectedRow.approved_by || '—'"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Verified Date</span><span class="font-mono text-slate-800 text-right" x-text="selectedRow.approved_date || '—'"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Paid Date</span><span class="font-mono text-slate-800 text-right" x-text="selectedRow.paid_date || '—'"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500 font-medium">Bank Reference</span><span class="font-mono text-slate-800 text-right font-bold" x-text="selectedRow.bank_ref_no || '—'"></span></div>
-                        <div class="pt-1">
-                            <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Remarks:</span>
-                            <p class="text-slate-700 italic text-[11px] bg-slate-50 p-2 rounded-xl border border-slate-200/80" x-text="selectedRow.remarks || 'No remarks recorded.'"></p>
+                {{-- ── TAB 4: LINKED TRANSACTIONS ── --}}
+                <div x-show="activeTab === 'transactions'" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 text-xs">
+                        {{-- Box 1: Site Project Allocation --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Project Allocation</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Site Location & Scope</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-blue-50 text-blue-700 font-extrabold text-[10px] rounded-full border border-blue-200 uppercase">Allocated</span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="border-b border-slate-100/70 pb-2">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Project / Phase</span>
+                                        <div class="font-bold text-slate-800 break-words leading-snug" x-text="selectedRow?.project_phase"></div>
+                                    </div>
+                                    <div class="flex items-baseline justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Contractor</span>
+                                        <span class="font-bold text-slate-900 text-right break-words min-w-0" x-text="selectedRow?.contractor_name"></span>
+                                    </div>
+                                    <div class="border-b border-slate-100/70 pb-2">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Scope Description</span>
+                                        <div class="text-slate-700 break-words leading-snug font-medium" x-text="selectedRow?.work_description"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Vendor ID:</span>
+                                <span class="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]" x-text="selectedRow?.company_id"></span>
+                            </div>
+                        </div>
+
+                        {{-- Box 2: Site Engineer Technical Inspection --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Engineer Site Audit</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Quality & Measurement</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border"
+                                          :class="selectedRow?.approved_date && selectedRow?.approved_date !== '—' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
+                                          x-text="selectedRow?.approved_date && selectedRow?.approved_date !== '—' ? 'Verified' : 'Pending'"></span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Inspected By</span>
+                                        <span class="font-bold text-slate-800 text-right" x-text="selectedRow?.approved_by || 'Site Engineer'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Audit Date</span>
+                                        <span class="font-mono text-slate-800 text-right font-medium" x-text="selectedRow?.approved_date || 'Awaiting Inspection'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Measurement Log</span>
+                                        <span class="text-slate-700 font-semibold text-right" x-text="selectedRow?.approved_date && selectedRow?.approved_date !== '—' ? 'Logged on Site' : 'Pending Site Visit'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">QC Status:</span>
+                                <span class="font-bold text-emerald-700">Compliance Passed</span>
+                            </div>
+                        </div>
+
+                        {{-- Box 3: General Ledger Linkage --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">General Ledger Link</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Accounting Sub-Ledger</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-extrabold text-[10px] rounded-full border border-indigo-200 uppercase">GL Linked</span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">RA Voucher #</span>
+                                        <span class="font-mono font-black text-[#8a7522]" x-text="selectedRow?.ra_bill_no"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Account Head</span>
+                                        <span class="font-medium text-slate-800 text-right">Contractor Payables</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Liability Value</span>
+                                        <span class="font-mono font-bold text-indigo-950 text-right" x-text="'₹ ' + formatMoney(selectedRow?.net_payable)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Financial Year:</span>
+                                <span class="font-semibold text-slate-700">Active FY 2025-26</span>
+                            </div>
+                        </div>
+
+                        {{-- Box 4: Banking & Disbursement Clearance --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-[#a38c29] border border-amber-200/70 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Banking Clearance</h4>
+                                            <p class="text-[10px] text-slate-400 font-medium">Payment Desk Tracking</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border"
+                                          :class="getStatusBadgeClass(selectedRow?.payout_status)"
+                                          x-text="selectedRow?.payout_status"></span>
+                                </div>
+                                <div class="space-y-2.5 pt-3">
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Bank Ref</span>
+                                        <span class="font-mono font-bold text-slate-800 text-right truncate" x-text="selectedRow?.bank_ref_no || '—'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Settlement Date</span>
+                                        <span class="font-mono text-slate-800 text-right" x-text="selectedRow?.paid_date || 'Pending'"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100/70 pb-2">
+                                        <span class="text-slate-500 font-medium shrink-0">Disbursed</span>
+                                        <span class="font-mono font-bold text-emerald-700 text-right" x-text="'₹ ' + formatMoney(selectedRow?.paid_amount)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-slate-500 font-medium">Remaining:</span>
+                                <span class="font-mono font-bold text-rose-600" x-text="'₹ ' + formatMoney(selectedRow?.balance_amount)"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
-        </div>
 
-        {{-- Tab 2 Content: Deductions & Additions --}}
-        <div x-show="activeTab === 'deductions'" class="p-6 text-xs space-y-4">
-            <h4 class="font-black text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
-                <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                Deductions & Additions Schedule
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span class="font-bold text-slate-800 block text-xs">Correction & Advance Deductions</span>
-                    <p class="text-slate-500 text-[11px]">Withholdings, defect corrections, or mobilization advance adjustments verified by site engineer.</p>
-                    <div class="text-lg font-mono font-black text-rose-600 mt-2" x-text="'₹ ' + formatMoney(selectedRow.advance_deduction)"></div>
+            {{-- Modal Footer --}}
+            <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                    <!-- <span>RA Bill #<strong class="font-mono text-slate-900" x-text="selectedRow?.ra_bill_no || '—'"></strong></span>
+                    <span>•</span> -->
+                    <span>Submission Date: <strong class="font-mono text-slate-900" x-text="selectedRow?.submission_date || '—'"></strong></span>
+                    <!-- <template x-if="selectedRow?.bank_ref_no">
+                        <span>• Ref: <strong class="font-mono text-slate-700" x-text="selectedRow.bank_ref_no"></strong></span>
+                    </template> -->
                 </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span class="font-bold text-slate-800 block text-xs">Additional Approved Items</span>
-                    <p class="text-slate-500 text-[11px]">Extra work orders, GST, or scope variations approved for this RA progress cycle.</p>
-                    <div class="text-lg font-mono font-black text-emerald-700 mt-2" x-text="'₹ ' + formatMoney(selectedRow.additional_amount) + ' (' + (selectedRow.additional_pct || 0) + '%)'"></div>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span class="font-bold text-slate-800 block text-xs">Net Approved Payable</span>
-                    <p class="text-slate-500 text-[11px]">Formula: Gross Work Done − Deductions + Approved Additions.</p>
-                    <div class="text-lg font-mono font-black text-blue-900 mt-2" x-text="'₹ ' + formatMoney(selectedRow.net_payable)"></div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            @click="closeViewModal()" 
+                            class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                        Close
+                    </button>
                 </div>
             </div>
-        </div>
 
-        {{-- Tab 3 Content: Payment History --}}
-        <div x-show="activeTab === 'payments'" class="p-6 text-xs">
-            <h4 class="font-black text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                Disbursed Bank Payments for this RA Bill
-            </h4>
-            <div class="border border-slate-200 rounded-xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-600 border-b border-slate-200">
-                        <tr>
-                            <th class="py-2.5 px-3 text-left">Voucher #</th>
-                            <th class="py-2.5 px-3 text-left">Payment Date</th>
-                            <th class="py-2.5 px-3 text-left">Mode</th>
-                            <th class="py-2.5 px-3 text-left">Bank Reference</th>
-                            <th class="py-2.5 px-3 text-left">Bank Account</th>
-                            <th class="py-2.5 px-3 text-left">Disbursed (₹)</th>
-                            <th class="py-2.5 px-3 text-left">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-[11px]">
-                        <template x-for="pmt in (selectedRow.payments || [])" :key="pmt.voucher_no">
-                            <tr>
-                                <td class="py-2.5 px-3 text-left font-mono font-bold text-[#a38c29]" x-text="pmt.voucher_no"></td>
-                                <td class="py-2.5 px-3 text-left font-mono text-slate-700" x-text="pmt.payment_date"></td>
-                                <td class="py-2.5 px-3 text-left text-slate-800" x-text="pmt.payment_mode"></td>
-                                <td class="py-2.5 px-3 text-left font-mono font-bold text-slate-900" x-text="pmt.bank_reference"></td>
-                                <td class="py-2.5 px-3 text-left text-slate-600 text-[10.5px]" x-text="pmt.bank_account"></td>
-                                <td class="py-2.5 px-3 text-left font-mono font-black text-emerald-700" x-text="'₹ ' + formatMoney(pmt.paid_amount)"></td>
-                                <td class="py-2.5 px-3 text-left">
-                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-extrabold text-[10px] uppercase" x-text="pmt.status"></span>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="!selectedRow.payments || selectedRow.payments.length === 0">
-                            <td colspan="7" class="py-6 text-center text-slate-400 italic">No disbursement completed yet for this bill in database. Awaiting payment release.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
-
-        {{-- Tab 4 Content: Linked Transactions --}}
-        <div x-show="activeTab === 'transactions'" class="p-6 text-xs">
-            <h4 class="font-black text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                <div class="w-1 h-3.5 bg-[#a38c29] rounded-full"></div>
-                Linked Project & Ledger Records
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-slate-800 block text-xs">Site Project Allocation</span>
-                        <span class="font-mono text-slate-600 text-[11px]" x-text="selectedRow.project_phase"></span>
-                    </div>
-                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-extrabold text-[10px] rounded-full border border-blue-200 uppercase">Allocated</span>
-                </div>
-                <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-slate-800 block text-xs">Site Engineer Verification</span>
-                        <span class="font-mono text-slate-600 text-[11px]" x-text="selectedRow.approved_by + ' (' + selectedRow.approved_date + ')'"></span>
-                    </div>
-                    <span class="px-2.5 py-0.5" 
-                          :class="selectedRow.approved_date !== '—' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
-                          class="font-extrabold text-[10px] rounded-full border uppercase" 
-                          x-text="selectedRow.approved_date !== '—' ? 'Verified' : 'Pending'"></span>
-                </div>
-            </div>
-        </div>
-
     </div>
 
 </div>
@@ -894,9 +1445,22 @@ function contractorPayoutApp() {
         currentPage: 1,
         perPage: 10,
 
-        // Selection & Bottom panel
-        selectedRow: initialSelected || (rawRows.length > 0 ? rawRows[0] : null),
+        // View Modal State
+        viewModalOpen: false,
+        selectedRow: null,
         activeTab: 'details',
+
+        openViewModal(row) {
+            this.selectedRow = row;
+            this.activeTab = 'details';
+            this.viewModalOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+
+        closeViewModal() {
+            this.viewModalOpen = false;
+            document.body.style.overflow = '';
+        },
 
         init() {
             this.applyFilters();
@@ -960,7 +1524,7 @@ function contractorPayoutApp() {
         },
 
         selectBill(row) {
-            this.selectedRow = row;
+            this.openViewModal(row);
         },
 
         // Pagination computed helpers

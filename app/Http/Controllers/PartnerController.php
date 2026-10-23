@@ -137,28 +137,20 @@ class PartnerController extends Controller
             ->with(['linkedAccount', 'partnerShares.project'])
             ->get()
             ->map(function (Payee $partner) {
-                // Total collections received (calculated dynamically from project shares, customer receipts, and direct partner capital contributions)
+                // Partner equity share ratio
                 $shares = DB::table('partner_shares')->where('partner_id', $partner->id)->get();
-                $totalCollected = 0.0;
-                foreach ($shares as $share) {
-                    $projectReceiptsSum = (float) DB::table('receipts')
-                        ->where('project_id', $share->project_id)
-                        ->whereNull('partner_id')
-                        ->sum('amount');
-                    $totalCollected += $projectReceiptsSum * ($share->share_pct / 100);
-                }
+                $partner->shares = $shares;
+                $partner->equity_share_pct = (float) ($shares->first()?->share_pct ?? 0);
 
-                // Add direct partner capital contributions
-                $partnerContributionsSum = (float) PartnerContribution::where('partner_id', $partner->id)->sum('amount');
-                // $totalCollected += $partnerContributionsSum;
-
-                $partner->total_collected = $totalCollected;
-
-                // Total allocations paid out
+                // Total actual payouts / drawings disbursed to partner (the amount they got only, flexible and independent of sales)
                 $partner->total_allocated = (float) PartnerAllocation::where('partner_id', $partner->id)->sum('allocated_amount');
+                $partner->total_collected = $partner->total_allocated;
 
-                // Balance = collections − allocations
-                $partner->balance = $partner->total_collected - $partner->total_allocated;
+                // Total capital contributed by partner
+                $partner->total_contributed = (float) PartnerContribution::where('partner_id', $partner->id)->sum('amount');
+
+                // Balance is no longer artificially tied to customer receipts
+                $partner->balance = $partner->total_allocated;
 
                 return $partner;
             });
@@ -166,6 +158,66 @@ class PartnerController extends Controller
         $projects = Project::where('is_active', true)
             ->with(['partnerShares.partner'])
             ->get();
+
+        $companyBankAccounts = \App\Models\CompanyBankAccount::orderByDesc('is_default')->orderBy('bank_name')->get();
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = \App\Models\PaymentMode::orderBy('id')->get();
+        }
+
+        // Matrix partners for partner statements & ledger balance matching
+        $allPartnerShares = PartnerShare::all();
+        $receipts = Receipt::all();
+        $partnerContributions = PartnerContribution::all();
+        $allocations = PartnerAllocation::all();
+        $billPayouts = DB::table('bills')->where('bill_type', 'Contractor / Partner')->whereNotNull('payee_id')->get();
+        $partnerAccountIds = Payee::where('type', 'Partner')->whereNotNull('linked_account_id')->pluck('linked_account_id', 'id')->toArray();
+        $partnerAccountMap = array_flip($partnerAccountIds);
+        $voucherPayouts = DB::table('voucher_lines')
+            ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
+            ->whereIn('voucher_lines.account_id', array_keys($partnerAccountMap))
+            ->where('voucher_lines.debit', '>', 0)
+            ->where('vouchers.status', 'Posted')
+            ->select('voucher_lines.account_id', 'voucher_lines.debit', 'vouchers.date')
+            ->get();
+
+        $matrixPartners = collect();
+        foreach ($partners as $partner) {
+            $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
+            $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
+
+            $partnerAllocTotal = 0.0;
+            foreach ($receipts as $receipt) {
+                $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
+                if ($targetShare) {
+                    $partnerAllocTotal += (float)$receipt->amount * ((float)$targetShare->share_pct / 100);
+                }
+            }
+
+            $partnerContribTotal = (float)$partnerContributions->where('partner_id', $partner->id)->sum('amount');
+            $partnerPayoutTotal = (float)$allocations->where('partner_id', $partner->id)->sum('allocated_amount')
+                + (float)$billPayouts->where('payee_id', $partner->id)->sum('amount');
+
+            foreach ($voucherPayouts as $vp) {
+                $vpPartnerId = $partnerAccountMap[$vp->account_id] ?? null;
+                if ($vpPartnerId && (string)$vpPartnerId === (string)$partner->id) {
+                    $partnerPayoutTotal += (float)$vp->debit;
+                }
+            }
+
+            $partnerNetBalance = ($partnerContribTotal + $partnerAllocTotal) - $partnerPayoutTotal;
+
+            $matrixPartners->push((object)[
+                'id' => $partner->id,
+                'name' => $partner->name,
+                'role' => $partner->role ?? 'Partner',
+                'share_pct' => $sharePct,
+                'total_contribs' => $partnerContribTotal,
+                'total_allocated' => $partnerAllocTotal,
+                'total_payouts' => $partnerPayoutTotal,
+                'net_balance' => $partnerNetBalance,
+            ]);
+        }
 
         // ────────────────────────────────────────────────────────────────
         // DASHBOARD DATA FOR LATEST UI BELOW
@@ -458,7 +510,10 @@ class PartnerController extends Controller
             'pendingEmisCount',
             'outstandingFormatted',
             'thisMonthPercent',
-            'commissionSummary'
+            'commissionSummary',
+            'companyBankAccounts',
+            'paymentModes',
+            'matrixPartners'
         ));
     }
 
@@ -591,30 +646,8 @@ class PartnerController extends Controller
         }
         $shares = $sharesQ->get()->keyBy('project_id');
 
-        // Collections (receipts for projects where partner has a share, calculated dynamically)
-        if ($shares->isNotEmpty()) {
-            $receiptsQ = Receipt::with(['sale.project', 'sale.unit', 'customer'])
-                ->whereIn('project_id', $shares->keys())
-                ->whereNull('partner_id')
-                ->orderBy('receipt_date');
-
-            $receiptsQ->get()->each(function ($receipt) use (&$ledger, $shares) {
-                $share = $shares->get($receipt->project_id);
-                $sharePct = $share ? (float)$share->share_pct : 0.0;
-                $partnerAmount = $receipt->amount * ($sharePct / 100);
-
-                $ledger->push([
-                    'date'        => Carbon::parse($receipt->receipt_date),
-                    'type'        => 'Collection',
-                    'description' => 'Share of collection (' . $sharePct . '%) from ' . ($receipt->customer?->name ?? 'Customer')
-                        . ' — ' . ($receipt->sale?->project?->name ?? '')
-                        . ' Unit ' . ($receipt->sale?->unit?->door_no ?? '—')
-                        . ($receipt->reference_no ? ' (Ref: ' . $receipt->reference_no . ')' : ''),
-                    'credit'      => (float) $partnerAmount,
-                    'debit'       => 0.00,
-                ]);
-            });
-        }
+        // Partner Statement is a true Capital & Drawing Ledger (independent of daily customer sales)
+        // Capital Contributions introduce funds (Credits), Payouts / Drawings withdraw funds (Debits)
 
         // Direct capital contributions (partner_contributions)
         $contribsQ = PartnerContribution::where('partner_id', $partnerId)->orderBy('contribution_date');
@@ -754,8 +787,8 @@ class PartnerController extends Controller
             ]);
         });
 
-        return redirect()->route('partners.statement', $partnerId)
-            ->with('status', "Payout of ₹" . number_format((float)$data['allocated_amount'], 2) . " recorded for {$partner->name}.");
+        return redirect()->back()
+            ->with('status', "Flexible payout of ₹" . number_format((float)$data['allocated_amount'], 2) . " recorded for {$partner->name}.");
     }
     // ────────────────────────────────────────────────────────────────
     // DELETE PARTNER — Remove a partner and their linked account

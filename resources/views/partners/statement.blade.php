@@ -10,7 +10,7 @@
             </a>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">{{ $partner->name }} - Current Account</h1>
-                <p class="text-xs text-slate-500 mt-1">Detailed ledger statement showing credits from project collections and debits from payouts made.</p>
+                <p class="text-xs text-slate-500 mt-1">Capital & drawings account ledger showing partner capital injections and flexible payouts disbursed.</p>
             </div>
         </div>
 
@@ -41,13 +41,13 @@
         {{-- Total Credits Card --}}
         <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Allocated Collections Share</span>
+                <span>Capital Inflow (Credits)</span>
                 <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
             </div>
             <div class="text-base font-black font-mono text-emerald-700">
                 ₹{{ number_format($totalCredits, 2) }}
             </div>
-            <div class="text-[10px] font-medium text-slate-400">Total Credits</div>
+            <div class="text-[10px] font-medium text-slate-400">Total Capital Contributed</div>
         </div>
 
         {{-- Total Payouts Card --}}
