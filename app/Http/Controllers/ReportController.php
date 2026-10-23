@@ -37,6 +37,7 @@ use App\Models\PettyCashBox;
 use App\Models\VoucherType;
 use App\Models\ChartOfAccount;
 use App\Services\CollectionReminderService;
+use App\Services\RealizedCollectionService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
@@ -1049,7 +1050,30 @@ class ReportController extends Controller
                 });
 
                 $totalDebits = (float)$ledgerEntries->sum('debit');
-                $totalCredits = $totalRealizedCredits; // Only realized receipts count towards cleared collections
+
+                // ── Deduct refunds (match Dashboard formula) ──────────────────────────
+                $saleIdsForRefunds = $sales->pluck('id')->all();
+                $refundVouchers = DB::table('vouchers')
+                    ->whereIn('type', ['Receipt', 'Payment'])
+                    ->where('status', 'Posted')
+                    ->whereNotNull('reference_no')
+                    ->get(['reference_no']);
+                $refundDeducted = 0.0;
+                foreach ($refundVouchers as $rv) {
+                    $rd = json_decode($rv->reference_no, true);
+                    if (!empty($rd['allocations']) && is_array($rd['allocations'])) {
+                        foreach ($rd['allocations'] as $alloc) {
+                            if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                                if (in_array((int)$alloc['target_id'], $saleIdsForRefunds, true)) {
+                                    $refundDeducted += (float)($alloc['amount'] ?? 0);
+                                }
+                            }
+                        }
+                    }
+                }
+                // ─────────────────────────────────────────────────────────────────────
+
+                $totalCredits = max(0.0, $totalRealizedCredits - $refundDeducted); // Only realized receipts minus refunds
                 $closingBalance = max(0, $totalDebits - $totalCredits);
                 $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
             }
@@ -1244,7 +1268,12 @@ class ReportController extends Controller
 
             $ledgerEntries = $ledgerQuery->sortByDesc(fn($r) => $r['raw_date'])->values();
             $totalDebits = (float)$allSales->sum('total_amount');
-            $totalCredits = $totalRealizedCredits;
+
+            // ── Single Source of Truth for Realized Collections (Match Dashboard & EMI Collections) ──
+            $projectFilterId = $request->filled('project_id') ? (int)$request->project_id : null;
+            $collectionSummary = RealizedCollectionService::summarize($projectFilterId);
+            $totalCredits = $collectionSummary['net'];
+            $refundDeductedAll = $collectionSummary['refunds'];
             $closingBalance = max(0, $totalDebits - $totalCredits);
             $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
 
@@ -1273,8 +1302,9 @@ class ReportController extends Controller
         $totalPendingCredits = $totalPendingCredits ?? 0.0;
         $projectedBalance = $projectedBalance ?? $closingBalance;
         $customerInstallmentsList = $customerInstallmentsList ?? collect();
+        $refundDeductedTotal = $refundDeducted ?? ($refundDeductedAll ?? 0.0);
 
-        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'selectedCustomers', 'ledgerEntries', 'customerSummaryList', 'customerInstallmentsList', 'totalDebits', 'totalCredits', 'closingBalance', 'totalPendingCredits', 'projectedBalance')));
+        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'selectedCustomers', 'ledgerEntries', 'customerSummaryList', 'customerInstallmentsList', 'totalDebits', 'totalCredits', 'closingBalance', 'totalPendingCredits', 'projectedBalance', 'refundDeductedTotal')));
     }
 
     public function cashBook(Request $request): View
