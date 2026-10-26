@@ -920,7 +920,7 @@
                                         <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
                                         <span class="font-mono font-bold text-xs" 
                                               :class="modalData.is_historical ? 'line-through opacity-50 text-slate-400' : 'text-rose-500'" 
-                                              x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
+                                              x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
                                         <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Bank Balance After:</span>
@@ -942,11 +942,11 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="text-slate-600 font-semibold text-[11px]">Payout Released:</span>
-                                        <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
+                                        <span class="font-mono font-bold text-rose-500 text-xs" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
                                         <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Partner Balance After:</span>
-                                        <span class="font-mono font-black text-xs" :class="modalBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-900'" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                                        <span class="font-mono font-black text-slate-900 text-xs" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
                                     </div>
                                 </div>
                             </div>
@@ -1339,7 +1339,11 @@ function partnerStatementApp() {
         get modalSelectedPartnerBalance() {
             if (!this.modalData.partner_id) return 0;
             const p = this.matrixList.find(m => String(m.id) === String(this.modalData.partner_id));
-            return p ? Number(p.net_balance || 0) : 0;
+            if (p) {
+                return Number(p.total_payouts !== undefined ? p.total_payouts : (p.net_balance || 0));
+            }
+            const partner = this.partners.find(m => String(m.id) === String(this.modalData.partner_id));
+            return partner ? Number(partner.total_allocated || partner.balance || 0) : 0;
         },
 
         get modalSelectedBankAccount() {
@@ -1372,7 +1376,7 @@ function partnerStatementApp() {
         },
 
         get modalBalanceAfterPayout() {
-            return this.modalSelectedPartnerBalance - this.modalPayoutAmount;
+            return this.modalSelectedPartnerBalance + this.modalPayoutAmount;
         },
 
         get isBankInsufficient() {
@@ -1385,7 +1389,7 @@ function partnerStatementApp() {
         },
 
         get modalErrorMessage() {
-            if (this.isBankInsufficient) {
+            if (this.isBankInsufficient && !this.modalData.is_historical) {
                 return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available balance in ${this.modalSelectedBankAccount?.bank_name || 'selected bank'} (${this.formatCurrency(this.modalSelectedBankBalance)}).`;
             }
             return '';
@@ -1563,7 +1567,8 @@ function partnerStatementApp() {
         },
 
         formatCurrency(num) {
-            return 'Rs. ' + Number(num || 0).toLocaleString('en-IN');
+            const val = Math.abs(Number(num || 0));
+            return 'Rs. ' + Math.round(val).toLocaleString('en-IN');
         },
 
         formatDate(d) {

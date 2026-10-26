@@ -52,8 +52,161 @@
     /* Executive Print Header */
     .print-exec-header {
         display: block !important;
-        margin-bottom: 12px !important;
-        padding-bottom: 8px !important;
+        margin-bottom: 8px !important;
+        padding-bottom: 6px !important;
+    }
+
+    /* Compact Spacing for Print */
+    .space-y-6 > * + * {
+        margin-top: 8px !important;
+    }
+
+    /* Web Banner Compact in Print */
+    .bg-gradient-to-r.from-\[\#fdfaf3\] {
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] .w-12.h-12 {
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 6px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] h1 {
+        font-size: 11pt !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] p {
+        font-size: 6.5pt !important;
+        margin-top: 2px !important;
+    }
+
+    /* ── 1. Force Executive 5 KPI Metric Cards: 5 at a Row in Print ── */
+    #dashboard-stats {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        margin-bottom: 8px !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    #dashboard-stats > div {
+        padding: 6px 8px !important;
+        border-radius: 8px !important;
+        border-width: 1px !important;
+        border-left-width: 4px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+    #dashboard-stats .text-xl {
+        font-size: 9.5pt !important;
+        line-height: 1.15 !important;
+    }
+    #dashboard-stats .text-\[10px\],
+    #dashboard-stats .text-xs {
+        font-size: 6pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-stats svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+    #dashboard-stats .w-7 {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* ── 2. Force 3 Visual Analytical Charts: 3 at a Row in Print (Non-Overlapping) ── */
+    #dashboard-charts {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        margin-top: 14px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    #dashboard-charts > div {
+        padding: 6px 8px 8px 8px !important;
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+    #dashboard-charts h3 {
+        font-size: 7.5pt !important;
+        margin-bottom: 1px !important;
+        line-height: 1.2 !important;
+    }
+    #dashboard-charts p {
+        font-size: 5.5pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-charts .min-h-\[220px\] {
+        min-height: 155px !important;
+        height: auto !important;
+        max-height: 165px !important;
+        overflow: hidden !important;
+    }
+    #dashboard-charts .apexcharts-canvas {
+        max-height: 165px !important;
+        margin: 0 auto !important;
+    }
+    #dashboard-charts .apexcharts-canvas svg {
+        max-height: 115px !important;
+        width: 100% !important;
+    }
+    #dashboard-charts .apexcharts-legend {
+        position: static !important;
+        padding: 2px 0 0 0 !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        max-height: 38px !important;
+        overflow: hidden !important;
+    }
+    #dashboard-charts .apexcharts-legend-series {
+        margin: 1px 3px !important;
+    }
+    #dashboard-charts .apexcharts-legend-text {
+        font-size: 5.8pt !important;
+        line-height: 1.1 !important;
+        color: #475569 !important;
+    }
+    #dashboard-charts .apexcharts-legend-marker,
+    .apexcharts-legend-marker {
+        width: 6px !important;
+        height: 6px !important;
+        border-radius: 50% !important;
+        margin-right: 3px !important;
+    }
+    #dashboard-charts .rounded-full,
+    #dashboard-stats .rounded-full {
+        border-radius: 50% !important;
+    }
+
+    /* Table Container Clear Separation */
+    #customer-dues-table-card {
+        margin-top: 18px !important;
+        clear: both !important;
+        page-break-before: auto !important;
+    }
+    #customer-dues-table-card > div:first-child {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
     }
 
     /* Table Formatting for Print */
@@ -250,7 +403,7 @@
     </div>
 
     {{-- ── 3. VISUAL ANALYTICAL CHARTS (EXECUTIVE DASHBOARD) ── --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div id="dashboard-charts" class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-3">
         {{-- Chart 1: Financial Health & Recovery Ratio --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -603,7 +756,7 @@
     </div>
 
     {{-- ── 5. PROFESSIONAL DATA TABLE CARD (Matched to collection-forecast.blade.php) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+    <div id="customer-dues-table-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
         {{-- Table Card Header --}}
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
             <div>
@@ -2059,7 +2212,7 @@ function customerCollectionDuesApp() {
                     colors: ['#059669', '#D97706', '#2563EB', '#DC2626'],
                     chart: { type: 'donut', height: 230, fontFamily: 'Inter, sans-serif' },
                     dataLabels: { enabled: false },
-                    legend: { position: 'bottom', fontSize: '11px', fontWeight: 600 },
+                    legend: { position: 'bottom', fontSize: '11px', fontWeight: 600, markers: { radius: 12 } },
                     tooltip: { y: { formatter: (val) => '₹ ' + this.formatMoney(val) } },
                     plotOptions: {
                         pie: {
@@ -2144,7 +2297,7 @@ function customerCollectionDuesApp() {
                     colors: ['#2563EB', '#F59E0B', '#8B5CF6', '#10B981', '#64748B'],
                     chart: { type: 'donut', height: 230, fontFamily: 'Inter, sans-serif' },
                     dataLabels: { enabled: false },
-                    legend: { position: 'bottom', fontSize: '11px', fontWeight: 600 },
+                    legend: { position: 'bottom', fontSize: '11px', fontWeight: 600, markers: { radius: 12 } },
                     tooltip: { y: { formatter: (val) => '₹ ' + this.formatMoney(val) } },
                     plotOptions: {
                         pie: {

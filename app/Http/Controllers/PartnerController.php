@@ -167,45 +167,16 @@ class PartnerController extends Controller
 
         // Matrix partners for partner statements & ledger balance matching
         $allPartnerShares = PartnerShare::all();
-        $receipts = Receipt::all();
-        $partnerContributions = PartnerContribution::all();
-        $allocations = PartnerAllocation::all();
-        $billPayouts = DB::table('bills')->where('bill_type', 'Contractor / Partner')->whereNotNull('payee_id')->get();
-        $partnerAccountIds = Payee::where('type', 'Partner')->whereNotNull('linked_account_id')->pluck('linked_account_id', 'id')->toArray();
-        $partnerAccountMap = array_flip($partnerAccountIds);
-        $voucherPayouts = DB::table('voucher_lines')
-            ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
-            ->whereIn('voucher_lines.account_id', array_keys($partnerAccountMap))
-            ->where('voucher_lines.debit', '>', 0)
-            ->where('vouchers.status', 'Posted')
-            ->select('voucher_lines.account_id', 'voucher_lines.debit', 'vouchers.date')
-            ->get();
-
         $matrixPartners = collect();
         foreach ($partners as $partner) {
             $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
             $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
 
-            $partnerAllocTotal = 0.0;
-            foreach ($receipts as $receipt) {
-                $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
-                if ($targetShare) {
-                    $partnerAllocTotal += (float)$receipt->amount * ((float)$targetShare->share_pct / 100);
-                }
-            }
+            $partnerContribTotal = (float)($partner->total_contributed ?? 0);
+            $partnerPayoutTotal = (float)($partner->total_allocated ?? 0);
 
-            $partnerContribTotal = (float)$partnerContributions->where('partner_id', $partner->id)->sum('amount');
-            $partnerPayoutTotal = (float)$allocations->where('partner_id', $partner->id)->sum('allocated_amount')
-                + (float)$billPayouts->where('payee_id', $partner->id)->sum('amount');
-
-            foreach ($voucherPayouts as $vp) {
-                $vpPartnerId = $partnerAccountMap[$vp->account_id] ?? null;
-                if ($vpPartnerId && (string)$vpPartnerId === (string)$partner->id) {
-                    $partnerPayoutTotal += (float)$vp->debit;
-                }
-            }
-
-            $partnerNetBalance = ($partnerContribTotal + $partnerAllocTotal) - $partnerPayoutTotal;
+            // In accordance with unified partner model: available balance reflects total payouts disbursed to date
+            $partnerNetBalance = $partnerPayoutTotal;
 
             $matrixPartners->push((object)[
                 'id' => $partner->id,
@@ -213,7 +184,7 @@ class PartnerController extends Controller
                 'role' => $partner->role ?? 'Partner',
                 'share_pct' => $sharePct,
                 'total_contribs' => $partnerContribTotal,
-                'total_allocated' => $partnerAllocTotal,
+                'total_allocated' => $partnerPayoutTotal,
                 'total_payouts' => $partnerPayoutTotal,
                 'net_balance' => $partnerNetBalance,
             ]);
