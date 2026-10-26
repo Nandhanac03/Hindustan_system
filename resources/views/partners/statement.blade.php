@@ -63,15 +63,15 @@
         </div>
 
         {{-- Running Balance Card --}}
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] {{ $netBalance < 0 ? 'border-l-indigo-600' : 'border-l-[#a38c29]' }} border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Net Capital Balance</span>
-                <span class="w-2 h-2 rounded-full bg-[#a38c29] shadow-xs"></span>
+                <span>{{ $netBalance < 0 ? 'Net Drawings Disbursed' : 'Net Capital Balance' }}</span>
+                <span class="w-2 h-2 rounded-full {{ $netBalance < 0 ? 'bg-indigo-600' : 'bg-[#a38c29]' }} shadow-xs"></span>
             </div>
-            <div class="text-base font-black font-mono {{ $netBalance >= 0 ? 'text-emerald-800' : 'text-rose-800' }}">
-                ₹{{ number_format($netBalance, 2) }}
+            <div class="text-base font-black font-mono {{ $netBalance < 0 ? 'text-indigo-800' : 'text-emerald-800' }}">
+                ₹{{ number_format(abs($netBalance), 2) }}
             </div>
-            <div class="text-[10px] font-medium text-slate-400">Current Status</div>
+            <div class="text-[10px] font-medium text-slate-400">{{ $netBalance < 0 ? 'Payouts disbursed in excess of capital' : 'Current Status' }}</div>
         </div>
     </div>
 

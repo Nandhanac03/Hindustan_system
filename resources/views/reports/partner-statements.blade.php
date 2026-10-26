@@ -70,8 +70,8 @@
             </div>
         @endif
 
-        {{-- 4 Metric KPI Cards Grid (Placed Above Filter) --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- 3 Metric KPI Cards Grid (Clean & Balanced Layout) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             
             {{-- Card 1: Agreed Equity Share --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
@@ -124,24 +124,6 @@
                         Rs. {{ number_format($totalPayoutsReleased, 0) }}
                     </span>
                     <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total profit payouts / drawings released to date</p>
-                </div>
-            </div>
-
-            {{-- Card 4: Net Capital Position --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
-                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Net Capital Position</span>
-                    </div>
-                </div>
-                <div class="relative z-10 mt-1">
-                    <span class="text-2xl font-black text-[#a38c29] font-mono tracking-tight block group-hover:text-[#8e7a23] transition-colors duration-300" x-text="formatCurrency(netCapitalBalance)">
-                        Rs. {{ number_format($netCapitalBalance, 0) }}
-                    </span>
-                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Capital Contributed − Payouts Released</p>
                 </div>
             </div>
 
@@ -464,8 +446,8 @@
                             <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Voucher / Ref</th>
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600">Description / Particulars</th>
                             <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Payment Mode</th>
-                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payout Amount<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
-                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Cumulative Payout<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">Payout Amount<br><span class="text-[9px] font-normal opacity-80">(Debit - Rs.)</span></th>
+                            <th class="px-2.5 py-3 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">Cumulative Payout<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-2 py-3 erp-table-header text-center w-20 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
@@ -494,8 +476,8 @@
                                         <span class="text-slate-400 text-[10px]">—</span>
                                     </template>
                                 </td>
-                                <td class="px-2.5 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.debit || entry.amount)"></td>
-                                <td class="px-2.5 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.running_balance)"></td>
+                                <td class="px-2.5 py-2.5 text-left font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.debit || entry.amount)"></td>
+                                <td class="px-2.5 py-2.5 text-left font-mono font-black text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(entry.running_balance)"></td>
                                 <td class="px-2 py-2.5 text-center whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center justify-center gap-1">
                                         {{-- View Transaction Modal Button --}}
@@ -532,8 +514,8 @@
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td colspan="5" class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">TOTAL PAYOUTS RELEASED</td>
-                            <td class="px-2.5 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs font-bold" x-text="formatCurrency(totalDebit)"></td>
-                            <td class="px-2.5 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-2.5 py-2.5 text-left font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs font-bold" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-2.5 py-2.5 text-left font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
                             <td class="px-2 py-2.5"></td>
                         </tr>
                     </tfoot>
@@ -587,10 +569,9 @@
                     <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
                         <tr class="erp-table-header border-b border-slate-700 text-left">
                             <th class="px-3 py-3 erp-table-header border-r border-slate-600 whitespace-nowrap">Partner Name</th>
-                            <th class="px-2 py-3 erp-table-header border-r border-slate-600 text-center whitespace-nowrap">Agreed Share<br><span class="text-[9px] font-normal opacity-80">(%)</span></th>
-                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Capital Contrib.<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
-                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Payouts Released<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
-                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-right whitespace-nowrap">Net Capital Balance<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-2 py-3 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">Agreed Share<br><span class="text-[9px] font-normal opacity-80">(%)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">Capital Contrib.<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
+                            <th class="px-3 py-3 erp-table-header border-r border-slate-600 text-left whitespace-nowrap">Payouts Released<br><span class="text-[9px] font-normal opacity-80">(Rs.)</span></th>
                             <th class="px-2.5 py-3 erp-table-header text-center whitespace-nowrap w-28">Action</th>
                         </tr>
                     </thead>
@@ -601,10 +582,9 @@
                                     <span x-text="pRow.name"></span>
                                     <span class="text-xs text-slate-500 font-normal" x-text="' (' + Number(pRow.share_pct).toFixed(1) + '%)'"></span>
                                 </td>
-                                <td class="px-2 py-2.5 text-center font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
-                                <td class="px-3 py-2.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_payouts)"></td>
-                                <td class="px-3 py-2.5 text-right font-mono font-black border-r border-slate-100 whitespace-nowrap text-xs" :class="Number(pRow.net_balance) >= 0 ? 'text-emerald-700' : 'text-slate-900'" x-text="formatCurrency(pRow.net_balance)"></td>
+                                <td class="px-2 py-2.5 text-left font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
+                                <td class="px-3 py-2.5 text-left font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_contribs || 0)"></td>
+                                <td class="px-3 py-2.5 text-left font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap text-xs" x-text="formatCurrency(pRow.total_payouts)"></td>
                                 <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                                     <button type="button" @click="openPayoutModal(pRow.id)" class="px-2.5 py-1 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white font-extrabold text-[10px] uppercase rounded-lg border border-[#a38c29]/30 transition-all cursor-pointer whitespace-nowrap shadow-2xs">
                                         Record Payout
@@ -616,10 +596,9 @@
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td class="px-3 py-2.5 uppercase tracking-wider text-slate-900 border-r border-slate-200 text-xs font-bold">PROJECT TOTALS</td>
-                            <td class="px-2 py-2.5 text-center font-mono text-slate-900 border-r border-slate-200 text-xs" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixContribs)"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixPayouts)"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-slate-900 font-black text-xs border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixContribs - totalMatrixPayouts)"></td>
+                            <td class="px-2 py-2.5 text-left font-mono text-slate-900 border-r border-slate-200 text-xs" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
+                            <td class="px-3 py-2.5 text-left font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixContribs)"></td>
+                            <td class="px-3 py-2.5 text-left font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap text-xs" x-text="formatCurrency(totalMatrixPayouts)"></td>
                             <td class="px-2.5 py-2.5"></td>
                         </tr>
                     </tfoot>
@@ -629,7 +608,7 @@
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
                 <div class="flex items-center gap-1.5 text-slate-500">
                     <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Net Capital Balance = Total Capital Contributed − Total Payouts Released</span>
+                    <span>Consolidated Project Partner Equity Shares &amp; Payout Summary</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span x-text="'Showing ' + filteredMatrixList.length + ' entries'"></span>
@@ -1050,34 +1029,33 @@
                 {{-- Modal Body (Light theme with gold/amber accents) --}}
                 <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto bg-slate-50/60 text-xs flex-1 custom-scrollbar">
 
-                    {{-- 1. Top 3 KPI Summary Cards --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {{-- 1. Top 2 KPI Summary Cards (Clean 2-card layout for payout transactions) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         
-                        {{-- KPI 1: Profit Share Allocated (Credit) --}}
-                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                        {{-- Card 1: Payout Released (Debit) --}}
+                        <div class="p-4 rounded-xl bg-gradient-to-br from-white via-white to-rose-50/40 border border-rose-200/80 shadow-2xs space-y-1.5 transition-all">
                             <div class="flex items-center justify-between">
-                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Allocated Credit</span>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Payout Released (Debit)</span>
+                                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                                    Disbursed
+                                </span>
                             </div>
-                            <div class="text-base sm:text-lg font-black text-emerald-600 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.credit)"></div>
-                            <p class="text-[9px] text-slate-400 font-medium">Profit share / collection</p>
+                            <div class="text-xl sm:text-2xl font-black text-rose-600 font-mono tracking-tight" 
+                                 x-text="formatCurrency(viewEntry?.debit || viewEntry?.amount)"></div>
+                            <p class="text-[10px] text-slate-400 font-medium">Drawings / profit payout released to partner</p>
                         </div>
 
-                        {{-- KPI 2: Payout Released (Debit) --}}
-                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                        {{-- Card 2: Total Payouts (Running Balance To Date) --}}
+                        <div class="p-4 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1.5 transition-all">
                             <div class="flex items-center justify-between">
-                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Payout Released</span>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Payouts</span>
+                                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-50 text-[#7c691c] border border-[#a38c29]/30">
+                                    To Date
+                                </span>
                             </div>
-                            <div class="text-base sm:text-lg font-black text-rose-600 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.debit)"></div>
-                            <p class="text-[9px] text-slate-400 font-medium">Drawings / distributions</p>
-                        </div>
-
-                        {{-- KPI 3: Running Payable Balance --}}
-                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Running Balance</span>
-                            </div>
-                            <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight" x-text="formatCurrency(viewEntry?.running_balance)"></div>
-                            <p class="text-[9px] text-slate-400 font-medium">Cumulative payable balance</p>
+                            <div class="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight" 
+                                 x-text="formatCurrency(viewEntry?.running_balance)"></div>
+                            <p class="text-[10px] text-slate-400 font-medium">Total payouts released up to this transaction</p>
                         </div>
 
                     </div>
@@ -1137,16 +1115,22 @@
                                           :class="Number(viewEntry?.credit || 0) > 0 ? 'text-emerald-700' : 'text-rose-700'"
                                           x-text="Number(viewEntry?.credit || 0) > 0 ? 'Profit Share Allocated (Credit)' : 'Partner Payout Released (Debit)'"></span>
                                 </div>
+                                <template x-if="Number(viewEntry?.credit || 0) > 0">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-400 text-[10px] uppercase font-bold">Credit Amount:</span>
+                                        <span class="font-mono font-bold text-emerald-600" x-text="formatCurrency(viewEntry?.credit)"></span>
+                                    </div>
+                                </template>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Credit Amount:</span>
-                                    <span class="font-mono font-bold text-emerald-600" x-text="formatCurrency(viewEntry?.credit)"></span>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Disbursed Amount (Debit):</span>
+                                    <span class="font-mono font-bold text-rose-600" x-text="formatCurrency(viewEntry?.debit || viewEntry?.amount)"></span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Debit Amount:</span>
-                                    <span class="font-mono font-bold text-rose-600" x-text="formatCurrency(viewEntry?.debit)"></span>
+                                    <span class="text-slate-400 text-[10px] uppercase font-bold">Entry Classification:</span>
+                                    <span class="font-bold text-slate-700">Direct Partner Drawings</span>
                                 </div>
                                 <div class="flex justify-between items-center pt-1 border-t border-slate-100">
-                                    <span class="text-slate-900 text-[10px] uppercase font-black">Net Running Balance:</span>
+                                    <span class="text-slate-900 text-[10px] uppercase font-black">Total Payouts (To Date):</span>
                                     <span class="font-mono font-black text-slate-900" x-text="formatCurrency(viewEntry?.running_balance)"></span>
                                 </div>
                             </div>
@@ -1176,7 +1160,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2-2m2 2l2-2"/>
                             </svg>
-                            
+                            <span>Download Receipt Voucher</span>
                         </button>
                     </div>
                     
@@ -1480,6 +1464,18 @@ function partnerStatementApp() {
 
         get netCapitalBalance() {
             return this.totalCapitalContributed - this.totalPayoutsReleased;
+        },
+
+        get netCapitalPositionTitle() {
+            return this.netCapitalBalance < 0 ? 'Net Drawings Disbursed' : 'Net Capital Balance';
+        },
+
+        get netCapitalPositionSubtitle() {
+            return this.netCapitalBalance < 0 ? 'Total payouts disbursed in excess of capital' : 'Capital Contributed − Payouts Released';
+        },
+
+        get netCapitalPositionBadge() {
+            return this.netCapitalBalance < 0 ? 'Net Drawings' : 'Capital Surplus';
         },
 
         get totalCredit() {

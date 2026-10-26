@@ -31,11 +31,18 @@
                 <p class="text-xs text-slate-600 mt-2 font-medium max-w-3xl">Track capital allocations, profit shares, and mapping of receipt distributions across project partners.</p>
             </div>
 
-            {{-- Right side Total Allocated Outflow Stat Box --}}
-            <div class="relative z-10 bg-[#faf9f5]/90 border border-[#a38c29]/40 rounded-2xl px-5 py-2.5 text-right shadow-2xs shrink-0 min-w-[200px]">
-                <div class="text-[9.5px] font-black uppercase tracking-wider text-[#a38c29]">TOTAL ALLOCATED OUTFLOW</div>
-                <div class="text-lg sm:text-xl font-black text-slate-900 font-mono mt-0.5">
-                    ₹{{ number_format($totalAllocatedOutflow, 2) }}
+            {{-- Right side Action & Stat Box --}}
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <a href="{{ route('reports.partner_statements', ['open_payout_modal' => 1]) }}"
+                   class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap">
+                    <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Record Partner Payout</span>
+                </a>
+                <div class="relative z-10 bg-[#faf9f5]/90 border border-[#a38c29]/40 rounded-2xl px-5 py-2.5 text-right shadow-2xs min-w-[190px]">
+                    <div class="text-[9.5px] font-black uppercase tracking-wider text-[#a38c29]">TOTAL ALLOCATED OUTFLOW</div>
+                    <div class="text-lg sm:text-xl font-black text-slate-900 font-mono mt-0.5">
+                        ₹{{ number_format($totalAllocatedOutflow, 2) }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -45,54 +52,69 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {{-- KPI 1: Total Allocated Outflow --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
             <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Allocated Outflow</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Payouts Released</span>
                 </div>
-                <span class="shrink-0 whitespace-nowrap text-[9px] text-[#8a7522] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300">
-                    100% Realized
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    Disbursed
                 </span>
             </div>
             <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
                     ₹{{ number_format($totalAllocatedOutflow, 2) }}
                 </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Capital & profit outflows mapped</p>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total profit payouts & drawings released</p>
             </div>
         </div>
 
-        {{-- KPI 2: Active Participating Partners --}}
+        {{-- KPI 2: Total Capital Contributed --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
             <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Partners</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Capital Contributed</span>
                 </div>
                 <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
-                    Active Stake
+                    Capital Inflow
                 </span>
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                    ₹{{ number_format($totalCapitalContributed ?? 0, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total partner capital injected into projects</p>
+            </div>
+        </div>
+
+        {{-- KPI 3: Active Participating Partners --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Partners</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-[#8a7522] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300">
+                    Active Stake
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
                     {{ $activePartnersCount }} <span class="text-xs font-extrabold text-slate-400 uppercase">Parties</span>
                 </span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total Registered: {{ $allPartners->count() }}</p>
             </div>
         </div>
 
-        @php
-            $partnerListSorted = $outflowList->sortByDesc('amount')->values();
-            $partnerA = $partnerListSorted->get(0); // Top partner (e.g. Basheer)
-            $partnerB = $partnerListSorted->get(1); // Second partner (e.g. Pavoor)
-        @endphp
-
-        {{-- KPI 3: Secondary Partner Outflow Card (e.g. Pavoor) --}}
+        {{-- KPI 4: Primary Partner Outflow Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-teal-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(20,184,166,0.15)] cursor-default h-full">
             <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -100,44 +122,19 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
                     <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">
-                        {{ $partnerB ? strtoupper($partnerB->partner_name) . ' OUTFLOW' : 'PAVOOR OUTFLOW' }}
+                        {{ $topPartner ? strtoupper($topPartner->partner_name) . ' OUTFLOW' : 'PRIMARY PARTNER OUTFLOW' }}
                     </span>
                 </div>
                 <span class="shrink-0 whitespace-nowrap text-[9px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-teal-300 group-hover:bg-teal-100/60">
-                    {{ $partnerB ? number_format($partnerB->percentage, 1) . '% Share' : '0% Share' }}
+                    {{ $topPartner ? number_format($topPartner->percentage, 1) . '% Share' : '0% Share' }}
                 </span>
             </div>
             <div class="relative z-10 mt-1">
                 <span class="text-2xl font-black text-teal-600 font-mono tracking-tight block group-hover:text-teal-700 transition-colors duration-300">
-                    ₹{{ number_format($partnerB?->amount ?? 0, 2) }}
+                    ₹{{ number_format($topPartner?->amount ?? 0, 2) }}
                 </span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
-                    {{ $partnerB ? $partnerB->allocations_count . ' allocations recorded' : 'Realized share' }}
-                </p>
-            </div>
-        </div>
-
-        {{-- KPI 4: Primary Partner Outflow Card (e.g. Basheer) --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
-            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
-                <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                    </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">
-                        {{ $partnerA ? strtoupper($partnerA->partner_name) . ' OUTFLOW' : 'BASHEER OUTFLOW' }}
-                    </span>
-                </div>
-                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
-                    {{ $partnerA ? number_format($partnerA->percentage, 1) . '% Share' : '0% Share' }}
-                </span>
-            </div>
-            <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
-                    ₹{{ number_format($partnerA?->amount ?? 0, 2) }}
-                </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
-                    {{ $partnerA ? $partnerA->allocations_count . ' allocations recorded' : 'Primary share' }}
+                    {{ $topPartner ? $topPartner->allocations_count . ' disbursements recorded' : 'Primary realized share' }}
                 </p>
             </div>
         </div>
@@ -448,7 +445,7 @@
                         <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 w-52 whitespace-nowrap">PARTNER ENTITY</th>
                         <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">ASSOCIATED PROJECT</th>
                         <th class="px-5 py-3.5 erp-table-header border-r border-slate-600">DESCRIPTION MEMO</th>
-                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-right w-44 whitespace-nowrap">ALLOCATED OUTFLOW</th>
+                        <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-left w-44 whitespace-nowrap">ALLOCATED OUTFLOW</th>
                         <th class="px-5 py-3.5 erp-table-header text-center w-56 whitespace-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
@@ -468,7 +465,7 @@
                             <td class="px-5 py-4 font-medium text-slate-600">
                                 {{ $row->description }}
                             </td>
-                            <td class="px-5 py-4 text-right font-mono font-black text-rose-600 text-sm whitespace-nowrap">
+                            <td class="px-5 py-4 text-left font-mono font-black text-rose-600 text-sm whitespace-nowrap">
                                 ₹{{ number_format((float)$row->amount, 2) }}
                             </td>
                             <td class="px-5 py-4 text-center whitespace-nowrap">
@@ -589,6 +586,7 @@
                         <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider truncate" x-text="viewPartner?.partner_name || 'Partner Details'"></h2>
                         <p class="text-slate-300 text-xs mt-0.5 truncate flex items-center gap-1.5 font-medium">
                             <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span x-text="viewPartner?.project_name || 'Consolidated Projects Portfolio'"></span>
                         </p>
                     </div>
 
@@ -610,41 +608,49 @@
             {{-- Modal Body (Light theme with gold/amber accents) --}}
             <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto bg-slate-50/60 text-xs flex-1 custom-scrollbar">
 
-                {{-- 1. Top 3 KPI Summary Cards --}}
+                {{-- 1. Top 3 KPI Summary Cards (Unified Partner Financial Logic) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     
-                    {{-- KPI 1: Allocated Outflow --}}
-                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                    {{-- KPI 1: Total Payouts Released --}}
+                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-rose-50/40 border border-rose-200/80 shadow-2xs space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Allocated Outflow</span>
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-600">Total Payouts Released</span>
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                                Disbursed
+                            </span>
                         </div>
                         <div class="text-base sm:text-lg font-black text-rose-600 font-mono tracking-tight">
                             ₹<span x-text="formatCurrency(viewPartner?.amount)"></span>
                         </div>
-                        <p class="text-[9px] text-slate-400 font-medium">Realized partner distribution</p>
+                        <p class="text-[9px] text-slate-400 font-medium">Drawings &amp; profit payouts disbursed</p>
                     </div>
 
-                    {{-- KPI 2: Share Percentage --}}
-                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
+                    {{-- KPI 2: Total Capital Contributed --}}
+                    <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-emerald-50/40 border border-emerald-200/80 shadow-2xs space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Portfolio Share</span>
-                            
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-600">Capital Contributed</span>
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Inflow
+                            </span>
                         </div>
-                        <div class="text-base sm:text-lg font-black text-[#8a7522] font-mono tracking-tight">
-                            <span x-text="viewPartner?.percentage || 0"></span>%
+                        <div class="text-base sm:text-lg font-black text-emerald-600 font-mono tracking-tight">
+                            ₹<span x-text="formatCurrency(viewPartner?.capital_contributed || 0)"></span>
                         </div>
-                        <p class="text-[9px] text-slate-400 font-medium">Of total project outflow</p>
+                        <p class="text-[9px] text-slate-400 font-medium">Capital invested into projects</p>
                     </div>
 
-                    {{-- KPI 3: Allocations Count & Last Date --}}
+                    {{-- KPI 3: Agreed Equity Share --}}
                     <div class="p-3.5 rounded-xl bg-gradient-to-br from-white via-white to-amber-50/40 border border-[#a38c29]/30 shadow-2xs space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-500">Allocations / Vouchers</span>
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-600">Agreed Equity Share</span>
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-50 text-[#7c691c] border border-[#a38c29]/30">
+                                Equity Stake
+                            </span>
                         </div>
                         <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight">
-                            <span x-text="viewPartner?.allocations_count || 0"></span> <span class="text-xs text-slate-500 font-bold">Records</span>
+                            <span x-text="viewPartner?.share_pct || 0"></span>%
                         </div>
-                        <p class="text-[9px] text-slate-400 font-medium truncate" x-text="'Last: ' + (viewPartner?.last_date || '—')"></p>
+                        <p class="text-[9px] text-slate-400 font-medium truncate" x-text="(viewPartner?.allocations_count || 0) + ' records (' + (viewPartner?.percentage || 0) + '% of outflows)'"></p>
                     </div>
 
                 </div>
@@ -725,7 +731,7 @@
                                         <th class="px-3 py-2 border-r border-slate-600">VOUCHER #</th>
                                         <th class="px-3 py-2 border-r border-slate-600">PAYMENT MODE & BANK</th>
                                         <th class="px-3 py-2 border-r border-slate-600">REMARKS / MEMO</th>
-                                        <th class="px-3 py-2 text-right">AMOUNT (₹)</th>
+                                        <th class="px-3 py-2 text-left">AMOUNT (₹)</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -740,7 +746,7 @@
                                                 <div class="text-[9px] text-slate-500 font-mono" x-text="item.payment_mode"></div>
                                             </td>
                                             <td class="px-3 py-2 text-slate-600 max-w-[220px] truncate" x-text="item.remarks || '—'"></td>
-                                            <td class="px-3 py-2 text-right font-mono font-black text-rose-600 whitespace-nowrap">
+                                            <td class="px-3 py-2 text-left font-mono font-black text-rose-600 whitespace-nowrap">
                                                 ₹<span x-text="formatCurrency(item.amount)"></span>
                                             </td>
                                         </tr>
@@ -748,6 +754,12 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </template>
+
+                <template x-if="!viewPartner?.items || viewPartner.items.length === 0">
+                    <div class="p-6 text-center bg-white rounded-xl border border-slate-200/90 text-slate-400 text-xs font-medium italic">
+                        No capital outflow records found for this partner under current filter selection.
                     </div>
                 </template>
 
@@ -790,9 +802,15 @@
         const trendValues = @json(array_values($monthlyTrendData->toArray()));
 
         const monthlyOptions = {
+            noData: {
+                text: 'No Outflow Transactions Recorded',
+                align: 'center',
+                verticalAlign: 'middle',
+                style: { color: '#94a3b8', fontSize: '13px', fontWeight: 600 }
+            },
             series: [{
                 name: 'Capital Outflow',
-                data: trendValues.length > 0 ? trendValues : [200000]
+                data: trendValues
             }],
             chart: {
                 type: 'bar',
@@ -831,7 +849,7 @@
                 }
             },
             xaxis: {
-                categories: trendCategories.length > 0 ? trendCategories : ['Current'],
+                categories: trendCategories.length > 0 ? trendCategories : ['No Data'],
                 axisBorder: { show: false },
                 axisTicks: { show: false },
                 labels: { 
@@ -883,7 +901,13 @@
                 : '₹' + totalOutflow.toLocaleString('en-IN'));
 
         const shareOptions = {
-            series: shareValues.length > 0 ? shareValues : [13011202, 9546758],
+            noData: {
+                text: 'No Outflow Data Recorded',
+                align: 'center',
+                verticalAlign: 'middle',
+                style: { color: '#94a3b8', fontSize: '13px', fontWeight: 600 }
+            },
+            series: shareValues,
             chart: {
                 type: 'donut',
                 height: '100%',
@@ -894,7 +918,7 @@
                     speed: 600
                 }
             },
-            labels: shareLabels.length > 0 ? shareLabels : ['Basheer', 'Pavoor'],
+            labels: shareLabels,
             colors: ['#a38c29', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4'],
             legend: { show: false },
             dataLabels: {

@@ -2082,56 +2082,182 @@ class ReportController extends Controller
         }
 
         $selectedProjectId = $request->input('project_id');
-        if (!$selectedProjectId && $projects->isNotEmpty()) {
-            $selectedProjectId = (string)$projects->first()->id;
-        }
-
         $selectedPartnerId = $request->input('partner_id', 'all');
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');
 
-        $selectedProject = ($selectedProjectId === 'all')
-            ? null
-            : ($projects->firstWhere('id', $selectedProjectId) ?? $projects->first());
+        $selectedProject = ($selectedProjectId && $selectedProjectId !== 'all')
+            ? ($projects->firstWhere('id', $selectedProjectId) ?? $projects->first())
+            : null;
 
         $allPartners = \App\Models\Payee::whereRaw("LOWER(type) = 'partner'")->orderBy('name')->get();
+        $partnerPayeeIds = $allPartners->pluck('id')->toArray();
+        $partnerAccountMap = $allPartners->pluck('id', 'linked_account_id')->filter()->toArray();
+        $partnerAccountIds = array_keys($partnerAccountMap);
 
-        // Fetch allocations
-        $query = PartnerAllocation::with(['partner', 'project', 'voucher', 'payment', 'companyBankAccount']);
-        
+        // 1. Fetch Partner Shares
+        $allPartnerShares = PartnerShare::all();
+
+        // 2. Fetch Allocations (Debits - Payouts / Drawings Released)
+        $allocQuery = PartnerAllocation::with(['partner', 'project', 'voucher', 'payment', 'companyBankAccount']);
         if ($selectedProjectId && $selectedProjectId !== 'all') {
-            $query->where('project_id', $selectedProjectId);
+            $allocQuery->where('project_id', $selectedProjectId);
         }
-
         if ($selectedPartnerId && $selectedPartnerId !== 'all') {
-            $query->where('partner_id', $selectedPartnerId);
+            $allocQuery->where('partner_id', $selectedPartnerId);
         }
-
         if ($fromDate) {
-            $query->whereDate('date', '>=', $fromDate);
+            $allocQuery->whereDate('date', '>=', $fromDate);
         }
-
         if ($toDate) {
-            $query->whereDate('date', '<=', $toDate);
+            $allocQuery->whereDate('date', '<=', $toDate);
+        }
+        $allocations = $allocQuery->orderBy('date')->get();
+
+        // 3. Additional Payouts: bill_payments & voucher_lines
+        $billPayoutsQuery = DB::table('bill_payments')->whereIn('payee_id', $partnerPayeeIds);
+        if ($selectedPartnerId && $selectedPartnerId !== 'all') {
+            $billPayoutsQuery->where('payee_id', $selectedPartnerId);
+        }
+        if ($fromDate) {
+            $billPayoutsQuery->whereDate('date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $billPayoutsQuery->whereDate('date', '<=', $toDate);
+        }
+        $billPayouts = $billPayoutsQuery->orderBy('date')->get();
+
+        $allocVoucherIds = $allocations->pluck('voucher_id')->filter()->toArray();
+        $voucherPayoutsQuery = DB::table('voucher_lines')
+            ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
+            ->whereIn('voucher_lines.account_id', $partnerAccountIds)
+            ->where('vouchers.type', 'Payment')
+            ->where('voucher_lines.debit', '>', 0);
+        if (!empty($allocVoucherIds)) {
+            $voucherPayoutsQuery->whereNotIn('vouchers.id', $allocVoucherIds);
+        }
+        if ($fromDate) {
+            $voucherPayoutsQuery->whereDate('vouchers.date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $voucherPayoutsQuery->whereDate('vouchers.date', '<=', $toDate);
+        }
+        $voucherPayouts = $voucherPayoutsQuery->select(
+            'voucher_lines.*',
+            'vouchers.voucher_number',
+            'vouchers.date as v_date',
+            'vouchers.narration'
+        )->get();
+
+        // 4. Fetch Direct Partner Capital Contributions
+        $contribsQuery = \App\Models\PartnerContribution::with(['partner', 'project']);
+        if ($selectedPartnerId && $selectedPartnerId !== 'all') {
+            $contribsQuery->where('partner_id', $selectedPartnerId);
+        }
+        if ($selectedProjectId && $selectedProjectId !== 'all') {
+            $contribsQuery->where('project_id', $selectedProjectId);
+        }
+        if ($fromDate) {
+            $contribsQuery->whereDate('contribution_date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $contribsQuery->whereDate('contribution_date', '<=', $toDate);
+        }
+        $partnerContributions = $contribsQuery->orderBy('contribution_date')->get();
+
+        // Build all transactions map by partner
+        $partnerTransactions = [];
+        foreach ($allPartners as $p) {
+            $partnerTransactions[$p->id] = collect();
         }
 
-        $allocations = $query->orderBy('date', 'desc')->get();
+        // Add Allocations
+        foreach ($allocations as $alloc) {
+            $dateStr = $alloc->date ? Carbon::parse($alloc->date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+            $paymentMode = $alloc->payment_mode ?? '';
+            if (empty($paymentMode)) {
+                $narration = $alloc->voucher?->narration ?? $alloc->remarks ?? '';
+                if (stripos($narration, 'Bank Transfer') !== false) $paymentMode = 'Bank Transfer';
+                elseif (stripos($narration, 'Cheque') !== false) $paymentMode = 'Cheque';
+                elseif (stripos($narration, 'Cash') !== false) $paymentMode = 'Cash';
+                elseif (stripos($narration, 'UPI') !== false || stripos($narration, 'Online') !== false) $paymentMode = 'UPI / Online';
+                else $paymentMode = 'Bank Transfer';
+            }
 
-        // Total Allocated Outflow
-        $totalAllocatedOutflow = (float) $allocations->sum('allocated_amount');
+            if (isset($partnerTransactions[$alloc->partner_id])) {
+                $partnerTransactions[$alloc->partner_id]->push((object)[
+                    'id' => $alloc->id,
+                    'date' => Carbon::parse($dateStr)->format('d/m/Y'),
+                    'raw_date' => $dateStr,
+                    'voucher_no' => $alloc->voucher?->voucher_number ?? ('PY-PTR-' . Carbon::parse($dateStr)->format('Ymd') . '-' . str_pad((string)$alloc->id, 5, '0', STR_PAD_LEFT)),
+                    'payment_mode' => $paymentMode,
+                    'bank' => $alloc->companyBankAccount?->bank_name ?? 'Bank Account',
+                    'amount' => (float)$alloc->allocated_amount,
+                    'remarks' => $alloc->remarks ?: 'Partner Payout / Drawing',
+                    'project_name' => $alloc->project?->name ?? ($selectedProject?->name ?? 'Project Allocation'),
+                ]);
+            }
+        }
 
-        // Monthly Capital Outflow Trend
-        $monthlyTrendData = $allocations->groupBy(function ($item) {
-            return Carbon::parse($item->date)->format('M Y');
+        // Add Bill Payouts
+        foreach ($billPayouts as $pay) {
+            $dateStr = $pay->date ? Carbon::parse($pay->date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+            if (isset($partnerTransactions[$pay->payee_id])) {
+                $partnerTransactions[$pay->payee_id]->push((object)[
+                    'id' => $pay->id,
+                    'date' => Carbon::parse($dateStr)->format('d/m/Y'),
+                    'raw_date' => $dateStr,
+                    'voucher_no' => 'BILL-PAY-' . str_pad((string)$pay->id, 3, '0', STR_PAD_LEFT),
+                    'payment_mode' => 'Bank Transfer',
+                    'bank' => 'Corporate Bank',
+                    'amount' => (float)$pay->amount,
+                    'remarks' => 'Partner Payout / Drawing',
+                    'project_name' => $selectedProject?->name ?? 'General Disbursement',
+                ]);
+            }
+        }
+
+        // Add Voucher Payouts
+        foreach ($voucherPayouts as $vp) {
+            $pId = $partnerAccountMap[$vp->account_id] ?? null;
+            if ($pId && isset($partnerTransactions[$pId])) {
+                $dateStr = $vp->v_date ? Carbon::parse($vp->v_date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+                $narr = $vp->narration ?? $vp->line_narration ?? '';
+                $paymentMode = 'Bank Transfer';
+                if (stripos($narr, 'Cheque') !== false) $paymentMode = 'Cheque';
+                elseif (stripos($narr, 'Cash') !== false) $paymentMode = 'Cash';
+                elseif (stripos($narr, 'UPI') !== false || stripos($narr, 'Online') !== false) $paymentMode = 'UPI / Online';
+
+                $partnerTransactions[$pId]->push((object)[
+                    'id' => $vp->id,
+                    'date' => Carbon::parse($dateStr)->format('d/m/Y'),
+                    'raw_date' => $dateStr,
+                    'voucher_no' => $vp->voucher_number,
+                    'payment_mode' => $paymentMode,
+                    'bank' => 'Main Bank Account',
+                    'amount' => (float)$vp->debit,
+                    'remarks' => $vp->line_narration ?: ($vp->narration ?: 'Partner Payout / Drawing'),
+                    'project_name' => $selectedProject?->name ?? 'Voucher Payment',
+                ]);
+            }
+        }
+
+        // Calculate total allocated outflow
+        $allTxns = collect();
+        foreach ($partnerTransactions as $pId => $txns) {
+            $allTxns = $allTxns->concat($txns);
+        }
+        $totalAllocatedOutflow = (float)$allTxns->sum('amount');
+        $totalCapitalContributed = (float)$partnerContributions->sum('amount');
+
+        // Build monthly trend data
+        $monthlyTrendData = $allTxns->groupBy(function ($item) {
+            return Carbon::parse($item->raw_date)->format('M Y');
         })->map(function ($group) {
-            return (float) $group->sum('allocated_amount');
+            return (float)$group->sum('amount');
         });
 
-        // Group allocations by partner ID
-        $groupedByPartner = $allocations->groupBy(function ($item) {
-            return (string)($item->partner_id ?? $item->partner?->id ?? 'unknown');
-        });
-
+        // Build outflowList
         $partnerShareData = collect();
         $outflowList = collect();
 
@@ -2141,50 +2267,54 @@ class ReportController extends Controller
                 continue;
             }
 
-            $pAllocs = $groupedByPartner->get($pId, collect());
-            $pAmount = (float) $pAllocs->sum('allocated_amount');
+            $txns = $partnerTransactions[$p->id] ?? collect();
+            $pAmount = (float)$txns->sum('amount');
+            $pContrib = (float)$partnerContributions->where('partner_id', $p->id)->sum('amount');
 
-            $memos = $pAllocs->pluck('remarks')->filter()->unique()->values();
+            $memos = $txns->pluck('remarks')->filter()->unique()->values();
             if ($memos->isNotEmpty()) {
-                $description = $memos->implode(' • ');
-            } elseif ($pAllocs->count() > 0) {
-                $description = 'Capital Profit Allocation via receipts mapping';
+                $description = $memos->take(3)->implode(' • ');
             } else {
-                $description = 'Capital Profit Allocation (Registered Partner)';
+                $description = 'Partner Profit Share & Drawings Disbursed';
             }
 
             $pct = $totalAllocatedOutflow > 0 ? round(($pAmount / $totalAllocatedOutflow) * 100, 1) : 0;
-            $lastDate = $pAllocs->max('date');
+            $sortedTxns = $txns->sortByDesc(fn($t) => Carbon::parse($t->raw_date)->timestamp)->values();
+            $lastDate = $sortedTxns->first()?->date ?? '—';
 
-            if ($pAmount > 0 || $allocations->isNotEmpty()) {
-                if ($pAmount > 0) {
-                    $partnerShareData->put($p->name, $pAmount);
-                }
+            if ($pAmount > 0) {
+                $partnerShareData->put($p->name, $pAmount);
             }
 
-            $allocDetails = $pAllocs->map(function($a) {
+            $allocDetails = $sortedTxns->map(function($a) {
                 return [
                     'id' => $a->id,
-                    'date' => $a->date ? \Carbon\Carbon::parse($a->date)->format('d/m/Y') : '—',
-                    'voucher_no' => $a->voucher?->voucher_number ?? '—',
-                    'payment_mode' => $a->payment_mode ?? 'Bank Transfer',
-                    'bank' => $a->companyBankAccount?->bank_name ?? '—',
-                    'amount' => (float)$a->allocated_amount,
-                    'remarks' => $a->remarks ?? '—',
+                    'date' => $a->date,
+                    'voucher_no' => $a->voucher_no,
+                    'payment_mode' => $a->payment_mode,
+                    'bank' => $a->bank,
+                    'amount' => (float)$a->amount,
+                    'remarks' => $a->remarks,
+                    'project_name' => $a->project_name,
                 ];
             })->values()->toArray();
+
+            $pShare = $allPartnerShares->where('partner_id', $p->id)->first();
+            $sharePct = $pShare ? (float)$pShare->share_pct : ($p->id == 1 ? 57.5 : 42.5);
 
             $outflowList->push((object)[
                 'partner_id' => $p->id,
                 'partner_name' => $p->name,
                 'partner_phone' => $p->phone ?? '',
                 'partner_pan' => $p->pan ?? '',
-                'project_name' => $selectedProject?->name ?? ($selectedProjectId === 'all' ? 'All Projects Portfolio' : 'Tabasco Hindustan Infra Developers Pvt. Ltd'),
+                'project_name' => $selectedProject?->name ?? ($selectedProjectId === 'all' || empty($selectedProjectId) ? 'All Projects Portfolio' : 'Tabasco Hindustan Infra Developers Pvt. Ltd'),
                 'description' => $description,
                 'amount' => $pAmount,
+                'capital_contributed' => $pContrib,
+                'share_pct' => $sharePct,
                 'percentage' => $pct,
-                'allocations_count' => $pAllocs->count(),
-                'last_date' => $lastDate ? Carbon::parse($lastDate)->format('d M, Y') : '—',
+                'allocations_count' => $txns->count(),
+                'last_date' => $lastDate,
                 'items' => $allocDetails,
             ]);
         }
@@ -2193,55 +2323,8 @@ class ReportController extends Controller
         $avgOutflowPerPartner = $activePartnersCount > 0 ? ($totalAllocatedOutflow / $activePartnersCount) : 0;
         $sortedPartners = $outflowList->sortByDesc('amount');
         $topPartner = $sortedPartners->first();
-        $totalTransactionsCount = $allocations->count();
+        $totalTransactionsCount = $allTxns->count();
         $detailedAllocations = $allocations;
-
-        // Fallback demo values if dataset is completely empty
-        if ($allocations->isEmpty() && !$fromDate && !$toDate && (!$selectedPartnerId || $selectedPartnerId === 'all')) {
-            $totalAllocatedOutflow = 22557960.00;
-            $monthlyTrendData = collect(['Sep 2025' => 95000.00, 'Jul 2026' => 22462960.00]);
-            $partnerShareData = collect([
-                'Basheer' => 13011202.00,
-                'Pavoor' => 9546758.00
-            ]);
-
-            $outflowList = collect();
-            $demoSpecs = [
-                ['name' => 'Basheer', 'amt' => 13011202.00, 'pct' => 57.7, 'desc' => 'Capital Profit Allocation via receipts mapping', 'count' => 8, 'date' => '15 Jul, 2026'],
-                ['name' => 'Pavoor', 'amt' => 9546758.00, 'pct' => 42.3, 'desc' => 'Direct Drawing / Capital Distribution Realized', 'count' => 5, 'date' => '02 Jul, 2026'],
-            ];
-
-            foreach ($allPartners as $idx => $p) {
-                $demo = $demoSpecs[$idx % count($demoSpecs)];
-                $outflowList->push((object)[
-                    'partner_id' => $p->id,
-                    'partner_name' => $p->name,
-                    'partner_phone' => $p->phone ?? '+91 98450 12345',
-                    'partner_pan' => $p->pan ?? 'AAACP1234K',
-                    'project_name' => $selectedProject?->name ?? 'Tabasco Hindustan Infra Developers Pvt. Ltd',
-                    'description' => $demo['desc'],
-                    'amount' => $demo['amt'],
-                    'percentage' => $demo['pct'],
-                    'allocations_count' => $demo['count'],
-                    'last_date' => $demo['date'],
-                    'items' => [
-                        [
-                            'id' => 1,
-                            'date' => $demo['date'],
-                            'voucher_no' => 'PV-2026-0' . ($idx + 1) . '89',
-                            'payment_mode' => 'Bank Transfer (NEFT)',
-                            'bank' => 'Federal Bank - Current A/C',
-                            'amount' => $demo['amt'],
-                            'remarks' => $demo['desc'],
-                        ]
-                    ],
-                ]);
-            }
-            $activePartnersCount = 2;
-            $avgOutflowPerPartner = 11278980.00;
-            $topPartner = (object)['partner_name' => 'Basheer', 'amount' => 13011202.00, 'percentage' => 57.7];
-            $totalTransactionsCount = 13;
-        }
 
         return view('reports.partner-outflow-ledger', compact(
             'projects',
@@ -2252,6 +2335,7 @@ class ReportController extends Controller
             'toDate',
             'selectedProject',
             'totalAllocatedOutflow',
+            'totalCapitalContributed',
             'monthlyTrendData',
             'partnerShareData',
             'outflowList',
