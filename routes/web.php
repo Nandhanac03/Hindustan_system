@@ -227,6 +227,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/emi-collections/outstanding',          [\App\Http\Controllers\EmiCollectionController::class, 'outstanding'])->name('emi-collections.outstanding');
     Route::get('/emi-collections/cash-book',            [\App\Http\Controllers\EmiCollectionController::class, 'cashBook'])->name('emi-collections.cash-book');
     Route::get('/emi-collections/ledger/{sale}',        [\App\Http\Controllers\EmiCollectionController::class, 'customerLedger'])->name('emi-collections.ledger');
+    Route::post('/emi-collections/ledger/{sale}/apply-rate',     [\App\Http\Controllers\EmiCollectionController::class, 'applyLedgerRate'])->name('emi-collections.ledger.apply-rate');
+    Route::post('/emi-collections/ledger/{sale}/apply-discount', [\App\Http\Controllers\EmiCollectionController::class, 'applyLedgerDiscount'])->name('emi-collections.ledger.apply-discount');
     Route::get('/emi-collections/loans',                [\App\Http\Controllers\EmiCollectionController::class, 'loans'])->name('emi-collections.loans');
     Route::post('/emi-collections/loans',               [\App\Http\Controllers\EmiCollectionController::class, 'storeLoan'])->name('emi-collections.loans.store');
     Route::get('/emi-collections/loans/{loan}/amortization', [\App\Http\Controllers\EmiCollectionController::class, 'loanAmortization'])->name('emi-collections.loans.amortization');

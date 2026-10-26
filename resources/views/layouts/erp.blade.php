@@ -1223,8 +1223,8 @@
                 const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
                 const id = (el.getAttribute('id') || '').toLowerCase();
                 
-                // 1. Handle GST & Percentage inputs limit
-                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount') && !name.includes('gstin') && !xModel.includes('gstin') && !placeholder.includes('gstin') && !xModel.includes('reason') && !name.includes('reason') && !name.includes('state') && !name.includes('emirate') && !placeholder.includes('state') && !placeholder.includes('emirate')) {
+                // 1. Handle GST & Percentage inputs limit (exclude sqft, rates per sqft, amounts, etc.)
+                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !id.includes('sqft') && !xModel.includes('new_rate') && !name.includes('new_rate') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount') && !name.includes('gstin') && !xModel.includes('gstin') && !placeholder.includes('gstin') && !xModel.includes('reason') && !name.includes('reason') && !name.includes('state') && !name.includes('emirate') && !placeholder.includes('state') && !placeholder.includes('emirate')) {
                     if (
                         xModel.includes('gst') ||
                         xModel.includes('percentage') ||
