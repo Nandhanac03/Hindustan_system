@@ -3410,304 +3410,7 @@ function unitsApp() {
 }
 </script>
 
-<!-- <div class="hidden" style="display: none;">
-    <table id="salesExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
-        <colgroup>
-            {{-- Section 1 --}}
-            <col width="60" style="width: 45pt;" />    {{-- SL NO --}}
-            <col width="220" style="width: 165pt;" />  {{-- CUSTOMER NAME --}}
-            <col width="130" style="width: 98pt;" />   {{-- BOOKING DATE --}}
-            <col width="90" style="width: 68pt;" />    {{-- FLOOR --}}
-            <col width="110" style="width: 83pt;" />   {{-- UNIT TYPE --}}
-            <col width="140" style="width: 105pt;" />  {{-- AGREEMENT DATE --}}
-            <col width="110" style="width: 83pt;" />   {{-- AREA (SQFT) --}}
-            {{-- Section 2 --}}
-            <col width="150" style="width: 113pt;" />  {{-- EXPECTED RATE / SQFT --}}
-            <col width="140" style="width: 105pt;" />  {{-- ACTUAL RATE / SQFT --}}
-            <col width="150" style="width: 113pt;" />  {{-- BASE TOTAL AMOUNT --}}
-            <col width="190" style="width: 143pt;" />  {{-- RATE VARIANCE --}}
-            {{-- Section 3 --}}
-            <col width="80" style="width: 60pt;" />    {{-- GST % --}}
-            <col width="130" style="width: 98pt;" />   {{-- GST AMOUNT --}}
-            <col width="140" style="width: 105pt;" />  {{-- PARKING CHARGES --}}
-            <col width="140" style="width: 105pt;" />  {{-- ADDITIONAL WORK --}}
-            <col width="170" style="width: 128pt;" />  {{-- GRAND TOTAL DEAL PRICE --}}
-            {{-- Section 4 --}}
-            <col width="160" style="width: 120pt;" />  {{-- TOTAL CHEQUE VALUE --}}
-            <col width="160" style="width: 120pt;" />  {{-- TOTAL RECEIVED CHEQUE --}}
-            <col width="150" style="width: 113pt;" />  {{-- CHEQUE RECEIPT DATE --}}
-            <col width="160" style="width: 120pt;" />  {{-- CHEQUE BALANCE DUE --}}
-            <col width="110" style="width: 83pt;" />   {{-- INSTALMENT --}}
-            <col width="160" style="width: 120pt;" />  {{-- CHEQUE COLLECTION % --}}
-            <col width="160" style="width: 120pt;" />  {{-- PROFIT / LOSS --}}
-        </colgroup>
-        <thead>
-            {{-- Title Header Row (Exact A3 print layout friendly combined 1 row title) --}}
-            <tr height="45" style="height: 45pt;">
-                <th colspan="23" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
-                    {{ strtoupper($project->name ?? 'PROJECT') }} - SALE REPORT
-                </th>
-            </tr>
-            {{-- Super Section Headers Row with correct requested colors --}}
-            <tr height="30" style="height: 30pt;">
-                <th colspan="7" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. UNIT & CUSTOMER INFORMATION</th>
-                <th colspan="4" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. PRICING & RATE VARIANCE</th>
-                <th colspan="5" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. TAXES & ADD-ONS</th>
-                <th colspan="7" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">4. CHEQUE VALUE</th>
-            </tr>
-            {{-- Main Column Headers --}}
-            <tr height="40" style="height: 40pt;">
-                {{-- Section 1 --}}
-                <th width="60" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 45pt;">SL NO</th>
-                <th width="220" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 165pt;">CUSTOMER NAME</th>
-                <th width="130" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 98pt;">BOOKING DATE</th>
-                <th width="90" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 68pt;">FLOOR</th>
-                <th width="110" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 83pt;">UNIT TYPE</th>
-                <th width="140" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 105pt;">AGREEMENT DATE</th>
-                <th width="110" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 83pt;">AREA (SQFT)</th>
-                {{-- Section 2 --}}
-                <th width="150" bgcolor="#0e7490" x:autofilter="all" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 113pt;">EXPECTED RATE / SQFT</th>
-                <th width="140" bgcolor="#0e7490" x:autofilter="all" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 105pt;">ACTUAL RATE / SQFT</th>
-                <th width="150" bgcolor="#0e7490" x:autofilter="all" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 113pt;">BASE TOTAL AMOUNT</th>
-                <th width="190" bgcolor="#0e7490" x:autofilter="all" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 143pt;">RATE VARIANCE (DISCOUNT / LOSS)</th>
-                {{-- Section 3 --}}
-                <th width="80" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 60pt;">GST %</th>
-                <th width="130" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 98pt;">GST AMOUNT</th>
-                <th width="140" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 105pt;">PARKING CHARGES</th>
-                <th width="140" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 105pt;">ADDITIONAL WORK</th>
-                <th width="170" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 128pt;">TOTAL AMOUNT INCLUDING GST /PARKING/ADDITIONAL</th>
-                {{-- Section 4 --}}
-                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">TOTAL CHEQUE VALUE</th>
-                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">TOTAL RECEIVED CHEQUE</th>
-                <th width="150" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 113pt;">CHEQUE RECEIPT DATE</th>
-                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE BALANCE DUE</th>
-                <th width="110" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 83pt;">INSTALMENT</th>
-                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE COLLECTION %</th>
-                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">PROFIT / LOSS</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $totals = [
-                    'area' => 0,
-                    'base_total' => 0,
-                    'variance' => 0,
-                    'gst_amount' => 0,
-                    'parking' => 0,
-                    'additional' => 0,
-                    'grand_total' => 0,
-                    'cheque_value' => 0,
-                    'cheque_received' => 0,
-                    'total_received_cheque' => 0,
-                    'cheque_due' => 0,
-                    'profit_loss' => 0
-                ];
-            @endphp
-            @foreach($salesList as $sale)
-                @php
-                    $mainUnit = $sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->first() ?? $sale->saleUnits->first();
 
-                    // Collect non-parking units for floor / unit display
-                    $nonParkingUnits = $sale->saleUnits->filter(
-                        fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking')
-                    );
-
-                    // Helper: format a floor name string to ordinal (e.g. "Floor 11" → "11TH")
-                    $formatFloor = function(string $floorName): string {
-                        $clean = preg_replace('/[^0-9]/', '', $floorName);
-                        if ($clean !== '') {
-                            $n = (int)$clean;
-                            $suffix = in_array($n % 100, [11, 12, 13]) ? 'TH'
-                                : (['TH', 'ST', 'ND', 'RD'][$n % 10] ?? 'TH');
-                            return $clean . $suffix;
-                        }
-                        return strtoupper(trim($floorName));
-                    };
-
-                    // Comma-separated floor display for all units (including parking)
-                    $floorParts = $sale->saleUnits
-                        ->map(fn($su) => $su->unit?->floor?->name ?? '')
-                        ->filter()
-                        ->map($formatFloor)
-                        ->unique()
-                        ->values()
-                        ->toArray();
-                    if (empty($floorParts)) {
-                        $fb = $sale->unit?->floor?->name ?? '';
-                        $floorParts = $fb ? [$formatFloor($fb)] : [];
-                    }
-                    $floorDisplay = implode(', ', $floorParts);
-
-                    // Comma-separated door numbers for all units — parking units get "(Parking)" label
-                    $doorParts = $sale->saleUnits
-                        ->map(function($su) {
-                            $door = trim(explode(',', $su->unit?->door_no ?? '')[0]);
-                            if (!$door) return null;
-                            $isParking = str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking');
-                            return $isParking ? $door . '(Parking)' : $door;
-                        })
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->toArray();
-                    if (empty($doorParts)) {
-                        $fallbackDoor = $sale->unit?->door_no ?? '';
-                        $doorParts = $fallbackDoor ? [trim(explode(',', $fallbackDoor)[0])] : [];
-                    }
-                    $unitTypeDisplay = implode(', ', $doorParts);
-
-                    // Area (sum of non-parking units)
-                    $areaSqft = (float)($nonParkingUnits->sum('area_sqft') ?: $sale->saleUnits->sum('area_sqft'));
-
-                    // Pricing values
-                    $expectedRate = (float)($mainUnit?->unit?->expected_rate_per_sqft ?? 0.00);
-                    $actualRate = (float)($mainUnit?->rate_per_sqft ?? 0.00);
-                    $baseTotal = (float)$sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->sum('base_amount');
-                    $variance = ($expectedRate - $actualRate) * $areaSqft;
-                    
-                    // Taxes & Charges
-                    $gstPercentage = (float)($mainUnit?->gst_percentage ?? 0.00);
-                    $gstAmount = (float)$sale->saleUnits->sum('gst_amount');
-                    $parkingCharges = (float)$sale->saleUnits->filter(fn($su) => str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->sum('base_amount');
-                    $additionalWork = (float)$sale->extraWorks->sum('amount');
-                    $grandTotalDeal = $baseTotal + $parkingCharges + $gstAmount + $additionalWork;
-                    
-                    // Track A
-                    $totalChequeValue = (float)$sale->total_amount;
-                    $chequeReceived = (float)$sale->receipts->where('payment_mode', 'Cheque')->sum('amount');
-                    $totalReceivedCheque = (float)$sale->receipts->sum('amount');
-                    $chequeBalanceDue = (float)$sale->remaining_balance;
-                    
-                    // Receipt details
-                    $latestChequeReceipt = $sale->receipts->where('payment_mode', 'Cheque')->sortByDesc('receipt_date')->first();
-                    $receiptDate = $latestChequeReceipt?->receipt_date?->format('Y-m-d') ?? '';
-                    $bookingDate = $sale->sale_date?->format('Y-m-d') ?? '';
-                    $agreementDate = $sale->agreement_date?->format('Y-m-d') ?? $sale->sale_date?->format('Y-m-d') ?? '';
-                    $installmentsCount = $sale->emi_installment_count ?? '';
-                    $collectionPct = $totalChequeValue > 0 ? ($totalReceivedCheque / $totalChequeValue) * 100 : 0.00;
-
-                    // Profit / Loss calculation (Sale Amount minus expected sale units amount)
-                    $expectedAmount = 0.00;
-                    if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
-                        foreach ($sale->saleUnits as $su) {
-                            $expectedAmount += (float)($su->unit?->expected_sale_amount ?? 0.00);
-                        }
-                    } else {
-                        $expectedAmount = (float)($sale->unit?->expected_sale_amount ?? 0.00);
-                    }
-                    $saleAmount = (float)($sale->sale_amount ?? 0.00);
-                    $profitLoss = $saleAmount - $expectedAmount;
- 
-                    // Increment totals
-                    $totals['area'] += $areaSqft;
-                    $totals['base_total'] += $baseTotal;
-                    $totals['variance'] += $variance;
-                    $totals['gst_amount'] += $gstAmount;
-                    $totals['parking'] += $parkingCharges;
-                    $totals['additional'] += $additionalWork;
-                    $totals['grand_total'] += $grandTotalDeal;
-                    $totals['cheque_value'] += $totalChequeValue;
-                    $totals['cheque_received'] += $chequeReceived;
-                    $totals['total_received_cheque'] += $totalReceivedCheque;
-                    $totals['cheque_due'] += $chequeBalanceDue;
-                    $totals['profit_loss'] += $profitLoss;
- 
-                    // Row Zebra striping
-                    $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
- 
-                    // Conditional highlights for Rate Variance (Discount/Loss = Red, Premium = Green)
-                    $varianceStyle = '';
-                    if ($variance > 0) {
-                        $varianceStyle = 'background-color: #fee2e2; color: #991b1b;';
-                    } elseif ($variance < 0) {
-                        $varianceStyle = 'background-color: #dcfce7; color: #166534;';
-                    }
-                    
-                    // Conditional highlights for Outstanding Balance (Due > 0 = Red)
-                    $balanceStyle = $chequeBalanceDue > 0 ? 'background-color: #fee2e2; color: #991b1b; font-weight: bold;' : '';
-                    
-                    // Conditional highlights for Collection % (100% = Green, >= 50% = Yellow, < 50% = Red)
-                    $pctStyle = '';
-                    if ($collectionPct >= 100) {
-                        $pctStyle = 'background-color: #dcfce7; color: #166534; font-weight: bold;';
-                    } elseif ($collectionPct >= 50) {
-                        $pctStyle = 'background-color: #fef9c3; color: #854d0e; font-weight: bold;';
-                    } else {
-                        $pctStyle = 'background-color: #fee2e2; color: #991b1b; font-weight: bold;';
-                    }
-
-                    // Conditional highlights for Profit/Loss (Loss < 0 = Red text, Profit > 0 = Green text)
-                    $profitLossStyle = '';
-                    if ($profitLoss < 0) {
-                        $profitLossStyle = 'color: #991b1b; font-weight: bold;';
-                    } elseif ($profitLoss > 0) {
-                        $profitLossStyle = 'color: #166534; font-weight: bold;';
-                    }
-                @endphp
-                <tr height="25" style="height: 25pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
-                    {{-- Section 1 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $loop->iteration }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($sale->customer?->name ?? '') }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $bookingDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $floorDisplay }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $unitTypeDisplay }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $agreementDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $areaSqft }}</td>
-                    
-                    {{-- Section 2 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $expectedRate > 0 ? $expectedRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $actualRate > 0 ? $actualRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $baseTotal > 0 ? $baseTotal : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; {{ $varianceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $variance != 0 ? abs($variance) : '0' }}</td>
-                    
-                    {{-- Section 3 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $gstPercentage > 0 ? ($gstPercentage / 100) : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $gstAmount > 0 ? $gstAmount : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $parkingCharges > 0 ? $parkingCharges : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $additionalWork > 0 ? $additionalWork : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $grandTotalDeal }}</td>
-                    
-                    {{-- Section 4 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalReceivedCheque }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $receiptDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $installmentsCount }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $pctStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $collectionPct / 100 }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $profitLossStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $profitLoss != 0 ? abs($profitLoss) : '0' }}</td>
-                </tr>
-            @endforeach
- 
-              <tr height="30" style="height: 30pt; font-weight: bold; color: #ffffff;">
-                {{-- Section 1 Totals --}}
-                <td colspan="6" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['area'] }}</td>
-                {{-- Section 2 Totals --}}
-                <td colspan="2" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['base_total'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['variance'] }}</td>
-                {{-- Section 3 Totals --}}
-                <td colspan="2" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['gst_amount'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['parking'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['additional'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['grand_total'] }}</td>
-                {{-- Section 4 Totals --}}
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_value'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['total_received_cheque'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_due'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                @php
-                    $overallCollectionPct = $totals['cheque_value'] > 0 ? ($totals['total_received_cheque'] / $totals['cheque_value'] * 100) : 0.00;
-                    $profitLossTotalStyle = $totals['profit_loss'] < 0 ? 'color: #fee2e2;' : ($totals['profit_loss'] > 0 ? 'color: #dcfce7;' : 'color: #ffffff;');
-                @endphp
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $overallCollectionPct / 100 }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; {{ $profitLossTotalStyle }} text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['profit_loss'] }}</td>
-              </tr>
-        </tbody>
-    </table>
-</div> -->
 <div class="hidden" style="display: none;">
     <table id="salesExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
         <colgroup>
@@ -3787,195 +3490,165 @@ function unitsApp() {
         <tbody>
             @php
                 $totals = [
-                    'area' => 0,
-                    'base_total' => 0,
-                    'variance' => 0,
-                    'gst_amount' => 0,
-                    'parking' => 0,
-                    'additional' => 0,
-                    'grand_total' => 0,
-                    'cheque_value' => 0,
-                    'cheque_received' => 0,
+                    'area'                => 0,
+                    'base_total'          => 0,
+                    'variance'            => 0,
+                    'gst_amount'          => 0,
+                    'parking'             => 0,
+                    'additional'          => 0,
+                    'grand_total'         => 0,
+                    'cheque_value'        => 0,
+                    'cheque_received'     => 0,
                     'total_received_cheque' => 0,
-                    'cheque_due' => 0,
-                    'profit_loss' => 0
+                    'cheque_due'          => 0,
+                    'profit_loss'         => 0,
                 ];
+                $globalRowCounter = 0;
             @endphp
             @foreach($salesList as $sale)
                 @php
-                    $mainUnit = $sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->first() ?? $sale->saleUnits->first();
-
-                    // Collect non-parking units for floor / unit display
-                    $nonParkingUnits = $sale->saleUnits->filter(
-                        fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking')
-                    );
-
-                    // Helper: format a floor name string to ordinal (e.g. "Floor 11" → "11TH")
-                    $formatFloor = function(string $floorName): string {
-                        $clean = preg_replace('/[^0-9]/', '', $floorName);
-                        if ($clean !== '') {
-                            $n = (int)$clean;
-                            $suffix = in_array($n % 100, [11, 12, 13]) ? 'TH'
-                                : (['TH', 'ST', 'ND', 'RD'][$n % 10] ?? 'TH');
-                            return $clean . $suffix;
+                    // ── Floor ordinal helper ─────────────────────────────────────
+                    $fmtFlr = function(string $fn): string {
+                        $c = preg_replace('/[^0-9]/', '', $fn);
+                        if ($c !== '') {
+                            $n = (int)$c;
+                            $sfx = in_array($n % 100, [11,12,13]) ? 'TH' : (['TH','ST','ND','RD'][$n % 10] ?? 'TH');
+                            return $c . $sfx;
                         }
-                        return strtoupper(trim($floorName));
+                        return strtoupper(trim($fn));
                     };
 
-                    // Comma-separated floor display for all units (including parking)
-                    $floorParts = $sale->saleUnits
-                        ->map(fn($su) => $su->unit?->floor?->name ?? '')
-                        ->filter()
-                        ->map($formatFloor)
-                        ->unique()
-                        ->values()
-                        ->toArray();
-                    if (empty($floorParts)) {
-                        $fb = $sale->unit?->floor?->name ?? '';
-                        $floorParts = $fb ? [$formatFloor($fb)] : [];
-                    }
-                    $floorDisplay = implode(', ', $floorParts);
+                    // ── Sale-level payment / date data ───────────────────────────
+                    $bookingDate_     = $sale->sale_date?->format('Y-m-d') ?? '';
+                    $agreementDate_   = $sale->agreement_date?->format('Y-m-d') ?? $sale->sale_date?->format('Y-m-d') ?? '';
+                    $installmentsCount_ = $sale->emi_installment_count ?? '';
+                    $latestChqRcpt_   = $sale->receipts->where('payment_mode', 'Cheque')->sortByDesc('receipt_date')->first();
+                    $receiptDate_     = $latestChqRcpt_?->receipt_date?->format('Y-m-d') ?? '';
+                    $totalChequeValue_    = (float)$sale->total_amount;
+                    $chequeReceived_      = (float)$sale->receipts->where('payment_mode', 'Cheque')->sum('amount');
+                    $totalReceivedCheque_ = (float)$sale->receipts->sum('amount');
+                    $chequeBalanceDue_    = (float)$sale->remaining_balance;
+                    $collectionPct_       = $totalChequeValue_ > 0 ? ($totalReceivedCheque_ / $totalChequeValue_) * 100 : 0.00;
+                    $additionalWork_      = (float)$sale->extraWorks->sum('amount');
 
-                    // Comma-separated door numbers for all units — parking units get "(Parking)" label
-                    $doorParts = $sale->saleUnits
-                        ->map(function($su) {
-                            $door = trim(explode(',', $su->unit?->door_no ?? '')[0]);
-                            if (!$door) return null;
-                            $isParking = str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking');
-                            return $isParking ? $door . '(Parking)' : $door;
-                        })
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->toArray();
-                    if (empty($doorParts)) {
-                        $fallbackDoor = $sale->unit?->door_no ?? '';
-                        $doorParts = $fallbackDoor ? [trim(explode(',', $fallbackDoor)[0])] : [];
+                    // Profit / Loss
+                    $expAmtTotal_ = 0.00;
+                    foreach ($sale->saleUnits as $_su) {
+                        $expAmtTotal_ += (float)($_su->unit?->expected_sale_amount ?? 0);
                     }
-                    $unitTypeDisplay = implode(', ', $doorParts);
+                    if ($expAmtTotal_ == 0) $expAmtTotal_ = (float)($sale->unit?->expected_sale_amount ?? 0);
+                    $saleAmount_   = (float)($sale->sale_amount ?? 0);
+                    $profitLoss_   = $saleAmount_ - $expAmtTotal_;
 
-                    // Area (sum of non-parking units)
-                    $areaSqft = (float)($nonParkingUnits->sum('area_sqft') ?: $sale->saleUnits->sum('area_sqft'));
+                    // Accumulate sale-level totals (once per sale, not per unit)
+                    $totals['cheque_value']         += $totalChequeValue_;
+                    $totals['cheque_received']       += $chequeReceived_;
+                    $totals['total_received_cheque'] += $totalReceivedCheque_;
+                    $totals['cheque_due']            += $chequeBalanceDue_;
+                    $totals['additional']            += $additionalWork_;
+                    $totals['profit_loss']           += $profitLoss_;
 
-                    // Pricing values
-                    $expectedRate = (float)($mainUnit?->unit?->expected_rate_per_sqft ?? 0.00);
-                    $actualRate = (float)($mainUnit?->rate_per_sqft ?? 0.00);
-                    $baseTotal = (float)$sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->sum('base_amount');
-                    $variance = ($expectedRate - $actualRate) * $areaSqft;
-                    
-                    // Taxes & Charges
-                    $gstPercentage = (float)($mainUnit?->gst_percentage ?? 0.00);
-                    $gstAmount = (float)$sale->saleUnits->sum('gst_amount');
-                    $parkingCharges = (float)$sale->saleUnits->filter(fn($su) => str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->sum('base_amount');
-                    $additionalWork = (float)$sale->extraWorks->sum('amount');
-                    $grandTotalDeal = $baseTotal + $parkingCharges + $gstAmount + $additionalWork;
-                    
-                    // Track A
-                    $totalChequeValue = (float)$sale->total_amount;
-                    $chequeReceived = (float)$sale->receipts->where('payment_mode', 'Cheque')->sum('amount');
-                    $totalReceivedCheque = (float)$sale->receipts->sum('amount');
-                    $chequeBalanceDue = (float)$sale->remaining_balance;
-                    
-                    // Receipt details
-                    $latestChequeReceipt = $sale->receipts->where('payment_mode', 'Cheque')->sortByDesc('receipt_date')->first();
-                    $receiptDate = $latestChequeReceipt?->receipt_date?->format('Y-m-d') ?? '';
-                    $bookingDate = $sale->sale_date?->format('Y-m-d') ?? '';
-                    $agreementDate = $sale->agreement_date?->format('Y-m-d') ?? $sale->sale_date?->format('Y-m-d') ?? '';
-                    $installmentsCount = $sale->emi_installment_count ?? '';
-                    $collectionPct = $totalChequeValue > 0 ? ($totalReceivedCheque / $totalChequeValue) * 100 : 0.00;
+                    // Units to iterate (fall back to null for sales with no saleUnits)
+                    $unitsToRender_ = $sale->saleUnits->isNotEmpty()
+                        ? $sale->saleUnits->values()
+                        : collect([null]);
+                    $isMultiUnit_ = $unitsToRender_->count() > 1;
+                    $saleSlNo_    = $loop->iteration;
 
-                    // Profit / Loss calculation (Sale Amount minus expected sale units amount)
-                    $expectedAmount = 0.00;
-                    if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
-                        foreach ($sale->saleUnits as $su) {
-                            $expectedAmount += (float)($su->unit?->expected_sale_amount ?? 0.00);
-                        }
-                    } else {
-                        $expectedAmount = (float)($sale->unit?->expected_sale_amount ?? 0.00);
-                    }
-                    $saleAmount = (float)($sale->sale_amount ?? 0.00);
-                    $profitLoss = $saleAmount - $expectedAmount;
- 
-                    // Increment totals
-                    $totals['area'] += $areaSqft;
-                    $totals['base_total'] += $baseTotal;
-                    $totals['variance'] += $variance;
-                    $totals['gst_amount'] += $gstAmount;
-                    $totals['parking'] += $parkingCharges;
-                    $totals['additional'] += $additionalWork;
-                    $totals['grand_total'] += $grandTotalDeal;
-                    $totals['cheque_value'] += $totalChequeValue;
-                    $totals['cheque_received'] += $chequeReceived;
-                    $totals['total_received_cheque'] += $totalReceivedCheque;
-                    $totals['cheque_due'] += $chequeBalanceDue;
-                    $totals['profit_loss'] += $profitLoss;
- 
-                    // Row Zebra striping
-                    $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
- 
-                    // Conditional highlights for Rate Variance (Discount/Loss = Red, Premium = Green)
-                    $varianceStyle = '';
-                    if ($variance > 0) {
-                        $varianceStyle = 'background-color: #fee2e2; color: #991b1b;';
-                    } elseif ($variance < 0) {
-                        $varianceStyle = 'background-color: #dcfce7; color: #166534;';
-                    }
-                    
-                    // Conditional highlights for Outstanding Balance (Due > 0 = Red)
-                    $balanceStyle = $chequeBalanceDue > 0 ? 'background-color: #fee2e2; color: #991b1b; font-weight: bold;' : '';
-                    
-                    // Conditional highlights for Collection % (100% = Green, >= 50% = Yellow, < 50% = Red)
-                    $pctStyle = '';
-                    if ($collectionPct >= 100) {
-                        $pctStyle = 'background-color: #dcfce7; color: #166534; font-weight: bold;';
-                    } elseif ($collectionPct >= 50) {
-                        $pctStyle = 'background-color: #fef9c3; color: #854d0e; font-weight: bold;';
-                    } else {
-                        $pctStyle = 'background-color: #fee2e2; color: #991b1b; font-weight: bold;';
-                    }
-
-                    // Conditional highlights for Profit/Loss (Loss < 0 = Red text, Profit > 0 = Green text)
-                    $profitLossStyle = '';
-                    if ($profitLoss < 0) {
-                        $profitLossStyle = 'color: #991b1b; font-weight: bold;';
-                    } elseif ($profitLoss > 0) {
-                        $profitLossStyle = 'color: #166534; font-weight: bold;';
-                    }
+                    // Shared conditional styles
+                    $balanceStyle_ = $chequeBalanceDue_ > 0 ? 'background-color: #fee2e2; color: #991b1b; font-weight: bold;' : '';
+                    if ($collectionPct_ >= 100)     { $pctStyle_ = 'background-color: #dcfce7; color: #166534; font-weight: bold;'; }
+                    elseif ($collectionPct_ >= 50)  { $pctStyle_ = 'background-color: #fef9c3; color: #854d0e; font-weight: bold;'; }
+                    else                             { $pctStyle_ = 'background-color: #fee2e2; color: #991b1b; font-weight: bold;'; }
+                    $plStyle_ = $profitLoss_ < 0 ? 'color: #991b1b; font-weight: bold;' : ($profitLoss_ > 0 ? 'color: #166534; font-weight: bold;' : '');
                 @endphp
-                <tr height="25" style="height: 25pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
-                    {{-- Section 1 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $loop->iteration }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($sale->customer?->name ?? '') }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $bookingDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $floorDisplay }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $unitTypeDisplay }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $agreementDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $areaSqft }}</td>
-                    
-                    {{-- Section 2 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $expectedRate > 0 ? $expectedRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $actualRate > 0 ? $actualRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $baseTotal > 0 ? $baseTotal : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; {{ $varianceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $variance != 0 ? abs($variance) : '0' }}</td>
-                    
-                    {{-- Section 3 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif;">{{ $gstPercentage > 0 ? number_format($gstPercentage, 2) . '%' : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $gstAmount > 0 ? $gstAmount : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $parkingCharges > 0 ? $parkingCharges : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $additionalWork > 0 ? $additionalWork : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $grandTotalDeal }}</td>
-                    
-                    {{-- Section 4 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalReceivedCheque }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $receiptDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $installmentsCount }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $pctStyle }} font-family: 'Calibri', 'Aptos', sans-serif;">{{ number_format($collectionPct, 2) }}%</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $profitLossStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $profitLoss != 0 ? abs($profitLoss) : '0' }}</td>
-                </tr>
+
+                @foreach($unitsToRender_ as $suIdx => $su)
+                    @php
+                        $globalRowCounter++;
+                        $isFirst_  = ($suIdx === 0);
+                        $isPark_   = ($su
+                            ? (str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking') || str_contains(strtolower($su->unit?->unitType?->category ?? ''), 'parking'))
+                            : (str_contains(strtolower($sale->unit?->unitType?->name ?? ''), 'parking') || str_contains(strtolower($sale->unit?->unitType?->category ?? ''), 'parking')));
+
+                        // Floor
+                        $floorNm_  = $su ? ($su->unit?->floor?->name ?? '') : ($sale->unit?->floor?->name ?? '');
+                        $floorD_   = $floorNm_ ? $fmtFlr($floorNm_) : '';
+
+                        // Door / unit label
+                        $doorRaw_  = $su
+                            ? trim(explode(',', $su->unit?->door_no ?? '')[0])
+                            : trim(explode(',', $sale->unit?->door_no ?? '')[0]);
+                        $unitD_    = $isPark_ ? $doorRaw_ . ' (Parking)' : $doorRaw_;
+
+                        // Area & rates (Parking does not have sqft area; in DB it stores 1.0 as a slot counter, which should not display as area or count toward total area)
+                        $suArea_   = $isPark_ ? 0 : ($su ? (float)($su->area_sqft ?? 0) : (float)($sale->unit?->area_sqft ?? 0));
+                        $suExpR_   = $su ? (float)($su->unit?->expected_rate_per_sqft ?? 0) : 0;
+                        $suActR_   = $su ? (float)($su->rate_per_sqft ?? 0) : 0;
+                        $suBase_   = $su ? (float)($su->base_amount ?? 0) : 0;
+                        $suVar_    = ($suExpR_ - $suActR_) * $suArea_;
+                        $suGstP_   = $su ? (float)($su->gst_percentage ?? 0) : 0;
+                        $suGstA_   = $su ? (float)($su->gst_amount ?? 0) : 0;
+
+                        // Split base vs parking
+                        $suParking_  = $isPark_ ? $suBase_ : 0;
+                        $suBaseCol_  = $isPark_ ? 0 : $suBase_;
+
+                        // Grand total for this row
+                        $suAdd_    = $isFirst_ ? $additionalWork_ : 0;
+                        $suGrand_  = $suBase_ + $suGstA_ + $suAdd_;
+
+                        // Accumulate unit-level totals
+                        $totals['area']        += $suArea_;
+                        $totals['base_total']  += $suBaseCol_;
+                        $totals['variance']    += $suVar_;
+                        $totals['gst_amount']  += $suGstA_;
+                        $totals['parking']     += $suParking_;
+                        $totals['grand_total'] += $suGrand_;
+
+                        // Variance style
+                        if ($suVar_ > 0)      { $varStyle_ = 'background-color: #fee2e2; color: #991b1b;'; }
+                        elseif ($suVar_ < 0)  { $varStyle_ = 'background-color: #dcfce7; color: #166534;'; }
+                        else                  { $varStyle_ = ''; }
+
+                        $rowBg_  = ($globalRowCounter % 2 === 0) ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
+                        $slLbl_  = (string)$globalRowCounter;
+                    @endphp
+                    <tr height="25" style="height: 25pt; text-align: center; vertical-align: middle; {{ $rowBg_ }}">
+                        {{-- Section 1 --}}
+                        <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $slLbl_ }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($sale->customer?->name ?? '') }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $isFirst_ ? $bookingDate_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $floorD_ }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $unitD_ }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $isFirst_ ? $agreementDate_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ ($suArea_ > 0 && !$isPark_) ? $suArea_ : '' }}</td>
+
+                        {{-- Section 2 --}}
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ ($suExpR_ > 0 && !$isPark_) ? $suExpR_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ ($suActR_ > 0 && !$isPark_) ? $suActR_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $suBaseCol_ > 0 ? $suBaseCol_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; {{ $varStyle_ }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ ($suVar_ != 0 && !$isPark_) ? abs($suVar_) : '' }}</td>
+
+                        {{-- Section 3 --}}
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif;">{{ $suGstP_ > 0 ? number_format($suGstP_, 2) . '%' : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $suGstA_ > 0 ? $suGstA_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $suParking_ > 0 ? $suParking_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $suAdd_ > 0 ? $suAdd_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $suGrand_ > 0 ? $suGrand_ : '' }}</td>
+
+                        {{-- Section 4: payment data only on first unit row per sale --}}
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $isFirst_ ? $totalChequeValue_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $isFirst_ ? $totalReceivedCheque_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $isFirst_ ? $receiptDate_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $isFirst_ ? $balanceStyle_ : '' }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $isFirst_ ? $chequeBalanceDue_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $isFirst_ ? $installmentsCount_ : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $isFirst_ ? $pctStyle_ : '' }} font-family: 'Calibri', 'Aptos', sans-serif;">{{ $isFirst_ ? number_format($collectionPct_, 2) . '%' : '' }}</td>
+                        <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $isFirst_ ? $plStyle_ : '' }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $isFirst_ ? ($profitLoss_ != 0 ? abs($profitLoss_) : '0') : '' }}</td>
+                    </tr>
+                @endforeach
             @endforeach
- 
+
               <tr height="36" style="height: 36pt; font-weight: bold; color: #ffffff;">
                 {{-- Section 1 Totals --}}
                 <td colspan="6" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>

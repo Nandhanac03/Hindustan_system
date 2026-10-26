@@ -239,7 +239,9 @@ class UnitController extends Controller
             'broker', 
             'saleUnits.unit.unitType', 
             'saleUnits.unit.floor',
-            'extraWorks'
+            'extraWorks',
+            'receipts',
+            'customerInstallments'
         ])
         ->where('project_id', $project->id)
         ->where('status', 'active')
