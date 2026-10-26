@@ -843,15 +843,23 @@ class EmiCollectionController extends Controller
 
         $totalDebits    = $ledger->sum('debit');
         $totalCredits   = in_array($sale->status, $archivedStatuses) ? $sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount') : $ledger->sum('credit');
-        $closingBalance = (float)$sale->remaining_balance;
+        $closingBalance = $installments->isNotEmpty()
+            ? max(0, round($totalDebits - $totalCredits, 2))
+            : (float)$sale->remaining_balance;
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $paymentModes   = PaymentMode::where('status', 'active')->orderBy('name')->get();
         $restructureLogs = \App\Models\SaleStatusLog::with('performedBy')
             ->where('sale_id', $sale->id)
-            ->where('event_type', 'emi_restructure')
+            ->whereIn('event_type', ['emi_restructure', 'rate_discount_restructure', 'rate_adjustment'])
             ->latest()
             ->get();
+
+        // Retrieve the latest restructured rate from logs (units and sales tables remain unmodified)
+        $latestRateLog = $restructureLogs->first(function ($l) {
+            return !empty($l->snapshot_data['new_rate']) && (float)$l->snapshot_data['new_rate'] > 0;
+        });
+        $loggedRate = $latestRateLog ? (float)$latestRateLog->snapshot_data['new_rate'] : null;
 
         return view('emi-collections.ledger', compact(
             'sale',
@@ -865,8 +873,128 @@ class EmiCollectionController extends Controller
             'banks',
             'paymentModes',
             'archiveSnapshot',
-            'restructureLogs'
+            'restructureLogs',
+            'loggedRate'
         ));
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // F2. LEDGER RATE ADJUSTMENT  (does NOT touch hindustan_units table)
+    // ──────────────────────────────────────────────────────────────────
+
+    public function applyLedgerRate(Request $request, Sale $sale): JsonResponse
+    {
+        $request->validate([
+            'new_rate' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        $newRate    = (float) $request->new_rate;
+        $builtUpArea = (float) ($sale->unit?->built_up_area ?? 0);
+
+        if ($builtUpArea <= 0) {
+            return response()->json(['error' => 'Unit Built Up Area is not set — cannot recalculate.'], 422);
+        }
+
+        $oldRate         = (float) ($sale->rate_per_sqft ?? 0);
+        $newBaseAmount   = round($builtUpArea * $newRate, 2);
+
+        // Recalculate GST on new base amount
+        $gstPct        = (float) ($sale->gst_percentage ?? 0);
+        $newGstAmount  = round($newBaseAmount * $gstPct / 100, 2);
+        $newTotal      = round($newBaseAmount + $newGstAmount, 2);
+
+        // Paid so far (sum of receipts)
+        $totalPaid     = round((float) $sale->receipts()->sum('amount'), 2);
+        $newRemaining  = max(0, round($newTotal - $totalPaid, 2));
+
+        DB::transaction(function () use ($sale, $newRate, $newBaseAmount, $newGstAmount, $newTotal, $newRemaining, $oldRate) {
+            $sale->update([
+                'rate_per_sqft'    => $newRate,
+                'sale_amount'      => $newBaseAmount,
+                'base_amount'      => $newBaseAmount,
+                'gst_amount'       => $newGstAmount,
+                'total_amount'     => $newTotal,
+                'remaining_balance'=> $newRemaining,
+            ]);
+
+            \App\Models\SaleStatusLog::create([
+                'sale_id'       => $sale->id,
+                'event_type'    => 'rate_adjustment',
+                'performed_by'  => auth()->id(),
+                'snapshot_data' => [
+                    'old_rate'       => $oldRate,
+                    'new_rate'       => $newRate,
+                    'built_up_area'  => $sale->unit?->built_up_area,
+                    'new_base'       => $newBaseAmount,
+                    'new_total'      => $newTotal,
+                    'new_remaining'  => $newRemaining,
+                    'note'           => 'Rate adjusted via Ledger Adjustments panel. Unit base rate NOT changed.',
+                ],
+            ]);
+        });
+
+        return response()->json([
+            'success'       => true,
+            'new_remaining' => $newRemaining,
+            'new_total'     => $newTotal,
+            'log' => [
+                'date'     => now()->format('d M Y'),
+                'old_rate' => $oldRate,
+                'new_rate' => $newRate,
+            ],
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // F3. LEDGER DISCOUNT APPLICATION
+    // ──────────────────────────────────────────────────────────────────
+
+    public function applyLedgerDiscount(Request $request, Sale $sale): JsonResponse
+    {
+        $request->validate([
+            'discount_amount' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        $discountAmt      = (float) $request->discount_amount;
+        $currentRemaining = (float) $sale->remaining_balance;
+        $currentDiscount  = (float) ($sale->final_discount ?? 0);
+
+        if ($discountAmt > $currentRemaining) {
+            return response()->json(['error' => 'Discount amount (₹' . number_format($discountAmt, 2) . ') exceeds current Remaining Balance (₹' . number_format($currentRemaining, 2) . ').'], 422);
+        }
+
+        $newRemaining    = max(0, round($currentRemaining - $discountAmt, 2));
+        $newTotalDiscount = round($currentDiscount + $discountAmt, 2);
+
+        DB::transaction(function () use ($sale, $discountAmt, $newRemaining, $newTotalDiscount, $currentRemaining, $currentDiscount) {
+            $sale->update([
+                'final_discount'    => $newTotalDiscount,
+                'remaining_balance' => $newRemaining,
+            ]);
+
+            \App\Models\SaleStatusLog::create([
+                'sale_id'       => $sale->id,
+                'event_type'    => 'discount_applied',
+                'performed_by'  => auth()->id(),
+                'snapshot_data' => [
+                    'discount_amount'     => $discountAmt,
+                    'previous_discount'   => $currentDiscount,
+                    'total_discount'      => $newTotalDiscount,
+                    'before_remaining'    => $currentRemaining,
+                    'after_remaining'     => $newRemaining,
+                    'note'                => 'Discount applied via Ledger Adjustments panel.',
+                ],
+            ]);
+        });
+
+        return response()->json([
+            'success'       => true,
+            'new_remaining' => $newRemaining,
+            'log' => [
+                'date'   => now()->format('d M Y'),
+                'amount' => $discountAmt,
+            ],
+        ]);
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -980,38 +1108,96 @@ class EmiCollectionController extends Controller
     public function bulkUpdateSchedule(Request $request, Sale $sale): JsonResponse
     {
         $request->validate([
-            'installments' => ['required', 'array'],
+            'installments'                  => ['required', 'array'],
             'installments.*.installment_no' => ['required', 'integer'],
-            'installments.*.label' => ['required', 'string', 'max:100'],
-            'installments.*.due_date' => ['required', 'date'],
-            'installments.*.amount' => ['required', 'numeric', 'min:0'],
-            'installments.*.status' => ['required', 'in:pending,paid,overdue,partial'],
+            'installments.*.label'          => ['required', 'string', 'max:100'],
+            'installments.*.due_date'       => ['required', 'date'],
+            'installments.*.amount'         => ['required', 'numeric', 'min:0'],
+            'installments.*.status'         => ['required', 'in:pending,paid,overdue,partial'],
+            // Optional rate/discount adjustment block
+            'adjustment.new_rate'           => ['sometimes', 'nullable', 'numeric', 'min:0.01'],
+            'adjustment.built_up_area'      => ['sometimes', 'nullable', 'numeric', 'min:0.01'],
+            'adjustment.discount_amount'    => ['sometimes', 'nullable', 'numeric', 'min:0'],
         ]);
 
         $installmentsData = $request->input('installments');
+        $adjustment       = $request->input('adjustment', []);
 
-        $sum = collect($installmentsData)->sum('amount');
-        if (abs($sum - (float)$sale->total_amount) > 0.01) {
+        // ── Compute effective total amount ────────────────────────────
+        // When rate/discount are adjusted, we validate the schedule sum
+        // against the EFFECTIVE total (not the original sale->total_amount).
+        // The sale record (NOT hindustan_units) will be updated in the transaction.
+        $currentScheduleTotal = round((float) CustomerInstallment::where('sale_id', $sale->id)->sum('amount'), 2);
+        $initialTotal = $currentScheduleTotal > 0 ? $currentScheduleTotal : (float) $sale->total_amount;
+        $effectiveTotal = $initialTotal;
+
+        $hasRateAdj     = !empty($adjustment['new_rate'])        && (float)$adjustment['new_rate']        > 0;
+        $hasDiscountAdj = !empty($adjustment['discount_amount']) && (float)$adjustment['discount_amount'] > 0;
+        $hasAnyAdj      = $hasRateAdj || $hasDiscountAdj;
+
+        if ($hasAnyAdj) {
+            $gstPct = (float)($sale->gst_percentage ?? 0);
+            if ($hasRateAdj) {
+                $newRate = round((float)$adjustment['new_rate'], 2);
+                $area    = !empty($adjustment['built_up_area'])
+                           ? round((float)$adjustment['built_up_area'], 2)
+                           : (float)($sale->unit?->built_up_area ?? 0);
+                if ($area > 0) {
+                    $newBase        = round($area * $newRate, 2);
+                    $newGst         = round($newBase * $gstPct / 100, 2);
+                    $effectiveTotal = round($newBase + $newGst, 2);
+                }
+            }
+            if ($hasDiscountAdj) {
+                $discountAmt    = round((float)$adjustment['discount_amount'], 2);
+                $effectiveTotal = max(0, round($effectiveTotal - $discountAmt, 2));
+            }
+        } elseif (!empty($adjustment['effective_total']) && (float)$adjustment['effective_total'] > 0) {
+            $effectiveTotal = round((float)$adjustment['effective_total'], 2);
+        }
+
+        // ── Validate installment sum ──────────────────────────────────
+        $sum = round(collect($installmentsData)->sum('amount'), 2);
+        if (abs($sum - $effectiveTotal) > 0.01) {
             return response()->json([
-                'error' => 'The sum of all installments (₹' . number_format($sum, 2) . 
-                           ') must equal the total sale amount (₹' . number_format($sale->total_amount, 2) . ').'
+                'error' => 'The sum of all installments (₹' . number_format($sum, 2) .
+                           ') must equal the effective total amount (₹' . number_format($effectiveTotal, 2) . ').'
             ], 422);
         }
 
-        DB::transaction(function () use ($sale, $installmentsData) {
+        DB::transaction(function () use ($sale, $installmentsData, $adjustment, $effectiveTotal, $hasAnyAdj, $hasRateAdj, $hasDiscountAdj) {
             $currentInsts = CustomerInstallment::where('sale_id', $sale->id)->orderBy('installment_no')->get();
-            
-            // 1. Snapshot previous installments before modification/restructuring
-            if ($currentInsts->isNotEmpty()) {
+
+            // ── 1. Audit log & history snapshot ────────────────────────────
+            // Note: The `sales` table and `hindustan_units` table are intentionally
+            // NOT modified, preserving original agreement data intact in the database.
+            // The edited schedule data is stored in `customer_installments`.
+            if ($currentInsts->isNotEmpty() || $hasAnyAdj) {
+                $reasonParts = [];
+                if ($hasDiscountAdj) {
+                    $reasonParts[] = 'Discount: ₹' . number_format($adjustment['discount_amount'], 2);
+                }
+                if ($hasRateAdj) {
+                    $reasonParts[] = 'Rate: ₹' . number_format($adjustment['new_rate'], 2) . '/sqft';
+                }
+                $reasonText = 'EMI schedule restructured' . (!empty($reasonParts) ? ' (' . implode(', ', $reasonParts) . ')' : '') . ' on ' . now()->format('d M Y, h:i A');
+
                 \App\Models\SaleStatusLog::create([
                     'sale_id'       => $sale->id,
                     'from_status'   => $sale->status,
                     'to_status'     => $sale->status,
                     'event_type'    => 'emi_restructure',
-                    'reason'        => 'EMI schedule restructured/updated on ' . now()->format('d M Y, h:i A'),
+                    'reason'        => $reasonText,
                     'performed_by'  => auth()->id(),
                     'snapshot_data' => [
                         'restructured_at' => now()->toIso8601String(),
+                        'old_rate'        => $adjustment['old_rate']        ?? (float)($sale->rate_per_sqft ?? 0),
+                        'new_rate'        => $adjustment['new_rate']        ?? null,
+                        'built_up_area'   => $adjustment['built_up_area']   ?? (float)($sale->unit?->built_up_area ?? 0),
+                        'discount_amount' => $adjustment['discount_amount'] ?? null,
+                        'effective_total' => $effectiveTotal,
+                        'original_total'  => (float)$sale->total_amount,
+                        'note'            => 'Base sales and units tables preserved intact without mutation. Only custom installments schedule updated.',
                         'installments'    => $currentInsts->map(function ($inst) {
                             return [
                                 'id'             => $inst->id,
@@ -1027,6 +1213,7 @@ class EmiCollectionController extends Controller
                 ]);
             }
 
+            // ── 3. Upsert / delete installment rows ───────────────────────
             $currentInstsKeyed = $currentInsts->keyBy('id');
             $keepIds = [];
             foreach ($installmentsData as $inst) {
@@ -1055,7 +1242,7 @@ class EmiCollectionController extends Controller
                     $keepIds[] = $newRow->id;
                 }
             }
-            
+
             CustomerInstallment::where('sale_id', $sale->id)
                 ->whereNotIn('id', $keepIds)
                 ->where('status', '!=', 'paid')

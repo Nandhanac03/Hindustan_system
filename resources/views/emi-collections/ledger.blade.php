@@ -29,9 +29,9 @@
     <div class="relative overflow-hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 text-slate-900">
         <div class="absolute -top-16 -right-16 w-56 h-56 bg-[#a38c29]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-center">
             {{-- Customer Info --}}
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 lg:col-span-1">
                 <div class="w-10 h-10 rounded-xl bg-[#a38c29]/10 border border-[#a38c29]/20 text-[#a38c29] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-xs">
                     {{ strtoupper(substr($sale->customer?->name ?? 'C', 0, 2)) }}
                 </div>
@@ -46,7 +46,7 @@
             </div>
 
             {{-- Sale Number & Project --}}
-            <div>
+            <div class="lg:col-span-1">
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Sale Number / Project</span>
                 <span class="text-xs font-extrabold text-[#a38c29] font-mono mt-0.5 block tracking-wide">{{ $sale->sale_number }}</span>
                 <span class="text-[10px] text-slate-600 font-semibold mt-0.5 block truncate" title="{{ $sale->project?->name ?? '—' }} — Unit: {{ $sale->unit?->door_no ?? '—' }}">
@@ -55,14 +55,45 @@
             </div>
 
             {{-- Sale Amount --}}
-            <div>
+            <div class="lg:col-span-1">
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contract Value (incl. GST)</span>
                 <span class="text-sm font-black text-slate-900 font-mono mt-0.5 block tracking-tight">₹{{ number_format($sale->total_amount, 2) }}</span>
                 <span class="text-[10px] text-slate-500 font-semibold mt-0.5 block">Agreement: {{ $sale->agreement_date?->format('d M Y') ?? '—' }}</span>
             </div>
 
+            {{-- Built Up Area --}}
+            <div class="lg:col-span-1">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Built Up Area (Sq Ft)</span>
+                <span class="text-sm font-black text-slate-900 font-mono mt-0.5 block tracking-tight">
+                    @php
+                        $unitBuiltUp = $sale->unit?->built_up_area ?? 0;
+                    @endphp
+                    {{ $unitBuiltUp > 0 ? number_format($unitBuiltUp, 2) . ' sq.ft' : '—' }}
+                </span>
+                <span class="text-[10px] text-slate-500 font-semibold mt-0.5 block">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
+            </div>
+
+            {{-- Sale Rate/Sqft --}}
+            <div class="lg:col-span-1">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Sale Rate / Sq Ft</span>
+                @php
+                    $saleRateSqft = (float)($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0);
+                    $effectiveRateDisplay = $loggedRate ?: $saleRateSqft;
+                @endphp
+                <span class="text-sm font-black text-[#a38c29] font-mono mt-0.5 block tracking-tight" x-text="'₹' + Number(adjustedRateSqft || {{ (float)$effectiveRateDisplay }}).toLocaleString('en-IN', {minimumFractionDigits: 2})">
+                    ₹{{ number_format($effectiveRateDisplay, 2) }}
+                </span>
+                <span class="text-[10px] text-slate-500 font-semibold mt-0.5 block">
+                    @if($loggedRate && $loggedRate != $saleRateSqft)
+                        Restructured Rate <span class="text-slate-400 font-normal">(Base: ₹{{ number_format($saleRateSqft, 0) }})</span>
+                    @else
+                        Per Sq.Ft (Sale Rate)
+                    @endif
+                </span>
+            </div>
+
             {{-- Remaining Balance Status --}}
-            <div class="lg:text-right">
+            <div class="lg:col-span-1 lg:text-right">
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Remaining Balance</span>
                 <div class="mt-0.5 inline-flex items-center gap-2">
                     <span class="text-base font-black font-mono {{ $sale->status === 'exchanged' ? 'text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }}">
@@ -558,24 +589,27 @@
 
     {{-- Manage EMI Schedule Modal --}}
     <div x-show="emiModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen text-left"
          style="display: none;" x-transition.opacity>
-         <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="emiModalOpen = false">
+         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] my-auto" @click.away="emiModalOpen = false">
               {{-- Header --}}
-              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
-                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/10 shrink-0 rounded-t-2xl">
+                  <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                   <div class="relative z-10 flex items-center justify-between gap-4">
                       <div>
-                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Schedule Editor</span>
-                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Custom EMI Schedule Breakdown</h2>
+                          <div class="flex flex-wrap items-center gap-2 mb-1">
+                              <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Schedule Editor</span>
+                          </div>
+                          <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight uppercase mt-0.5">Custom EMI Schedule Breakdown</h2>
                       </div>
-                      <button type="button" @click="emiModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                      <button type="button" @click="emiModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                   </div>
               </div>
 
-              <div x-show="emiError" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
+              <div x-show="emiError" class="p-3 mx-6 mt-3 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide shrink-0" x-text="emiError"></div>
 
-              <div class="px-6 pt-4 pb-0 overflow-x-auto scrollbar-none">
+              <div class="px-6 pt-3 pb-0 overflow-x-auto scrollbar-none shrink-0 bg-white">
                   {{-- Tabs --}}
                   <div class="flex items-center gap-1 sm:gap-2 border-b border-slate-200 whitespace-nowrap min-w-max">
                       <button type="button" @click="emiTab = 'restructure'" 
@@ -603,41 +637,121 @@
               </div>
 
               {{-- Restructure Generator Card --}}
-              <div x-show="emiTab === 'restructure'" class="p-6 pb-2 space-y-3 bg-amber-50/50 border-b border-amber-200/60 font-sans text-xs">
+              <div x-show="emiTab === 'restructure'" class="p-4 space-y-3 bg-amber-50/40 border-b border-amber-200/60 font-sans text-xs shrink-0">
                   <div class="flex items-center justify-between">
                       <div>
-                          <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide">Restructure Unpaid Balance</h3>
-                          <p class="text-[11px] text-slate-500 mt-0.5">Keep already paid installments and recalculate the remaining unpaid balance into fresh EMIs.</p>
+                          <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide">Restructure Available Balance</h3>
+                          <!-- <p class="text-[11px] text-slate-500 mt-0.5">Recalculate remaining unpaid balance from Area / Rate / Discount without modifying unit or sale base rates.</p> -->
                       </div>
                       <div class="text-right">
                           <span class="text-[9px] font-extrabold text-slate-400 uppercase">Remaining Balance</span>
-                          <div class="text-sm font-black font-mono text-rose-600">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></div>
+                          <div class="text-sm font-black font-mono text-rose-600">₹<span x-text="existingRemainingBalance().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></div>
                       </div>
                   </div>
 
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  {{-- Adjustments Grid: Built Up Area, Current Rate, New Rate, Discount Amount --}}
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-0.5">
+                      {{-- 1. Built Up Area (Sq Ft) text box --}}
+                      <div class="bg-white/95 border border-amber-200/80 rounded-xl p-2.5 space-y-1 shadow-xs">
+                          <label class="block text-[9px] font-black text-slate-700 uppercase tracking-wider">
+                              Built Up Area (Sq Ft)
+                          </label>
+                          <input type="number" step="0.01" min="0.01" x-model.number="adjustmentForm.built_up_area"
+                                 class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                          <span class="text-[9px] text-slate-400 font-semibold block">Unit Area</span>
+                      </div>
+
+                      {{-- 2. Current Rate / Sq Ft (Current/Original) --}}
+                      <div class="bg-white/95 border border-amber-200/80 rounded-xl p-2.5 space-y-1 shadow-xs">
+                          <label class="block text-[9px] font-black text-slate-700 uppercase tracking-wider">
+                              Current Rate / Sqft (₹)
+                          </label>
+                          <input type="number" step="0.01" readonly :value="adjustmentForm.current_rate"
+                                 class="w-full px-2 py-1 bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-lg text-xs cursor-not-allowed">
+                          <template x-if="loggedRate && loggedRate !== baseSaleRateSqft">
+                              <div class="text-[9px] leading-tight break-words pt-0.5">
+                                  <span class="text-[#a38c29] font-bold block">Logged: ₹<span x-text="Number(loggedRate).toLocaleString('en-IN')"></span></span>
+                                  <span class="text-slate-400 font-semibold block">(Base Rate: ₹{{ number_format($saleRateSqft, 0) }})</span>
+                              </div>
+                          </template>
+                          <template x-if="!loggedRate || loggedRate === baseSaleRateSqft">
+                              <span class="text-[9px] text-slate-400 font-semibold block">Base Sale Rate</span>
+                          </template>
+                      </div>
+
+                      {{-- 3. New Sale Rate / Sq Ft text box --}}
+                      <div class="bg-white/95 border border-amber-200/80 rounded-xl p-2.5 space-y-1 shadow-xs">
+                          <label class="block text-[9px] font-black text-[#a38c29] uppercase tracking-wider">
+                              New Rate / Sqft (₹)
+                          </label>
+                          <input type="number" step="0.01" min="0.01" id="new_sqft_rate_input" name="new_sqft_rate"
+                                 x-model.number="adjustmentForm.new_rate"
+                                 placeholder="Enter new rate / sqft"
+                                 class="w-full px-2 py-1 bg-white border border-amber-300 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                          <span class="text-[9px] text-amber-700 font-semibold block">Applies to Balance</span>
+                      </div>
+
+                      {{-- 4. Discount Amount (₹) text box --}}
+                      <div class="bg-white/95 border border-amber-200/80 rounded-xl p-2.5 space-y-1 shadow-xs">
+                          <label class="block text-[9px] font-black text-emerald-700 uppercase tracking-wider">
+                              Discount Amount (₹)
+                          </label>
+                          <input type="number" step="0.01" min="0" x-model.number="adjustmentForm.discount_amount"
+                                 placeholder="e.g. 50000"
+                                 class="w-full px-2 py-1 bg-white border border-emerald-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                          <span class="text-[9px] text-emerald-600 font-semibold block">Deducts from Balance</span>
+                      </div>
+                  </div>
+
+                  {{-- Live Preview Alert / Status --}}
+                  <div class="p-2.5 bg-white/90 border border-amber-200/80 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs shadow-xs">
+                      <div class="flex items-center gap-2 flex-wrap">
+                          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span class="text-slate-600 font-medium">Customer Paid: <strong class="text-emerald-700 font-mono">₹<span x-text="calculateTotalPaid().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong></span>
+                          <template x-if="parseFloat(adjustmentForm.discount_amount) > 0">
+                              <span class="inline-flex items-center gap-1">
+                                  <span class="text-slate-300">|</span>
+                                  <span class="text-slate-600 font-medium">Discount: <strong class="text-emerald-600 font-mono">-₹<span x-text="Number(adjustmentForm.discount_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong></span>
+                              </span>
+                          </template>
+                          <template x-if="parseFloat(adjustmentForm.new_rate) > 0">
+                              <span class="inline-flex items-center gap-1">
+                                  <span class="text-slate-300">|</span>
+                                  <span class="text-slate-600 font-medium">Discount Rate: <strong class="text-[#a38c29] font-mono">₹<span x-text="Number(adjustmentForm.new_rate).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>/sqft</strong></span>
+                              </span>
+                          </template>
+                          <span class="text-slate-300">|</span>
+                          <span class="text-slate-600 font-medium">Effective Balance: <strong class="text-rose-600 font-mono">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong></span>
+                      </div>
+                      <!-- <div class="text-[10px] text-slate-500 italic">
+                          * Changes recalculate the schedule balance and record in logs without mutating base inventory unit rates.
+                      </div> -->
+                  </div>
+
+                  {{-- EMI Schedule Generator Inputs --}}
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-0.5 border-t border-amber-200/50">
                       <div>
-                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Number of New EMIs</label>
+                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-0.5">Number of New EMIs</label>
                           <input type="number" min="1" max="120" placeholder="e.g. 3, 6, 12" x-model.number="restructureCount"
-                                 class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
+                                 class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
                       </div>
                       <div>
-                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">First Due Date</label>
+                          <label class="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-0.5">First Due Date</label>
                           <input type="date" x-model="restructureStartDate"
-                                 class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
+                                 class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] focus:outline-none">
                       </div>
                       <div class="flex items-end">
                           <button type="button" @click="applyRestructure()" 
-                                  class="w-full px-3 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                  class="w-full px-3 py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
                               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                              Generate Schedule
+                              Recalculate & Generate
                           </button>
                       </div>
                   </div>
               </div>
 
               {{-- Restructure History Container --}}
-              <div x-show="emiTab === 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+              <div x-show="emiTab === 'history'" class="p-5 space-y-3 overflow-y-auto font-sans text-xs bg-slate-50/50 flex-1 min-h-0">
                   <template x-if="restructureLogs.length === 0">
                       <div class="text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
                           <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -647,7 +761,7 @@
                   </template>
                   <template x-for="(log, lIdx) in restructureLogs" :key="log.id || lIdx">
                       <div class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
-                          <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                          <div class="px-3.5 py-2.5 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
                               <div>
                                   <span class="text-[10px] font-black uppercase text-slate-700" x-text="log.reason || 'EMI Restructure'"></span>
                                   <div class="text-[9px] text-slate-400 mt-0.5">
@@ -655,7 +769,7 @@
                                   </div>
                               </div>
                               <button type="button" @click="restoreFromLog(log)" 
-                                      class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/30 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer">
+                                      class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/30 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer">
                                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                   Load this Version
                               </button>
@@ -692,39 +806,55 @@
                   </template>
               </div>
 
-                <div x-show="emiTab !== 'history'" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+              <div x-show="emiTab !== 'history'" class="p-6 space-y-4 overflow-y-auto font-sans text-xs bg-slate-50/50 flex-1 min-h-0">
                   {{-- Dynamic Summary Stats --}}
-                   <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 rounded-xl text-xs text-white border border-[#a38c29]/20">
+                   <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-3.5 rounded-xl text-xs text-white border border-[#a38c29]/20">
                        <div>
                           <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
-                          <strong class="text-white text-sm font-mono mt-0.5 block">₹<span x-text="totalSaleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                          <strong class="text-white text-xs sm:text-sm font-mono mt-0.5 block">₹<span x-text="effectiveTotalAmount().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                          <template x-if="effectiveTotalAmount() !== baseSaleTotalAmount">
+                              <span class="text-[8px] text-slate-400 font-medium block mt-0.5 truncate" x-text="'(Base: ₹' + baseSaleTotalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')'"></span>
+                          </template>
                       </div>
                         <div>
                           <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Remaining Balance</span>
-                          <!-- <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span> -->
-                          <!-- <strong class="text-[#d9bf3b] text-sm font-mono mt-0.5 block">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong> -->
-                          <strong class="text-rose-400 text-sm font-mono mt-0.5 block">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"</span></strong>
-                         
+                          <strong class="text-rose-400 text-xs sm:text-sm font-mono mt-0.5 block">₹<span x-text="unpaidBalanceToRestructure().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                          <template x-if="parseFloat(adjustmentForm.discount_amount) > 0">
+                              <span class="text-[8px] text-emerald-400 font-semibold block mt-0.5 truncate" x-text="'(-₹' + Number(adjustmentForm.discount_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ' Disc)'"></span>
+                          </template>
                         </div>
                         <div>
-                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
-                          <div class="flex items-center gap-1.5 mt-0.5">
-                              <strong class="text-sm font-mono" :class="calculateUnallocated() === 0 ? 'text-emerald-400' : 'text-rose-400'">
-                                  ₹<span x-text="calculateUnallocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
-                              </strong>
-                              <template x-if="calculateUnallocated() !== 0">
-                                  <button type="button" @click="distributeRemaining()" class="px-1.5 py-0.5 bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] text-[8px] font-bold uppercase rounded transition-colors border border-[#a38c29]/30">
-                                      Auto-Distribute
-                                  </button>
-                              </template>
-                          </div>
-                      </div>
+                            <template x-if="hasActiveAdjustment()">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block" x-text="adjustmentCardLabel()"></span>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <strong class="text-xs sm:text-sm font-mono text-emerald-400" x-text="adjustmentCardValue()"></strong>
+                                    </div>
+                                    <span class="text-[8px] text-emerald-400/90 font-semibold block mt-0.5" x-text="adjustmentCardSub()"></span>
+                                </div>
+                            </template>
+                            <template x-if="!hasActiveAdjustment()">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <strong class="text-xs sm:text-sm font-mono" :class="Math.abs(calculateUnallocated()) <= 0.01 ? 'text-emerald-400' : 'text-rose-400'">
+                                            ₹<span x-text="calculateUnallocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                                        </strong>
+                                        <template x-if="Math.abs(calculateUnallocated()) > 0.01">
+                                            <button type="button" @click="distributeRemaining()" class="px-1.5 py-0.5 bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] text-[8px] font-bold uppercase rounded transition-colors border border-[#a38c29]/30 cursor-pointer" title="Auto-distribute difference across pending installments">
+                                                Auto-Distribute
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                   </div>
 
                   {{-- Scrollable List of Rows --}}
                   <div class="space-y-2.5 pr-1 max-h-[300px] overflow-y-auto">
                       <template x-for="(inst, index) in editInstallments" :key="index">
-                          <div class="flex items-center gap-3 p-3 rounded-xl border transition-all bg-white border-slate-200/85 shadow-sm"
+                          <div class="flex items-center gap-3 p-3 rounded-xl border transition-all bg-white border-slate-200/85 shadow-xs"
                                :class="inst.status === 'paid' ? 'bg-emerald-50/20 border-emerald-100 shadow-none' : ''">
                               
                               {{-- Label Input --}}
@@ -749,12 +879,12 @@
                               </div>
 
                               {{-- Status & Remove --}}
-                              <div class="w-1/6 flex items-center justify-end gap-2 pt-3">
+                              <div class="w-1/6 flex items-center justify-end gap-1.5 pt-2.5">
                                   <template x-if="inst.status === 'paid'">
-                                      <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold uppercase rounded">Paid</span>
+                                      <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold uppercase rounded">Paid</span>
                                   </template>
                                   <template x-if="inst.status !== 'paid'">
-                                      <button type="button" @click="removeInstallment(index)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Row">
+                                      <button type="button" @click="removeInstallment(index)" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Row">
                                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                           </svg>
@@ -767,9 +897,9 @@
               </div>
 
               {{-- Footer Actions --}}
-              <div class="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-slate-50">
+              <div class="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
                   <button type="button" @click="addInstallment()"
-                          class="px-4 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5 border border-slate-200">
+                          class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5 border border-slate-200">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                       </svg>
@@ -777,11 +907,11 @@
                   </button>
                   <div class="flex gap-2">
                       <button type="button" @click="emiModalOpen = false" 
-                              class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                              class="px-3.5 py-1.5 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                           Cancel
                       </button>
                       <button type="button" @click="submitEmiSchedule()" x-bind:disabled="emiSubmitting"
-                              class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md flex items-center gap-1.5">
+                              class="px-4 py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md flex items-center gap-1.5">
                           <span x-text="emiSubmitting ? 'Saving...' : 'Save Schedule'"></span>
                       </button>
                   </div>
@@ -995,7 +1125,28 @@
         </div>
     </div>
 
- </div>
+@php
+    $ledgerRateLogs = \App\Models\SaleStatusLog::where('sale_id', $sale->id)
+        ->where('event_type', 'rate_adjustment')
+        ->latest()->limit(5)->get()
+        ->map(function($l) {
+            return [
+                'date'     => \Carbon\Carbon::parse($l->created_at)->format('d M Y'),
+                'old_rate' => $l->snapshot_data['old_rate'] ?? 0,
+                'new_rate' => $l->snapshot_data['new_rate'] ?? 0,
+            ];
+        })->values();
+
+    $ledgerDiscountLogs = \App\Models\SaleStatusLog::where('sale_id', $sale->id)
+        ->where('event_type', 'discount_applied')
+        ->latest()->limit(5)->get()
+        ->map(function($l) {
+            return [
+                'date'   => \Carbon\Carbon::parse($l->created_at)->format('d M Y'),
+                'amount' => $l->snapshot_data['discount_amount'] ?? 0,
+            ];
+        })->values();
+@endphp
 
 <script>
 function ledgerApp() {
@@ -1054,6 +1205,101 @@ function ledgerApp() {
             partner_id: '',
             remarks: '',
             label: ''
+        },
+
+        // Rate & Discount Adjustment State (Calculates directly on Available Balance without mutating base unit rates)
+        baseSaleTotalAmount: {{ (float)$sale->total_amount }},
+        builtUpAreaSqft: {{ (float)($sale->unit?->built_up_area ?? 0) }},
+        baseSaleRateSqft: {{ (float)($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0) }},
+        loggedRate: {{ $loggedRate ? (float)$loggedRate : 'null' }},
+        currentSaleRateSqft: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
+        adjustedRateSqft: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
+        currentFinalDiscount: {{ (float)($sale->final_discount ?? 0) }},
+        gstPercentage: {{ (float)($sale->gst_percentage ?? 0) }},
+        adjustmentForm: {
+            built_up_area: {{ (float)($sale->unit?->built_up_area ?? 0) }},
+            current_rate: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
+            new_rate: '',
+            discount_amount: ''
+        },
+        rateLogs: @json($ledgerRateLogs ?? []),
+        discountLogs: @json($ledgerDiscountLogs ?? []),
+
+        calculateTotalPaid() {
+            return this.editInstallments
+                .filter(inst => inst.status === 'paid')
+                .reduce((sum, inst) => sum + Number(inst.amount), 0);
+        },
+
+        _r2(n) { return Math.round(n * 100) / 100; },
+
+        // Returns the effective adjusted total amount (for unallocated balance and balance check)
+        effectiveTotalAmount() {
+            const newRate = parseFloat(this.adjustmentForm.new_rate);
+            const area   = parseFloat(this.adjustmentForm.built_up_area) || this.builtUpAreaSqft;
+            const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                : this.baseSaleTotalAmount;
+
+            let total = initialScheduleTotal;
+            if (newRate && newRate > 0 && area > 0) {
+                const base = this._r2(area * newRate);
+                const gst  = this._r2(base * (this.gstPercentage / 100));
+                total = this._r2(base + gst);
+            }
+            const discount = parseFloat(this.adjustmentForm.discount_amount);
+            if (discount && discount > 0) total = Math.max(0, this._r2(total - discount));
+            return this._r2(total);
+        },
+
+        existingRemainingBalance() {
+            const paidSum = this.calculateTotalPaid();
+            const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                : this.baseSaleTotalAmount;
+            return Math.max(0, this._r2(initialScheduleTotal - paidSum));
+        },
+
+        unpaidBalanceToRestructure() {
+            const paidSum = this.calculateTotalPaid();
+            return Math.max(0, this._r2(this.effectiveTotalAmount() - paidSum));
+        },
+
+        hasActiveAdjustment() {
+            if (this.emiTab !== 'restructure') return false;
+            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
+            const hasRate = parseFloat(this.adjustmentForm.new_rate) > 0;
+            return (hasDiscount || hasRate);
+        },
+
+        adjustmentCardLabel() {
+            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
+            const hasRate = parseFloat(this.adjustmentForm.new_rate) > 0;
+            if (hasDiscount && hasRate) return 'Discount & Rate Adj';
+            if (hasDiscount) return 'Discount';
+            return 'Rate Adjustment';
+        },
+
+        adjustmentCardValue() {
+            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
+            const hasRate = parseFloat(this.adjustmentForm.new_rate) > 0;
+            if (hasDiscount) {
+                return '₹' + Number(this.adjustmentForm.discount_amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
+            }
+            if (hasRate) {
+                const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                    ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                    : this.baseSaleTotalAmount;
+                const diff = this._r2(initialScheduleTotal - this.effectiveTotalAmount());
+                return (diff >= 0 ? '₹' : '-₹') + Math.abs(diff).toLocaleString('en-IN', {minimumFractionDigits: 2});
+            }
+            return '₹0.00';
+        },
+
+        adjustmentCardSub() {
+            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
+            if (hasDiscount) return 'Deducted from balance';
+            return 'Applied to balance';
         },
         openPayModal(amount, label, isOutOfOrder = false, firstUnpaidLabel = '') {
             this.error = '';
@@ -1181,6 +1427,11 @@ function ledgerApp() {
             this.emiTab = 'restructure';
             this.restructureCount = '';
             this.restructureStartDate = '';
+            // Reset adjustment inputs to defaults each time modal opens
+            this.adjustmentForm.built_up_area = this.builtUpAreaSqft;
+            this.adjustmentForm.current_rate  = this.currentSaleRateSqft;
+            this.adjustmentForm.new_rate       = '';
+            this.adjustmentForm.discount_amount = '';
             this.editInstallments = this.originalInstallments.map(inst => ({
                 id: inst.id,
                 installment_no: inst.installment_no,
@@ -1190,13 +1441,13 @@ function ledgerApp() {
                 status: inst.status
             }));
 
+            // Pre-fill next due date from first unpaid installment if available
+            const firstUnpaid = this.originalInstallments.find(inst => inst.status !== 'paid');
+            if (firstUnpaid && firstUnpaid.due_date) {
+                this.restructureStartDate = firstUnpaid.due_date.split('T')[0];
+            }
+
             this.emiModalOpen = true;
-        },
-        unpaidBalanceToRestructure() {
-            const paidSum = this.editInstallments
-                .filter(inst => inst.status === 'paid')
-                .reduce((sum, inst) => sum + Number(inst.amount), 0);
-            return Math.max(0, Math.round((this.totalSaleAmount - paidSum) * 100) / 100);
         },
         applyRestructure() {
             this.emiError = '';
@@ -1280,6 +1531,13 @@ function ledgerApp() {
                 amount: Number(inst.amount),
                 status: inst.status
             }));
+            if (log.snapshot_data && log.snapshot_data.new_rate) {
+                const r = Number(log.snapshot_data.new_rate);
+                this.currentSaleRateSqft = r;
+                this.adjustedRateSqft = r;
+                this.adjustmentForm.current_rate = r;
+                this.loggedRate = r;
+            }
             this.emiTab = 'manual';
         },
         addInstallment() {
@@ -1314,14 +1572,15 @@ function ledgerApp() {
             });
         },
         calculateTotalAllocated() {
-            return this.editInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
+            return this._r2(this.editInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0));
         },
         calculateUnallocated() {
-            return Math.round((this.totalSaleAmount - this.calculateTotalAllocated()) * 100) / 100;
+            // Use the effective (rate/discount-adjusted) total, not the original totalSaleAmount
+            return this._r2(this.effectiveTotalAmount() - this.calculateTotalAllocated());
         },
         distributeRemaining() {
             const unallocated = this.calculateUnallocated();
-            const pendingInsts = this.editInstallments.filter(inst => inst.status === 'pending');
+            const pendingInsts = this.editInstallments.filter(inst => inst.status !== 'paid');
             if (pendingInsts.length === 0) {
                 this.emiError = 'No pending installments to distribute balance to.';
                 return;
@@ -1331,9 +1590,9 @@ function ledgerApp() {
             pendingInsts.forEach((inst, idx) => {
                 if (idx === pendingInsts.length - 1) {
                     const allocatedSoFar = perInstallment * (pendingInsts.length - 1);
-                    inst.amount = Math.round((Number(inst.amount) + (unallocated - allocatedSoFar)) * 100) / 100;
+                    inst.amount = Math.max(0, Math.round((Number(inst.amount) + (unallocated - allocatedSoFar)) * 100) / 100);
                 } else {
-                    inst.amount = Math.round((Number(inst.amount) + perInstallment) * 100) / 100;
+                    inst.amount = Math.max(0, Math.round((Number(inst.amount) + perInstallment) * 100) / 100);
                 }
             });
         },
@@ -1341,15 +1600,30 @@ function ledgerApp() {
             this.emiError = '';
             const unallocated = this.calculateUnallocated();
             if (Math.abs(unallocated) > 0.01) {
-                this.emiError = `Unallocated balance must be 0 (current: ₹${unallocated.toLocaleString('en-IN')}).`;
+                this.emiError = `Unallocated balance must be 0 (current: ₹${unallocated.toLocaleString('en-IN', {minimumFractionDigits: 2})}). Click 'Recalculate & Generate' or 'Auto-Distribute' to balance.`;
                 return;
             }
             this.emiSubmitting = true;
             try {
+                // Build adjustment metadata (only send non-empty values)
+                const adjustmentPayload = {};
+                const newRate = parseFloat(this.adjustmentForm.new_rate);
+                const area    = parseFloat(this.adjustmentForm.built_up_area);
+                const discount = parseFloat(this.adjustmentForm.discount_amount);
+                if (newRate && newRate > 0)  adjustmentPayload.new_rate = newRate;
+                if (area   && area   > 0)    adjustmentPayload.built_up_area = area;
+                if (discount && discount > 0) adjustmentPayload.discount_amount = discount;
+                adjustmentPayload.old_rate = this.currentSaleRateSqft;
+                adjustmentPayload.effective_total = this.effectiveTotalAmount();
+
                 const res = await fetch('{{ route('emi-collections.schedules.bulk-update', $sale->id) }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ installments: this.editInstallments, _token: '{{ csrf_token() }}' }),
+                    body: JSON.stringify({
+                        installments : this.editInstallments,
+                        adjustment   : adjustmentPayload,
+                        _token       : '{{ csrf_token() }}'
+                    }),
                 });
                 const json = await res.json();
                 if (res.ok && json.success) {
