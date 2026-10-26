@@ -7,7 +7,7 @@
 @media print {
     @page {
         size: landscape;
-        margin: 6mm 8mm 6mm 8mm;
+        margin: 8mm 10mm 8mm 10mm;
     }
     html, body {
         background: #ffffff !important;
@@ -25,13 +25,23 @@
     .print\:block {
         display: block !important;
     }
+    .print\:grid {
+        display: grid !important;
+    }
     .print\:flex {
         display: flex !important;
     }
     .print\:table {
         display: table !important;
     }
+    .print\:table-column-group {
+        display: table-column-group !important;
+    }
+    .print\:table-cell {
+        display: table-cell !important;
+    }
     
+    /* Container Reset for Print */
     .max-w-\[1850px\], .max-w-\[1800px\], .max-w-3xl, .overflow-x-auto {
         max-width: 100% !important;
         width: 100% !important;
@@ -42,12 +52,143 @@
         overflow: visible !important;
     }
 
+    /* Executive Print Header */
     .print-exec-header {
         display: block !important;
-        margin-bottom: 12px !important;
+        margin-top: 0 !important;
+        margin-bottom: 16px !important;
         padding-bottom: 8px !important;
+        border-bottom: 2px solid #a38c29 !important;
     }
 
+    /* Reset Tailwind vertical space helpers in print */
+    .space-y-5 > * + *,
+    .space-y-6 > * + *,
+    .space-y-7 > * + *,
+    .space-y-8 > * + * {
+        margin-top: 0 !important;
+    }
+
+    /* Row 1: "That Above Box" (Executive Top Banner) - Equal 16px spacing */
+    .bg-gradient-to-r.from-\[\#fdfaf3\] {
+        margin-top: 0 !important;
+        margin-bottom: 16px !important;
+        padding: 10px 16px !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(163, 140, 41, 0.4) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] .w-12.h-12 {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 8px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] h1 {
+        font-size: 12pt !important;
+        font-weight: 900 !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] p {
+        font-size: 7.2pt !important;
+        margin-top: 2px !important;
+        line-height: 1.25 !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] .px-3\.5 {
+        padding: 4px 10px !important;
+        border-radius: 6px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] .text-xs {
+        font-size: 8pt !important;
+    }
+
+    /* Row 2: "Card Row" (5 KPI Metric Cards) - Equal 16px spacing */
+    #dashboard-stats {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        margin-top: 0 !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    #dashboard-stats > div {
+        padding: 10px 12px !important;
+        border-radius: 8px !important;
+        border-width: 1px !important;
+        border-left-width: 4px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    #dashboard-stats > div:nth-child(1) { border-left-color: #3b82f6 !important; }
+    #dashboard-stats > div:nth-child(2) { border-left-color: #a38c29 !important; }
+    #dashboard-stats > div:nth-child(3) { border-left-color: #f43f5e !important; }
+    #dashboard-stats > div:nth-child(4) { border-left-color: #4f46e5 !important; }
+    #dashboard-stats > div:nth-child(5) { border-left-color: #10b981 !important; }
+    #dashboard-stats .text-xl {
+        font-size: 10.5pt !important;
+        line-height: 1.2 !important;
+        margin-top: 3px !important;
+        margin-bottom: 3px !important;
+        font-weight: 900 !important;
+    }
+    #dashboard-stats .text-\[10px\],
+    #dashboard-stats .text-xs {
+        font-size: 6.8pt !important;
+        line-height: 1.2 !important;
+    }
+    #dashboard-stats svg {
+        width: 13px !important;
+        height: 13px !important;
+    }
+    #dashboard-stats .w-7 {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    #dashboard-stats .rounded-full {
+        border-radius: 50% !important;
+    }
+
+    /* Row 3: "Table" - Equal 16px spacing */
+    #contractor-payout-table-card {
+        margin-top: 0 !important;
+        margin-bottom: 16px !important;
+        clear: both !important;
+        page-break-before: auto !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    #contractor-payout-table-card [class*="max-w-"] {
+        max-width: none !important;
+    }
+    #contractor-payout-table-card > div:first-child {
+        padding: 8px 12px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+    #contractor-payout-table-card > div:first-child h3 {
+        font-size: 9pt !important;
+    }
+    #contractor-payout-table-card > div:first-child p {
+        font-size: 7.2pt !important;
+        margin-top: 2px !important;
+    }
+    #contractor-payout-table-card .w-7.h-7 {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 7pt !important;
+    }
+
+    /* Table Formatting for Print: Same Like the Page, No Broken Columns or Line Breaks */
     table {
         width: 100% !important;
         max-width: 100% !important;
@@ -61,39 +202,76 @@
     }
     tr {
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
     th, td {
-        padding: 5.5px 3.5px !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
+        padding: 6px 4px !important;
         box-sizing: border-box !important;
         line-height: 1.25 !important;
         text-align: left !important;
+        vertical-align: middle !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
     }
-    th {
+    thead th, th, thead th.whitespace-nowrap, th.whitespace-nowrap {
         background-color: #534E47 !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         font-size: 6.8pt !important;
+        font-weight: 800 !important;
         padding: 6px 3.5px !important;
+        line-height: 1.25 !important;
+        letter-spacing: 0.02em !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        hyphens: none !important;
+        vertical-align: top !important;
     }
     td {
         border-bottom: 0.5pt solid #e2e8f0 !important;
-        font-size: 7pt !important;
+        font-size: 7.2pt !important;
     }
-    .whitespace-nowrap {
-        white-space: normal !important;
+    td.font-mono, td .font-mono, td [class*="font-mono"] {
+        white-space: nowrap !important;
+        font-size: 7.2pt !important;
+        font-variant-numeric: tabular-nums !important;
+    }
+    #contractor-payout-table-card .rounded-full {
+        white-space: nowrap !important;
+        padding: 2px 6px !important;
+        font-size: 6.5pt !important;
+        display: inline-flex !important;
+    }
+    tfoot tr {
+        background-color: #f8fafc !important;
+        border-top: 2px solid #cbd5e1 !important;
+    }
+    tfoot td {
+        padding: 8px 4px !important;
+        font-size: 7.5pt !important;
+        font-weight: 800 !important;
+        white-space: nowrap !important;
+    }
+    td.whitespace-nowrap, .font-mono.whitespace-nowrap {
+        white-space: nowrap !important;
     }
     .truncate {
-        overflow: visible !important;
-        text-overflow: clip !important;
-        white-space: normal !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs, .shadow-xs {
+        box-shadow: none !important;
+    }
+    .border-slate-200, .border-slate-100 {
+        border-color: #cbd5e1 !important;
     }
 }
 </style>
 
-<div class="max-w-[1850px] mx-auto space-y-5" 
+<div class="max-w-[1850px] mx-auto space-y-7" 
      x-data="contractorPayoutApp()">
 
     <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
@@ -237,7 +415,7 @@
     </div>
 
     <!-- ── 3. ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (NO CURRENCY PILL) ── -->
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm transition-all mb-4 print:hidden">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm transition-all print:hidden">
         <div class="flex items-center gap-2.5 w-full flex-wrap xl:flex-nowrap">
             
             {{-- 1. Search Box (.erp-search-input) --}}
@@ -439,7 +617,7 @@
     </div>
 
     {{-- ── 4. PROFESSIONAL DATA TABLE CARD (100% IN ₹ - ALL CELLS CENTER-ALIGNED) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+    <div id="contractor-payout-table-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
         
         {{-- Table Card Header with Title, Counts & Export Buttons --}}
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
@@ -456,7 +634,7 @@
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>EXPORT EXCEL</span>
                 </button>
-                <button type="button" @click="window.print()" class="h-[38px] px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                <button type="button" @click="printReport()" class="h-[38px] px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     <span>PRINT</span>
                 </button>
@@ -465,7 +643,32 @@
 
         {{-- Table Content (All cells left-aligned & responsive without horizontal scrollbar) --}}
         <div class="overflow-x-auto custom-scrollbar print:overflow-visible">
-            <table class="w-full text-xs text-left border-collapse print:min-w-full print:w-full">
+            <table class="w-full text-xs text-left border-collapse table-fixed print:min-w-full print:w-full">
+                <colgroup class="print:hidden">
+                    <col style="width: 2.5%;">    {{-- # --}}
+                    <col style="width: 14%;">     {{-- Contractor Details --}}
+                    <col style="width: 12.5%;">   {{-- Project / Phase --}}
+                    <col style="width: 8.5%;">    {{-- RA Bill & Date --}}
+                    <col style="width: 11%;">     {{-- Gross Amount --}}
+                    <col style="width: 11%;">     {{-- Deductions / Add. --}}
+                    <col style="width: 11%;">     {{-- Net Payable --}}
+                    <col style="width: 9.5%;">    {{-- Paid Amount --}}
+                    <col style="width: 9%;">      {{-- Balance Due --}}
+                    <col style="width: 8.5%;">    {{-- Payout Status --}}
+                    <col style="width: 2.5%;">    {{-- Actions --}}
+                </colgroup>
+                <colgroup class="hidden print:table-column-group">
+                    <col style="width: 2.5%;">    {{-- # --}}
+                    <col style="width: 14%;">     {{-- Contractor Details --}}
+                    <col style="width: 12.5%;">   {{-- Project / Phase --}}
+                    <col style="width: 8.5%;">    {{-- RA Bill & Date --}}
+                    <col style="width: 11.5%;">   {{-- Gross Amount --}}
+                    <col style="width: 11.5%;">   {{-- Deductions / Add. --}}
+                    <col style="width: 11.5%;">   {{-- Net Payable --}}
+                    <col style="width: 9.5%;">    {{-- Paid Amount --}}
+                    <col style="width: 9.5%;">    {{-- Balance Due --}}
+                    <col style="width: 9%;">      {{-- Payout Status --}}
+                </colgroup>
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                     <tr class="erp-table-header border-b border-[#443f38] text-left">
                         <th class="px-2.5 py-3.5 text-left whitespace-nowrap text-white font-extrabold text-[10px] w-9">#</th>
@@ -488,7 +691,7 @@
                             @click="selectBill(row)">
                             
                             {{-- 1. Index # --}}
-                            <td class="px-2.5 py-3 text-left font-bold text-slate-400 font-mono text-[11px]" x-text="(currentPage - 1) * perPage + idx + 1"></td>
+                            <td class="px-2.5 py-3 text-left font-bold text-slate-400 font-mono text-[11px]" x-text="isPrinting ? (idx + 1) : ((currentPage - 1) * perPage + idx + 1)"></td>
 
                             {{-- 2. Contractor Details with Avatar & ID --}}
                             <td class="px-3 py-3 text-left">
@@ -519,33 +722,33 @@
                             </td>
 
                             {{-- 5. Gross Amount --}}
-                            <td class="px-2.5 py-3 text-left font-mono font-bold text-slate-900 text-xs" x-text="'₹ ' + formatMoney(row.gross_amount)"></td>
+                            <td class="px-2.5 py-3 text-left font-mono font-bold text-slate-900 text-xs whitespace-nowrap" x-text="'₹ ' + formatMoney(row.gross_amount)"></td>
 
                             {{-- 6. Deductions / Additions --}}
-                            <td class="px-2.5 py-3 text-left font-mono text-xs">
-                                <span :class="row.advance_deduction > 0 ? 'text-rose-600 font-bold block' : 'text-slate-400 block'" 
+                            <td class="px-2.5 py-3 text-left font-mono text-xs whitespace-nowrap">
+                                <span :class="row.advance_deduction > 0 ? 'text-rose-600 font-bold block whitespace-nowrap' : 'text-slate-400 block whitespace-nowrap'" 
                                       x-text="row.advance_deduction > 0 ? ('-₹ ' + formatMoney(row.advance_deduction)) : '₹ 0.00'"></span>
                                 <template x-if="row.additional_amount > 0">
-                                    <span class="text-emerald-700 font-semibold text-[10px] block mt-0.5" x-text="'+₹ ' + formatMoney(row.additional_amount)"></span>
+                                    <span class="text-emerald-700 font-semibold text-[10px] block mt-0.5 whitespace-nowrap" x-text="'+₹ ' + formatMoney(row.additional_amount)"></span>
                                 </template>
                             </td>
 
                             {{-- 7. Net Payable --}}
-                            <td class="px-2.5 py-3 text-left font-mono font-black text-blue-950 text-xs" x-text="'₹ ' + formatMoney(row.net_payable)"></td>
+                            <td class="px-2.5 py-3 text-left font-mono font-black text-blue-950 text-xs whitespace-nowrap" x-text="'₹ ' + formatMoney(row.net_payable)"></td>
 
                             {{-- 8. Paid Amount --}}
-                            <td class="px-2.5 py-3 text-left font-mono font-bold text-emerald-700 text-xs" x-text="'₹ ' + formatMoney(row.paid_amount)"></td>
+                            <td class="px-2.5 py-3 text-left font-mono font-bold text-emerald-700 text-xs whitespace-nowrap" x-text="'₹ ' + formatMoney(row.paid_amount)"></td>
 
                             {{-- 9. Balance Due --}}
-                            <td class="px-2.5 py-3 text-left font-mono font-bold text-xs" :class="row.balance_amount > 0 ? 'text-rose-600' : 'text-slate-400'" x-text="'₹ ' + formatMoney(row.balance_amount)"></td>
+                            <td class="px-2.5 py-3 text-left font-mono font-bold text-xs whitespace-nowrap" :class="row.balance_amount > 0 ? 'text-rose-600' : 'text-slate-400'" x-text="'₹ ' + formatMoney(row.balance_amount)"></td>
 
                             {{-- 10. Payout Status & Verification/Bank Info --}}
                             <td class="px-2.5 py-3 text-left">
                                 <div class="text-left space-y-0.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase tracking-wide leading-tight"
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase tracking-wide leading-tight whitespace-nowrap"
                                           :class="getStatusBadgeClass(row.payout_status)"
                                           x-text="row.payout_status"></span>
-                                    <span class="text-[10px] font-mono text-slate-500 block truncate max-w-[130px]" 
+                                    <span class="text-[10px] font-mono text-slate-500 block truncate max-w-[130px] whitespace-nowrap" 
                                           :title="row.bank_ref_no || row.paid_date" 
                                           x-text="row.bank_ref_no || row.paid_date || '—'"></span>
                                 </div>
@@ -575,25 +778,26 @@
                 {{-- Table Foot: Left-aligned totals matching column positions --}}
                 <tfoot class="bg-slate-50 border-t-2 border-slate-300 font-mono font-black text-slate-900 text-xs">
                     <tr>
-                        <td colspan="4" class="py-3 px-3 text-left uppercase tracking-wider text-[11px] font-black text-slate-700">Page Total (₹)</td>
-                        <td class="py-3 px-2.5 text-left text-slate-900" x-text="'₹ ' + formatMoney(pageTotals.gross)"></td>
-                        <td class="py-3 px-2.5 text-left">
-                            <div class="text-rose-600" x-text="'-₹ ' + formatMoney(pageTotals.deduction)"></div>
+                        <td colspan="4" class="py-3 px-3 text-left uppercase tracking-wider text-[11px] font-black text-slate-700 whitespace-nowrap" x-text="isPrinting ? 'Total Report (₹)' : 'Page Total (₹)'">Page Total (₹)</td>
+                        <td class="py-3 px-2.5 text-left text-slate-900 whitespace-nowrap" x-text="'₹ ' + formatMoney(pageTotals.gross)"></td>
+                        <td class="py-3 px-2.5 text-left whitespace-nowrap">
+                            <div class="text-rose-600 whitespace-nowrap" x-text="'-₹ ' + formatMoney(pageTotals.deduction)"></div>
                             <template x-if="pageTotals.addition > 0">
-                                <div class="text-emerald-700 text-[10px]" x-text="'+₹ ' + formatMoney(pageTotals.addition)"></div>
+                                <div class="text-emerald-700 text-[10px] whitespace-nowrap" x-text="'+₹ ' + formatMoney(pageTotals.addition)"></div>
                             </template>
                         </td>
-                        <td class="py-3 px-2.5 text-left text-blue-900" x-text="'₹ ' + formatMoney(pageTotals.net)"></td>
-                        <td class="py-3 px-2.5 text-left text-emerald-700" x-text="'₹ ' + formatMoney(pageTotals.paid)"></td>
-                        <td class="py-3 px-2.5 text-left text-rose-600" x-text="'₹ ' + formatMoney(pageTotals.balance)"></td>
-                        <td colspan="2" class="py-3 px-2.5 text-left text-slate-400 text-[10px] font-normal">Active Register Summary</td>
+                        <td class="py-3 px-2.5 text-left text-blue-900 whitespace-nowrap" x-text="'₹ ' + formatMoney(pageTotals.net)"></td>
+                        <td class="py-3 px-2.5 text-left text-emerald-700 whitespace-nowrap" x-text="'₹ ' + formatMoney(pageTotals.paid)"></td>
+                        <td class="py-3 px-2.5 text-left text-rose-600 whitespace-nowrap" x-text="'₹ ' + formatMoney(pageTotals.balance)"></td>
+                        <td colspan="2" class="py-3 px-2.5 text-left text-slate-400 text-[10px] font-normal print:hidden">Active Register Summary</td>
+                        <td class="py-3 px-2.5 text-left text-slate-400 text-[10px] font-normal whitespace-nowrap hidden print:table-cell">Summary</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
         {{-- Pagination & Entry Counter --}}
-        <div class="px-5 py-3.5 bg-white border-t border-slate-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <div class="px-5 py-3.5 bg-white border-t border-slate-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 print:hidden">
             <div>
                 Showing <span class="font-bold text-slate-900" x-text="paginationStart"></span> to <span class="font-bold text-slate-900" x-text="paginationEnd"></span> of <span class="font-bold text-slate-900" x-text="filteredRows.length"></span> entries
             </div>
@@ -627,7 +831,7 @@
     </div>
 
     {{-- ── 5. VIEW MODAL POPUP (EXECUTIVE ERP MODAL MATCHING CUSTOMER COLLECTION DUES & EXCHANGE) ── --}}
-    <div class="fixed inset-0 z-[120] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5" 
+    <div class="fixed inset-0 z-[120] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 print:hidden" 
          x-show="viewModalOpen" 
          x-cloak
          @keydown.escape.window="closeViewModal()"
@@ -1444,6 +1648,7 @@ function contractorPayoutApp() {
         // Pagination
         currentPage: 1,
         perPage: 10,
+        isPrinting: false,
 
         // View Modal State
         viewModalOpen: false,
@@ -1464,6 +1669,22 @@ function contractorPayoutApp() {
 
         init() {
             this.applyFilters();
+            window.addEventListener('beforeprint', () => {
+                this.isPrinting = true;
+            });
+            window.addEventListener('afterprint', () => {
+                this.isPrinting = false;
+            });
+        },
+
+        printReport() {
+            this.isPrinting = true;
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    this.isPrinting = false;
+                }, 500);
+            }, 150);
         },
 
         resetFilters() {
@@ -1533,6 +1754,9 @@ function contractorPayoutApp() {
         },
 
         get paginatedRows() {
+            if (this.isPrinting) {
+                return this.filteredRows;
+            }
             const start = (this.currentPage - 1) * this.perPage;
             return this.filteredRows.slice(start, start + this.perPage);
         },
@@ -1584,7 +1808,7 @@ function contractorPayoutApp() {
 
         // Page totals for tfoot
         get pageTotals() {
-            const list = this.paginatedRows;
+            const list = this.isPrinting ? this.filteredRows : this.paginatedRows;
             return {
                 gross: list.reduce((acc, r) => acc + (parseFloat(r.gross_amount) || 0), 0),
                 deduction: list.reduce((acc, r) => acc + (parseFloat(r.advance_deduction) || 0), 0),
@@ -1631,149 +1855,244 @@ function contractorPayoutApp() {
         },
 
         // Executive Excel export with ExcelJS in Indian Rupee
+        // Executive Excel export with ExcelJS matching Customer Collection Dues styling
         async exportToExcel() {
             if (typeof ExcelJS === 'undefined') {
-                alert('ExcelJS is loading, please try again in a second.');
+                alert('ExcelJS is loading. Please try again.');
                 return;
             }
 
-            const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'Tabasco Hindustan ERP';
-            workbook.created = new Date();
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO Human Capital';
+                workbook.created = new Date();
 
-            const sheet = workbook.addWorksheet('Contractor Payout Register', {
-                views: [{ showGridLines: true }]
-            });
+                const sheet = workbook.addWorksheet('Contractor RA Bill & Payout', {
+                    views: [{ showGridLines: true }]
+                });
 
-            // 1. Company Header
-            sheet.mergeCells('A1:O1');
-            const titleRow = sheet.getCell('A1');
-            titleRow.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.';
-            titleRow.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-            titleRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-            titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
-            sheet.getRow(1).height = 28;
+                const slateBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
 
-            sheet.mergeCells('A2:O2');
-            const subTitleRow = sheet.getCell('A2');
-            subTitleRow.value = 'CONTRACTOR RA BILL & PAYOUT REGISTER (₹ INR)';
-            subTitleRow.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF8A7522' } };
-            subTitleRow.alignment = { horizontal: 'center', vertical: 'middle' };
-            sheet.getRow(2).height = 20;
-
-            // 2. Metadata Info
-            sheet.mergeCells('A3:O3');
-            const metaRow = sheet.getCell('A3');
-            metaRow.value = 'Generated On: ' + new Date().toLocaleString() + ' | Total Active Records: ' + this.filteredRows.length;
-            metaRow.font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF64748B' } };
-            metaRow.alignment = { horizontal: 'center', vertical: 'middle' };
-            sheet.getRow(3).height = 18;
-
-            sheet.addRow([]); // Blank Row
-
-            // 3. Table Headers
-            const headers = [
-                '#', 'Contractor Name', 'Company ID', 'Project / Phase', 'RA Bill No.', 
-                'Submission Date', 'Gross Amount (₹)', 'Deductions (₹)', 'Additions (₹)', 
-                'Net Payable (₹)', 'Paid Amount (₹)', 'Balance Due (₹)', 
-                'Payout Status', 'Paid Date', 'Bank Ref / Mode'
-            ];
-            
-            const headerRow = sheet.addRow(headers);
-            headerRow.height = 26;
-            headerRow.eachCell((cell) => {
-                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF534E47' } };
-                cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-                cell.border = {
+                const dataBorder = {
                     top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                     left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                    bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
                     right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                 };
-            });
 
-            // 4. Data Rows (Left-aligned as per user specification)
-            this.filteredRows.forEach((row, idx) => {
-                const dataRow = sheet.addRow([
-                    idx + 1,
-                    row.contractor_name,
-                    row.company_id,
-                    row.project_phase,
-                    row.ra_bill_no,
-                    row.submission_date,
-                    parseFloat(row.gross_amount) || 0,
-                    parseFloat(row.advance_deduction) || 0,
-                    parseFloat(row.additional_amount) || 0,
-                    parseFloat(row.net_payable) || 0,
-                    parseFloat(row.paid_amount) || 0,
-                    parseFloat(row.balance_amount) || 0,
-                    row.payout_status,
-                    row.paid_date,
-                    row.bank_ref_no
-                ]);
-                dataRow.height = 20;
+                sheet.columns = [
+                    { key: 'idx', width: 8 },
+                    { key: 'contractor', width: 28 },
+                    { key: 'company_id', width: 18 },
+                    { key: 'project', width: 34 },
+                    { key: 'ra_bill', width: 16 },
+                    { key: 'date', width: 18 },
+                    { key: 'gross', width: 22 },
+                    { key: 'deductions', width: 20 },
+                    { key: 'additions', width: 18 },
+                    { key: 'net', width: 22 },
+                    { key: 'paid', width: 22 },
+                    { key: 'balance', width: 22 },
+                    { key: 'status', width: 20 },
+                    { key: 'paid_date', width: 16 },
+                    { key: 'bank_ref', width: 24 }
+                ];
 
-                // Left align all cells
-                dataRow.eachCell((cell, colNumber) => {
-                    cell.alignment = { horizontal: 'left', vertical: 'middle' };
-                    cell.border = {
-                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-                    };
+                // ── Row 1: Top Empty Spacer ──
+                sheet.mergeCells('A1:O1');
+                const spacer1 = sheet.getCell('A1');
+                spacer1.value = '';
+                spacer1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(1).height = 18;
 
-                    // Format Currency columns
-                    if ([7, 8, 9, 10, 11, 12].includes(colNumber)) {
-                        cell.numFmt = '₹ #,##0.00';
-                    }
+                // ── Row 2: Main Title Banner (#2C3E50 Dark Slate Navy) ──
+                sheet.mergeCells('A2:O2');
+                const titleCell = sheet.getCell('A2');
+                titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - CONTRACTOR RA BILL & PAYOUT REPORT';
+                titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(2).height = 30;
+                sheet.getRow(2).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 3: Subtitle Banner (#007398 Ocean Teal Blue) ──
+                sheet.mergeCells('A3:O3');
+                const subTitleCell = sheet.getCell('A3');
+                subTitleCell.value = 'Contractor Running Account (RA) Progress Bills, Deductions & Disbursement Audit';
+                subTitleCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                subTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                subTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(3).height = 24;
+                sheet.getRow(3).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 4: Section Banner (#006039 Deep Forest Green) ──
+                sheet.mergeCells('A4:O4');
+                const secCell = sheet.getCell('A4');
+                secCell.value = 'TRANSACTION DETAILS';
+                secCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                secCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                secCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(4).height = 24;
+                sheet.getRow(4).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 5: Middle Empty Spacer ──
+                sheet.mergeCells('A5:O5');
+                const spacer2 = sheet.getCell('A5');
+                spacer2.value = '';
+                spacer2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(5).height = 14;
+
+                // ── Row 6: Table Headers (Unified in #34495E Navy Slate Blue) ──
+                const headers = [
+                    '#',
+                    'Contractor Name',
+                    'Company ID',
+                    'Project / Phase',
+                    'RA Bill No.',
+                    'Submission Date',
+                    'Gross Amount (₹)',
+                    'Deductions (₹)',
+                    'Additions (₹)',
+                    'Net Payable (₹)',
+                    'Paid Amount (₹)',
+                    'Balance Due (₹)',
+                    'Payout Status',
+                    'Paid Date',
+                    'Bank Ref / Mode'
+                ];
+
+                const hRow = sheet.getRow(6);
+                hRow.values = headers;
+                hRow.height = 30;
+                hRow.eachCell({ includeEmpty: true }, (c) => {
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    c.alignment = { vertical: 'middle', horizontal: 'left' };
+                    c.border = slateBorder;
                 });
-            });
 
-            // 5. Totals Row
-            const k = this.summaryKPIs;
-            const totalsRow = sheet.addRow([
-                '', 'TOTAL SUMMARY', '', '', '', '',
-                k.gross_amount,
-                k.total_deductions,
-                k.total_additions,
-                k.net_payable,
-                k.paid_amount,
-                k.balance_amount,
-                '', '', ''
-            ]);
-            totalsRow.height = 24;
-            totalsRow.eachCell((cell, colNumber) => {
-                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                cell.border = {
-                    top: { style: 'medium', color: { argb: 'FFA38C29' } },
-                    bottom: { style: 'double', color: { argb: 'FFA38C29' } }
-                };
-                if ([7, 8, 9, 10, 11, 12].includes(colNumber)) {
-                    cell.numFmt = '₹ #,##0.00';
+                // ── Data Rows (Ice Blue Alternating Background like Customer Collection Dues) ──
+                let rIdx = 7;
+                this.filteredRows.forEach((r, idx) => {
+                    const row = sheet.getRow(rIdx);
+                    row.values = [
+                        idx + 1,
+                        r.contractor_name || '—',
+                        r.company_id || '—',
+                        r.project_phase || '—',
+                        r.ra_bill_no || '—',
+                        r.submission_date || '—',
+                        Number(r.gross_amount || 0),
+                        Number(r.advance_deduction || 0),
+                        Number(r.additional_amount || 0),
+                        Number(r.net_payable || 0),
+                        Number(r.paid_amount || 0),
+                        Number(r.balance_amount || 0),
+                        (r.payout_status || 'PENDING APPROVAL').toUpperCase(),
+                        r.paid_date || '—',
+                        r.bank_ref_no || '—'
+                    ];
+
+                    row.height = 24;
+                    // Alternating background: Row 1 is #F0F8FF (Ice Blue), Row 2 is #FFFFFF (White)
+                    const rowBg = (idx % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
+
+                    row.eachCell({ includeEmpty: true }, (c, col) => {
+                        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        c.border = dataBorder;
+                        c.alignment = { vertical: 'middle', horizontal: 'left' };
+
+                        if (col === 2) {
+                            // Contractor Name bold black
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                        } else if (col === 8 && Number(r.advance_deduction || 0) > 0) {
+                            // Deductions: Bold Rose / Crimson
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFE11D48' } };
+                        } else if (col === 9 && Number(r.additional_amount || 0) > 0) {
+                            // Additions: Bold Emerald Green
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
+                        } else if (col === 10) {
+                            // Net Payable: Bold Navy Slate
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+                        } else if (col === 11) {
+                            // Paid Amount: Bold Forest Green
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
+                        } else if (col === 12) {
+                            // Balance Due: Bold Rose if balance due
+                            const bal = Number(r.balance_amount || 0);
+                            c.font = { name: 'Calibri', size: 10, bold: bal > 0, color: { argb: bal > 0 ? 'FFE11D48' : 'FF64748B' } };
+                        } else if (col === 13) {
+                            // Payout Status: Bold Royal Blue
+                            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1D4ED8' } };
+                        } else {
+                            c.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        }
+
+                        if (col >= 7 && col <= 12) {
+                            c.numFmt = '#,##0.00';
+                        }
+                    });
+
+                    rIdx++;
+                });
+
+                // ── Footer Row: Grand Total Summary (#2C3E50 Dark Slate Navy, 36pt Height, Bold White 12pt Text, Centered in Blank Space) ──
+                const totRow = sheet.getRow(rIdx);
+                totRow.height = 36;
+                const k = this.summaryKPIs;
+
+                // Explicitly set values on cells
+                sheet.getCell(`A${rIdx}`).value = 'TOTAL CONTRACTOR RA BILL & PAYOUT SUMMARY';
+                sheet.getCell(`B${rIdx}`).value = '';
+                sheet.getCell(`C${rIdx}`).value = '';
+                sheet.getCell(`D${rIdx}`).value = '';
+                sheet.getCell(`E${rIdx}`).value = '';
+                sheet.getCell(`F${rIdx}`).value = '';
+                sheet.getCell(`G${rIdx}`).value = Number(k.gross_amount || 0);
+                sheet.getCell(`H${rIdx}`).value = Number(k.total_deductions || 0);
+                sheet.getCell(`I${rIdx}`).value = Number(k.total_additions || 0);
+                sheet.getCell(`J${rIdx}`).value = Number(k.net_payable || 0);
+                sheet.getCell(`K${rIdx}`).value = Number(k.paid_amount || 0);
+                sheet.getCell(`L${rIdx}`).value = Number(k.balance_amount || 0);
+                sheet.getCell(`M${rIdx}`).value = '';
+                sheet.getCell(`N${rIdx}`).value = '';
+                sheet.getCell(`O${rIdx}`).value = '';
+
+                // Perform merge AFTER values are set so master-slave relationship is preserved
+                sheet.mergeCells(`A${rIdx}:F${rIdx}`);
+
+                // Style all cells from Col 1 to 15
+                for (let c = 1; c <= 15; c++) {
+                    const cell = sheet.getRow(rIdx).getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: false };
+                    cell.border = slateBorder;
+                    if (c >= 7 && c <= 12) {
+                        cell.numFmt = '#,##0.00';
+                    }
                 }
-            });
 
-            // Auto-adjust column widths
-            sheet.columns.forEach((col, i) => {
-                let maxLen = headers[i] ? headers[i].length : 12;
-                col.width = Math.max(maxLen + 4, 13);
-            });
-            sheet.getColumn(2).width = 26; // Contractor Name
-            sheet.getColumn(4).width = 24; // Project / Phase
-
-            // Generate and trigger download
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = 'Contractor_RA_Bill_Payout_Register_' + new Date().toISOString().slice(0, 10) + '.xlsx';
-            anchor.click();
-            window.URL.revokeObjectURL(url);
+                // Generate and trigger download
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Contractor_RA_Bill_Payout_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('An error occurred while generating Excel. Please check console for details.');
+            }
         }
     };
 }
