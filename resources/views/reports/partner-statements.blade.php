@@ -437,7 +437,7 @@
                 <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' payout records found'"></span>
             </div>
 
-            <div class="w-full overflow-hidden">
+            <div class="w-full overflow-x-auto">
                 <table class="w-full text-xs text-left border-collapse table-auto">
                     <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
                         <tr class="erp-table-header border-b border-slate-700 text-left">
@@ -455,10 +455,10 @@
                         <template x-for="(entry, index) in pagedLedger" :key="index">
                             <tr class="hover:bg-slate-50 transition-colors font-medium">
                                 <td class="px-2.5 py-2.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100 text-xs" x-text="formatDate(entry.date)"></td>
-                                <td class="px-2.5 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs truncate max-w-[120px]" :title="entry.partner_name" x-text="entry.partner_name"></td>
-                                <td class="px-2.5 py-2.5 font-mono text-slate-700 font-bold border-r border-slate-100 whitespace-nowrap text-[11px] truncate max-w-[110px]" :title="entry.ref_no" x-text="entry.ref_no"></td>
-                                <td class="px-3 py-2.5 font-semibold text-slate-800 border-r border-slate-100 text-xs">
-                                    <span class="truncate max-w-[200px] sm:max-w-xs md:max-w-md inline-block" :title="entry.description" x-text="entry.description"></span>
+                                <td class="px-2.5 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap text-xs" :title="entry.partner_name" x-text="entry.partner_name"></td>
+                                <td class="px-2.5 py-2.5 font-mono text-slate-700 font-bold border-r border-slate-100 whitespace-nowrap text-[11px]" :title="entry.ref_no" x-text="entry.ref_no"></td>
+                                <td class="px-3 py-2.5 font-semibold text-slate-800 border-r border-slate-100 text-xs leading-relaxed">
+                                    <span class="break-words" x-text="entry.description"></span>
                                 </td>
                                 <td class="px-2.5 py-2.5 text-center border-r border-slate-100 whitespace-nowrap">
                                     <template x-if="entry.payment_mode">

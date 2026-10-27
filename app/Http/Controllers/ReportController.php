@@ -1636,7 +1636,10 @@ class ReportController extends Controller
             ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
             ->whereIn('voucher_lines.account_id', $partnerAccountIds)
             ->where('vouchers.type', 'Payment')
-            ->where('voucher_lines.debit', '>', 0);
+            ->where('voucher_lines.debit', '>', 0)
+            ->where('vouchers.voucher_number', 'NOT LIKE', 'PY-REF-%')
+            ->where('vouchers.narration', 'NOT LIKE', '%Customer Refund%')
+            ->where('vouchers.narration', 'NOT LIKE', '%cancellation%');
         if (!empty($allocVoucherIds)) {
             $voucherPayoutsQuery->whereNotIn('vouchers.id', $allocVoucherIds);
         }
@@ -1685,7 +1688,8 @@ class ReportController extends Controller
                 else $paymentMode = 'Bank Transfer';
             }
 
-            $baseDesc = ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . 'Partner Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
+            // $baseDesc = ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . 'Partner Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
+            $baseDesc = 'Partner Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
 
             $ledgerTransactions->push((object)[
                 'date' => $dateStr,
@@ -2132,7 +2136,10 @@ class ReportController extends Controller
             ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
             ->whereIn('voucher_lines.account_id', $partnerAccountIds)
             ->where('vouchers.type', 'Payment')
-            ->where('voucher_lines.debit', '>', 0);
+            ->where('voucher_lines.debit', '>', 0)
+            ->where('vouchers.voucher_number', 'NOT LIKE', 'PY-REF-%')
+            ->where('vouchers.narration', 'NOT LIKE', '%Customer Refund%')
+            ->where('vouchers.narration', 'NOT LIKE', '%cancellation%');
         if (!empty($allocVoucherIds)) {
             $voucherPayoutsQuery->whereNotIn('vouchers.id', $allocVoucherIds);
         }
