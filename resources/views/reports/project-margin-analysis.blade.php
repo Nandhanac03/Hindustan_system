@@ -293,29 +293,23 @@
                             </div>
                         </div>
 
-                        <!-- 2. Real-Time Cash & Bank Liquidity (From Partner Management) -->
+                        <!-- 2. Partner Capital & Drawings Liquidity -->
                         <div class="pt-1 space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Realized Collections & Bank Balance</span>
-                                <span class="text-[9px] font-bold text-emerald-700 uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Live Bank Ledger</span>
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Capital Contributed &amp; Payouts</span>
+                                <span class="text-[9px] font-bold text-[#8a7522] uppercase bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Partner Equity Ledger</span>
                             </div>
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                                    <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Total Collected</span>
-                                    <span class="text-xs font-mono font-black text-emerald-700 block mt-0.5 truncate" title="₹{{ number_format($partner->total_collected ?? 0, 2) }}">
-                                        ₹{{ number_format($partner->total_collected ?? 0, 2) }}
+                                    <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Capital Contributed</span>
+                                    <span class="text-xs font-mono font-black text-emerald-700 block mt-0.5 truncate" title="₹{{ number_format($partner->capital_contributed ?? 0, 2) }}">
+                                        ₹{{ number_format($partner->capital_contributed ?? 0, 2) }}
                                     </span>
                                 </div>
                                 <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
                                     <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 block">Total Payouts</span>
                                     <span class="text-xs font-mono font-black text-rose-700 block mt-0.5 truncate" title="₹{{ number_format($partner->payouts_released ?? 0, 2) }}">
                                         ₹{{ number_format($partner->payouts_released ?? 0, 2) }}
-                                    </span>
-                                </div>
-                                <div class="p-2.5 bg-[#F6F3E9] rounded-xl border border-[#a38c29]/40">
-                                    <span class="text-[8.5px] font-extrabold uppercase tracking-wider text-[#7a671b] block">Net Bank Balance</span>
-                                    <span class="text-xs font-mono font-black text-[#5c4a10] block mt-0.5 truncate" title="₹{{ number_format($partner->net_balance ?? 0, 2) }}">
-                                        ₹{{ number_format($partner->net_balance ?? 0, 2) }}
                                     </span>
                                 </div>
                             </div>

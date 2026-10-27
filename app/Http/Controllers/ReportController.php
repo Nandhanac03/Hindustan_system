@@ -5155,21 +5155,19 @@ class ReportController extends Controller
                     $profitShare = $netProfit * ($pct / 100);
                     $partnerId = $ps->partner_id;
 
-                    // 1. Calculate actual project collections for this partner's share
-                    $projectReceiptsSum = (float) DB::table('receipts')
-                        ->where('project_id', $proj->id)
-                        ->whereNull('partner_id')
+                    // 1. Direct partner capital contributions
+                    $capitalContributed = (float) \App\Models\PartnerContribution::where('partner_id', $partnerId)
+                        ->where(function ($q) use ($proj) {
+                            $q->where('project_id', $proj->id)->orWhereNull('project_id');
+                        })
                         ->sum('amount');
-                    $partnerCollected = $projectReceiptsSum * ($pct / 100);
-
-                    // Add direct partner capital contributions
-                    $partnerContributionsSum = (float) \App\Models\PartnerContribution::where('partner_id', $partnerId)->sum('amount');
-                    // $totalCollected = $partnerCollected + $partnerContributionsSum;
-                    $totalCollected = $partnerCollected;
 
                     // 2. Payouts already released
                     $payoutsReleased = (float) DB::table('partner_allocations')
                         ->where('partner_id', $partnerId)
+                        ->where(function ($q) use ($proj) {
+                            $q->where('project_id', $proj->id)->orWhereNull('project_id');
+                        })
                         ->sum('allocated_amount');
 
                     if ($payoutsReleased <= 0) {
@@ -5180,39 +5178,33 @@ class ReportController extends Controller
                             ->sum('bill_payments.amount');
                     }
 
-                    // 3. Current Net Bank Balance
-                    $netBankBalance = $totalCollected - $payoutsReleased;
-
                     $partnersBreakdown[] = (object) [
-                        'partner_id'       => $partnerId,
-                        'partner_name'     => $ps->partner?->name ?? 'Partner #' . $ps->partner_id,
-                        'role'             => $ps->partner?->designation ?? ($index === 0 ? 'Lead Developer' : 'JV Partner / Land Owner'),
-                        'share_pct'        => $pct,
-                        'profit_share'     => $profitShare,
-                        'total_collected'  => $totalCollected,
-                        'payouts_released' => $payoutsReleased,
-                        'net_balance'      => $netBankBalance,
+                        'partner_id'          => $partnerId,
+                        'partner_name'        => $ps->partner?->name ?? 'Partner #' . $ps->partner_id,
+                        'role'                => $ps->partner?->designation ?? ($index === 0 ? 'Lead Developer' : 'JV Partner / Land Owner'),
+                        'share_pct'           => $pct,
+                        'profit_share'        => $profitShare,
+                        'capital_contributed' => $capitalContributed,
+                        'payouts_released'    => $payoutsReleased,
                     ];
                 }
             } else {
                 $partnersBreakdown = [
                     (object) [
-                        'partner_name'     => 'Basheer',
-                        'role'             => 'Lead Developer',
-                        'share_pct'        => 57.5,
-                        'profit_share'     => $netProfit * 0.575,
-                        'total_collected'  => 14648115.46,
-                        'payouts_released' => 3933794.30,
-                        'net_balance'      => 10714321.16,
+                        'partner_name'        => 'Basheer',
+                        'role'                => 'Lead Developer',
+                        'share_pct'           => 57.5,
+                        'profit_share'        => $netProfit * 0.575,
+                        'capital_contributed' => 0.00,
+                        'payouts_released'    => 100000.00,
                     ],
                     (object) [
-                        'partner_name'     => 'Pavoor',
-                        'role'             => 'JV Partner / Land Owner',
-                        'share_pct'        => 42.5,
-                        'profit_share'     => $netProfit * 0.425,
-                        'total_collected'  => 10826867.95,
-                        'payouts_released' => 2907587.10,
-                        'net_balance'      => 7919280.85,
+                        'partner_name'        => 'Pavoor',
+                        'role'                => 'JV Partner / Land Owner',
+                        'share_pct'           => 42.5,
+                        'profit_share'        => $netProfit * 0.425,
+                        'capital_contributed' => 0.00,
+                        'payouts_released'    => 0.00,
                     ],
                 ];
             }
