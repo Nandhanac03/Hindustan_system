@@ -2351,7 +2351,7 @@ function salesApp() {
             }
         },
         fmt(value) {
-            return '₹' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
         formatDate(val) {
             if (!val) return '—';
@@ -2667,11 +2667,6 @@ function salesApp() {
         fmtIndian(value) {
             let num = Number(value || 0);
             if (isNaN(num)) return '₹0.00';
-            if (num >= 10000000) {
-                return '₹' + (num / 10000000).toFixed(2) + ' Cr';
-            } else if (num >= 100000) {
-                return '₹' + (num / 100000).toFixed(2) + ' L';
-            }
             return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
         getPaidTillDate(sale) {
@@ -4790,11 +4785,6 @@ window.salesApp = salesApp;
 window.fmtIndian = function(value) {
     let num = Number(value || 0);
     if (isNaN(num)) return '₹0.00';
-    if (num >= 10000000) {
-        return '₹' + (num / 10000000).toFixed(2) + ' Cr';
-    } else if (num >= 100000) {
-        return '₹' + (num / 100000).toFixed(2) + ' L';
-    }
     return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 </script>
