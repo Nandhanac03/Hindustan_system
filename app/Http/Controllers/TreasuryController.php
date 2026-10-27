@@ -474,10 +474,50 @@ class TreasuryController extends Controller
         }
         usort($allRecentTxns, fn($a, $b) => ($b['raw_date'] <=> $a['raw_date']));
 
+        // Aggregate All Bank Account Debit Metrics (Payments, Outward Transfers, Expenses)
+        $todayStart = Carbon::today()->timestamp;
+        $todayEnd = Carbon::tomorrow()->timestamp - 1;
+        $totalDebitAmount = 0.0;
+        $totalDebitCount = 0;
+        $todayDebitAmount = 0.0;
+        $todayDebitCount = 0;
+
+        foreach ($allRecentTxns as $txn) {
+            if (($txn['type'] ?? '') === 'Debit') {
+                $amt = (float)($txn['amount'] ?? 0);
+                $totalDebitAmount += $amt;
+                $totalDebitCount++;
+
+                if (!empty($txn['raw_date']) && $txn['raw_date'] >= $todayStart && $txn['raw_date'] <= $todayEnd) {
+                    $todayDebitAmount += $amt;
+                    $todayDebitCount++;
+                }
+            }
+        }
+
+        // Compute debit totals per individual bank account for statements
+        foreach ($bankAccounts as $account) {
+            $acctTxns = $recentTransactions[$account->id] ?? [];
+            $acctDebitSum = 0.0;
+            $acctDebitCount = 0;
+            foreach ($acctTxns as $t) {
+                if (($t['type'] ?? '') === 'Debit') {
+                    $acctDebitSum += (float)($t['amount'] ?? 0);
+                    $acctDebitCount++;
+                }
+            }
+            $account->debit_sum = $acctDebitSum;
+            $account->debit_count = $acctDebitCount;
+        }
+
         return view('treasury.dashboard', compact(
             'bankAccounts',
             'totalBalance',
             'availableBalance',
+            'totalDebitAmount',
+            'totalDebitCount',
+            'todayDebitAmount',
+            'todayDebitCount',
             'totalPendingCount',
             'totalPendingAmount',
             'totalRealizedCount',

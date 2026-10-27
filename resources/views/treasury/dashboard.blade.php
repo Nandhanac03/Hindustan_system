@@ -113,70 +113,6 @@
     {{-- ── TOP EXECUTIVE KPI SUMMARY CARDS GRID ── --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {{-- Card 1: Total Bank Balance --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
-            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Bank Balance</span>
-                </div>
-                <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
-                    {{ $bankAccounts->count() }} Accounts
-                </span>
-            </div>
-            <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
-                    ₹{{ number_format($totalBalance, 2) }}
-                </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Across all registered company accounts</p>
-            </div>
-        </div>
-
-        {{-- Card 2: Available Balance --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
-            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Available Balance</span>
-                </div>
-                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
-                    Active
-                </span>
-            </div>
-            <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
-                    ₹{{ number_format($availableBalance, 2) }}
-                </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Real-time liquid assets ready for use</p>
-            </div>
-        </div>
-
-        {{-- Card 3: Pending Cheques --}}
-        <a href="{{ route('cheque-realization.queue') }}"
-           class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer block">
-            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Cheques</span>
-                </div>
-                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
-                    {{ $totalPendingCount ?? 0 }} Pending
-                </span>
-            </div>
-            <div class="relative z-10 mt-1">
-                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
-                    ₹{{ number_format($totalPendingAmount ?? 0, 2) }}
-                </span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Awaiting deposit & bank realization</p>
-            </div>
-        </a>
-
         {{-- Card 4: Total Realized Collections --}}
         <a href="{{ route('cheque-realization.realized') }}"
            class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-indigo-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] cursor-pointer block">
@@ -204,6 +140,76 @@
             </div>
         </a>
 
+        {{-- Card 2: Total Bank Debits --}}
+        <a href="{{ route('treasury.report', ['flow_type' => 'outflow']) }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer block">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Bank Debits</span>
+                </div>
+                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    {{ $totalDebitCount ?? 0 }} Debits
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                    ₹{{ number_format($totalDebitAmount ?? 0, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">
+                    @if(!empty($todayDebitAmount) && $todayDebitAmount > 0)
+                        Today: -₹{{ number_format($todayDebitAmount, 2) }} ({{ $todayDebitCount }} payments)
+                    @else
+                        Total payments & withdrawals across accounts
+                    @endif
+                </p>
+            </div>
+        </a>
+
+        {{-- Card 3: Pending Cheques --}}
+        <a href="{{ route('cheque-realization.queue') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer block">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Cheques</span>
+                </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                    {{ $totalPendingCount ?? 0 }} Pending
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
+                    ₹{{ number_format($totalPendingAmount ?? 0, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Awaiting deposit & bank realization</p>
+            </div>
+        </a>
+
+        {{-- Card 1: Total Bank Balance --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Bank Balance</span>
+                </div>
+                <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                    {{ $bankAccounts->count() }} Accounts
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    ₹{{ number_format($totalBalance, 2) }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Across all registered company accounts</p>
+            </div>
+        </div>
     </div>
 
     {{-- Bank Accounts Directory Section --}}
@@ -344,6 +350,11 @@
                                         @if($account->realized_count > 0)
                                             <span class="px-2.5 py-0.5 rounded text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold tracking-wider uppercase">
                                                 Realized: ₹{{ number_format($account->realized_sum, 2) }}
+                                            </span>
+                                        @endif
+                                        @if(!empty($account->debit_sum) && $account->debit_sum > 0)
+                                            <span class="px-2.5 py-0.5 rounded text-[9px] bg-rose-50 text-rose-800 border border-rose-200 font-bold tracking-wider uppercase">
+                                                Debits: ₹{{ number_format($account->debit_sum, 2) }}
                                             </span>
                                         @endif
                                         <span x-show="customerSearch[{{ $account->id }}]" 
