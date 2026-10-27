@@ -4813,7 +4813,39 @@ class ReportController extends Controller
 
             // B. REVENUE METRICS (PURE DATABASE DYNAMIC)
             $salesTotal = (float) $soldUnitsQuery->sum('total_amount');
-            $realizedCollections = (float) Receipt::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))->sum('amount');
+
+            // Realized collections: only CLEARED receipts (realization_status = 'realized',
+            // i.e. bank-realized cheques/cash), excluding partner-inflow receipts — the same
+            // basis the Dashboard uses. Pending & cancelled receipts are NOT collections yet.
+            $grossRealized = (float) Receipt::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))
+                ->whereNull('partner_id')
+                ->where('realization_status', 'realized')
+                ->sum('amount');
+
+            // Deduct customer refunds already paid out (Posted vouchers with refund allocations
+            // targeting this project's sales) — matches Dashboard's "After Refund Deducted".
+            $projSaleIds = Sale::where('project_id', $proj->id)->pluck('id')->all();
+            $projRefundsPaid = 0.0;
+            if (!empty($projSaleIds)) {
+                $refundVouchers = DB::table('vouchers')
+                    ->whereIn('type', ['Receipt', 'Payment'])
+                    ->where('status', 'Posted')
+                    ->whereNotNull('reference_no')
+                    ->get(['reference_no']);
+                foreach ($refundVouchers as $rv) {
+                    $refData = json_decode($rv->reference_no, true);
+                    if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                        foreach ($refData['allocations'] as $alloc) {
+                            if (($alloc['type'] ?? '') === 'refund'
+                                && in_array((int) ($alloc['target_id'] ?? 0), $projSaleIds, true)) {
+                                $projRefundsPaid += (float) ($alloc['amount'] ?? 0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            $realizedCollections = max(0.00, round($grossRealized - $projRefundsPaid, 2));
             $pendingReceivables = max(0.00, $salesTotal - $realizedCollections);
 
             $unitExpectedRate = (float) Unit::where('project_id', $proj->id)->avg('expected_rate_per_sqft');
