@@ -890,7 +890,7 @@
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
-                                    <span class="text-[10px] text-slate-500 font-medium">Check this if recording a past transaction. The payout will NOT deduct from the live company bank account balance.</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">The payout will NOT deduct from the live company bank account balance.</span>
                                 </div>
                             </label>
                         </div>
