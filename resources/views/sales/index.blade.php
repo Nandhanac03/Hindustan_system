@@ -20,19 +20,25 @@
         </script>
     @endif
 
-    {{-- Toast --}}
+    {{-- Toast Notification --}}
     <div x-show="toast.open"
          x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform translate-y-2"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         x-transition:leave="transition ease-in duration-250"
-         x-transition:leave-start="opacity-100 transform translate-y-0"
-         x-transition:leave-end="opacity-0 transform translate-y-2"
-         class="fixed bottom-5 right-5 z-[100] p-4 rounded-xl shadow-lg border text-xs font-bold uppercase tracking-wide flex items-center gap-2"
-         :class="toast.type === 'success' ? 'bg-emerald-50 border-emerald-250 text-emerald-800' : 'bg-rose-50 border-rose-250 text-rose-800'"
+         x-transition:enter-start="opacity-0 transform translate-y-2 scale-95"
+         x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 transform translate-y-2 scale-95"
+         class="fixed bottom-5 right-5 z-[999999] px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-bold uppercase tracking-wider border backdrop-blur-md"
+         :class="toast.type === 'success' ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/25' : (toast.type === 'warning' ? 'bg-amber-600 text-white border-amber-500 shadow-amber-500/25' : 'bg-rose-600 text-white border-rose-500 shadow-rose-500/25')"
          style="display: none;">
+        <template x-if="toast.type === 'success'">
+            <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        </template>
+        <template x-if="toast.type !== 'success'">
+            <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </template>
         <span x-text="toast.message"></span>
-        <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
+        <button type="button" @click="toast.open = false" class="ml-2 hover:opacity-75 focus:outline-none text-white font-bold">✕</button>
     </div>
     @if($isReturnExchange)
         @include('sales.return_exchange_operations')
@@ -2528,8 +2534,11 @@ function salesApp() {
             });
         },
         showToast(message, type = 'success') {
-            this.toast = { open: true, message, type };
-            setTimeout(() => { this.toast.open = false; }, 3000);
+            this.toast.message = message;
+            this.toast.type = type;
+            this.toast.open = true;
+            if (this.toastTimeout) clearTimeout(this.toastTimeout);
+            this.toastTimeout = setTimeout(() => { this.toast.open = false; }, 4000);
         },
         getPaidTillDate(sale) {
             if (!sale) return 0;
@@ -2853,7 +2862,20 @@ function salesApp() {
                 if (!res.ok || !data.success) {
                     this.showToast(data.error || data.message || 'Failed to process customer refund.', 'error');
                 } else {
-                    this.showToast(data.message || 'Customer refund processed successfully.');
+                    const successMsg = data.message || 'Customer refund processed successfully.';
+                    this.showToast(successMsg, 'success');
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'Refund Processed!',
+                            'Customer Refund',
+                            'Customer refund payment has been recorded and voucher generated.',
+                            successMsg
+                        );
+                    }
+                    let selectedBank = this.getSelectedBankAccount();
+                    if (selectedBank && !this.customerRefundForm.is_historical) {
+                        selectedBank.current_balance = Math.max(0, Number(selectedBank.current_balance || 0) - Number(this.customerRefundForm.refund_amount || 0));
+                    }
                     this.openCustomerRefundModal = false;
                     this.refundModalSale = null;
                     this.fetchSales();
