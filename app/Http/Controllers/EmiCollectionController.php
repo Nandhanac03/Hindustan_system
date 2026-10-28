@@ -898,8 +898,12 @@ class EmiCollectionController extends Controller
         $oldRate         = (float) ($sale->rate_per_sqft ?? 0);
         $newBaseAmount   = round($builtUpArea * $newRate, 2);
 
-        // Recalculate GST on new base amount
-        $gstPct        = (float) ($sale->gst_percentage ?? 0);
+        // Recalculate GST on new base amount using sale's actual effective GST rate
+        $baseForGst    = (float) ($sale->sale_amount ?: $sale->base_amount);
+        $gstAmtForGst  = (float) $sale->gst_amount;
+        $gstPct        = ($baseForGst > 0 && $gstAmtForGst > 0)
+            ? round(($gstAmtForGst / $baseForGst) * 100, 4)
+            : (float) ($sale->gst_percentage ?? 0);
         $newGstAmount  = round($newBaseAmount * $gstPct / 100, 2);
         $newTotal      = round($newBaseAmount + $newGstAmount, 2);
 
@@ -1136,8 +1140,17 @@ class EmiCollectionController extends Controller
         $hasAnyAdj      = $hasRateAdj || $hasDiscountAdj;
 
         if ($hasAnyAdj) {
-            $gstPct = (float)($sale->gst_percentage ?? 0);
-            if ($hasRateAdj) {
+            $baseForGst = (float) ($sale->sale_amount ?: $sale->base_amount);
+            $gstAmtForGst = (float) $sale->gst_amount;
+            $gstPct = ($baseForGst > 0 && $gstAmtForGst > 0)
+                ? round(($gstAmtForGst / $baseForGst) * 100, 4)
+                : (float) ($sale->gst_percentage ?? 0);
+            $lastEdited = $adjustment['last_edited'] ?? ($hasRateAdj ? 'rate' : 'discount');
+
+            if ($lastEdited === 'discount' && $hasDiscountAdj) {
+                $discountAmt    = round((float)$adjustment['discount_amount'], 2);
+                $effectiveTotal = max(0, round($initialTotal - $discountAmt, 2));
+            } elseif ($hasRateAdj) {
                 $newRate = round((float)$adjustment['new_rate'], 2);
                 $area    = !empty($adjustment['built_up_area'])
                            ? round((float)$adjustment['built_up_area'], 2)
@@ -1147,10 +1160,9 @@ class EmiCollectionController extends Controller
                     $newGst         = round($newBase * $gstPct / 100, 2);
                     $effectiveTotal = round($newBase + $newGst, 2);
                 }
-            }
-            if ($hasDiscountAdj) {
+            } elseif ($hasDiscountAdj) {
                 $discountAmt    = round((float)$adjustment['discount_amount'], 2);
-                $effectiveTotal = max(0, round($effectiveTotal - $discountAmt, 2));
+                $effectiveTotal = max(0, round($initialTotal - $discountAmt, 2));
             }
         } elseif (!empty($adjustment['effective_total']) && (float)$adjustment['effective_total'] > 0) {
             $effectiveTotal = round((float)$adjustment['effective_total'], 2);

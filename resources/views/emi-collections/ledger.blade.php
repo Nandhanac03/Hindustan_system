@@ -657,6 +657,7 @@
                               Built Up Area (Sq Ft)
                           </label>
                           <input type="number" step="0.01" min="0.01" x-model.number="adjustmentForm.built_up_area"
+                                 @input="handleAreaChange()" @change="handleAreaChange()"
                                  class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
                           <span class="text-[9px] text-slate-400 font-semibold block">Unit Area</span>
                       </div>
@@ -686,6 +687,7 @@
                           </label>
                           <input type="number" step="0.01" min="0.01" id="new_sqft_rate_input" name="new_sqft_rate"
                                  x-model.number="adjustmentForm.new_rate"
+                                 @input="handleRateChange()" @change="handleRateChange()"
                                  placeholder="Enter new rate / sqft"
                                  class="w-full px-2 py-1 bg-white border border-amber-300 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
                           <span class="text-[9px] text-amber-700 font-semibold block">Applies to Balance</span>
@@ -697,6 +699,7 @@
                               Discount Amount (₹)
                           </label>
                           <input type="number" step="0.01" min="0" x-model.number="adjustmentForm.discount_amount"
+                                 @input="handleDiscountChange()" @change="handleDiscountChange()"
                                  placeholder="e.g. 50000"
                                  class="w-full px-2 py-1 bg-white border border-emerald-300 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-lg text-xs font-bold text-slate-800 focus:outline-none transition-all">
                           <span class="text-[9px] text-emerald-600 font-semibold block">Deducts from Balance</span>
@@ -717,7 +720,7 @@
                           <template x-if="parseFloat(adjustmentForm.new_rate) > 0">
                               <span class="inline-flex items-center gap-1">
                                   <span class="text-slate-300">|</span>
-                                  <span class="text-slate-600 font-medium">Discount Rate: <strong class="text-[#a38c29] font-mono">₹<span x-text="Number(adjustmentForm.new_rate).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>/sqft</strong></span>
+                                  <span class="text-slate-600 font-medium">New Rate: <strong class="text-[#a38c29] font-mono">₹<span x-text="Number(adjustmentForm.new_rate).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>/sqft</strong></span>
                               </span>
                           </template>
                           <span class="text-slate-300">|</span>
@@ -1214,8 +1217,15 @@ function ledgerApp() {
         loggedRate: {{ $loggedRate ? (float)$loggedRate : 'null' }},
         currentSaleRateSqft: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
         adjustedRateSqft: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
+@php
+    $baseForGst = (float)($sale->sale_amount ?: $sale->base_amount);
+    $gstAmtForGst = (float)$sale->gst_amount;
+    $effectiveGstPct = ($baseForGst > 0 && $gstAmtForGst > 0)
+        ? round(($gstAmtForGst / $baseForGst) * 100, 4)
+        : (float)($sale->gst_percentage ?? 0);
+@endphp
         currentFinalDiscount: {{ (float)($sale->final_discount ?? 0) }},
-        gstPercentage: {{ (float)($sale->gst_percentage ?? 0) }},
+        gstPercentage: {{ (float)$effectiveGstPct }},
         adjustmentForm: {
             built_up_area: {{ (float)($sale->unit?->built_up_area ?? 0) }},
             current_rate: {{ (float)($loggedRate ?: ($sale->rate_per_sqft ?? $sale->unit?->sale_rate_per_sqft ?? 0)) }},
@@ -1224,6 +1234,54 @@ function ledgerApp() {
         },
         rateLogs: @json($ledgerRateLogs ?? []),
         discountLogs: @json($ledgerDiscountLogs ?? []),
+
+        lastAdjustmentSource: 'rate',
+
+        handleRateChange() {
+            this.lastAdjustmentSource = 'rate';
+            const newRate = parseFloat(this.adjustmentForm.new_rate);
+            const area = parseFloat(this.adjustmentForm.built_up_area) || this.builtUpAreaSqft;
+            const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                : this.baseSaleTotalAmount;
+
+            if (newRate && newRate > 0 && area > 0) {
+                const base = this._r2(area * newRate);
+                const gst  = this._r2(base * (this.gstPercentage / 100));
+                const newTotal = this._r2(base + gst);
+                const diff = this._r2(initialScheduleTotal - newTotal);
+                this.adjustmentForm.discount_amount = diff > 0 ? diff : 0;
+            } else {
+                this.adjustmentForm.discount_amount = '';
+            }
+        },
+
+        handleDiscountChange() {
+            this.lastAdjustmentSource = 'discount';
+            const discount = parseFloat(this.adjustmentForm.discount_amount);
+            const area = parseFloat(this.adjustmentForm.built_up_area) || this.builtUpAreaSqft;
+            const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                : this.baseSaleTotalAmount;
+
+            if (discount && discount > 0 && area > 0) {
+                const newTotal = Math.max(0, this._r2(initialScheduleTotal - discount));
+                const gstFactor = 1 + (this.gstPercentage / 100);
+                const base = this._r2(newTotal / gstFactor);
+                const calcRate = this._r2(base / area);
+                this.adjustmentForm.new_rate = calcRate > 0 ? calcRate : '';
+            } else if (!discount) {
+                this.adjustmentForm.new_rate = '';
+            }
+        },
+
+        handleAreaChange() {
+            if (this.adjustmentForm.new_rate) {
+                this.handleRateChange();
+            } else if (this.adjustmentForm.discount_amount) {
+                this.handleDiscountChange();
+            }
+        },
 
         calculateTotalPaid() {
             return this.editInstallments
@@ -1235,21 +1293,29 @@ function ledgerApp() {
 
         // Returns the effective adjusted total amount (for unallocated balance and balance check)
         effectiveTotalAmount() {
-            const newRate = parseFloat(this.adjustmentForm.new_rate);
-            const area   = parseFloat(this.adjustmentForm.built_up_area) || this.builtUpAreaSqft;
             const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
                 ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
                 : this.baseSaleTotalAmount;
 
-            let total = initialScheduleTotal;
+            const newRate  = parseFloat(this.adjustmentForm.new_rate);
+            const area     = parseFloat(this.adjustmentForm.built_up_area) || this.builtUpAreaSqft;
+            const discount = parseFloat(this.adjustmentForm.discount_amount);
+
+            if (this.lastAdjustmentSource === 'discount' && discount && discount > 0) {
+                return Math.max(0, this._r2(initialScheduleTotal - discount));
+            }
+
             if (newRate && newRate > 0 && area > 0) {
                 const base = this._r2(area * newRate);
                 const gst  = this._r2(base * (this.gstPercentage / 100));
-                total = this._r2(base + gst);
+                return this._r2(base + gst);
             }
-            const discount = parseFloat(this.adjustmentForm.discount_amount);
-            if (discount && discount > 0) total = Math.max(0, this._r2(total - discount));
-            return this._r2(total);
+
+            if (discount && discount > 0) {
+                return Math.max(0, this._r2(initialScheduleTotal - discount));
+            }
+
+            return initialScheduleTotal;
         },
 
         existingRemainingBalance() {
@@ -1273,27 +1339,19 @@ function ledgerApp() {
         },
 
         adjustmentCardLabel() {
-            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
             const hasRate = parseFloat(this.adjustmentForm.new_rate) > 0;
-            if (hasDiscount && hasRate) return 'Discount & Rate Adj';
-            if (hasDiscount) return 'Discount';
+            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
+            if (hasRate) return 'Rate Adjustment';
+            if (hasDiscount) return 'Discount Amount';
             return 'Rate Adjustment';
         },
 
         adjustmentCardValue() {
-            const hasDiscount = parseFloat(this.adjustmentForm.discount_amount) > 0;
-            const hasRate = parseFloat(this.adjustmentForm.new_rate) > 0;
-            if (hasDiscount) {
-                return '₹' + Number(this.adjustmentForm.discount_amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
-            }
-            if (hasRate) {
-                const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
-                    ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
-                    : this.baseSaleTotalAmount;
-                const diff = this._r2(initialScheduleTotal - this.effectiveTotalAmount());
-                return (diff >= 0 ? '₹' : '-₹') + Math.abs(diff).toLocaleString('en-IN', {minimumFractionDigits: 2});
-            }
-            return '₹0.00';
+            const initialScheduleTotal = (this.originalInstallments && this.originalInstallments.length > 0)
+                ? this._r2(this.originalInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0))
+                : this.baseSaleTotalAmount;
+            const diff = this._r2(initialScheduleTotal - this.effectiveTotalAmount());
+            return (diff >= 0 ? '₹' : '-₹') + Math.abs(diff).toLocaleString('en-IN', {minimumFractionDigits: 2});
         },
 
         adjustmentCardSub() {
@@ -1432,6 +1490,7 @@ function ledgerApp() {
             this.adjustmentForm.current_rate  = this.currentSaleRateSqft;
             this.adjustmentForm.new_rate       = '';
             this.adjustmentForm.discount_amount = '';
+            this.lastAdjustmentSource = 'rate';
             this.editInstallments = this.originalInstallments.map(inst => ({
                 id: inst.id,
                 installment_no: inst.installment_no,
@@ -1615,6 +1674,7 @@ function ledgerApp() {
                 if (discount && discount > 0) adjustmentPayload.discount_amount = discount;
                 adjustmentPayload.old_rate = this.currentSaleRateSqft;
                 adjustmentPayload.effective_total = this.effectiveTotalAmount();
+                adjustmentPayload.last_edited = this.lastAdjustmentSource;
 
                 const res = await fetch('{{ route('emi-collections.schedules.bulk-update', $sale->id) }}', {
                     method: 'POST',
