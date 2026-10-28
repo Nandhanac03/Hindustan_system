@@ -108,9 +108,9 @@ class PettyCashController extends Controller
             $transactions->push((object)[
                 'id' => $t->id,
                 'date' => $t->transaction_date ? \Carbon\Carbon::parse($t->transaction_date)->format('Y-m-d') : ($selectedDate ?? date('Y-m-d')),
+                'date_formatted' => $t->transaction_date ? \Carbon\Carbon::parse($t->transaction_date)->format('d-M-Y') : date('d-M-Y'),
                 'voucher_number' => $t->voucher_number,
-                'type_label' => $t->narration ? str()->limit($t->narration, 30) : '',
-                // 'type_label' => $t->transaction_type . ($t->narration ? ' - ' . str()->limit($t->narration, 30) : ''),
+                'type_label' => $t->narration ?: ($t->transaction_type ?: 'Petty Cash Transaction'),
                 'cash_in' => $vCashIn,
                 'cash_out' => $vCashOut,
                 'balance' => $runningBalance,

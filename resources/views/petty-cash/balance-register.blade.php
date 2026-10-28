@@ -406,67 +406,88 @@
             </div>
         </div>
 
-        <!-- Recent Transactions Table (Theme matched) -->
-        <div id="petty-cash-table-container" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 relative">
-            <div class="px-5 py-4 border-b border-gray-100">
-                <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Recent Transactions</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left whitespace-nowrap">
-                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                        <tr class="erp-table-header border-b border-slate-700">
-                            <th class="px-5 py-3.5 border-r border-slate-600">Date</th>
-                            <th class="px-5 py-3.5 border-r border-slate-600">Voucher No.</th>
-                            <th class="px-5 py-3.5 border-r border-slate-600">Type</th>
-                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash In (₹)</th>
-                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Cash Out (₹)</th>
-                            <th class="px-5 py-3.5 text-right border-r border-slate-600">Balance (₹)</th>
-                            <th class="px-5 py-3.5 text-left border-r border-slate-600">Reference</th>
-                            <th class="px-5 py-3.5 text-center">Action</th>
+        <!-- Recent Transactions Table Container (Designed identical to Sales Return / Cancellation module) -->
+        <div id="petty-cash-table-container" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full mb-6">
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-[11px] border-collapse whitespace-nowrap">
+                    <thead class="sales-desk-table-header text-white uppercase tracking-wider text-[10px] font-bold">
+                        <tr class="sales-desk-table-header border-b">
+                            <th class="px-4 py-3.5 text-left sales-desk-table-header">Date</th>
+                            <th class="px-4 py-3.5 text-left sales-desk-table-header">Voucher No.</th>
+                            <th class="px-4 py-3.5 text-left sales-desk-table-header">Type</th>
+                            <th class="px-4 py-3.5 text-right sales-desk-table-header">Cash In (₹)</th>
+                            <th class="px-4 py-3.5 text-right sales-desk-table-header">Cash Out (₹)</th>
+                            <th class="px-4 py-3.5 text-right sales-desk-table-header">Balance (₹)</th>
+                            <th class="px-4 py-3.5 text-left sales-desk-table-header">Reference</th>
+                            <th class="px-4 py-3.5 text-center sales-desk-table-header">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
-                        @forelse($transactions as $txn)
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700">{{ \Carbon\Carbon::parse($txn->date)->format('d-M-Y') }}</td>
-                                <td class="px-5 py-4">
-                                    <span class="text-[11px] font-bold text-[#a38c29] uppercase">{{ $txn->voucher_number }}</span>
+                    <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-705">
+                        <template x-for="txn in paginatedTransactions()" :key="txn.id">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-4 py-3.5 text-slate-500 font-bold text-left" x-text="txn.date_formatted || txn.date"></td>
+                                <td class="px-4 py-3.5 text-left">
+                                    <span class="text-primary font-bold uppercase tracking-wide" x-text="txn.voucher_number"></span>
                                 </td>
-                                <td class="px-5 py-4 text-[11px] font-bold text-[#1e2a5e]">{{ $txn->type_label }}</td>
-                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
-                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
-                                </td>
-                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
-                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
-                                </td>
-                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
-                                    {{ number_format($txn->balance, 2) }}
-                                </td>
-                                <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500">
-                                    {{ $txn->reference ?: '-' }}
-                                </td>
-                                <td class="px-5 py-4 text-center">
+                                <td class="px-4 py-3.5 text-left font-bold text-slate-900" x-text="txn.type_label" :title="txn.type_label"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold" 
+                                    :class="txn.cash_in > 0 ? 'text-emerald-600' : 'text-slate-400'" 
+                                    x-text="txn.cash_in > 0 ? ('₹ ' + Number(txn.cash_in).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})) : '—'"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold" 
+                                    :class="txn.cash_out > 0 ? 'text-rose-600' : 'text-slate-400'" 
+                                    x-text="txn.cash_out > 0 ? ('₹ ' + Number(txn.cash_out).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})) : '—'"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900" 
+                                    x-text="'₹ ' + Number(txn.balance).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
+                                <td class="px-4 py-3.5 text-left font-medium text-slate-500" x-text="txn.reference || '—'"></td>
+                                <td class="px-4 py-3.5 text-center">
                                     <button type="button" 
-                                            onclick="showTransactionModal(this)" 
-                                            data-voucher="{{ $txn->voucher_number }}"
-                                            data-date="{{ \Carbon\Carbon::parse($txn->date)->format('d-M-Y') }}"
-                                            data-type="{{ $txn->type_label }}"
-                                            data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
-                                            data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
-                                            data-balance="{{ number_format($txn->balance, 2) }}"
-                                            data-reference="{{ $txn->reference ?: 'N/A' }}"
-                                            class="text-[#a38c29] hover:text-[#8a7522] transition-colors focus:outline-none" title="View Transaction Details">
-                                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            @click="showTransactionModalFromData(txn)" 
+                                            class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
+                                            title="View Transaction Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-5 py-8 text-center text-[12px] font-bold text-gray-400 uppercase tracking-wider">No transactions found for this date.</td>
-                            </tr>
-                        @endforelse
+                        </template>
+                        <tr x-show="transactions.length === 0">
+                            <td colspan="8" class="px-4 py-8 text-center text-slate-400 italic font-medium">No transactions found for this date.</td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Table Pagination Controls (Exact Match to Sales Return / Cancellation module) --}}
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="transactions.length > 0">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    SHOWING <span class="text-slate-900" x-text="showingFrom()"></span> TO 
+                    <span class="text-slate-900" x-text="showingTo()"></span> OF 
+                    <span class="text-slate-900" x-text="transactions.length"></span> TRANSACTIONS
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" @click="if(currentPage > 1) currentPage--" 
+                            :disabled="currentPage <= 1"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        PREV
+                    </button>
+                    
+                    {{-- Page Numbers --}}
+                    <template x-for="p in getPageNumbers()" :key="p">
+                        <span class="inline-flex items-center gap-1">
+                            <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                            <button type="button" x-show="p !== '...'"
+                                    @click="currentPage = p"
+                                    x-text="p"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                    :class="currentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                        </span>
+                    </template>
+                    
+                    <button type="button" @click="if(currentPage < getTotalPages()) currentPage++" 
+                            :disabled="currentPage >= getTotalPages()"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        NEXT
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -483,6 +504,76 @@
                 statusDropdownOpen: false,
                 selectedDate: '{{ $selectedDate }}',
                 isLoading: false,
+                transactions: @js($transactions),
+                currentPage: 1,
+                perPage: 10,
+
+                paginatedTransactions() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.transactions.slice(start, start + this.perPage);
+                },
+
+                getTotalPages() {
+                    return Math.ceil(this.transactions.length / this.perPage) || 1;
+                },
+
+                getPageNumbers() {
+                    const totalPages = this.getTotalPages();
+                    const current = this.currentPage;
+                    const pages = [];
+                    if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                        if (current <= 4) {
+                            for (let i = 1; i <= 5; i++) pages.push(i);
+                            pages.push('...');
+                            pages.push(totalPages);
+                        } else if (current >= totalPages - 3) {
+                            pages.push(1);
+                            pages.push('...');
+                            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                        } else {
+                            pages.push(1);
+                            pages.push('...');
+                            for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                            pages.push('...');
+                            pages.push(totalPages);
+                        }
+                    }
+                    return pages;
+                },
+
+                showingFrom() {
+                    if (this.transactions.length === 0) return 0;
+                    return (this.currentPage - 1) * this.perPage + 1;
+                },
+
+                showingTo() {
+                    return Math.min(this.currentPage * this.perPage, this.transactions.length);
+                },
+
+                showTransactionModalFromData(txn) {
+                    document.getElementById('modal-voucher').innerText = txn.voucher_number || '-';
+                    document.getElementById('modal-date').innerText = txn.date_formatted || txn.date || '-';
+                    document.getElementById('modal-type').innerText = txn.type_label || '-';
+                    
+                    const cashIn = parseFloat(txn.cash_in) || 0;
+                    document.getElementById('modal-cashin').innerText = cashIn > 0 ? '+ ₹ ' + Number(cashIn).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
+                    
+                    const cashOut = parseFloat(txn.cash_out) || 0;
+                    document.getElementById('modal-cashout').innerText = cashOut > 0 ? '- ₹ ' + Number(cashOut).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
+                    
+                    document.getElementById('modal-balance').innerText = '₹ ' + Number(parseFloat(txn.balance) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    document.getElementById('modal-reference').innerText = (txn.reference && txn.reference !== 'N/A') ? txn.reference : '-';
+
+                    const modal = document.getElementById('transaction-modal');
+                    const modalContent = document.getElementById('transaction-modal-content');
+                    
+                    modal.classList.remove('hidden');
+                    void modal.offsetWidth;
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                },
 
                 selectProject(id, name) {
                     this.selectedProjectId = id;
@@ -539,16 +630,16 @@
                             curSummaries.innerHTML = newSummaries.innerHTML;
                         }
 
-                        const newTable = doc.getElementById('petty-cash-table-container');
-                        const curTable = document.getElementById('petty-cash-table-container');
-                        if (newTable && curTable) {
-                            curTable.innerHTML = newTable.innerHTML;
-                        }
-
                         const newTxnData = doc.getElementById('petty-cash-txns-data');
                         const curTxnData = document.getElementById('petty-cash-txns-data');
                         if (newTxnData && curTxnData) {
                             curTxnData.textContent = newTxnData.textContent;
+                            try {
+                                this.transactions = JSON.parse(newTxnData.textContent);
+                                this.currentPage = 1;
+                            } catch (e) {
+                                console.error('Error parsing updated transactions:', e);
+                            }
                         }
                     })
                     .catch(err => console.error('Error fetching balance register:', err))
