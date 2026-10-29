@@ -1274,7 +1274,7 @@ class ReportController extends Controller
             $collectionSummary = RealizedCollectionService::summarize($projectFilterId);
             $totalCredits = $collectionSummary['net'];
             $refundDeductedAll = $collectionSummary['refunds'];
-            $closingBalance = max(0, $totalDebits - $totalCredits);
+            $closingBalance = max(0, (float)$customerSummaryList->sum('outstanding'));
             $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
 
             $customerSummaryList = $customerSummaryList->sortByDesc('sale_id')->values();
