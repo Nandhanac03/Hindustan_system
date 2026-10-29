@@ -49,10 +49,9 @@ class EmiCollectionController extends Controller
             ->get();
 
         $totalContractValue = (float) Sale::where('status', 'active')->sum('total_amount');
-        $totalOutstanding   = (float) Sale::where('status', 'active')->sum('remaining_balance');
         $totalSales         = Sale::where('status', 'active')->count();
 
-        // ── Match Dashboard exactly ──────────────────────────────────────────
+        // ── Match Dashboard & Customer Ledger ────────────────────────────────
         // Collections are counted from RECEIPTS, not from active sales only.
         // Cash received against a sale that was later cancelled / returned /
         // exchanged is still realized money, and the refunds paid back on it
@@ -64,18 +63,13 @@ class EmiCollectionController extends Controller
         $totalPaidSales            = $collections['net'];
         // ─────────────────────────────────────────────────────────────────────
 
-        $pendingPaymentsCount = Sale::where('status', 'active')->where('remaining_balance', '>', 0)->count();
-        $fullyPaidCount       = Sale::where('status', 'active')->where('remaining_balance', '<=', 0)->count();
-
-        $recentBookings = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
-            ->where('status', 'active')
-            ->where('remaining_balance', '>', 0)
-            ->latest()
-            ->take(5)
-            ->get();
-
         foreach ($activeSales as $sale) {
-            $totalPaid = Receipt::where('sale_id', $sale->id)->sum('amount');
+            $totalPaid = (float) $sale->receipts
+                ->filter(fn($r) => strtolower($r->realization_status ?? 'realized') === 'realized')
+                ->sum('amount');
+            $realizedRemaining = max(0.0, round((float) $sale->total_amount - $totalPaid, 2));
+            $sale->remaining_balance = $realizedRemaining;
+
             $installments = CustomerInstallment::where('sale_id', $sale->id)
                 ->orderBy('installment_no')
                 ->get();
@@ -91,7 +85,7 @@ class EmiCollectionController extends Controller
                     break;
                 }
             }
-            $due = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
+            $due = $nextDueAmount > 0 ? $nextDueAmount : $realizedRemaining;
             $sale->setAttribute('next_due_amount', $due);
             $sale->next_due_amount = $due;
 
@@ -103,8 +97,17 @@ class EmiCollectionController extends Controller
             $sale->setAttribute('actual_installment_count', $effectiveCount);
         }
 
+        $totalOutstanding     = (float) $activeSales->sum('remaining_balance');
+        $pendingPaymentsCount = $activeSales->filter(fn($s) => (float) $s->remaining_balance > 0)->count();
+        $fullyPaidCount       = $activeSales->filter(fn($s) => (float) $s->remaining_balance <= 0)->count();
+
+        $recentBookings = $activeSales->filter(fn($s) => (float) $s->remaining_balance > 0)->take(5)->values();
+
         $allSalesFormatted = $activeSales->map(function ($sale) {
-            $totalPaid = (float) $sale->receipts->where('realization_status', 'realized')->sum('amount');
+            $totalPaid = (float) $sale->receipts
+                ->filter(fn($r) => strtolower($r->realization_status ?? 'realized') === 'realized')
+                ->sum('amount');
+            $realizedRemaining = max(0.0, round((float) $sale->total_amount - $totalPaid, 2));
             $formattedUnitText = '';
             if($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
                 $unitStrings = [];
@@ -159,8 +162,8 @@ class EmiCollectionController extends Controller
                 'unit_text'              => $formattedUnitText,
                 'total_amount'           => (float) $sale->total_amount,
                 'total_paid'             => $totalPaid,
-                'remaining_balance'      => (float) $sale->remaining_balance,
-                'next_due_amount'        => (float) ($sale->next_due_amount ?? $sale->remaining_balance),
+                'remaining_balance'      => $realizedRemaining,
+                'next_due_amount'        => (float) ($sale->next_due_amount ?? $realizedRemaining),
                 'payment_plan'           => $sale->payment_plan ?: 'emi',
                 'emi_installment_count'  => $sale->actual_installment_count ?? ($sale->emi_installment_count ?? 12),
                 'emi_frequency'          => $sale->emi_frequency ?? 'monthly',
