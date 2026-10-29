@@ -230,7 +230,7 @@
 
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-xs text-left border-collapse table-auto">
-                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
+                <thead class="erp-table-header text-white uppercase text-[11px] font-extrabold tracking-wider sticky top-0 z-10" style="font-size: 11px;">
                     <tr class="erp-table-header border-b border-slate-700 text-left">
                         <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-center w-12 whitespace-nowrap">#</th>
                         <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Bank / Account Details</th>
@@ -246,97 +246,100 @@
                     <tr class="hover:bg-amber-50/40 transition-colors cursor-pointer"
                         :class="isBankExpanded({{ $account->id }}) ? 'bg-amber-50/50 font-semibold ring-1 ring-inset ring-[#a38c29]/30' : ''"
                         @click="toggleBank({{ $account->id }})">
-                        <td class="px-5 py-3.5 text-center font-bold text-slate-400">{{ $index + 1 }}</td>
-                        <td class="px-5 py-3.5">
+                        <td class="px-5 py-4 text-center font-bold text-slate-400 text-xs" style="font-size: 13px;">{{ $index + 1 }}</td>
+                        <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 shrink-0 rounded-xl bg-[#a38c29] text-white flex items-center justify-center font-black text-xs shadow-sm">
+                                <div class="w-9 h-9 shrink-0 rounded-xl bg-[#a38c29] text-white flex items-center justify-center font-black text-xs shadow-sm" style="font-size: 13px;">
                                     {{ substr($account->bank_name, 0, 2) }}
                                 </div>
                                 <div class="flex flex-col gap-1 items-start">
-                                    <div class="font-black text-slate-900 flex items-center gap-1.5 leading-tight">
+                                    <div class="font-black text-sm text-slate-900 flex items-center gap-1.5 leading-tight" style="font-size: 14px;">
                                         <span>{{ $account->bank_name }}</span>
                                         @if($account->is_default)
-                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 tracking-widest">Primary</span>
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 tracking-widest" style="font-size: 9px;">Primary</span>
                                         @endif
                                     </div>
-                                    <div class="text-[10px] text-slate-500 font-medium leading-tight mb-0.5">{{ $account->account_name ?: 'Company Account' }} ({{ $account->account_type ?? 'Current' }})</div>
+                                    <div class="text-xs text-slate-500 font-medium leading-tight mb-0.5" style="font-size: 12px;">{{ $account->account_name ?: 'Company Account' }} ({{ $account->account_type ?? 'Current' }})</div>
                                     
                                     <button type="button" @click.stop="toggleBank({{ $account->id }})"
-                                            class="px-2 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[10px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40 mt-0.5"
+                                            class="px-2.5 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[11px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40 mt-0.5"
+                                            style="font-size: 11px;"
                                             title="Toggle Transaction Statement">
                                         <span x-text="isBankExpanded({{ $account->id }}) ? '▲ Hide Statement' : '▼ ' + getBankTransactions({{ $account->id }}).length + ' Transactions'"></span>
                                     </button>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-3.5 font-mono text-slate-700 font-bold tracking-wider align-middle">
+                        <td class="px-5 py-4 font-mono text-sm text-slate-700 font-bold tracking-wider align-middle" style="font-size: 14px;">
                             {{ $account->account_number ?: '—' }}
                         </td>
-                        <td class="px-5 py-3.5 align-middle">
-                            <div class="font-mono text-slate-800 font-semibold text-[11px]">{{ $account->ifsc_code ?: '—' }}</div>
-                            <div class="text-[10px] text-slate-400">{{ $account->branch_name ?: 'Main Branch' }}</div>
+                        <td class="px-5 py-4 align-middle">
+                            <div class="font-mono text-slate-800 font-bold text-xs" style="font-size: 13px;">{{ $account->ifsc_code ?: '—' }}</div>
+                            <div class="text-xs text-slate-400" style="font-size: 12px;">{{ $account->branch_name ?: 'Main Branch' }}</div>
                         </td>
-                        <td class="px-5 py-3.5 text-center align-middle">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-[11px]"
+                        <td class="px-5 py-4 text-center align-middle">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-xs"
+                                  style="font-size: 13px;"
                                   @if(!empty($account->refund_sum) && $account->refund_sum > 0) title="Gross Realized: ₹{{ number_format($account->gross_realized_sum ?? $account->realized_sum, 2) }} - Refund Paid: ₹{{ number_format($account->refund_sum, 2) }}" @endif>
                                 {{ $account->realized_count }} (₹{{ number_format($account->realized_sum, 2) }})
                             </span>
                             @if(!empty($account->refund_sum) && $account->refund_sum > 0)
-                                <div class="text-[9px] text-rose-600 font-semibold mt-0.5 whitespace-nowrap">
+                                <div class="text-[10px] text-rose-600 font-semibold mt-0.5 whitespace-nowrap" style="font-size: 11px;">
                                     (-₹{{ number_format($account->refund_sum, 2) }} Refund)
                                 </div>
                             @endif
                         </td>
-                        <td class="px-5 py-3.5 text-center align-middle">
+                        <td class="px-5 py-4 text-center align-middle">
                             @if($account->pending_count > 0)
                                 <a href="{{ route('cheque-realization.queue', ['bank_account_id' => $account->id]) }}" 
                                    @click.stop
-                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-mono font-bold text-[11px] hover:bg-amber-100 transition">
+                                   style="font-size: 13px;"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-mono font-bold text-xs hover:bg-amber-100 transition">
                                     <span>⏳ {{ $account->pending_count }}</span>
                                     <span class="text-amber-600 font-normal">({{ number_format($account->pending_sum, 2) }})</span>
                                 </a>
                             @else
-                                <span class="text-slate-400 font-mono text-[11px]">0</span>
+                                <span class="text-slate-400 font-mono text-xs" style="font-size: 13px;">0</span>
                             @endif
                         </td>
-                        <td class="px-5 py-3.5 text-right font-mono font-black text-sm text-[#8a7522] align-middle">
+                        <td class="px-5 py-4 text-right font-mono font-black text-base text-[#8a7522] align-middle" style="font-size: 15px;">
                             ₹{{ number_format($account->current_balance, 2) }}
                         </td>
                     </tr>
 
                     {{-- Expanded Bank Transaction Statement Accordion Row --}}
-                    <tr x-show="isBankExpanded({{ $account->id }})" x-cloak class="bg-slate-50/60">
+                    <tr x-show="isBankExpanded({{ $account->id }})" x-cloak class="bg-slate-50/60" style="font-size: 11px;">
                         <td colspan="7" class="p-0 border-b border-slate-200">
-                            <div class="bg-slate-50/80 p-4 sm:p-5 shadow-[inset_0_4px_6px_-4px_rgba(0,0,0,0.05)] border-l-4 border-[#a38c29] rounded-r-xl">
+                            <div class="bg-slate-50/80 p-3.5 sm:p-4 shadow-[inset_0_4px_6px_-4px_rgba(0,0,0,0.05)] border-l-4 border-[#a38c29] rounded-r-xl">
                                 
                                 {{-- Statement Header Bar (Clean Light Card Header) --}}
-                                <div class="px-5 py-3.5 bg-white border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-t-xl shadow-xs">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0">
-                                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <div class="px-4 py-2.5 bg-white border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-t-xl shadow-xs">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         </div>
                                         <div>
                                             <div class="flex items-center gap-2">
-                                                <h4 class="text-xs font-black tracking-widest text-slate-800 uppercase">Transaction Statement</h4>
+                                                <h4 class="text-[11px] font-black tracking-widest text-slate-800 uppercase" style="font-size: 11px;">Transaction Statement</h4>
                                                 @if($account->is_default)
-                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30">Primary</span>
+                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30" style="font-size: 8px;">Primary</span>
                                                 @endif
                                             </div>
-                                            <div class="text-[10px] text-slate-500 font-mono flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                                            <div class="text-[10px] text-slate-500 font-mono flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5" style="font-size: 10px;">
                                                 <span>A/C No: <strong class="text-slate-800 font-bold">{{ $account->account_number ?: '—' }}</strong></span>
                                                 <span>IFSC: <strong class="text-slate-800 font-bold">{{ $account->ifsc_code ?: '—' }}</strong></span>
                                                 <span>Type: <strong class="text-slate-800 font-bold">{{ $account->account_type ?? 'Current' }}</strong></span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="bg-slate-50 px-3.5 py-1.5 rounded-lg border border-slate-200/80 text-right">
-                                            <span class="text-[8px] text-slate-400 uppercase tracking-widest block font-extrabold">Ledger Balance</span>
-                                            <span class="text-xs font-black text-emerald-600 font-mono">₹{{ number_format($account->current_balance, 2) }}</span>
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="bg-slate-50 px-3 py-1 rounded-lg border border-slate-200/80 text-right">
+                                            <span class="text-[8px] text-slate-400 uppercase tracking-widest block font-extrabold" style="font-size: 8px;">Ledger Balance</span>
+                                            <span class="text-[11px] font-black text-emerald-600 font-mono" style="font-size: 11px;">₹{{ number_format($account->current_balance, 2) }}</span>
                                         </div>
                                         <button type="button" 
                                                 @click="toggleBank({{ $account->id }})"
-                                                class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition text-sm font-bold shadow-2xs"
+                                                class="w-6 h-6 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition text-xs font-bold shadow-2xs"
                                                 title="Close Statement">
                                             ✕
                                         </button>
@@ -344,16 +347,16 @@
                                 </div>
 
                                 {{-- Statement Filter / Search by Customer (No Page Reload) --}}
-                                <div class="px-5 py-2.5 bg-white border-b border-slate-200/60 flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-xs">
-                                    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                                <div class="px-4 py-2 bg-white border-b border-slate-200/60 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 shadow-xs">
+                                    <div class="flex flex-wrap items-center gap-1.5 text-[10px]" style="font-size: 9px;">
                                         <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200" x-text="getBankTransactions({{ $account->id }}).length + ' Entries'"></span>
                                         @if($account->realized_count > 0)
-                                            <span class="px-2.5 py-0.5 rounded text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold tracking-wider uppercase">
+                                            <span class="px-2 py-0.5 rounded text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold tracking-wider uppercase">
                                                 Realized: ₹{{ number_format($account->realized_sum, 2) }}
                                             </span>
                                         @endif
                                         @if(!empty($account->debit_sum) && $account->debit_sum > 0)
-                                            <span class="px-2.5 py-0.5 rounded text-[9px] bg-rose-50 text-rose-800 border border-rose-200 font-bold tracking-wider uppercase">
+                                            <span class="px-2 py-0.5 rounded text-[9px] bg-rose-50 text-rose-800 border border-rose-200 font-bold tracking-wider uppercase">
                                                 Debits: ₹{{ number_format($account->debit_sum, 2) }}
                                             </span>
                                         @endif
@@ -366,14 +369,15 @@
                                     {{-- Statement Search Control (Client-Side / No Reload) --}}
                                     <div class="flex items-center gap-2">
                                         {{-- Search Input --}}
-                                        <div class="relative w-full sm:w-64">
-                                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="relative w-full sm:w-60">
+                                            <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                             </svg>
                                             <input type="text"
                                                    x-model="customerSearch[{{ $account->id }}]"
                                                    placeholder="Search by loan, customer, narration..."
-                                                   class="w-full pl-8 pr-7 py-1 bg-slate-50 border border-slate-200 focus:border-[#a38c29] focus:bg-white focus:ring-1 focus:ring-[#a38c29]/10 rounded-lg text-xs focus:outline-none transition placeholder:text-slate-400 font-medium">
+                                                   style="font-size: 11px;"
+                                                   class="w-full pl-7 pr-6 py-1 bg-slate-50 border border-slate-200 focus:border-[#a38c29] focus:bg-white focus:ring-1 focus:ring-[#a38c29]/10 rounded-lg text-[11px] focus:outline-none transition placeholder:text-slate-400 font-medium">
                                             <button type="button" 
                                                     x-show="customerSearch[{{ $account->id }}]" 
                                                     @click="customerSearch[{{ $account->id }}] = ''" 
@@ -385,58 +389,60 @@
 
                                 {{-- Statement Table --}}
                                 <div class="overflow-x-auto custom-scrollbar bg-white rounded-b-xl border-x border-b border-slate-200/60 shadow-xs">
-                                    <table class="w-full text-xs text-left border-collapse table-auto">
-                                        <thead class="erp-table-header text-white uppercase text-[9px] font-extrabold tracking-wider sticky top-0 z-10">
+                                    <table class="w-full text-[10px] text-left border-collapse table-auto" style="font-size: 10.5px;">
+                                        <thead class="erp-table-header text-white uppercase text-[9px] font-extrabold tracking-wider sticky top-0 z-10" style="font-size: 9px;">
                                             <tr class="erp-table-header border-b border-slate-700 text-left">
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-center w-12 whitespace-nowrap">#</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-24 whitespace-nowrap">Date</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-36 whitespace-nowrap">Voucher / Ref No.</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 whitespace-nowrap">Particulars / Customer</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 w-44 whitespace-nowrap">Instrument</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-center w-24 whitespace-nowrap">Type</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-right w-32 whitespace-nowrap text-emerald-300">Credit (₹)</th>
-                                                <th class="px-4 py-2.5 erp-table-header border-r border-slate-600 text-right w-32 whitespace-nowrap text-rose-300">Debit (₹)</th>
-                                                <th class="px-4 py-2.5 erp-table-header text-right w-36 whitespace-nowrap">Balance (₹)</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 text-center w-10 whitespace-nowrap">#</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 w-24 whitespace-nowrap">Date</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 w-36 whitespace-nowrap">Voucher / Ref No.</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 whitespace-nowrap">Particulars / Customer</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 w-40 whitespace-nowrap">Instrument</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 text-center w-20 whitespace-nowrap">Type</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 text-right w-28 whitespace-nowrap text-emerald-300">Credit (₹)</th>
+                                                <th class="px-3 py-2 erp-table-header border-r border-slate-600 text-right w-28 whitespace-nowrap text-rose-300">Debit (₹)</th>
+                                                <th class="px-3 py-2 erp-table-header text-right w-32 whitespace-nowrap">Balance (₹)</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-slate-100/80 bg-white">
+                                        <tbody class="divide-y divide-slate-100/80 bg-white" style="font-size: 10.5px;">
                                             <template x-for="(txn, txnIdx) in getBankTransactions({{ $account->id }})" :key="txn.id">
                                                 <tr class="hover:bg-amber-50/40 transition-colors cursor-pointer" @click="selectTxn(txn)">
-                                                    <td class="px-4 py-3.5 text-center text-slate-400 font-bold font-mono" x-text="txnIdx + 1"></td>
-                                                    <td class="px-4 py-3.5 font-mono text-slate-600 font-semibold text-[11px] whitespace-nowrap" x-text="txn.date"></td>
-                                                    <td class="px-4 py-3.5">
-                                                        <span class="font-bold text-indigo-700 font-mono text-xs block leading-tight" x-text="txn.voucher_no"></span>
-                                                        <div class="text-[10px] text-[#8a7522] font-mono font-medium mt-1 inline-flex items-center gap-1" x-show="txn.bank_ref_no && txn.bank_ref_no !== '—'">
+                                                    <td class="px-3 py-2 text-center text-slate-400 font-bold font-mono text-[10px]" style="font-size: 10px;" x-text="txnIdx + 1"></td>
+                                                    <td class="px-3 py-2 font-mono text-slate-600 font-semibold text-[10px] whitespace-nowrap" style="font-size: 10px;" x-text="txn.date"></td>
+                                                    <td class="px-3 py-2">
+                                                        <span class="font-bold text-indigo-700 font-mono text-[10px] block leading-tight" style="font-size: 10.5px;" x-text="txn.voucher_no"></span>
+                                                        <div class="text-[9px] text-[#8a7522] font-mono font-medium mt-0.5 inline-flex items-center gap-1" style="font-size: 9px;" x-show="txn.bank_ref_no && txn.bank_ref_no !== '—'">
                                                             <span class="text-slate-400">Ref:</span>
-                                                            <span class="bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200" x-text="txn.bank_ref_no"></span>
+                                                            <span class="bg-amber-50 px-1 py-0.2 rounded border border-amber-200" x-text="txn.bank_ref_no"></span>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-3.5">
-                                                        <div class="font-bold text-slate-900 leading-snug" x-text="txn.customer_name"></div>
-                                                        <div class="text-[11px] text-slate-500 font-medium mt-0.5 truncate max-w-sm" x-show="txn.remarks" x-text="txn.remarks"></div>
+                                                    <td class="px-3 py-2">
+                                                        <div class="font-bold text-[10px] text-slate-900 leading-snug" style="font-size: 10.5px;" x-text="txn.customer_name"></div>
+                                                        <div class="text-[9px] text-slate-500 font-medium mt-0.5 truncate max-w-sm" style="font-size: 9.5px;" x-show="txn.remarks" x-text="txn.remarks"></div>
                                                     </td>
-                                                    <td class="px-4 py-3.5">
-                                                        <div class="flex items-center flex-wrap gap-1.5">
-                                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs" x-text="txn.payment_mode"></span>
-                                                            <span class="font-mono text-slate-700 font-bold text-[11px] bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs" x-show="txn.cheque_no && txn.cheque_no !== '—'" x-text="'#' + txn.cheque_no"></span>
+                                                    <td class="px-3 py-2">
+                                                        <div class="flex items-center flex-wrap gap-1">
+                                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs" style="font-size: 8.5px;" x-text="txn.payment_mode"></span>
+                                                            <span class="font-mono text-slate-700 font-bold text-[9px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 shadow-2xs" style="font-size: 9px;" x-show="txn.cheque_no && txn.cheque_no !== '—'" x-text="'#' + txn.cheque_no"></span>
                                                         </div>
-                                                        <div class="text-[10px] text-slate-400 font-medium mt-1" x-show="txn.drawee_bank && txn.drawee_bank !== '—'" x-text="'Drawee: ' + txn.drawee_bank"></div>
+                                                        <div class="text-[9px] text-slate-400 font-medium mt-0.5" style="font-size: 9px;" x-show="txn.drawee_bank && txn.drawee_bank !== '—'" x-text="'Drawee: ' + txn.drawee_bank"></div>
                                                     </td>
-                                                    <td class="px-4 py-3.5 text-center whitespace-nowrap">
+                                                    <td class="px-3 py-2 text-center whitespace-nowrap">
                                                         <span :class="txn.type === 'Debit' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'"
-                                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border shadow-2xs">
+                                                              style="font-size: 8.5px;"
+                                                              class="inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border shadow-2xs">
                                                             <span x-text="txn.type === 'Debit' ? '▼ Debit' : '▲ Credit'"></span>
                                                         </span>
                                                     </td>
-                                                    <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-700 text-xs whitespace-nowrap">
+                                                    <td class="px-3 py-2 text-right font-mono font-bold text-emerald-700 text-[10px] whitespace-nowrap" style="font-size: 10.5px;">
                                                         <span x-show="txn.type !== 'Debit'" x-text="'₹' + (Number(txn.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
                                                         <span x-show="txn.type === 'Debit'" class="text-slate-300 font-normal">—</span>
                                                     </td>
-                                                    <td class="px-4 py-3.5 text-right font-mono font-bold text-rose-600 text-xs whitespace-nowrap">
+                                                    <td class="px-3 py-2 text-right font-mono font-bold text-rose-600 text-[10px] whitespace-nowrap" style="font-size: 10.5px;">
                                                         <span x-show="txn.type === 'Debit'" x-text="'₹' + (Number(txn.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
                                                         <span x-show="txn.type !== 'Debit'" class="text-slate-300 font-normal">—</span>
                                                     </td>
-                                                    <td class="px-4 py-3.5 text-right font-mono font-black text-slate-900 text-xs whitespace-nowrap"
+                                                    <td class="px-3 py-2 text-right font-mono font-black text-slate-900 text-[10px] whitespace-nowrap"
+                                                        style="font-size: 10.5px;"
                                                         x-text="'₹' + (Number(txn.balance) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})">
                                                     </td>
                                                 </tr>
