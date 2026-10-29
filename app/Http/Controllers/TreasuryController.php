@@ -171,7 +171,7 @@ class TreasuryController extends Controller
         }
 
         // Outward Debits: RA Bill Payments
-        $allRaPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])
+        $allRaPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount', 'voucher'])
             ->where(function ($q) {
                 $q->where('is_historical', false)->orWhereNull('is_historical');
             })
@@ -184,16 +184,17 @@ class TreasuryController extends Controller
             $acc = $raPay->companyBankAccount;
             $payDate = $raPay->payment_date ? Carbon::parse($raPay->payment_date) : null;
             $contractorName = $raPay->raBill?->contractor?->name ?? 'Contractor';
+            $vNo = $raPay->voucher?->voucher_number ?? ('PAY/' . str_pad((string)$raPay->id, 5, '0', STR_PAD_LEFT));
 
             $debitTxn = [
                 'id' => 'ra_' . $raPay->id,
                 'date' => $payDate ? $payDate->format('d/m/Y') : '—',
                 'raw_date' => $payDate ? $payDate->timestamp : 0,
                 'datetime_formatted' => $payDate ? $payDate->format('d M Y') : '—',
-                'voucher_no' => 'PAY/' . str_pad((string)$raPay->id, 5, '0', STR_PAD_LEFT),
-                'customer_name' => $contractorName . ' (RA Bill #' . ($raPay->ra_bill_id ?? '') . ')',
+                'voucher_no' => $vNo,
+                'customer_name' => $contractorName . ' (RA Bill #' . ($raPay->raBill?->ra_bill_number ?: ($raPay->ra_bill_id ?? '')) . ')',
                 'customer_phone' => '',
-                'narration' => 'Payment to ' . $contractorName . ' (RA Bill)',
+                'narration' => $raPay->voucher?->narration ?: ('Payment to ' . $contractorName . ' (RA Bill)'),
                 'payment_mode' => str_replace('_', ' ', $raPay->payment_mode ?: 'Bank Transfer'),
                 'cheque_no' => $raPay->reference_no ?: '—',
                 'drawee_bank' => '—',
@@ -365,8 +366,16 @@ class TreasuryController extends Controller
         }
 
         // Outward Debits: Payment Vouchers (Bank Loan EMIs, Prepayments, Broker Commission, Partner Distributions, Customer Refunds, etc.)
+        $excludedDashboardVoucherIds = array_filter(array_merge(
+            $allRaPayments->pluck('voucher_id')->filter()->all(),
+            $allSiteExpenses->pluck('voucher_id')->filter()->all()
+        ));
+
         $allPaymentVouchers = \App\Models\Voucher::where('type', 'Payment')
             ->where('narration', 'not like', '%[Historical]%')
+            ->when(!empty($excludedDashboardVoucherIds), function ($q) use ($excludedDashboardVoucherIds) {
+                $q->whereNotIn('id', $excludedDashboardVoucherIds);
+            })
             ->where(function ($q) {
                 $q->whereNotNull('company_bank_account_id')
                   ->orWhere('voucher_number', 'LIKE', 'PY-REF-%')
@@ -584,8 +593,44 @@ class TreasuryController extends Controller
             ];
         }
 
+        // 1b. INFLOW: Partner Contributions
+        $partnerContributions = \App\Models\PartnerContribution::with(['partner', 'project', 'companyBankAccount', 'paymentMode'])
+            ->whereNotNull('company_bank_account_id')
+            ->where(function ($q) {
+                $q->where('is_historical', false)->orWhereNull('is_historical');
+            })
+            ->get();
+
+        foreach ($partnerContributions as $pc) {
+            $acc = $pc->companyBankAccount;
+            $cDate = $pc->contribution_date ? Carbon::parse($pc->contribution_date) : Carbon::parse($pc->created_at);
+            $partnerName = $pc->partner?->name ?? 'Partner';
+            $projectName = $pc->project?->name ? (' - ' . $pc->project->name) : '';
+
+            $allTransactions[] = [
+                'id'                 => 'pc_' . $pc->id,
+                'voucher_id'         => null,
+                'raw_timestamp'      => $cDate->timestamp,
+                'date'               => $cDate->format('Y-m-d'),
+                'date_formatted'     => $cDate->format('d M Y'),
+                'datetime_formatted' => $cDate->format('d M Y'),
+                'bank_account_id'    => $pc->company_bank_account_id,
+                'bank_name'          => $acc?->bank_name ?? 'Treasury Bank',
+                'account_number'     => $acc?->account_number ?? '',
+                'flow_type'          => 'inflow',
+                'category'           => 'Partner Contribution',
+                'voucher_no'         => 'PRTC/' . str_pad((string)$pc->id, 5, '0', STR_PAD_LEFT),
+                'counterparty'       => $partnerName . ' (Partner Contribution' . $projectName . ')',
+                'payment_mode'       => $pc->paymentMode?->name ?? 'Bank Transfer',
+                'reference_no'       => $pc->reference_no ?: '—',
+                'narration'          => $pc->remarks ?: ('Partner Contribution from ' . $partnerName . ($pc->project?->name ? (' (' . $pc->project->name . ')') : '')),
+                'inflow_amount'      => (float) $pc->amount,
+                'outflow_amount'     => 0.00,
+            ];
+        }
+
         // 2. OUTFLOW: Contractor RA Bill Payments
-        $raPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])
+        $raPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount', 'voucher'])
             ->whereNotNull('company_bank_account_id')
             ->where(function ($q) {
                 $q->where('is_historical', false)->orWhereNull('is_historical');
@@ -596,9 +641,12 @@ class TreasuryController extends Controller
             $acc = $raPay->companyBankAccount;
             $payDate = $raPay->payment_date ? Carbon::parse($raPay->payment_date) : Carbon::parse($raPay->created_at);
             $contractorName = $raPay->raBill?->contractor?->name ?? 'Contractor';
+            $vNo = $raPay->voucher?->voucher_number ?? ('PAY/' . str_pad((string)$raPay->id, 5, '0', STR_PAD_LEFT));
+            $billNum = $raPay->raBill?->ra_bill_number ?: $raPay->ra_bill_id;
 
             $allTransactions[] = [
                 'id'                 => 'ra_' . $raPay->id,
+                'voucher_id'         => $raPay->voucher_id,
                 'raw_timestamp'      => $payDate->timestamp,
                 'date'               => $payDate->format('Y-m-d'),
                 'date_formatted'     => $payDate->format('d M Y'),
@@ -608,18 +656,18 @@ class TreasuryController extends Controller
                 'account_number'     => $acc?->account_number ?? '',
                 'flow_type'          => 'outflow',
                 'category'           => 'Contractor RA Claim',
-                'voucher_no'         => 'PAY/' . str_pad((string)$raPay->id, 5, '0', STR_PAD_LEFT),
+                'voucher_no'         => $vNo,
                 'counterparty'       => $contractorName,
                 'payment_mode'       => str_replace('_', ' ', $raPay->payment_mode ?: 'Bank Transfer'),
                 'reference_no'       => $raPay->reference_no ?: '—',
-                'narration'          => 'Payment to ' . $contractorName . ' (RA Bill #' . ($raPay->ra_bill_id ?? '') . ')',
+                'narration'          => $raPay->voucher?->narration ?: ('Payment to ' . $contractorName . ' (RA Bill #' . $billNum . ')'),
                 'inflow_amount'      => 0.00,
                 'outflow_amount'     => (float) $raPay->paid_amount,
             ];
         }
 
         // 3. OUTFLOW: Site Expense Payments
-        $sepPayments = \App\Models\SiteExpensePayment::with('companyBankAccount')
+        $sepPayments = \App\Models\SiteExpensePayment::with(['companyBankAccount', 'siteExpense.vendor', 'siteExpense.payee', 'voucher'])
             ->whereNotNull('company_bank_account_id')
             ->where(function ($q) {
                 $q->where('is_historical', false)->orWhereNull('is_historical');
@@ -629,9 +677,12 @@ class TreasuryController extends Controller
         foreach ($sepPayments as $sep) {
             $acc = $sep->companyBankAccount;
             $payDate = $sep->payment_date ? Carbon::parse($sep->payment_date) : Carbon::parse($sep->created_at);
+            $vNo = $sep->voucher?->voucher_number ?? ($sep->siteExpense?->voucher_number ?? ('EXP/' . str_pad((string)$sep->id, 5, '0', STR_PAD_LEFT)));
+            $payeeName = $sep->siteExpense?->casual_payee_name ?: ($sep->siteExpense?->vendor?->name ?: ($sep->siteExpense?->payee?->name ?: 'Site Expense Payee'));
 
             $allTransactions[] = [
                 'id'                 => 'sep_' . $sep->id,
+                'voucher_id'         => $sep->voucher_id,
                 'raw_timestamp'      => $payDate->timestamp,
                 'date'               => $payDate->format('Y-m-d'),
                 'date_formatted'     => $payDate->format('d M Y'),
@@ -641,20 +692,24 @@ class TreasuryController extends Controller
                 'account_number'     => $acc?->account_number ?? '',
                 'flow_type'          => 'outflow',
                 'category'           => 'Site Expense',
-                'voucher_no'         => 'EXP/' . str_pad((string)$sep->id, 5, '0', STR_PAD_LEFT),
-                'counterparty'       => 'Site Expense Payee',
+                'voucher_no'         => $vNo,
+                'counterparty'       => $payeeName,
                 'payment_mode'       => str_replace('_', ' ', $sep->payment_mode ?: 'Bank Transfer'),
                 'reference_no'       => $sep->reference_no ?: '—',
-                'narration'          => $sep->remarks ?: 'Site Expense Payment',
+                'narration'          => $sep->remarks ?: ($sep->siteExpense?->narration ?: 'Site Expense Payment'),
                 'inflow_amount'      => 0.00,
                 'outflow_amount'     => (float) $sep->paid_amount,
             ];
         }
 
-        // 4. OUTFLOW: Direct Site Expenses with payment_source_type = 'bank'
+        // 4. OUTFLOW: Direct Site Expenses with payment_source_type = 'bank' (exclude ones already accounted for in SiteExpensePayment)
+        $paidSiteExpenseIds = $sepPayments->pluck('site_expense_id')->filter()->all();
         $directSiteExpenses = \App\Models\SiteExpense::where('payment_source_type', 'bank')
             ->whereNotNull('company_bank_account_id')
             ->where('paid_amount', '>', 0)
+            ->when(!empty($paidSiteExpenseIds), function ($q) use ($paidSiteExpenseIds) {
+                $q->whereNotIn('id', $paidSiteExpenseIds);
+            })
             ->get();
 
         foreach ($directSiteExpenses as $dse) {
@@ -664,6 +719,7 @@ class TreasuryController extends Controller
 
             $allTransactions[] = [
                 'id'                 => 'dse_' . $dse->id,
+                'voucher_id'         => null,
                 'raw_timestamp'      => $payDate->timestamp,
                 'date'               => $payDate->format('Y-m-d'),
                 'date_formatted'     => $payDate->format('d M Y'),
@@ -705,6 +761,11 @@ class TreasuryController extends Controller
         };
 
         // 5. OUTFLOW / CONTRA: Payment and Contra Vouchers
+        $excludedVoucherIds = array_filter(array_merge(
+            $raPayments->pluck('voucher_id')->filter()->all(),
+            $sepPayments->pluck('voucher_id')->filter()->all()
+        ));
+
         $vouchers = \App\Models\Voucher::whereIn('type', ['Payment', 'Contra'])->with(['lines.account'])->get();
         foreach ($vouchers as $v) {
             $date = $v->date ? Carbon::parse($v->date) : Carbon::parse($v->created_at);
@@ -737,6 +798,7 @@ class TreasuryController extends Controller
                     $counterparty = $destBank ? $destBank->bank_name : 'Site Petty Cash Box';
                     $allTransactions[] = [
                         'id'                 => 'vch_out_' . $v->id,
+                        'voucher_id'         => $v->id,
                         'raw_timestamp'      => $date->timestamp,
                         'date'               => $date->format('Y-m-d'),
                         'date_formatted'     => $date->format('d M Y'),
@@ -760,6 +822,7 @@ class TreasuryController extends Controller
                 if ($destBank && (!$sourceBank || $destBank->id !== $sourceBank->id)) {
                     $allTransactions[] = [
                         'id'                 => 'vch_in_' . $v->id,
+                        'voucher_id'         => $v->id,
                         'raw_timestamp'      => $date->timestamp,
                         'date'               => $date->format('Y-m-d'),
                         'date_formatted'     => $date->format('d M Y'),
@@ -781,12 +844,25 @@ class TreasuryController extends Controller
                 continue;
             }
 
+            // Exclude payment vouchers that are already recorded via RA Bill payments or Site Expenses
+            if (in_array($v->id, $excludedVoucherIds)) {
+                continue;
+            }
+
+            $vNo = strtolower($v->voucher_number ?? '');
+            $narr = strtolower($v->narration ?? '');
+
+            // Fallback exclusion for any unlinked RA bill disbursements or Site Expense releases
+            if (str_starts_with($vNo, 'pv-site-') || str_contains($narr, 'staggered ra bill disbursement') || str_contains($narr, 'site expense payment release')) {
+                continue;
+            }
+
             // Payment Vouchers (Outflow)
             $bankId = $v->company_bank_account_id;
             if (!$bankId) {
-                $narr = $v->narration ?? '';
+                $narrRaw = $v->narration ?? '';
                 foreach ($bankAccounts as $ba) {
-                    if (str_contains($narr, $ba->bank_name) || ($ba->account_number && str_contains($narr, $ba->account_number))) {
+                    if (str_contains($narrRaw, $ba->bank_name) || ($ba->account_number && str_contains($narrRaw, $ba->account_number))) {
                         $bankId = $ba->id;
                         break;
                     }
@@ -798,8 +874,6 @@ class TreasuryController extends Controller
             $acc = $bankAccounts->firstWhere('id', $bankId);
 
             $category = 'Bank Payment Voucher';
-            $vNo = strtolower($v->voucher_number ?? '');
-            $narr = strtolower($v->narration ?? '');
             $counterparty = 'Payment Recipient';
 
             if (str_starts_with($vNo, 'py-ref-') || str_contains($narr, 'refund') || str_contains($narr, 'cancellation')) {
@@ -842,6 +916,7 @@ class TreasuryController extends Controller
 
             $allTransactions[] = [
                 'id'                 => 'vch_' . $v->id,
+                'voucher_id'         => $v->id,
                 'raw_timestamp'      => $date->timestamp,
                 'date'               => $date->format('Y-m-d'),
                 'date_formatted'     => $date->format('d M Y'),

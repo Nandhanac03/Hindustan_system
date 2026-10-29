@@ -55,4 +55,9 @@ class SiteExpensePayment extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class, 'voucher_id');
+    }
 }
