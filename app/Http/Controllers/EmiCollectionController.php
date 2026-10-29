@@ -845,10 +845,12 @@ class EmiCollectionController extends Controller
         });
 
         $totalDebits    = $ledger->sum('debit');
-        $totalCredits   = in_array($sale->status, $archivedStatuses) ? $sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount') : $ledger->sum('credit');
+        $totalCredits   = (float) $sale->receipts
+            ->filter(fn($r) => !$r->partner_id && strtolower($r->realization_status ?? 'realized') === 'realized')
+            ->sum('amount');
         $closingBalance = $installments->isNotEmpty()
             ? max(0, round($totalDebits - $totalCredits, 2))
-            : (float)$sale->remaining_balance;
+            : max(0, round((float)$sale->total_amount - $totalCredits, 2));
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $paymentModes   = PaymentMode::where('status', 'active')->orderBy('name')->get();
