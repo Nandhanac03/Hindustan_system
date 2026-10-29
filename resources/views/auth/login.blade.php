@@ -91,4 +91,14 @@
             <span class="text-xs text-slate-500">Need access? Contact your administrator.</span>
         </div>
     </form>
+
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            var navEntries = window.performance && window.performance.getEntriesByType ? window.performance.getEntriesByType('navigation') : [];
+            var isBackForward = navEntries.length > 0 && navEntries[0].type === 'back_forward';
+            if (event.persisted || isBackForward) {
+                window.location.reload();
+            }
+        });
+    </script>
 </x-guest-layout>

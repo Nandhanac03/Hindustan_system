@@ -14,6 +14,18 @@
                 localStorage.setItem('erp-font-size', '112.5%');
             }
             document.documentElement.style.fontSize = saved || '112.5%';
+
+            if (window.location.pathname.endsWith('/dashboard') || (document.referrer && document.referrer.indexOf('/login') !== -1)) {
+                window.history.pushState(null, '', window.location.href);
+                window.addEventListener('popstate', function () {
+                    window.history.pushState(null, '', window.location.href);
+                });
+            }
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
         })();
     </script>
     
