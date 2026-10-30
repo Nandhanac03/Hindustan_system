@@ -390,17 +390,17 @@
                                 {{-- Statement Table --}}
                                 <div class="overflow-x-auto custom-scrollbar bg-white rounded-b-xl border-x border-b border-slate-200/60 shadow-xs">
                                     <table class="w-full text-[10px] text-left border-collapse table-auto" style="font-size: 10.5px;">
-                                        <thead class="bg-slate-100 text-slate-700 uppercase text-[9px] font-extrabold tracking-wider sticky top-0 z-10 border-b border-slate-200" style="font-size: 9px; background-color: #f1f5f9;">
-                                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-left" style="background-color: #f1f5f9;">
-                                                <th class="px-3 py-2 border-r border-slate-200 text-center w-10 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">#</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 w-24 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Date</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 w-36 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Voucher / Ref No.</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Particulars / Customer</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 w-40 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Instrument</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 text-center w-20 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Type</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 text-right w-28 whitespace-nowrap text-emerald-700 font-bold" style="background-color: #f1f5f9;">Credit (₹)</th>
-                                                <th class="px-3 py-2 border-r border-slate-200 text-right w-28 whitespace-nowrap text-rose-700 font-bold" style="background-color: #f1f5f9;">Debit (₹)</th>
-                                                <th class="px-3 py-2 text-right w-32 whitespace-nowrap text-slate-700" style="background-color: #f1f5f9;">Balance (₹)</th>
+                                        <thead class="text-black uppercase text-[9px] font-extrabold tracking-wider sticky top-0 z-10 border-b border-slate-200" style="font-size: 9px; background-color: #E9F2FB; color: #000000;">
+                                            <tr class="border-b border-slate-200 text-left text-black">
+                                                <th class="px-3 py-2 border-r border-slate-200 text-center w-10 whitespace-nowrap text-black">#</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 w-24 whitespace-nowrap text-black">Date</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 w-36 whitespace-nowrap text-black">Voucher / Ref No.</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 whitespace-nowrap text-black">Particulars / Customer</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 w-40 whitespace-nowrap text-black">Instrument</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 text-center w-20 whitespace-nowrap text-black">Type</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 text-right w-28 whitespace-nowrap text-black">Credit (₹)</th>
+                                                <th class="px-3 py-2 border-r border-slate-200 text-right w-28 whitespace-nowrap text-black">Debit (₹)</th>
+                                                <th class="px-3 py-2 text-right w-32 whitespace-nowrap text-black">Balance (₹)</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100/80 bg-white" style="font-size: 10.5px;">
