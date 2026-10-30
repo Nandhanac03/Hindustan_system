@@ -50,12 +50,25 @@ class CustomerInstallment extends Model
             return;
         }
 
-        $totalPaid = round((float)\App\Models\Receipt::where('sale_id', $saleId)->sum('amount'), 2);
+        $totalPaid = round((float)\App\Models\Receipt::where('sale_id', $saleId)
+            ->where(function ($q) {
+                $q->whereNull('realization_status')
+                  ->orWhereNotIn('realization_status', ['bounced', 'cancelled']);
+            })
+            ->sum('amount'), 2);
         $allocatedPayment = $totalPaid;
         
         $installments = self::where('sale_id', $saleId)
             ->orderBy('installment_no')
             ->get();
+
+        $totalScheduled = $installments->isNotEmpty()
+            ? round((float)$installments->sum('amount'), 2)
+            : round((float)$sale->total_amount, 2);
+        $effectiveTotal = max((float)$sale->total_amount, $totalScheduled);
+        $sale->update([
+            'remaining_balance' => max(0.0, round($effectiveTotal - $totalPaid, 2)),
+        ]);
 
         foreach ($installments as $inst) {
             $instAmount = round((float)$inst->amount, 2);

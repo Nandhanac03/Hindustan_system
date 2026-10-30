@@ -3,15 +3,33 @@
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{
         processModalOpen: false,
         viewModalOpen: false,
+        replaceModalOpen: false,
+        logsModalOpen: false,
         targetReceipt: null,
         viewReceipt: null,
+        replaceReceipt: null,
+        logsReceipt: null,
         selectedStatusId: '',
         statusName: '',
         selectedBankId: '',
         remarksText: '',
+        penaltyAmountVal: '',
         banks: {{ json_encode($companyBankAccounts->map->only('id', 'bank_name', 'account_name', 'account_number', 'branch_name', 'current_balance', 'opening_balance')) }},
         chequeStatuses: {{ json_encode($chequeStatuses->map->only('id', 'name', 'system_name')) }},
         formAction: '#',
+        replaceFormAction: '#',
+        replaceForm: {
+            reference_no: '',
+            new_due_date: '{{ date('Y-m-d') }}',
+            receipt_date: '{{ date('Y-m-d') }}',
+            payment_mode: 'Cheque',
+            penalty_amount: 0,
+            drawee_bank: '',
+            company_bank_account_id: '',
+            installment_id: '',
+            remarks: ''
+        },
+        replaceErrors: {},
         
         modalBankOpen: false,
         modalBankSearch: '',
@@ -21,12 +39,64 @@
             this.viewModalOpen = true;
         },
 
+        openLogsModal(r) {
+            this.logsReceipt = r;
+            this.logsModalOpen = true;
+        },
+
         openProcessFromView() {
             let r = this.viewReceipt;
             this.viewModalOpen = false;
             if (r && !r.is_terminal && r.realization_status !== 'realized') {
                 this.openProcessModal(r);
             }
+        },
+
+        openReplaceFromView() {
+            let r = this.viewReceipt;
+            this.viewModalOpen = false;
+            if (r && r.is_terminal) {
+                this.openReplaceModal(r);
+            }
+        },
+
+        openReplaceModal(r) {
+            this.replaceReceipt = r;
+            this.replaceFormAction = `{{ url('cheque-realization') }}/${r.id}/replace`;
+            this.replaceForm = {
+                reference_no: '',
+                new_due_date: r.reopened_emi_due_date || '{{ date('Y-m-d') }}',
+                receipt_date: '{{ date('Y-m-d') }}',
+                payment_mode: r.payment_mode || 'Cheque',
+                penalty_amount: 0,
+                drawee_bank: (r.customer_bank && r.customer_bank !== '—') ? r.customer_bank : '',
+                company_bank_account_id: r.company_bank_account_id || (this.banks && this.banks.length > 0 ? this.banks[0].id : ''),
+                installment_id: r.reopened_emi_id || '',
+                remarks: ''
+            };
+            this.replaceErrors = {};
+            this.replaceModalOpen = true;
+        },
+
+        get replaceTotalAmount() {
+            const base = this.replaceReceipt ? Number(this.replaceReceipt.amount || 0) : 0;
+            const pen = Number(this.replaceForm.penalty_amount || 0);
+            return base + (pen > 0 ? pen : 0);
+        },
+
+        validateAndSubmitReplaceForm(event) {
+            this.replaceErrors = {};
+            let hasErr = false;
+            if (!this.replaceForm.reference_no || !this.replaceForm.reference_no.trim()) {
+                this.replaceErrors.reference_no = 'Please enter the new Cheque / Reference No.';
+                hasErr = true;
+            }
+            if (!this.replaceForm.new_due_date) {
+                this.replaceErrors.new_due_date = 'Please select the new EMI Due Date / Cheque Date.';
+                hasErr = true;
+            }
+            if (hasErr) return false;
+            event.target.submit();
         },
 
         get filteredModalBanks() {
@@ -127,6 +197,7 @@
             };
             this.selectedBankId = r.company_bank_account_id || (this.banks && this.banks.length > 0 ? this.banks[0].id : '');
             this.remarksText = r.remarksText || '';
+            this.penaltyAmountVal = '';
             this.bankRefNoVal = r.bank_reference_no || '';
             this.realizationDateVal = '{{ date('Y-m-d') }}';
             this.formErrors = {
@@ -183,11 +254,17 @@
                 hasError = true;
             }
 
-            if (!['bounced', 'cancelled'].includes(this.statusName)) {
-                if (!this.realizationDateVal) {
-                    this.formErrors.realization_date = 'Please fill out this field.';
+            if (!this.realizationDateVal) {
+                this.formErrors.realization_date = 'Please select the date.';
+                hasError = true;
+            }
+
+            if (['bounced', 'cancelled'].includes(this.statusName)) {
+                if (!this.remarksText || !this.remarksText.trim()) {
+                    this.formErrors.remarks = 'Please enter the reason for ' + this.statusName + '.';
                     hasError = true;
                 }
+            } else {
                 if (!this.selectedBankId) {
                     this.formErrors.company_bank_account_id = 'Please fill out this field.';
                     hasError = true;
@@ -805,7 +882,12 @@
                                                 </button>
                                             </template>
                                             <template x-if="receipt.is_terminal">
-                                                <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider italic">Terminal</span>
+                                                <button type="button" @click.prevent="openReplaceModal(receipt)"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 border border-rose-300 hover:shadow-sm group cursor-pointer"
+                                                        title="Replace Cheque / Re-Pay Existing EMI">
+                                                    <span>Re-Pay</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                </button>
                                             </template>
                                         @endunless
 
@@ -818,6 +900,17 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
                                         </button>
+
+                                        {{-- View Replacement & Clearance Logs Clock Icon Button --}}
+                                        <template x-if="receipt.logs && receipt.logs.length > 0">
+                                            <button type="button" @click.prevent="openLogsModal(receipt)"
+                                                    class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-[#a38c29]/30 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer group relative"
+                                                    title="View Replacement & Clearance Logs">
+                                                <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </button>
+                                        </template>
                                     </div>
                                 </td>
                             </tr>
@@ -954,10 +1047,11 @@
                                             <input type="hidden" name="new_status" :value="mappedNewStatus" x-bind:disabled="!mappedNewStatus">
                                         </div>
 
-                                        {{-- Realization Date --}}
-                                        <div x-show="!['bounced', 'cancelled'].includes(statusName)">
+                                        {{-- Realization / Bounce / Cancelled Date --}}
+                                        <div>
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
-                                                Realization / Deposit Date <span class="text-rose-500">*</span>
+                                                <span x-text="statusName === 'bounced' ? 'Bounce Date' : (statusName === 'cancelled' ? 'Cancelled Date' : 'Realization / Deposit Date')">Realization / Deposit Date</span>
+                                                <span class="text-rose-500">*</span>
                                             </label>
                                             <input type="date" name="realization_date" x-model="realizationDateVal" @input="formErrors.realization_date = ''"
                                                    :class="formErrors.realization_date ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
@@ -968,6 +1062,15 @@
                                             </p>
                                         </div>
 
+                                        {{-- Bank Penalty / Bounce Charges (Optional when Bounced/Cancelled) --}}
+                                        <div x-show="['bounced', 'cancelled'].includes(statusName)" style="display: none;">
+                                            <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                                Bank Penalty / Bounce Charges (₹) <span class="text-slate-400 font-normal">(Optional)</span>
+                                            </label>
+                                            <input type="number" step="0.01" min="0" name="penalty_amount" x-model="penaltyAmountVal" placeholder="0.00 (Added to customer EMI due if applicable)"
+                                                   class="w-full h-10 px-3.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                        </div>
+
                                         {{-- Deposit To Account --}}
                                         <div x-show="!['bounced', 'cancelled'].includes(statusName)" class="space-y-1 relative" @click.outside="modalBankOpen = false">
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
@@ -975,7 +1078,7 @@
                                             </label>
                                             
                                             {{-- Hidden Input for Form Submission --}}
-                                            <input type="hidden" name="company_bank_account_id" :value="selectedBankId" required>
+                                            <input type="hidden" name="company_bank_account_id" :value="selectedBankId" :disabled="['bounced', 'cancelled'].includes(statusName)">
 
                                             {{-- Dropdown Trigger Button --}}
                                             <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
@@ -1078,11 +1181,18 @@
 
                                         {{-- Remarks / Reason (Exact Same Height h-10 as Left Column) --}}
                                         <div>
-                                            <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]" 
-                                                   x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Remarks (Optional)'">Remarks</label>
-                                            <input type="text" name="remarks" 
-                                                   class="w-full h-10 px-3.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs" 
-                                                   :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason for this state...' : 'Enter any clearing notes or remarks...'" x-model="remarksText">
+                                            <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                                <span x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Remarks (Optional)'">Remarks</span>
+                                                <span x-show="['bounced', 'cancelled'].includes(statusName)" class="text-rose-500">*</span>
+                                            </label>
+                                            <input type="text" name="remarks" @input="formErrors.remarks = ''"
+                                                   :class="formErrors.remarks ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                                   class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs" 
+                                                   :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason for ' + statusName + '...' : 'Enter any clearing notes or remarks...'" x-model="remarksText">
+                                            <p x-show="formErrors.remarks" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formErrors.remarks"></span>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -1189,8 +1299,8 @@
                                      x-transition>
                                     <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                     <div>
-                                        <span class="font-extrabold uppercase tracking-wide block" x-text="statusName === 'bounced' ? 'Instrument Marked As Bounced / Dishonored' : 'Clearance Process Cancelled'"></span>
-                                        <span class="text-rose-700/90 text-[11px] mt-0.5 block">No funds will be credited to company accounts. The instrument will move to the bounced register.</span>
+                                        <span class="font-extrabold uppercase tracking-wide block" x-text="statusName === 'bounced' ? 'Instrument Marked As Bounced — Re-opening Existing EMI Due' : 'Clearance Process Cancelled — Re-opening Existing EMI Due'"></span>
+                                        <span class="text-rose-700/90 text-[11px] mt-0.5 block">No new EMI will be created. Instead, the existing installment due will be automatically re-opened and the pending amount restored to Customer Receivable.</span>
                                     </div>
                                 </div>
                             </div>
@@ -1441,8 +1551,252 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
                         </template>
+
+                        <template x-if="viewReceipt?.is_terminal">
+                            <button type="button" @click="openReplaceFromView()"
+                                    class="h-10 px-6 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs uppercase tracking-wider transition shadow-md shadow-rose-600/20 flex items-center gap-2 cursor-pointer active:scale-95">
+                                <span>Replace Cheque / Re-Pay Existing EMI</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            </button>
+                        </template>
                     </div>
 
+                </div>
+            </div>
+        </template>
+
+        {{-- ── REPLACE BOUNCED / CANCELLED CHEQUE & UPDATE EXISTING EMI MODAL ── --}}
+        <template x-teleport="body">
+            <div x-show="replaceModalOpen"
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-5 bg-slate-950/60 backdrop-blur-xs"
+                 style="display: none;"
+                 x-transition.opacity>
+                <div class="w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 my-auto"
+                     @click.away="replaceModalOpen = false">
+                    
+                    {{-- Header --}}
+                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 sm:px-8 py-4 sm:py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+                        <div class="flex items-center gap-3 relative z-10">
+                            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
+                                ↻
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block px-2.5 py-0.5 bg-rose-500/20 text-rose-300 text-[9px] font-black uppercase tracking-wider rounded border border-rose-500/40"
+                                          x-text="replaceReceipt ? ('REPLACING ' + replaceReceipt.status_display_name + ' #' + replaceReceipt.ref) : 'CHEQUE REPLACEMENT'"></span>
+                                </div>
+                                <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5">Replace Cheque / Payment on Existing EMI</h3>
+                            </div>
+                        </div>
+                        <button type="button" @click="replaceModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer relative z-10">✕</button>
+                    </div>
+
+                    <form :action="replaceFormAction" method="POST" novalidate @submit.prevent="validateAndSubmitReplaceForm($event)" class="flex flex-col flex-1 min-h-0 bg-white">
+                        @csrf
+                        <input type="hidden" name="installment_id" :value="replaceForm.installment_id">
+                        <input type="hidden" name="amount" :value="replaceTotalAmount">
+
+                        <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+                            {{-- Overview Strip --}}
+                            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/90 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
+                                    <span class="text-xs sm:text-sm font-black text-slate-900 block truncate" x-text="replaceReceipt?.customer_name || '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Re-Opened EMI</span>
+                                    <span class="text-xs font-extrabold text-[#a38c29] block" x-text="replaceReceipt?.reopened_emi_label ? (replaceReceipt.reopened_emi_label + ' (Due)') : 'Existing Installment'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Base Installment Due</span>
+                                    <span class="text-xs sm:text-sm font-mono font-bold text-slate-800 block" x-text="replaceReceipt ? ('₹' + Number(replaceReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})) : '₹0.00'"></span>
+                                </div>
+                                <div class="sm:text-right">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Updated EMI + Penalty</span>
+                                    <span class="text-sm sm:text-base font-mono font-black text-emerald-700 block" x-text="'₹' + replaceTotalAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></span>
+                                </div>
+                            </div>
+
+                            {{-- Form Fields --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        New Cheque / Reference No. <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="reference_no" x-model="replaceForm.reference_no" @input="replaceErrors.reference_no = ''"
+                                           placeholder="Enter new Cheque No. or UTR / Ref"
+                                           :class="replaceErrors.reference_no ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 focus:border-[#a38c29]'"
+                                           class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <p x-show="replaceErrors.reference_no" x-cloak class="text-rose-600 text-[11px] font-bold mt-1" x-text="replaceErrors.reference_no"></p>
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        New EMI Due Date / Cheque Date <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="date" name="new_due_date" x-model="replaceForm.new_due_date" @input="replaceErrors.new_due_date = ''"
+                                           :class="replaceErrors.new_due_date ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 focus:border-[#a38c29]'"
+                                           class="w-full h-10 px-3.5 bg-white border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <p x-show="replaceErrors.new_due_date" x-cloak class="text-rose-600 text-[11px] font-bold mt-1" x-text="replaceErrors.new_due_date"></p>
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        Payment Mode <span class="text-rose-500">*</span>
+                                    </label>
+                                    <select name="payment_mode" x-model="replaceForm.payment_mode"
+                                            class="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#a38c29] transition shadow-2xs">
+                                        @if(isset($paymentModes) && $paymentModes->count() > 0)
+                                            @foreach($paymentModes as $pm)
+                                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Bank Transfer (NEFT / RTGS / IMPS)">Bank Transfer (NEFT / RTGS / IMPS)</option>
+                                            <option value="Cash">Cash</option>
+                                            <option value="UPI">UPI</option>
+                                        @endif
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        Bank Penalty / Bounce Charges (₹)
+                                    </label>
+                                    <input type="number" step="0.01" min="0" name="penalty_amount" x-model.number="replaceForm.penalty_amount"
+                                           placeholder="0.00"
+                                           class="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#a38c29] transition shadow-2xs">
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        Customer Bank (Drawee Bank)
+                                    </label>
+                                    <input type="text" name="drawee_bank" x-model="replaceForm.drawee_bank"
+                                           placeholder="e.g. ICICI Bank / HDFC Bank"
+                                           class="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] transition shadow-2xs">
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        Deposit Company Bank Account
+                                    </label>
+                                    <select name="company_bank_account_id" x-model="replaceForm.company_bank_account_id"
+                                            class="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#a38c29] transition shadow-2xs">
+                                        <option value="">-- Select Company Bank Account --</option>
+                                        <template x-for="b in banks" :key="b.id">
+                                            <option :value="b.id" x-text="b.bank_name + ' (A/C: ' + (b.account_number || '—') + ')'"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                    Replacement Remarks / Notes
+                                </label>
+                                <input type="text" name="remarks" x-model="replaceForm.remarks"
+                                       placeholder="Enter replacement cheque notes or bank charge remarks..."
+                                       class="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#a38c29] transition shadow-2xs">
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-[11px] font-medium leading-relaxed">
+                                <strong class="font-black uppercase tracking-wide">Existing EMI Update:</strong> This updates the same existing re-opened EMI record with the new cheque/reference number, new due date, and adds any bank penalty/bounce charges directly to the customer's account without creating a duplicate EMI row.
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 bg-white border-t border-slate-200/90 px-6 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between">
+                            <button type="button" @click="replaceModalOpen = false"
+                                    class="h-10 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="h-10 px-8 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md cursor-pointer">
+                                Save Replacement & Update EMI
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+
+        {{-- ── CHEQUE / EMI REPLACEMENT & CLEARANCE LOGS MODAL (CLOCK ICON) ── --}}
+        <template x-teleport="body">
+            <div x-show="logsModalOpen"
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-5 bg-slate-950/60 backdrop-blur-xs"
+                 style="display: none;"
+                 x-transition.opacity>
+                <div class="w-full max-w-2xl max-h-[85vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 my-auto"
+                     @click.away="logsModalOpen = false">
+                    
+                    {{-- Header --}}
+                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-4 text-white flex items-center justify-between border-b border-slate-800/80 shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center shadow-inner border border-[#a38c29]/30">
+                                <svg class="w-5 h-5 text-[#f3e5ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">AUDIT & REPLACEMENT LOGS</span>
+                                    <span class="text-[11px] font-mono font-bold text-amber-300" x-text="logsReceipt ? ('#' + logsReceipt.ref) : ''"></span>
+                                </div>
+                                <h3 class="font-black text-sm sm:text-base uppercase tracking-wider text-white mt-0.5"
+                                    x-text="logsReceipt ? (logsReceipt.customer_name + ' — ₹' + Number(logsReceipt.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})) : 'Instrument Logs'"></h3>
+                            </div>
+                        </div>
+                        <button type="button" @click="logsModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer">✕</button>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="p-6 space-y-3.5 overflow-y-auto flex-1 bg-slate-50/60">
+                        <template x-if="logsReceipt && logsReceipt.logs && logsReceipt.logs.length > 0">
+                            <div class="space-y-3">
+                                <template x-for="(log, idx) in logsReceipt.logs" :key="log.id || idx">
+                                    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <template x-if="log.is_replacement">
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-[#8a7522] border border-[#a38c29]/40">
+                                                        ↻ Replaced Cheque / EMI
+                                                    </span>
+                                                </template>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" x-text="log.old_status"></span>
+                                                <span class="text-slate-400 font-bold text-xs">→</span>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-50 text-[#8a7522] border border-[#a38c29]/30" x-text="log.new_status"></span>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
+                                                <span class="font-bold text-slate-700" x-text="log.user_name"></span>
+                                                <span>•</span>
+                                                <span class="font-mono" x-text="log.date_formatted"></span>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs font-semibold text-slate-800 leading-relaxed" x-text="log.remarks"></p>
+                                        <template x-if="log.bank_ref">
+                                            <div class="text-[10px] font-mono text-slate-500">
+                                                Bank Ref / UTR: <strong class="text-slate-800" x-text="log.bank_ref"></strong>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="!logsReceipt || !logsReceipt.logs || logsReceipt.logs.length === 0">
+                            <div class="py-10 text-center text-xs text-slate-400 italic bg-white rounded-2xl border border-dashed border-slate-200">
+                                No replacement or status logs recorded for this instrument yet.
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-end shrink-0">
+                        <button type="button" @click="logsModalOpen = false"
+                                class="h-9 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition uppercase cursor-pointer">
+                            Close
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>

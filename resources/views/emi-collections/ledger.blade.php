@@ -324,10 +324,16 @@
                                     @if(!empty($row['receipts']))
                                         @foreach($row['receipts'] as $rcpt)
                                             <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs cursor-pointer">
                                                 <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </button>
                                         @endforeach
+                                    @endif
+                                    @if(!empty($row['logs']))
+                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
+                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
                                     @endif
                                 @elseif($row['status'] === 'partial')
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
@@ -336,41 +342,86 @@
                                     @if(!empty($row['receipts']))
                                         @foreach($row['receipts'] as $rcpt)
                                             <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs cursor-pointer">
                                                 <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </button>
                                         @endforeach
                                     @endif
+                                    @if(!empty($row['bounced_receipt']))
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
+                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                        </span>
+                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
+                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    @endif
+                                    @if(!empty($row['logs']))
+                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
+                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
+                                    @endif
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        Pay Remaining
+                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay' : 'Pay Remaining' }}
                                     </button>
                                     @endif
                                 @elseif($row['status'] === 'overdue')
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
                                         Overdue
                                     </span>
+                                    @if(!empty($row['bounced_receipt']))
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
+                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                        </span>
+                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
+                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    @endif
+                                    @if(!empty($row['logs']))
+                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
+                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
+                                    @endif
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        Pay Installment
+                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay Installment' : 'Pay Installment' }}
                                     </button>
                                     @endif
                                 @else
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                                         Pending
                                     </span>
+                                    @if(!empty($row['bounced_receipt']))
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
+                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                        </span>
+                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
+                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    @endif
+                                    @if(!empty($row['logs']))
+                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
+                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
+                                    @endif
                                     @if($sale->status !== 'exchanged')
                                     <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}')"
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        Pay Installment
+                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay Installment' : 'Pay Installment' }}
                                     </button>
                                     @endif
                                 @endif
@@ -491,7 +542,7 @@
                   <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                   <div class="relative z-10 flex items-center justify-between gap-4">
                       <div>
-                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Installment Payment</span>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="form.bounced_receipt ? 'Re-opened Installment / Cheque Replacement' : 'Installment Payment'"></span>
                           <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Payment for <span x-text="form.label"></span></h2>
                       </div>
                       <button type="button" @click="modalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
@@ -502,29 +553,95 @@
 
               <form @submit.prevent="submitPayment()" novalidate>
                   <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                      <template x-if="form.bounced_receipt">
+                          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 space-y-1">
+                              <div class="flex items-center justify-between">
+                                  <span class="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider" x-text="(form.bounced_receipt.realization_status === 'bounced' ? 'Bounced Instrument #' : 'Cancelled Instrument #') + (form.bounced_receipt.ref || form.bounced_receipt.receipt_number || '')"></span>
+                                  <span class="text-[10px] font-bold text-rose-600" x-text="form.bounced_receipt.realization_date || ''"></span>
+                              </div>
+                              <p class="text-[11px] font-medium text-rose-800">
+                                  This existing EMI was automatically re-opened. Enter the new Cheque / Reference No., updated Due Date, and any Bank Penalty / Bounce Charges below.
+                              </p>
+                          </div>
+                      </template>
+
                       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                          <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
-                              <input type="number" step="0.01" x-model.number="form.amount"
-                                     @input="if(errors.amount) delete errors.amount;"
-                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                     :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
-                              <template x-if="errors.amount">
-                                  <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
-                              </template>
-                          </div>
+                          {{-- When in Bounced/Cancelled Replacement mode: 2 columns for Amount & Penalty --}}
+                          <template x-if="form.bounced_receipt">
+                              <div class="grid grid-cols-2 gap-4">
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
+                                      <input type="number" step="0.01" x-model.number="form.amount"
+                                             @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);"
+                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
+                                             :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                      <template x-if="errors.amount">
+                                          <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
+                                      </template>
+                                  </div>
 
-                          <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
-                              <input type="date" x-model="form.receipt_date"
-                                     @input="if(errors.receipt_date) delete errors.receipt_date;"
-                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                     :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
-                              <template x-if="errors.receipt_date">
-                                  <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
-                              </template>
-                          </div>
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Penalty / Bounce Charge (₹)</label>
+                                      <input type="number" step="0.01" min="0" x-model.number="form.penalty_amount"
+                                             @input="updateCollectAmountWithPenalty()"
+                                             placeholder="0.00"
+                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                      <span class="text-[9px] text-slate-400 font-medium block">Added to this EMI & customer account if > 0</span>
+                                  </div>
+                              </div>
+                          </template>
 
+                          {{-- When in Standard Pay Installment mode: Full width single field for Amount --}}
+                          <template x-if="!form.bounced_receipt">
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
+                                  <input type="number" step="0.01" x-model.number="form.amount"
+                                         @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);"
+                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
+                                         :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <template x-if="errors.amount">
+                                      <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
+                                  </template>
+                              </div>
+                          </template>
+
+                          {{-- When in Bounced/Cancelled Replacement mode: 2 columns for Receipt Date & New Due Date --}}
+                          <template x-if="form.bounced_receipt">
+                              <div class="grid grid-cols-2 gap-4">
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
+                                      <input type="date" x-model="form.receipt_date"
+                                             @input="if(errors.receipt_date) delete errors.receipt_date;"
+                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
+                                             :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
+                                      <template x-if="errors.receipt_date">
+                                          <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
+                                      </template>
+                                  </div>
+
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">New EMI Due / Cheque Date</label>
+                                      <input type="date" x-model="form.new_due_date"
+                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                  </div>
+                              </div>
+                          </template>
+
+                          {{-- When in Standard Pay Installment mode: Full width single field for Receipt Date --}}
+                          <template x-if="!form.bounced_receipt">
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
+                                  <input type="date" x-model="form.receipt_date"
+                                         @input="if(errors.receipt_date) delete errors.receipt_date;"
+                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
+                                         :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <template x-if="errors.receipt_date">
+                                      <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
+                                  </template>
+                              </div>
+                          </template>
+
+                          {{-- Payment Mode (Both modes, full width) --}}
                           <div class="space-y-2">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
                               <select x-model="form.payment_mode"
@@ -976,6 +1093,28 @@
                               <p class="text-slate-600 text-xs bg-amber-50/50 p-3 rounded-lg border border-amber-100/50 italic font-medium" x-text="viewReceiptData.remarks"></p>
                           </div>
                       </template>
+
+                      <template x-if="viewReceiptData.formatted_logs && viewReceiptData.formatted_logs.length > 0">
+                          <div class="p-4 rounded-xl border border-slate-200/80 bg-white shadow-sm space-y-2.5">
+                              <div class="flex items-center gap-1.5 text-[9px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                  <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                  <span>Replacement & Clearance Logs</span>
+                              </div>
+                              <template x-for="(lg, lIdx) in viewReceiptData.formatted_logs" :key="lg.id || lIdx">
+                                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 space-y-1">
+                                      <div class="flex items-center justify-between gap-2 text-[10px]">
+                                          <div class="flex items-center gap-1.5 font-bold">
+                                              <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600" x-text="lg.old_status"></span>
+                                              <span class="text-slate-400">→</span>
+                                              <span class="px-1.5 py-0.5 rounded bg-amber-50 border border-[#a38c29]/30 text-[#8a7522]" x-text="lg.new_status"></span>
+                                          </div>
+                                          <span class="text-[9px] font-mono text-slate-400" x-text="lg.date_formatted"></span>
+                                      </div>
+                                      <p class="text-[11px] text-slate-700 font-medium" x-text="lg.remarks"></p>
+                                  </div>
+                              </template>
+                          </div>
+                      </template>
                   </div>
               </template>
 
@@ -988,6 +1127,69 @@
               <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-slate-50">
                   <button type="button" @click="receiptModalOpen = false" 
                           class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                      Close
+                  </button>
+              </div>
+         </div>
+    </div>
+
+    {{-- Installment / Receipt Replacement & Clearance Logs Modal (Clock Icon) --}}
+    <div x-show="instLogsModalOpen"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+         style="display: none;" x-transition.opacity>
+         <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="instLogsModalOpen = false">
+              {{-- Header --}}
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-[#a38c29]/10">
+                  <div class="relative z-10 flex items-center justify-between gap-4">
+                      <div class="flex items-center gap-3">
+                          <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 flex items-center justify-center text-[#d9bf3b]">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          </div>
+                          <div>
+                              <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Replacement & Status History</span>
+                              <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5" x-text="instLogsTitle || 'EMI & Receipt Logs'"></h2>
+                          </div>
+                      </div>
+                      <button type="button" @click="instLogsModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
+                  </div>
+              </div>
+
+              <div class="p-6 space-y-3 max-h-[65vh] overflow-y-auto font-sans text-xs bg-slate-50/60">
+                  <template x-if="instLogsList && instLogsList.length > 0">
+                      <div class="space-y-3">
+                          <template x-for="(lg, idx) in instLogsList" :key="lg.id || idx">
+                              <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-2">
+                                  <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                                      <div class="flex items-center gap-1.5 flex-wrap">
+                                          <template x-if="lg.is_replacement">
+                                              <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 text-[#8a7522] border border-[#a38c29]/40">
+                                                  ↻ Replaced
+                                              </span>
+                                          </template>
+                                          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200" x-text="'#' + (lg.receipt_ref || lg.receipt_id)"></span>
+                                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="lg.old_status"></span>
+                                          <span class="text-slate-400 font-bold">→</span>
+                                          <span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-50 text-[#8a7522] border border-[#a38c29]/30" x-text="lg.new_status"></span>
+                                      </div>
+                                      <div class="text-[10px] text-slate-400 font-medium">
+                                          <strong class="text-slate-700" x-text="lg.user_name"></strong> • <span class="font-mono" x-text="lg.date_formatted"></span>
+                                      </div>
+                                  </div>
+                                  <p class="text-xs font-semibold text-slate-800 leading-relaxed" x-text="lg.remarks"></p>
+                              </div>
+                          </template>
+                      </div>
+                  </template>
+                  <template x-if="!instLogsList || instLogsList.length === 0">
+                      <div class="p-6 text-center text-xs text-slate-400 italic bg-white rounded-xl border border-dashed border-slate-200">
+                          No replacement or status logs recorded for this installment yet.
+                      </div>
+                  </template>
+              </div>
+
+              <div class="px-6 py-3.5 border-t border-slate-200 flex justify-end bg-slate-50">
+                  <button type="button" @click="instLogsModalOpen = false"
+                          class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">
                       Close
                   </button>
               </div>
@@ -1200,6 +1402,12 @@ function ledgerApp() {
         errors: {},
         form: {
             sale_id: '{{ $sale->id }}',
+            installment_id: '',
+            new_due_date: '',
+            penalty_amount: 0,
+            base_amount: 0,
+            replace_receipt_id: '',
+            bounced_receipt: null,
             amount: 0,
             receipt_date: new Date().toISOString().split('T')[0],
             payment_mode: '{{ $paymentModes->first()?->name ?? '' }}',
@@ -1359,20 +1567,49 @@ function ledgerApp() {
             if (hasDiscount) return 'Deducted from balance';
             return 'Applied to balance';
         },
-        openPayModal(amount, label, isOutOfOrder = false, firstUnpaidLabel = '') {
+        openPayModal(amount, label, isOutOfOrder = false, firstUnpaidLabel = '', installmentId = '', rawDueDate = '', bouncedReceipt = null) {
             this.error = '';
             this.errors = {};
-            this.form.amount = amount;
+            this.form.base_amount = Number(amount) || 0;
+            this.form.amount = Number(amount) || 0;
+            this.form.penalty_amount = 0;
+            this.form.installment_id = installmentId || '';
+            this.form.new_due_date = rawDueDate || new Date().toISOString().split('T')[0];
+            this.form.bounced_receipt = bouncedReceipt || null;
+            this.form.replace_receipt_id = bouncedReceipt ? bouncedReceipt.id : '';
             this.form.label = label;
             this.form.isOutOfOrder = isOutOfOrder;
             this.form.firstUnpaidLabel = firstUnpaidLabel;
             this.form.receipt_date = new Date().toISOString().split('T')[0];
-            this.form.payment_mode = '{{ $paymentModes->first()?->name ?? '' }}';
+            this.form.payment_mode = (bouncedReceipt && bouncedReceipt.payment_mode) ? bouncedReceipt.payment_mode : '{{ $paymentModes->first()?->name ?? '' }}';
             this.form.reference_no = '';
-            this.form.bank_id = '';
+            this.form.bank_id = (bouncedReceipt && bouncedReceipt.bank_id) ? bouncedReceipt.bank_id : '';
             this.form.partner_id = '';
             this.form.remarks = '';
             this.modalOpen = true;
+
+            this.$nextTick(() => {
+                const amtInputs = document.querySelectorAll('input[x-model*="form.amount"], input[x-model\\.number*="form.amount"]');
+                amtInputs.forEach(input => {
+                    if (window.updateAmountInWordsForInput) {
+                        window.updateAmountInWordsForInput(input);
+                    }
+                });
+            });
+        },
+        updateCollectAmountWithPenalty() {
+            const base = parseFloat(this.form.base_amount) || 0;
+            const penalty = Math.max(0, parseFloat(this.form.penalty_amount) || 0);
+            this.form.amount = Math.round((base + penalty) * 100) / 100;
+
+            this.$nextTick(() => {
+                const amtInputs = document.querySelectorAll('input[x-model*="form.amount"], input[x-model\\.number*="form.amount"]');
+                amtInputs.forEach(input => {
+                    if (window.updateAmountInWordsForInput) {
+                        window.updateAmountInWordsForInput(input);
+                    }
+                });
+            });
         },
         async submitPayment() {
             this.error = '';
@@ -1456,6 +1693,14 @@ function ledgerApp() {
         receiptsData: @json($sale->receipts),
         receiptModalOpen: false,
         viewReceiptId: null,
+        instLogsModalOpen: false,
+        instLogsTitle: '',
+        instLogsList: [],
+        openInstLogsModal(title, logs) {
+            this.instLogsTitle = title;
+            this.instLogsList = Array.isArray(logs) ? logs : [];
+            this.instLogsModalOpen = true;
+        },
         get viewReceiptData() {
             if (!this.viewReceiptId) return null;
             return this.receiptsData.find(r => r.id == this.viewReceiptId) || null;
