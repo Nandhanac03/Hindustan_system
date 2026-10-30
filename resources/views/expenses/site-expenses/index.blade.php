@@ -727,21 +727,11 @@
     {{-- PREMIUM EXECUTIVE POPUP MODAL FOR ADD / EDIT SITE EXPENSE --}}
     <div x-show="showCreateModal" 
          x-cloak 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         
-        {{-- Backdrop blur overlay --}}
-        <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
-
         {{-- Modal Dialog Container (Flex col with max-height to pin header and footer - Zero White Border) --}}
         <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto bg-slate-900 border-0 ring-0 outline-none"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+             @click.away="showCreateModal = false">
             
             {{-- Header (Flush Dark Header - zero white border) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
@@ -1148,22 +1138,11 @@
     {{-- ULTRA-EXECUTIVE POPUP MODAL FOR VIEWING SITE EXPENSE VOUCHER DETAILS --}}
     <div x-show="showViewModal" 
          x-cloak 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         
-        {{-- Backdrop blur overlay --}}
-        <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
-
         {{-- Modal Dialog Container (No bg-white on container to prevent white fringe) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border-0 ring-0 outline-none"
+             @click.away="showViewModal = false">
             
             {{-- Header (Flush Dark Header - zero white border) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
@@ -1400,11 +1379,9 @@
 
     {{-- ── PAYMENT DISBURSEMENT MODAL (OPENS VOUCHER IN NEW TAB & AUTO-REFRESHES STATUS) ── --}}
     <div x-show="disburseModalOpen" x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
-         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         
-        <div class="bg-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh] border-0 ring-0 outline-none" @click.away="disburseModalOpen = false">
+        <div class="bg-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] border-0 ring-0 outline-none" @click.away="disburseModalOpen = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-3.5 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -1687,11 +1664,9 @@
     {{-- CUSTOM DESIGNED CONFIRMATION MODAL (REJECT / DELETE / APPROVE) --}}
     <div x-show="showConfirmModal"
          x-cloak
-         x-transition.opacity
-         class="fixed inset-0 z-[60] flex items-center justify-center p-4"
-         style="background: rgba(2,6,23,0.65); backdrop-filter: blur(4px);">
+         class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
 
-        <div class="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
+        <div class="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border-0 ring-0 outline-none" @click.away="showConfirmModal = false">
 
             {{-- Header (Flush Dark Header - zero white border) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">

@@ -275,12 +275,9 @@
     {{-- ═══════════════════════════════════════════
          CUSTOM DELETE UNIT CONFIRMATION MODAL
     ═══════════════════════════════════════════ --}}
-    {{-- ═══════════════════════════════════════════
-         CUSTOM DELETE UNIT CONFIRMATION MODAL
-    ═══════════════════════════════════════════ --}}
     <div x-show="confirmDeleteUnitModal.open" 
          @click.stop
-         class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" 
+         class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" 
          style="display: none;" 
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 scale-95"
@@ -338,7 +335,7 @@
     ═══════════════════════════════════════════ --}}
     <div x-show="confirmDeactivateModal.open" 
           @click.stop
-          class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" 
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" 
           style="display: none;" 
           x-transition:enter="transition ease-out duration-200"
           x-transition:enter-start="opacity-0 scale-95"
@@ -392,7 +389,7 @@
     {{-- ═══════════════════════════════════════════
          ADD SALE MODAL (Redesigned)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !modals.quickBroker.open && !confirmDeleteUnitModal.open) closeAddModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
@@ -1169,7 +1166,7 @@
     {{-- ═══════════════════════════════════════════
          QUICK ADD CUSTOMER MODAL (nested)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.quickCustomer.open" @click.self.stop="modals.quickCustomer.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.quickCustomer.open" @click.self.stop="modals.quickCustomer.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.stop>
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Quick Add Customer</h3>
@@ -1206,7 +1203,7 @@
     {{-- ═══════════════════════════════════════════
          QUICK ADD BROKER MODAL (nested)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.quickBroker.open" @click.self.stop="modals.quickBroker.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.quickBroker.open" @click.self.stop="modals.quickBroker.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.stop>
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Quick Add Broker</h3>
@@ -1245,7 +1242,7 @@
     {{-- ═══════════════════════════════════════════
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !modals.quickBroker.open && !confirmDeleteUnitModal.open) closeEditModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/20">
@@ -1904,7 +1901,7 @@
     {{-- ═══════════════════════════════════════════
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">

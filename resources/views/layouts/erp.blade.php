@@ -510,9 +510,9 @@
                 <!-- <a href="{{ route('opening-balances.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('opening-balances.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Opening Balance
                 </a> -->
-                <a href="{{ route('journal-vouchers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('journal-vouchers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <!-- <a href="{{ route('journal-vouchers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('journal-vouchers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Journal Vouchers
-                </a>
+                </a> -->
                 <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Trial Balance
                 </a>
