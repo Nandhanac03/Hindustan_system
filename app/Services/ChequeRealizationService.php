@@ -60,7 +60,11 @@ class ChequeRealizationService
             $oldStatus  = $receipt->realization_status;
             $userId     = $data['realized_by'];
             $remarks    = $data['remarks'] ?? 'Cheque cleared by bank.';
-            $realizedAt = !empty($data['realized_at']) ? \Carbon\Carbon::parse($data['realized_at']) : now();
+            if (!empty($data['bank_reference_no'])) {
+                $remarks = ($remarks ? $remarks . ' ' : '') . '(Bank Ref: ' . $data['bank_reference_no'] . ')';
+            }
+            $dateInput  = $data['realized_at'] ?? ($data['realization_date'] ?? null);
+            $realizedAt = !empty($dateInput) ? \Carbon\Carbon::parse($dateInput) : now();
 
             // 1. Update receipt status and bank account
             $receipt->update([
@@ -99,6 +103,11 @@ class ChequeRealizationService
                 'remarks'    => $remarks,
                 'changed_by' => $userId,
             ]);
+
+            $sale = $this->resolveSaleForReceipt($receipt);
+            if ($sale) {
+                \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            }
 
             // 4. Create Double Entry Accounting Postings (ONLY when instrument is Realized)
             try {
@@ -196,17 +205,38 @@ class ChequeRealizationService
         }
 
         return DB::transaction(function () use ($receipt, $data) {
-            $oldStatus = $receipt->realization_status;
+            $oldStatus   = $receipt->realization_status;
+            $bounceDate  = !empty($data['realization_date']) ? \Carbon\Carbon::parse($data['realization_date']) : now();
+            $reasonText  = trim((string)($data['remarks'] ?? 'Cheque dishonoured by bank.'));
+            $penaltyAmt  = isset($data['penalty_amount']) ? max(0.0, round((float)$data['penalty_amount'], 2)) : 0.0;
 
-            $receipt->update(['realization_status' => 'bounced']);
+            $formattedRemarks = '[Bounce Date: ' . $bounceDate->format('d M Y') . '] ' . ($reasonText ?: 'Cheque dishonoured by bank.');
+            if ($penaltyAmt > 0) {
+                $formattedRemarks .= ' (Bounce Penalty: ₹' . number_format($penaltyAmt, 2) . ')';
+            }
+
+            $receipt->update([
+                'realization_status' => 'bounced',
+                'realized_at'        => $bounceDate,
+                'realized_by'        => $data['changed_by'] ?? auth()->id(),
+                'remarks'            => $formattedRemarks,
+            ]);
+
+            \App\Models\ReceiptStore::where('receipt_id', $receipt->id)->update([
+                'status'  => 'bounced',
+                'remarks' => $formattedRemarks,
+            ]);
 
             ReceiptRealizationLog::create([
                 'receipt_id' => $receipt->id,
                 'old_status' => $oldStatus,
                 'new_status' => 'bounced',
-                'remarks'    => $data['remarks'] ?? 'Cheque dishonoured by bank.',
-                'changed_by' => $data['changed_by'],
+                'remarks'    => $formattedRemarks,
+                'changed_by' => $data['changed_by'] ?? auth()->id(),
             ]);
+
+            // Re-open the existing EMI installment due and restore amount to Customer Receivable
+            $this->reopenInstallmentAndApplyPenalty($receipt, $penaltyAmt);
 
             return $receipt->fresh();
         });
@@ -226,9 +256,9 @@ class ChequeRealizationService
      */
     public function reinitialize(Receipt $receipt, array $data): Receipt
     {
-        if ($receipt->realization_status !== 'bounced') {
+        if (!in_array($receipt->realization_status, ['bounced', 'cancelled'], true)) {
             throw new \Exception(
-                "Receipt #{$receipt->id} is not in bounced status (current: '{$receipt->realization_status}')."
+                "Receipt #{$receipt->id} is not in bounced/cancelled status (current: '{$receipt->realization_status}')."
             );
         }
 
@@ -245,12 +275,118 @@ class ChequeRealizationService
                 'changed_by' => $data['changed_by'],
             ]);
 
+            $sale = $this->resolveSaleForReceipt($receipt);
+            if ($sale) {
+                \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            }
+
             return $receipt->fresh();
         });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Advance Status (Pending → Cheque in Hand → Deposited)
+    // Replace Bounced / Cancelled Cheque & Update Existing EMI Record
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Replace a bounced or cancelled cheque/payment by updating the same existing
+     * EMI installment record (new cheque number, new due date, and optional bank
+     * penalty / bounce charges) without creating a new EMI row.
+     */
+    public function replaceInstrument(Receipt $receipt, array $data): Receipt
+    {
+        if (!in_array($receipt->realization_status, ['bounced', 'cancelled'], true)) {
+            throw new \Exception(
+                "Only bounced or cancelled instruments can be replaced (current: '{$receipt->realization_status}')."
+            );
+        }
+
+        return DB::transaction(function () use ($receipt, $data) {
+            $oldStatus  = $receipt->realization_status;
+            $oldRef     = $receipt->reference_no ?: ('REC-' . $receipt->id);
+            $newRef     = trim((string)($data['reference_no'] ?? $oldRef));
+            $newDueDate = !empty($data['new_due_date'])
+                ? \Carbon\Carbon::parse($data['new_due_date'])->toDateString()
+                : ($receipt->cheque_date?->toDateString() ?? now()->toDateString());
+            $receiptDate = !empty($data['receipt_date'])
+                ? \Carbon\Carbon::parse($data['receipt_date'])->toDateString()
+                : now()->toDateString();
+            $paymentMode = $data['payment_mode'] ?? ($receipt->payment_mode ?: 'Cheque');
+            $penaltyAmt  = isset($data['penalty_amount']) ? max(0.0, round((float)$data['penalty_amount'], 2)) : 0.0;
+            $userId      = $data['changed_by'] ?? auth()->id();
+
+            // 1. Re-open existing EMI installment due and apply new due date + penalty to the SAME EMI record
+            $targetInst = $this->reopenInstallmentAndApplyPenalty(
+                $receipt,
+                $penaltyAmt,
+                $newDueDate,
+                isset($data['installment_id']) ? (int)$data['installment_id'] : null
+            );
+
+            $baseAmount = (float)$receipt->amount;
+            $updatedAmount = isset($data['amount']) && (float)$data['amount'] > 0
+                ? round((float)$data['amount'], 2)
+                : round($baseAmount + $penaltyAmt, 2);
+
+            $dueDateFormatted = \Carbon\Carbon::parse($newDueDate)->format('d M Y');
+            $emiLabel = $targetInst ? $targetInst->label : 'Installment';
+            $replacementNote = "Replaced " . strtoupper((string)$oldStatus) . " #{$oldRef} with #{$newRef} for {$emiLabel} (New Due: {$dueDateFormatted}"
+                . ($penaltyAmt > 0 ? ", Bounce/Penalty Charge: ₹" . number_format($penaltyAmt, 2) : "")
+                . ")" . (!empty($data['remarks']) ? " — " . trim((string)$data['remarks']) : "");
+
+            $updateFields = [
+                'reference_no'       => $newRef,
+                'cheque_date'        => $newDueDate,
+                'receipt_date'       => $receiptDate,
+                'payment_mode'       => $paymentMode,
+                'amount'             => $updatedAmount,
+                'realization_status' => 'pending',
+                'realized_at'        => null,
+                'realized_by'        => null,
+                'remarks'            => $replacementNote,
+            ];
+
+            if (!empty($data['company_bank_account_id'])) {
+                $updateFields['company_bank_account_id'] = $data['company_bank_account_id'];
+            }
+            if (!empty($data['drawee_bank'])) {
+                $updateFields['drawee_bank'] = $data['drawee_bank'];
+            }
+            if (!empty($data['bank_id'])) {
+                $updateFields['bank_id'] = $data['bank_id'];
+            }
+
+            $receipt->update($updateFields);
+
+            \App\Models\ReceiptStore::where('receipt_id', $receipt->id)->update([
+                'reference_no' => $newRef,
+                'receipt_date' => $receiptDate,
+                'payment_mode' => $paymentMode,
+                'amount'       => $updatedAmount,
+                'status'       => 'pending',
+                'remarks'      => $replacementNote,
+            ]);
+
+            ReceiptRealizationLog::create([
+                'receipt_id' => $receipt->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'pending',
+                'remarks'    => $replacementNote,
+                'changed_by' => $userId,
+            ]);
+
+            // 2. Re-allocate payment status on the sale so the existing EMI reflects the replacement instrument
+            $sale = $this->resolveSaleForReceipt($receipt);
+            if ($sale) {
+                \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            }
+
+            return $receipt->fresh();
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Advance Status (Pending → Cheque in Hand → Deposited / Cancelled)
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
@@ -278,29 +414,148 @@ class ChequeRealizationService
         }
 
         return DB::transaction(function () use ($receipt, $newStatus, $data) {
-            $oldStatus = $receipt->realization_status;
+            $oldStatus  = $receipt->realization_status;
+            $penaltyAmt = isset($data['penalty_amount']) ? max(0.0, round((float)$data['penalty_amount'], 2)) : 0.0;
 
             $updateData = ['realization_status' => $newStatus];
             if (!empty($data['company_bank_account_id'])) {
                 $updateData['company_bank_account_id'] = $data['company_bank_account_id'];
             }
+
+            $remarks = trim((string)($data['remarks'] ?? ''));
+            if ($newStatus === 'cancelled') {
+                $cancelDate = !empty($data['realization_date']) ? \Carbon\Carbon::parse($data['realization_date']) : now();
+                $remarks = '[Cancelled Date: ' . $cancelDate->format('d M Y') . '] ' . ($remarks ?: 'Instrument cancelled.');
+                if ($penaltyAmt > 0) {
+                    $remarks .= ' (Penalty Charge: ₹' . number_format($penaltyAmt, 2) . ')';
+                }
+                $updateData['realized_at'] = $cancelDate;
+                $updateData['realized_by'] = $data['changed_by'] ?? auth()->id();
+                $updateData['remarks']     = $remarks;
+            } else {
+                if (!empty($data['bank_reference_no'])) {
+                    $remarks = ($remarks ? $remarks . ' ' : '') . '(Bank Ref: ' . $data['bank_reference_no'] . ')';
+                }
+            }
+
             $receipt->update($updateData);
 
-            $remarks = $data['remarks'] ?? null;
-            if (!empty($data['bank_reference_no'])) {
-                $remarks = ($remarks ? $remarks . ' ' : '') . '(Bank Ref: ' . $data['bank_reference_no'] . ')';
-            }
+            \App\Models\ReceiptStore::where('receipt_id', $receipt->id)->update([
+                'status'  => $newStatus,
+                'remarks' => $remarks ?: $receipt->remarks,
+            ]);
 
             ReceiptRealizationLog::create([
                 'receipt_id' => $receipt->id,
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
-                'remarks'    => $remarks,
-                'changed_by' => $data['changed_by'],
+                'remarks'    => $remarks ?: null,
+                'changed_by' => $data['changed_by'] ?? auth()->id(),
             ]);
+
+            if ($newStatus === 'cancelled') {
+                $this->reopenInstallmentAndApplyPenalty($receipt, $penaltyAmt);
+            } else {
+                $sale = $this->resolveSaleForReceipt($receipt);
+                if ($sale) {
+                    \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+                }
+            }
 
             return $receipt->fresh();
         });
+    }
+
+    /**
+     * Resolve the associated Sale for a receipt (by sale_id or customer_id + unit_id/project_id).
+     */
+    public function resolveSaleForReceipt(Receipt $receipt): ?\App\Models\Sale
+    {
+        if ($receipt->sale_id) {
+            return \App\Models\Sale::find($receipt->sale_id);
+        }
+
+        if ($receipt->customer_id) {
+            $query = \App\Models\Sale::where('customer_id', $receipt->customer_id)
+                ->where('status', 'active');
+            if ($receipt->unit_id) {
+                $query->where('unit_id', $receipt->unit_id);
+            } elseif ($receipt->project_id) {
+                $query->where('project_id', $receipt->project_id);
+            }
+            $sale = $query->latest('id')->first();
+            if (!$sale) {
+                $sale = \App\Models\Sale::where('customer_id', $receipt->customer_id)
+                    ->where('status', 'active')
+                    ->latest('id')
+                    ->first();
+            }
+            if ($sale) {
+                $receipt->update(['sale_id' => $sale->id]);
+                return $sale;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Re-open the existing EMI installment due when a cheque bounces or is cancelled
+     * (without creating a new EMI), and optionally update its due_date and apply
+     * any bank penalty / bounce charges to the same EMI & Customer Receivable.
+     */
+    public function reopenInstallmentAndApplyPenalty(
+        Receipt $receipt,
+        float $penaltyAmount = 0.0,
+        ?string $newDueDate = null,
+        ?int $targetInstallmentId = null
+    ): ?\App\Models\CustomerInstallment {
+        $sale = $this->resolveSaleForReceipt($receipt);
+        if (!$sale) {
+            return null;
+        }
+
+        // 1. Re-allocate payment status excluding bounced/cancelled receipts so the existing EMI reopens
+        \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+
+        // 2. Find the reopened (first unpaid) existing EMI installment (or specific installment if passed)
+        $targetInst = null;
+        if ($targetInstallmentId) {
+            $targetInst = \App\Models\CustomerInstallment::where('sale_id', $sale->id)
+                ->where('id', $targetInstallmentId)
+                ->first();
+        }
+        if (!$targetInst) {
+            $targetInst = \App\Models\CustomerInstallment::where('sale_id', $sale->id)
+                ->whereIn('status', ['pending', 'partial', 'overdue'])
+                ->orderBy('installment_no')
+                ->orderBy('id')
+                ->first();
+        }
+
+        // 3. Apply new due date and/or bounce penalty charge to the SAME existing EMI record
+        if ($targetInst && ($penaltyAmount > 0 || !empty($newDueDate))) {
+            $instUpdates = [];
+            if (!empty($newDueDate)) {
+                $instUpdates['due_date'] = $newDueDate;
+            }
+            if ($penaltyAmount > 0) {
+                $instUpdates['amount'] = round((float)$targetInst->amount + $penaltyAmount, 2);
+                $sale->refresh();
+                $sale->update([
+                    'total_amount' => round((float)$sale->total_amount + $penaltyAmount, 2),
+                ]);
+            }
+            if (!empty($instUpdates)) {
+                $targetInst->update($instUpdates);
+            }
+
+            // Re-sync installment status and Sale::remaining_balance
+            \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            $targetInst->refresh();
+        }
+
+        return $targetInst;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -47,6 +47,8 @@ class ChequeRealizationController extends Controller
 
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
         $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
 
         $chequeStatusesMap = $this->buildChequeStatusesMap($chequeStatuses);
 
@@ -68,7 +70,9 @@ class ChequeRealizationController extends Controller
             'bouncedCount',
             'bouncedAmount',
             'customers',
-            'chequeStatuses'
+            'chequeStatuses',
+            'paymentModes',
+            'banks'
         ));
     }
 
@@ -103,6 +107,8 @@ class ChequeRealizationController extends Controller
 
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
         $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
 
         $chequeStatusesMap = $this->buildChequeStatusesMap($chequeStatuses);
 
@@ -124,7 +130,9 @@ class ChequeRealizationController extends Controller
             'bouncedCount',
             'bouncedAmount',
             'customers',
-            'chequeStatuses'
+            'chequeStatuses',
+            'paymentModes',
+            'banks'
         ));
     }
 
@@ -240,6 +248,7 @@ class ChequeRealizationController extends Controller
                     'id'             => $log->id,
                     'old_status'     => $log->old_status_label ?? $log->old_status ?? '—',
                     'new_status'     => $log->new_status_label ?? $log->new_status ?? '—',
+                    'is_replacement' => str_starts_with(trim($logRem), 'Replaced '),
                     'remarks'        => $logRem ?: '—',
                     'bank_ref'       => $logRef,
                     'user_name'      => $log->changedBy?->name ?? 'System',
@@ -247,8 +256,46 @@ class ChequeRealizationController extends Controller
                 ];
             })->values()->all();
 
+            if (empty($logs) && ($r->realization_status ?? 'pending') !== 'pending') {
+                $logs[] = [
+                    'id'             => 'init-' . $r->id,
+                    'old_status'     => '⏳ Pending',
+                    'new_status'     => ($icons[$r->realization_status] ?? '•') . ' ' . $statusName,
+                    'is_replacement' => str_starts_with(trim((string)($cleanRemarks ?: $r->remarks)), 'Replaced '),
+                    'remarks'        => $cleanRemarks ?: ($r->remarks ?: 'Status updated to ' . $statusName),
+                    'bank_ref'       => $bankRef,
+                    'user_name'      => $r->realizedBy?->name ?? 'Admin',
+                    'date_formatted' => ($r->realized_at ?? $r->updated_at ?? $r->created_at)?->format('d M Y, h:i A') ?? '—',
+                ];
+            }
+
+            $isTerminal = in_array($r->realization_status, ['bounced', 'cancelled']);
+            $reopenedEmiId = null;
+            $reopenedEmiLabel = null;
+            $reopenedEmiDueDate = null;
+            $saleId = $r->sale_id;
+
+            if ($isTerminal) {
+                $sale = $this->realizationService->resolveSaleForReceipt($r);
+                if ($sale) {
+                    $saleId = $sale->id;
+                    \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+                    $reopenedInst = \App\Models\CustomerInstallment::where('sale_id', $sale->id)
+                        ->whereIn('status', ['pending', 'partial', 'overdue'])
+                        ->orderBy('installment_no')
+                        ->orderBy('id')
+                        ->first();
+                    if ($reopenedInst) {
+                        $reopenedEmiId = $reopenedInst->id;
+                        $reopenedEmiLabel = $reopenedInst->label;
+                        $reopenedEmiDueDate = $reopenedInst->due_date?->format('Y-m-d');
+                    }
+                }
+            }
+
             return [
                 'id'                          => $r->id,
+                'sale_id'                     => $saleId,
                 'receipt_no'                  => $r->receipt_no ?? ('RV/2025-26/' . str_pad((string)$r->id, 6, '0', STR_PAD_LEFT)),
                 'ref'                         => $r->reference_no ?: ('REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT)),
                 'date'                        => $r->receipt_date?->format('Y-m-d'),
@@ -280,7 +327,10 @@ class ChequeRealizationController extends Controller
                 'bank_reference_no'           => $bankRef,
                 'realized_at'                 => $r->realized_at?->format('d M Y, h:i A') ?? null,
                 'realized_by'                 => $r->realizedBy?->name ?? null,
-                'is_terminal'                 => in_array($r->realization_status, ['bounced', 'cancelled']),
+                'is_terminal'                 => $isTerminal,
+                'reopened_emi_id'             => $reopenedEmiId,
+                'reopened_emi_label'          => $reopenedEmiLabel,
+                'reopened_emi_due_date'       => $reopenedEmiDueDate,
                 'logs'                        => $logs,
             ];
         })->values()->all();
@@ -360,20 +410,26 @@ class ChequeRealizationController extends Controller
     public function markBounced(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
-            'remarks' => ['nullable', 'string', 'max:500'],
+            'realization_date' => ['nullable', 'date'],
+            'remarks'          => ['required', 'string', 'max:500'],
+            'penalty_amount'   => ['nullable', 'numeric', 'min:0'],
+        ], [
+            'remarks.required' => 'Please enter the reason for cheque bounce.',
         ]);
 
         $receipt = Receipt::findOrFail($id);
 
         try {
             $this->realizationService->markBounced($receipt, [
-                'changed_by' => auth()->id(),
-                'remarks'    => $validated['remarks'] ?? 'Cheque dishonoured by bank.',
+                'changed_by'       => auth()->id(),
+                'realization_date' => $validated['realization_date'] ?? now()->toDateString(),
+                'remarks'          => $validated['remarks'],
+                'penalty_amount'   => $validated['penalty_amount'] ?? 0,
             ]);
 
             return redirect()->route('cheque-realization.queue')->with(
                 'success',
-                "❌ Receipt #{$id} marked as Bounced. No balance change. Audit log recorded."
+                "❌ Receipt #{$id} marked as Bounced. Existing EMI installment due re-opened and Customer Receivable updated."
             );
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
@@ -381,30 +437,77 @@ class ChequeRealizationController extends Controller
     }
 
     /**
-     * Advance Status (e.g. to deposited)
+     * Advance Status (e.g. to deposited or cancelled)
      */
     public function advanceStatus(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
-            'new_status' => ['required', 'in:pending,cheque_in_hand,deposited,in_clearing,cancelled'],
-            'remarks'    => ['nullable', 'string', 'max:500'],
+            'new_status'              => ['required', 'in:pending,cheque_in_hand,deposited,in_clearing,cancelled'],
+            'realization_date'        => ['nullable', 'date'],
+            'remarks'                 => ['nullable', 'string', 'max:500'],
+            'penalty_amount'          => ['nullable', 'numeric', 'min:0'],
             'company_bank_account_id' => ['nullable', 'exists:company_bank_accounts,id'],
-            'bank_reference_no' => ['nullable', 'string', 'max:255'],
+            'bank_reference_no'       => ['nullable', 'string', 'max:255'],
         ]);
 
         $receipt = Receipt::findOrFail($id);
 
         try {
             $this->realizationService->advanceStatus($receipt, $validated['new_status'], [
-                'changed_by' => auth()->id(),
-                'remarks'    => $validated['remarks'] ?? null,
+                'changed_by'              => auth()->id(),
+                'realization_date'        => $validated['realization_date'] ?? now()->toDateString(),
+                'remarks'                 => $validated['remarks'] ?? null,
+                'penalty_amount'          => $validated['penalty_amount'] ?? 0,
                 'company_bank_account_id' => $validated['company_bank_account_id'] ?? null,
-                'bank_reference_no' => $validated['bank_reference_no'] ?? null,
+                'bank_reference_no'       => $validated['bank_reference_no'] ?? null,
             ]);
 
             $label = Receipt::STATUSES[$validated['new_status']] ?? $validated['new_status'];
+            $msg = $validated['new_status'] === 'cancelled'
+                ? "🚫 Receipt #{$id} marked as Cancelled. Existing EMI installment due re-opened and Customer Receivable updated."
+                : "Receipt #{$id} updated to: {$label}";
 
-            return redirect()->route('cheque-realization.queue')->with('success', "Receipt #{$id} updated to: {$label}");
+            return redirect()->route('cheque-realization.queue')->with('success', $msg);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Replace a Bounced / Cancelled Cheque with a New Cheque / Payment & Update the Existing EMI Record
+     */
+    public function replaceInstrument(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reference_no'            => ['required', 'string', 'max:100'],
+            'new_due_date'            => ['required', 'date'],
+            'receipt_date'            => ['nullable', 'date'],
+            'payment_mode'            => ['required', 'string', 'max:100'],
+            'penalty_amount'          => ['nullable', 'numeric', 'min:0'],
+            'amount'                  => ['nullable', 'numeric', 'min:0.01'],
+            'drawee_bank'             => ['nullable', 'string', 'max:150'],
+            'company_bank_account_id' => ['nullable', 'exists:company_bank_accounts,id'],
+            'installment_id'          => ['nullable', 'integer'],
+            'remarks'                 => ['nullable', 'string', 'max:500'],
+        ], [
+            'reference_no.required' => 'Please enter the new Cheque / Reference No.',
+            'new_due_date.required' => 'Please select the new EMI Due Date / Cheque Date.',
+        ]);
+
+        $receipt = Receipt::findOrFail($id);
+
+        try {
+            $updated = $this->realizationService->replaceInstrument($receipt, array_merge($validated, [
+                'changed_by' => auth()->id(),
+            ]));
+
+            $penalty = (float)($validated['penalty_amount'] ?? 0);
+            $penaltyMsg = $penalty > 0 ? " (including ₹" . number_format($penalty, 2) . " bank penalty/bounce charges applied to account)" : "";
+
+            return redirect()->route('cheque-realization.queue')->with(
+                'success',
+                "🔄 Replacement instrument #{$updated->reference_no} recorded{$penaltyMsg}. Existing EMI updated with new due date and re-queued for clearance."
+            );
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

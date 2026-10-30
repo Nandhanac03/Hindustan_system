@@ -370,8 +370,12 @@ class EmiCollectionController extends Controller
             'prepayment_option' => ['nullable', 'in:reduce_tenure,reduce_emi'],
             'reschedule_option' => ['nullable', 'in:extend_tenure,shift_dates'],
             'reschedule_reason' => ['nullable', 'string'],
-            'new_count'         => ['nullable', 'integer', 'min:1'],
-            'shift_months'      => ['nullable', 'integer', 'min:1'],
+            'new_count'          => ['nullable', 'integer', 'min:1'],
+            'shift_months'       => ['nullable', 'integer', 'min:1'],
+            'installment_id'     => ['nullable', 'integer'],
+            'new_due_date'       => ['nullable', 'date'],
+            'penalty_amount'     => ['nullable', 'numeric', 'min:0'],
+            'replace_receipt_id' => ['nullable', 'integer'],
         ], [
             'reference_no.required_unless' => 'The Ref / Cheque / UTR No. field is required.',
         ]);
@@ -381,6 +385,7 @@ class EmiCollectionController extends Controller
             return response()->json(['error' => 'The sale id / booking id field is required.'], 422);
         }
 
+        CustomerInstallment::allocatePaymentStatusForSale((int)$saleId);
         $sale = Sale::findOrFail($saleId);
 
         // Intake Validation Guard: sale must have project + unit + customer
@@ -390,11 +395,14 @@ class EmiCollectionController extends Controller
             ], 422);
         }
 
+        $penaltyAmount = isset($validated['penalty_amount']) ? max(0.0, round((float)$validated['penalty_amount'], 2)) : 0.0;
+
         if (($validated['collection_type'] ?? 'regular') !== 'reschedule') {
-            if (round((float)$validated['amount'], 2) > round((float)$sale->remaining_balance, 2)) {
+            $allowedBalance = round((float)$sale->remaining_balance + $penaltyAmount, 2);
+            if (round((float)$validated['amount'], 2) > $allowedBalance) {
                 return response()->json([
                     'error' => 'Payment (₹' . number_format((float)$validated['amount'], 2) .
-                               ') exceeds remaining balance (₹' . number_format((float)$sale->remaining_balance, 2) . ').'
+                               ') exceeds remaining balance (₹' . number_format($allowedBalance, 2) . ').'
                 ], 422);
             }
         }
@@ -420,11 +428,48 @@ class EmiCollectionController extends Controller
             }
         }
 
-        $result = DB::transaction(function () use ($validated, $sale) {
+        $result = DB::transaction(function () use ($validated, $sale, $penaltyAmount, $request) {
             $collectionType = $validated['collection_type'] ?? 'regular';
             $receipt = null;
 
             if ($collectionType === 'regular' || $collectionType === 'prepayment') {
+                // Find the existing EMI installment to update in-place (never create a duplicate EMI)
+                $targetInst = null;
+                if (!empty($validated['installment_id'])) {
+                    $targetInst = CustomerInstallment::where('sale_id', $sale->id)
+                        ->where('id', (int)$validated['installment_id'])
+                        ->first();
+                }
+                if (!$targetInst && $request->filled('label')) {
+                    $cleanLbl = trim(explode('(', (string)$request->label)[0]);
+                    $targetInst = CustomerInstallment::where('sale_id', $sale->id)
+                        ->whereRaw('LOWER(TRIM(label)) = ?', [strtolower($cleanLbl)])
+                        ->first();
+                }
+                if (!$targetInst) {
+                    $targetInst = CustomerInstallment::where('sale_id', $sale->id)
+                        ->whereIn('status', ['pending', 'partial', 'overdue'])
+                        ->orderBy('installment_no')
+                        ->orderBy('id')
+                        ->first();
+                }
+
+                if ($targetInst && ($penaltyAmount > 0 || !empty($validated['new_due_date']))) {
+                    $instUpdates = [];
+                    if (!empty($validated['new_due_date'])) {
+                        $instUpdates['due_date'] = $validated['new_due_date'];
+                    }
+                    if ($penaltyAmount > 0) {
+                        $instUpdates['amount'] = round((float)$targetInst->amount + $penaltyAmount, 2);
+                        $sale->update([
+                            'total_amount' => round((float)$sale->total_amount + $penaltyAmount, 2),
+                        ]);
+                    }
+                    if (!empty($instUpdates)) {
+                        $targetInst->update($instUpdates);
+                    }
+                }
+
                 $bankId = $validated['bank_id'] ?? null;
                 if (!$bankId && !empty($validated['bank_name'])) {
                     $bank = \App\Models\Bank::where('bank_name', $validated['bank_name'])->first();
@@ -433,23 +478,84 @@ class EmiCollectionController extends Controller
                     }
                 }
 
-                $receipt = Receipt::create([
-                    'sale_id'      => $sale->id,
-                    'customer_id'  => $sale->customer_id,
-                    'project_id'   => $sale->project_id,
-                    'unit_id'      => $sale->unit_id,
-                    'receipt_date' => $validated['receipt_date'] ?? now()->toDateString(),
-                    'amount'       => $validated['amount'],
-                    'payment_mode' => $validated['payment_mode'],
-                    'payment_type' => $collectionType,
-                    'reference_no' => $validated['reference_no'] ?? null,
-                    'bank_id'      => $bankId,
-                    'remarks'      => $validated['remarks'] ?? null,
-                    'created_by'   => auth()->id() ?? 1,
-                    'partner_id'   => $validated['partner_id'] ?? null,
-                ]);
+                $replacedReceipt = null;
+                if (!empty($validated['replace_receipt_id'])) {
+                    $replacedReceipt = Receipt::where('id', (int)$validated['replace_receipt_id'])
+                        ->where('sale_id', $sale->id)
+                        ->whereIn('realization_status', ['bounced', 'cancelled'])
+                        ->first();
+                }
 
-                $totalPaid = $sale->receipts()->sum('amount');
+                $remarksNote = $validated['remarks'] ?? null;
+                if ($penaltyAmount > 0) {
+                    $remarksNote = ($remarksNote ? $remarksNote . ' | ' : '') . 'Includes Bank Penalty/Bounce Charge: ₹' . number_format($penaltyAmount, 2);
+                }
+
+                if ($replacedReceipt) {
+                    $oldStatus = $replacedReceipt->realization_status;
+                    $oldRef = $replacedReceipt->reference_no ?: ('REC-' . $replacedReceipt->id);
+                    $newDueStr = !empty($validated['new_due_date']) ? $validated['new_due_date'] : ($validated['receipt_date'] ?? now()->toDateString());
+                    $dueDateFormatted = \Carbon\Carbon::parse($newDueStr)->format('d M Y');
+                    $emiLabel = $targetInst ? $targetInst->label : 'Installment';
+                    $replacementNote = "Replaced " . strtoupper((string)$oldStatus) . " #{$oldRef} with #{$validated['reference_no']} for {$emiLabel} (New Due: {$dueDateFormatted})"
+                        . ($remarksNote ? " — {$remarksNote}" : "");
+
+                    $replacedReceipt->update([
+                        'receipt_date'       => $validated['receipt_date'] ?? now()->toDateString(),
+                        'cheque_date'        => $newDueStr,
+                        'amount'             => $validated['amount'],
+                        'payment_mode'       => $validated['payment_mode'],
+                        'reference_no'       => $validated['reference_no'] ?? null,
+                        'bank_id'            => $bankId,
+                        'realization_status' => 'pending',
+                        'realized_at'        => null,
+                        'realized_by'        => null,
+                        'remarks'            => $replacementNote,
+                    ]);
+
+                    \App\Models\ReceiptStore::where('receipt_id', $replacedReceipt->id)->update([
+                        'reference_no' => $validated['reference_no'] ?? null,
+                        'receipt_date' => $validated['receipt_date'] ?? now()->toDateString(),
+                        'payment_mode' => $validated['payment_mode'],
+                        'amount'       => $validated['amount'],
+                        'status'       => 'pending',
+                        'remarks'      => $replacementNote,
+                    ]);
+
+                    \App\Models\ReceiptRealizationLog::create([
+                        'receipt_id' => $replacedReceipt->id,
+                        'old_status' => $oldStatus,
+                        'new_status' => 'pending',
+                        'remarks'    => $replacementNote,
+                        'changed_by' => auth()->id() ?? 1,
+                    ]);
+
+                    $receipt = $replacedReceipt->fresh();
+                } else {
+                    $receipt = Receipt::create([
+                        'sale_id'      => $sale->id,
+                        'customer_id'  => $sale->customer_id,
+                        'project_id'   => $sale->project_id,
+                        'unit_id'      => $sale->unit_id,
+                        'receipt_date' => $validated['receipt_date'] ?? now()->toDateString(),
+                        'cheque_date'  => $validated['new_due_date'] ?? ($validated['receipt_date'] ?? now()->toDateString()),
+                        'amount'       => $validated['amount'],
+                        'payment_mode' => $validated['payment_mode'],
+                        'payment_type' => $collectionType,
+                        'reference_no' => $validated['reference_no'] ?? null,
+                        'bank_id'      => $bankId,
+                        'remarks'      => $remarksNote,
+                        'created_by'   => auth()->id() ?? 1,
+                        'partner_id'   => $validated['partner_id'] ?? null,
+                    ]);
+                }
+
+                $totalPaid = $sale->receipts()
+                    ->where(function ($q) {
+                        $q->whereNull('realization_status')
+                          ->orWhereNotIn('realization_status', ['bounced', 'cancelled']);
+                    })
+                    ->sum('amount');
                 $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);
             }
 
@@ -671,7 +777,7 @@ class EmiCollectionController extends Controller
             CustomerInstallment::allocatePaymentStatusForSale($sale->id);
         }
 
-        $sale->load(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts.bank']);
+        $sale->load(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts.bank', 'receipts.realizationLogs.changedBy', 'receipts.realizedBy']);
 
         $archiveSnapshot = null;
         $archivedStatuses = ['exchanged', 'cancelled', 'returned', 'resale'];
@@ -737,7 +843,56 @@ class EmiCollectionController extends Controller
             ->orderBy('installment_no')
             ->get();
 
-        $receipts = $sale->receipts->sortBy('id')->values();
+        // Build formatted realization & replacement logs per receipt
+        $receiptLogsById = [];
+        foreach ($sale->receipts as $rc) {
+            $rcRef = $rc->reference_no ?: ('REC-' . $rc->id);
+            $rLogs = ($rc->relationLoaded('realizationLogs') && $rc->realizationLogs)
+                ? $rc->realizationLogs->map(function ($l) use ($rc, $rcRef) {
+                    $rem = $l->remarks ?? '';
+                    return [
+                        'id'             => $l->id,
+                        'receipt_id'     => $rc->id,
+                        'receipt_ref'    => $rcRef,
+                        'receipt_amount' => (float)$rc->amount,
+                        'old_status'     => $l->old_status_label ?? $l->old_status ?? '—',
+                        'new_status'     => $l->new_status_label ?? $l->new_status ?? '—',
+                        'is_replacement' => str_starts_with(trim($rem), 'Replaced '),
+                        'remarks'        => $rem ?: '—',
+                        'user_name'      => $l->changedBy?->name ?? 'System',
+                        'date_formatted' => $l->created_at?->format('d M Y, h:i A') ?? '—',
+                    ];
+                })->values()->all()
+                : [];
+
+            if (empty($rLogs) && ($rc->realization_status ?? 'pending') !== 'pending') {
+                $rLogs[] = [
+                    'id'             => 'init-' . $rc->id,
+                    'receipt_id'     => $rc->id,
+                    'receipt_ref'    => $rcRef,
+                    'receipt_amount' => (float)$rc->amount,
+                    'old_status'     => '⏳ Pending',
+                    'new_status'     => $rc->realization_status_label ?? strtoupper((string)$rc->realization_status),
+                    'is_replacement' => str_starts_with(trim((string)$rc->remarks), 'Replaced '),
+                    'remarks'        => $rc->remarks ?: ('Status updated to ' . strtoupper((string)$rc->realization_status)),
+                    'user_name'      => ($rc->relationLoaded('realizedBy') ? $rc->realizedBy?->name : null) ?? 'Admin',
+                    'date_formatted' => ($rc->realized_at ?? $rc->updated_at ?? $rc->created_at)?->format('d M Y, h:i A') ?? '—',
+                ];
+            }
+            $receiptLogsById[$rc->id] = $rLogs;
+            $rc->setAttribute('formatted_logs', $rLogs);
+        }
+
+        // Only allocate non-bounced and non-cancelled receipts to installments
+        $receipts = $sale->receipts
+            ->filter(fn($r) => !in_array(strtolower((string)($r->realization_status ?? '')), ['bounced', 'cancelled'], true))
+            ->sortBy('id')
+            ->values();
+        $bouncedOrCancelledReceipts = $sale->receipts
+            ->filter(fn($r) => in_array(strtolower((string)($r->realization_status ?? '')), ['bounced', 'cancelled'], true))
+            ->sortBy('id')
+            ->values();
+
         $receiptQueue = [];
         foreach ($receipts as $r) {
             $receiptQueue[] = [
@@ -783,6 +938,27 @@ class EmiCollectionController extends Controller
             }
         }
 
+        // Map any bounced/cancelled receipts to the reopened unpaid installments in order
+        $bouncedByInstallment = [];
+        $bIdx = 0;
+        foreach ($installments as $inst) {
+            if ($inst->status !== 'paid' && $bIdx < $bouncedOrCancelledReceipts->count()) {
+                $br = $bouncedOrCancelledReceipts[$bIdx++];
+                $bouncedByInstallment[$inst->id] = [
+                    'id'                 => $br->id,
+                    'ref'                => $br->reference_no ?: ('REC-' . $br->id),
+                    'receipt_number'     => $br->reference_no ?: ('REC-' . $br->id),
+                    'amount'             => (float)$br->amount,
+                    'realization_status' => strtolower((string)$br->realization_status),
+                    'realization_date'   => $br->realized_at?->format('d M Y') ?? ($br->receipt_date?->format('d M Y') ?? '—'),
+                    'payment_mode'       => $br->payment_mode ?? 'Cheque',
+                    'bank_id'            => $br->bank_id ?? null,
+                    'remarks'            => $br->remarks,
+                    'logs'               => $receiptLogsById[$br->id] ?? [],
+                ];
+            }
+        }
+
         $ledger = collect();
         $runningBalance = 0;
         $opening = 0;
@@ -792,9 +968,38 @@ class EmiCollectionController extends Controller
             $paidAmount = round((float)($inst->paid_amount ?? 0), 2);
             $runningBalance += ($instAmount - $paidAmount);
 
+            // Collect all replacement & realization logs belonging to this installment
+            $instLogs = [];
+            $seenLogIds = [];
+            foreach (($installmentReceipts[$inst->id] ?? []) as $rcItem) {
+                foreach (($receiptLogsById[$rcItem['id']] ?? []) as $lg) {
+                    if (!isset($seenLogIds[$lg['id']])) {
+                        $seenLogIds[$lg['id']] = true;
+                        $instLogs[] = $lg;
+                    }
+                }
+            }
+            if (!empty($bouncedByInstallment[$inst->id]['logs'])) {
+                foreach ($bouncedByInstallment[$inst->id]['logs'] as $lg) {
+                    if (!isset($seenLogIds[$lg['id']])) {
+                        $seenLogIds[$lg['id']] = true;
+                        $instLogs[] = $lg;
+                    }
+                }
+            }
+            foreach ($receiptLogsById as $rLogsList) {
+                foreach ($rLogsList as $lg) {
+                    if (!isset($seenLogIds[$lg['id']]) && !empty($lg['remarks']) && stripos($lg['remarks'], 'for ' . $inst->label) !== false) {
+                        $seenLogIds[$lg['id']] = true;
+                        $instLogs[] = $lg;
+                    }
+                }
+            }
+
             $ledger->push([
                 'id'              => $inst->id,
                 'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                'raw_due_date'    => $inst->due_date?->format('Y-m-d') ?? now()->toDateString(),
                 'description'     => $inst->label . ' (Due)',
                 'debit'           => $instAmount,
                 'credit'          => $paidAmount,
@@ -803,6 +1008,8 @@ class EmiCollectionController extends Controller
                 'status'          => $inst->status,
                 'sort_date'       => $inst->due_date,
                 'receipts'        => $installmentReceipts[$inst->id] ?? [],
+                'bounced_receipt' => $bouncedByInstallment[$inst->id] ?? null,
+                'logs'            => $instLogs,
             ]);
         }
 
