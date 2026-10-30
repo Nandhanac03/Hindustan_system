@@ -147,6 +147,19 @@ Route::get('/clear-cache', function () {
     ]);
 });
 
+// Helper route to clear transactional database data with DB password verification & audit log
+Route::match(['get', 'post'], '/clear-data', function () {
+    ob_start();
+    require public_path('clear-data.php');
+    return response(ob_get_clean());
+})->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
+Route::match(['get', 'post'], '/clear-data.php', function () {
+    ob_start();
+    require public_path('clear-data.php');
+    return response(ob_get_clean());
+})->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
 // Fallback route to serve storage files directly if public/storage symlink is bypassed or inaccessible
 Route::get('/storage/{path}', function ($path) {
     $file = storage_path('app/public/' . $path);
