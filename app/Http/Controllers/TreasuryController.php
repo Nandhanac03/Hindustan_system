@@ -1098,13 +1098,37 @@ class TreasuryController extends Controller
                 foreach ($refData['allocations'] as $alloc) {
                     if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
                         $amount = (float)($alloc['amount'] ?? 0);
-                        $bankId = $v->company_bank_account_id;
+                        $bankId = $v->company_bank_account_id ?: ($refData['company_bank_account_id'] ?? null);
                         if (!$bankId) {
-                            $bankId = DB::table('voucher_lines')
-                                ->join('company_bank_accounts', 'voucher_lines.account_id', '=', 'company_bank_accounts.chart_of_account_id')
+                            // Check if company_bank_accounts has chart_of_account_id before attempting join
+                            if (\Illuminate\Support\Facades\Schema::hasColumn('company_bank_accounts', 'chart_of_account_id')) {
+                                $bankId = DB::table('voucher_lines')
+                                    ->join('company_bank_accounts', 'voucher_lines.account_id', '=', 'company_bank_accounts.chart_of_account_id')
+                                    ->where('voucher_lines.voucher_id', $v->id)
+                                    ->where('voucher_lines.credit', '>', 0)
+                                    ->value('company_bank_accounts.id');
+                            }
+                        }
+                        if (!$bankId) {
+                            // Fallback: match bank account by credit line account name or code, or default to first bank account
+                            $creditAccount = DB::table('voucher_lines')
+                                ->join('accounts', 'voucher_lines.account_id', '=', 'accounts.id')
                                 ->where('voucher_lines.voucher_id', $v->id)
                                 ->where('voucher_lines.credit', '>', 0)
-                                ->value('company_bank_accounts.id');
+                                ->select('accounts.name', 'accounts.code')
+                                ->first();
+
+                            if ($creditAccount) {
+                                $matchedBank = DB::table('company_bank_accounts')
+                                    ->where(function ($q) use ($creditAccount) {
+                                        $q->where('bank_name', 'like', '%' . $creditAccount->name . '%')
+                                          ->orWhere('account_name', 'like', '%' . $creditAccount->name . '%');
+                                    })
+                                    ->value('id');
+                                $bankId = $matchedBank ?: DB::table('company_bank_accounts')->orderBy('id')->value('id');
+                            } else {
+                                $bankId = DB::table('company_bank_accounts')->orderBy('id')->value('id');
+                            }
                         }
                         if ($bankId) {
                             $refundsByBank[$bankId] = ($refundsByBank[$bankId] ?? 0.0) + $amount;
