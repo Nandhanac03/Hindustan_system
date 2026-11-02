@@ -3266,7 +3266,7 @@
                                 </template>
                                 <template x-if="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-slate-500 font-medium">Current Refund Issue</span>
+                                        <span class="text-slate-500 font-medium">Current Refund amount</span>
                                         <span class="font-bold text-rose-500 font-mono" x-text="'- ' + fmt(customerRefundForm.refund_amount)"></span>
                                     </div>
                                 </template>
