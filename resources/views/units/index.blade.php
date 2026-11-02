@@ -1050,11 +1050,11 @@
                                                     </div>
                                                     <div>
                                                         <span class="text-emerald-650 block font-medium">Actual Sale Price</span>
-                                                        <strong class="text-emerald-800 font-extrabold" x-text="unit ? '₹' + Number(unit.sale_amount || (getUnitActiveSale(unit) ? getUnitActiveSale(unit).sale_amount : 0)).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-emerald-800 font-extrabold" x-text="unit ? '₹' + Number((getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null ? getUnitActiveSale(unit).total_amount : unit.sale_amount) || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                     <div class="col-span-2 bg-rose-50 border border-rose-100 rounded-lg p-2.5">
                                                         <span class="text-rose-600 block font-bold text-[9px] uppercase tracking-wider">Shortfall / Difference</span>
-                                                        <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number(unit.difference || 0).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number((unit.expected_sale_amount != null && getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null) ? (Number(unit.expected_sale_amount) - Number(getUnitActiveSale(unit).total_amount)) : (unit.difference || 0)).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                     <div x-show="getUnitActiveSale(unit)">
                                                         <span class="text-emerald-650 block font-medium">Total Amount (Tax Inc.)</span>
@@ -2817,11 +2817,17 @@ function unitsApp() {
                     const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
 
                     let saleAmountDisp = fmtMoney(unit.sale_amount);
+                    let unitDifference = unit.difference;
                     let saleCellAttrs = 'class="px-1.5 py-3.5 border font-bold"';
                     if (unit.status === 'sold') {
                         const activeSale = this.getUnitActiveSale(unit);
                         if (activeSale) {
                             saleCellAttrs = `class="px-1.5 py-3.5 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
+                            const totalContractVal = (activeSale.total_amount != null && Number(activeSale.total_amount) > 0) ? activeSale.total_amount : unit.sale_amount;
+                            saleAmountDisp = fmtMoney(totalContractVal);
+                            if (unit.expected_sale_amount != null && totalContractVal != null) {
+                                unitDifference = Number(unit.expected_sale_amount) - Number(totalContractVal);
+                            }
                             if (activeSale.customer) {
                                 saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2 py-0.5 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-wider whitespace-nowrap text-emerald-700">Sold: ${activeSale.customer.name}</span></div>`;
                             }
@@ -2838,7 +2844,7 @@ function unitsApp() {
                         <td class="px-1.5 py-3.5 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
                         <td class="px-1.5 py-3.5 border font-bold text-slate-900">${saleRateDisp}</td>
                         <td ${saleCellAttrs}>${saleAmountDisp}</td>
-                        <td class="px-1.5 py-3.5 border font-bold">${fmtMoney(unit.difference)}</td>
+                        <td class="px-1.5 py-3.5 border font-bold">${fmtMoney(unitDifference)}</td>
                         <td class="px-1.5 py-3.5 border">${statusBadge(unit.status)}</td>
                         <td class="px-1.5 py-3.5 border text-right">${actionsBtns(unit)}</td>
                     </tr>`;
@@ -3824,6 +3830,8 @@ function unitsApp() {
                     if (asu) activeSale = asu.sale;
                 }
 
+                const totalContractVal = (unit.status === 'sold' && activeSale && activeSale.total_amount != null) ? activeSale.total_amount : unit.sale_amount;
+                saleAmount = totalContractVal ? fmtMoney(totalContractVal) : 'N/A';
                 const isSold = (unit.status || '').toLowerCase() === 'sold';
                 let customerLabel = '';
                 if (isSold && activeSale && activeSale.customer && activeSale.customer.name) {
@@ -3831,7 +3839,8 @@ function unitsApp() {
                     saleAmount += customerLabel;
                 }
 
-                const diff = fmtMoney(unit.difference);
+                const diffVal = (isSold && unit.expected_sale_amount != null && totalContractVal != null) ? (Number(unit.expected_sale_amount) - Number(totalContractVal)) : unit.difference;
+                const diff = fmtMoney(diffVal);
                 const rawStatus = (unit.status || 'available').toLowerCase();
                 const statusDisplay = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
 
