@@ -249,7 +249,7 @@
                 <span class="text-xs font-bold uppercase tracking-widest opacity-80">Customers</span>
             </div>
             <div class="text-3xl font-extrabold tracking-tight transition-transform duration-300 group-hover:translate-x-1">{{ number_format($totalCustomers) }}</div>
-            <div class="text-xs text-white/70 mt-1">Registered property buyers</div>
+            <div class="text-xs text-white/70 mt-1">Active property buyers</div>
         </div>
 
         {{-- Sold Units Details (Replaces System Health) --}}

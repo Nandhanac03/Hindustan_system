@@ -71,7 +71,12 @@ class DashboardController extends Controller
         $soldUnitsCount           = $unitQuery()->where('status', 'sold')->count();
         $soldUnitsValue           = $unitQuery()->where('status', 'sold')->sum('expected_sale_amount');
         $reservedUnits            = $unitQuery()->where('status', 'reserved')->count();
-        $totalCustomers           = Customer::count();
+        $totalCustomers           = Customer::whereHas('sales', function ($q) use ($activeProject) {
+            $q->where('status', 'active');
+            if ($activeProject) {
+                $q->where('project_id', $activeProject->id);
+            }
+        })->count();
         $totalSales               = (float) $bookingQuery()->where('status', 'active')->sum('total_amount');
         $totalBookingsCount       = $bookingQuery()->where('status', 'active')->count();
         $grossRealizedCollections = (float) $paymentQuery()->sum('amount');
@@ -87,18 +92,25 @@ class DashboardController extends Controller
             ->get();
 
         // ── Top Customers (by total payment amount / sales volume) ───────────────
-        $topCustomers = Customer::withSum(
+        $topCustomers = Customer::whereHas('sales', function ($q) use ($activeProject) {
+                $q->where('status', 'active');
+                if ($activeProject) {
+                    $q->where('project_id', $activeProject->id);
+                }
+            })
+            ->withSum(
                 ['receipts' => fn ($q) => ($activeProject ? $q->where('project_id', $activeProject->id) : $q)
                     ->whereNull('partner_id')
                     ->where('realization_status', 'realized')
+                    ->whereHas('sale', fn ($sq) => $sq->where('status', 'active'))
                 ],
                 'amount'
             )
             ->withSum(
-                ['sales' => fn ($q) => $activeProject ? $q->where('status', 'active')->where('project_id', $activeProject->id) : $q->where('status', 'active')],
+                ['sales' => fn ($q) => ($activeProject ? $q->where('project_id', $activeProject->id) : $q)->where('status', 'active')],
                 'total_amount'
             )
-            ->withCount(['sales' => fn ($q) => $activeProject ? $q->where('status', 'active')->where('project_id', $activeProject->id) : $q->where('status', 'active')])
+            ->withCount(['sales' => fn ($q) => ($activeProject ? $q->where('project_id', $activeProject->id) : $q)->where('status', 'active')])
             ->orderByDesc('receipts_sum_amount')
             ->orderByDesc('sales_sum_total_amount')
             ->take(5)
