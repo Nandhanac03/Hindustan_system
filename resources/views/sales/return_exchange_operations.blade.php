@@ -388,8 +388,10 @@
 
                                     <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
                                         <button type="button" @click="openCustomerRefund(sale)" 
-                                                class="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
-                                                title="Customer Refund">
+                                                :disabled="getRemainingRefund(sale) <= 0.009"
+                                                :class="getRemainingRefund(sale) <= 0.009 ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200' : 'bg-amber-500/10 hover:bg-amber-500/20 text-[#a38c29] hover:text-[#8a7522] shadow-sm'"
+                                                class="p-2 rounded-lg transition inline-flex items-center justify-center" 
+                                                :title="getRemainingRefund(sale) <= 0.009 ? 'Refund Completed (Balance: ₹0.00)' : 'Customer Refund'">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
@@ -3225,6 +3227,19 @@
                     </div>
                 </template>
 
+                {{-- Fully Refunded Notice Banner --}}
+                <template x-if="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-emerald-800 shadow-2xs">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <span class="font-extrabold text-xs uppercase tracking-wider text-emerald-900 block">Refund Fully Completed</span>
+                            <p class="text-xs font-medium text-emerald-700 mt-0.5">The total refund amount of <strong class="font-mono font-bold" x-text="fmt(getRefundDue(refundModalSale))"></strong> has been completely refunded. Remaining balance is <strong class="font-mono font-bold">₹0.00</strong>. No further refund payments are pending.</p>
+                        </div>
+                    </div>
+                </template>
+
                 {{-- Two Column Layout --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
@@ -3264,6 +3279,10 @@
                                         <span class="font-bold text-teal-600 font-mono" x-text="fmt(getRefundPaid(refundModalSale))"></span>
                                     </div>
                                 </template>
+                                <div class="flex items-center justify-between" x-show="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
+                                    <span class="text-slate-600 font-semibold">Balance Refund Amount</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="fmt(getRemainingRefund(refundModalSale))"></span>
+                                </div>
                                 <template x-if="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
                                     <div class="flex items-center justify-between">
                                         <span class="text-slate-500 font-medium">Current Refund amount</span>
@@ -3273,7 +3292,7 @@
 
                                 {{-- Balance Refund Amount Row --}}
                                 <div class="pt-2 border-t border-slate-100 flex items-center justify-between bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100">
-                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]">Balance Refund Amount</span>
+                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]" x-text="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0 ? 'Balance Refund Amount (After Payout)' : 'Balance Refund Amount'"></span>
                                     <span class="font-black font-mono text-sm"
                                           :class="Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)) > 0 ? 'text-amber-600' : 'text-emerald-600'"
                                           x-text="fmt(Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)))"></span>
@@ -3429,18 +3448,40 @@
 
                         {{-- Refund Amount --}}
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Refund Amount <span class="text-rose-500">*</span></label>
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Refund Amount <span class="text-rose-500">*</span></label>
+                                <div class="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                                    <span>Balance Refund Amount:</span>
+                                    <button type="button" 
+                                            @click="customerRefundForm.refund_amount = getRemainingRefund(refundModalSale); validateRefundAmount();"
+                                            :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
+                                            title="Click to fill full balance refund amount"
+                                            class="font-mono font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md transition text-xs shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <span x-text="fmt(getRemainingRefund(refundModalSale))"></span>
+                                    </button>
+                                </div>
+                            </div>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
                                     ₹
                                 </div>
                                 <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount" data-no-words="true"
-                                       placeholder="Enter refund amount (e.g. 500000)"
-                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20"
-                                       :class="customerRefundFormErrors.refund_amount ? 'border-rose-500' : 'border-slate-250'">
+                                       @input="validateRefundAmount()"
+                                       :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
+                                       :placeholder="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009 ? 'Refund fully completed (₹0.00 balance)' : 'Enter refund amount (e.g. 500000)'"
+                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition"
+                                       :class="customerRefundFormErrors.refund_amount ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009 ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : 'border-slate-250')">
                             </div>
-                            <span class="text-[10px] text-slate-400 font-medium block">(Total refund amount will be transferred to customer)</span>
-                            <span x-show="customerRefundFormErrors.refund_amount" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.refund_amount"></span>
+                            <span class="text-[10px] text-slate-400 font-medium block" x-show="!refundModalSale || getRemainingRefund(refundModalSale) > 0.009">(Total refund amount will be transferred to customer)</span>
+                            <span x-show="customerRefundFormErrors.refund_amount" class="text-[11px] text-rose-600 font-bold block mt-1" x-text="customerRefundFormErrors.refund_amount"></span>
+
+                            {{-- Real-time validation warning if amount exceeds remaining --}}
+                            <template x-if="refundModalSale && getRemainingRefund(refundModalSale) > 0.009 && Number(customerRefundForm.refund_amount || 0) > getRemainingRefund(refundModalSale) + 0.009">
+                                <div class="mt-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-semibold flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span x-text="'Refund amount (' + fmt(customerRefundForm.refund_amount) + ') exceeds balance refund payable (' + fmt(getRemainingRefund(refundModalSale)) + ').'"></span>
+                                </div>
+                            </template>
                             
                             {{-- Amount in Words Box --}}
                             <div x-show="refundAmountInWordsText" 
@@ -3516,8 +3557,9 @@
                         class="px-5 py-2.5 rounded-xl border border-slate-250 text-slate-700 text-xs font-extrabold uppercase hover:bg-slate-100 transition shadow-2xs">
                     Cancel
                 </button>
-                <button type="button" @click="submitCustomerRefund()" :disabled="isSubmittingRefund"
-                        class="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] disabled:opacity-50 text-white text-xs font-extrabold uppercase transition shadow-md shadow-[#a38c29]/25 inline-flex items-center gap-2">
+                <button type="button" @click="submitCustomerRefund()" 
+                        :disabled="isSubmittingRefund || (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009) || !customerRefundForm.refund_amount || Number(customerRefundForm.refund_amount) <= 0 || (refundModalSale && Number(customerRefundForm.refund_amount) > getRemainingRefund(refundModalSale) + 0.009)"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-extrabold uppercase transition shadow-md shadow-[#a38c29]/25 inline-flex items-center gap-2">
                     <svg x-show="!isSubmittingRefund" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     <svg x-show="isSubmittingRefund" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span>Confirm Refund</span>

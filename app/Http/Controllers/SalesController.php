@@ -1480,6 +1480,9 @@ class SalesController extends Controller
                     }
                 }
                 $remainingRefund = $refundDue - $alreadyPaid;
+                if ($remainingRefund <= 0.009) {
+                    throw new \Exception('This return has already been fully refunded. No additional refund can be processed.');
+                }
                 if ($amount - $remainingRefund > 0.01) {
                     throw new \Exception('Refund amount (Rs. ' . number_format($amount, 2) . ') exceeds the remaining balance refund (Rs. ' . number_format(max(0.0, $remainingRefund), 2) . ').');
                 }

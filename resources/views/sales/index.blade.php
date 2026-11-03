@@ -2801,9 +2801,6 @@ function salesApp() {
             this.bankSearch = '';
             this.bankDropdownOpen = false;
             let remaining = this.getRemainingRefund(sale);
-            if (remaining <= 0) {
-                remaining = this.getRefundDue(sale);
-            }
             let defaultAccount = this.companyBankAccountsList.length > 0 ? this.companyBankAccountsList[0].id : '';
             let defaultMode = this.paymentModesList.length > 0 ? this.paymentModesList[0].name : 'Bank Transfer';
             this.customerRefundForm = {
@@ -2815,6 +2812,37 @@ function salesApp() {
             };
             this.customerRefundFormErrors = {};
             this.openCustomerRefundModal = true;
+        },
+        validateRefundAmount() {
+            if (!this.refundModalSale) return;
+            const remaining = this.getRemainingRefund(this.refundModalSale);
+            const val = this.customerRefundForm.refund_amount;
+            const entered = Number(val || 0);
+
+            if (remaining <= 0.009) {
+                this.customerRefundFormErrors.refund_amount = 'This return is already fully refunded (Balance: ₹0.00). No further refund can be paid.';
+                return;
+            }
+
+            if (!val || entered <= 0) {
+                this.customerRefundFormErrors.refund_amount = 'Please enter a valid refund amount.';
+                return;
+            }
+
+            if (entered > remaining + 0.009) {
+                this.customerRefundFormErrors.refund_amount = `Refund amount (${this.fmt(entered)}) exceeds the balance refund payable (${this.fmt(remaining)}).`;
+                return;
+            }
+
+            let selectedBank = this.getSelectedBankAccount();
+            if (selectedBank && !this.customerRefundForm.is_historical && entered > Number(selectedBank.current_balance || 0)) {
+                let availBal = Number(selectedBank.current_balance || 0);
+                let bankName = selectedBank.bank_name + (selectedBank.account_number ? ' ' + selectedBank.account_number : '');
+                this.customerRefundFormErrors.refund_amount = `Insufficient Bank Funds! Payout amount (${this.fmt(entered)}) exceeds available balance in ${bankName} (${this.fmt(availBal)}).`;
+                return;
+            }
+
+            delete this.customerRefundFormErrors.refund_amount;
         },
         submitCustomerRefund() {
             this.customerRefundFormErrors = {};
@@ -2835,6 +2863,12 @@ function salesApp() {
                 return;
             }
             const remainingRefund = this.getRemainingRefund(this.refundModalSale);
+            if (remainingRefund <= 0.009) {
+                const errMsg = 'This return has already been fully refunded. Balance refund payable is ₹0.00.';
+                this.customerRefundFormErrors.refund_amount = errMsg;
+                this.showToast(errMsg, 'error');
+                return;
+            }
             if (Number(this.customerRefundForm.refund_amount || 0) > remainingRefund + 0.009) {
                 const errMsg = `Refund amount (${this.fmt(Number(this.customerRefundForm.refund_amount))}) exceeds the balance refund payable (${this.fmt(remainingRefund)}).`;
                 this.customerRefundFormErrors.refund_amount = errMsg;
