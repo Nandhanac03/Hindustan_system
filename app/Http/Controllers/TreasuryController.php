@@ -300,10 +300,10 @@ class TreasuryController extends Controller
             if ($sourceBank) {
                 $sourceTitle = $destBank 
                     ? 'Transfer to ' . $destBank->bank_name . ' (Contra Transfer)' 
-                    : ($isBankTransfer ? 'Internal Contra Bank Transfer' : 'Site Petty Cash Box (Bank Cash Withdrawal)');
+                    : ($isBankTransfer ? 'Internal Contra Bank Transfer' : 'Petty Cash Box (Bank Cash Withdrawal)');
 
                 $sourceNarration = $cv->narration 
-                    ?: ($destBank ? 'Internal Bank Transfer to ' . $destBank->bank_name : 'Cash Withdrawal from Bank into Site Petty Cash Box');
+                    ?: ($destBank ? 'Internal Bank Transfer to ' . $destBank->bank_name : 'Cash Withdrawal from Bank into Petty Cash Box');
 
                 $contraSourceTxn = [
                     'id' => 'contra_out_' . $cv->id,
@@ -795,7 +795,7 @@ class TreasuryController extends Controller
                 // Source Bank Outflow
                 if ($sourceBank) {
                     $category = $destBank ? 'Contra Bank Transfer' : 'Contra Cash Withdrawal';
-                    $counterparty = $destBank ? $destBank->bank_name : 'Site Petty Cash Box';
+                    $counterparty = $destBank ? $destBank->bank_name : 'Petty Cash Box';
                     $allTransactions[] = [
                         'id'                 => 'vch_out_' . $v->id,
                         'voucher_id'         => $v->id,

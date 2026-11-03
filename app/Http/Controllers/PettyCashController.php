@@ -196,7 +196,7 @@ class PettyCashController extends Controller
             });
         }
         if ($cashBoxes->isEmpty()) {
-            $cashBoxes = collect([(object)['id' => 8, 'name' => 'Site Petty Cash Box', 'balance' => 0]]);
+            $cashBoxes = collect([(object)['id' => 8, 'name' => 'Petty Cash Box', 'balance' => 0]]);
         }
 
         $pettyCashBalance = $cashBoxes->first()?->balance ?? 0;
@@ -266,7 +266,7 @@ class PettyCashController extends Controller
         $cashLedgerAccount = \App\Models\Account::find($request->input('cash_box_id'));
         if (!$cashLedgerAccount) {
             $cashLedgerAccount = \App\Models\Account::firstOrCreate(
-                ['name' => 'Site Petty Cash Box'],
+                ['name' => 'Petty Cash Box'],
                 ['type' => 'Asset', 'code' => 'CA-' . rand(1000, 9999), 'system_id' => $request->input('project_id')]
             );
         }
@@ -367,7 +367,7 @@ class PettyCashController extends Controller
             );
 
             $vDate = $request->input('date') ?? date('Y-m-d');
-            $vNarration = 'Cash withdrawal for site petty cash box';
+            $vNarration = 'Cash withdrawal for petty cash box';
 
             $journalVoucher = JournalVoucher::create([
                 'voucher_no'      => 'JV-PC-' . date('Y') . '-' . str_pad((string)rand(1, 9999), 4, '0', STR_PAD_LEFT),
