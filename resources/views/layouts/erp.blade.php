@@ -758,12 +758,12 @@
                 <form method="POST" action="{{ route('logout') }}" class="inline-flex">
                     @csrf
                     <button type="submit" 
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#8a7522] border border-[#a38c29]/40 hover:border-[#a38c29]/70 text-xs font-bold uppercase tracking-wider transition-all shadow-2xs cursor-pointer"
-                            title="Sign Out">
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#8a7522] border border-[#a38c29]/40 hover:border-[#a38c29]/70 text-xs font-bold capitalize tracking-wider transition-all shadow-2xs cursor-pointer"
+                            title="Signout">
                         <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        <span>Sign Out</span>
+                        <span>Signout</span>
                     </button>
                 </form>
             </div>
