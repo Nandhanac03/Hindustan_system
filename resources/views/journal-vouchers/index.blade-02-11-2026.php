@@ -1,0 +1,1020 @@
+<x-erp-layout>
+    <x-slot:title>Journal Vouchers Master - HindustanERP</x-slot:title>
+    <x-slot:headerTitle>Journal Vouchers Master</x-slot:headerTitle>
+
+    <style>
+        /* Hide automatically injected amount-in-words labels inside table cells */
+        td .amount-in-words-label,
+        #journal-entries-table .amount-in-words-label {
+            display: none !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 0 !important;
+            overflow: hidden !important;
+        }
+    </style>
+
+    <div x-data="journalVouchersList()" class="space-y-6 p-6">
+
+        <!-- Header Section matching Chart of Accounts Master -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="5" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="1" stroke-width="2" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Journal Vouchers</h1>
+                        <p class="text-xs text-slate-500 font-medium">Manage multi-line double-entry ledger vouchers, adjustments & non-cash postings</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button type="button" @click="openCreateModal()" 
+                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>New Journal Voucher</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Flash Success & Error Messages -->
+        @if(session('success'))
+            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-3 shadow-xs">
+                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-xl flex items-center gap-3 shadow-xs">
+                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        <!-- Executive KPI Metric Cards (Matching Standard Executive Reference Format) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {{-- Card 1: Total Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                        Vouchers
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="stats().total_vouchers"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">All Filtered Journal Entries</p>
+                </div>
+            </div>
+
+            {{-- Card 2: Posted Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Posted Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                        Posted
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="stats().posted_count"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Active Ledger Postings</p>
+                </div>
+            </div>
+
+            {{-- Card 3: Draft Vouchers --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Draft Vouchers</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                        Draft
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="stats().draft_count"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Pending Confirmation</p>
+                </div>
+            </div>
+
+            {{-- Card 4: Total Turnover --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-600 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.15)] cursor-default h-full">
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Turnover</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-blue-300 group-hover:bg-blue-100/60">
+                        Turnover
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-blue-600 transition-colors duration-300" x-text="'₹ ' + stats().total_turnover"></span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total Debit Volume</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ultra-Clean Modern Search & Filter Panel (No URL Reload / Instant In-Memory Filter) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm transition-all">
+            <div @submit.prevent="" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+                                       <!-- Search Input with Icon -->
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" placeholder="Search Voucher No, Ref, Narration..." x-model="filters.search" @input="currentPage = 1" autocomplete="off"
+                               class="w-full erp-search-input pl-10 pr-9">
+                        <div x-show="filters.search" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
+                            <button type="button" @click="filters.search = ''; currentPage = 1"
+                                    class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voucher Type Filter (Custom Gold Popover) -->
+                    <div class="relative w-full" @click.outside="vtDropdownOpen = false">
+                        <button type="button"
+                                @click="vtDropdownOpen = !vtDropdownOpen; if(vtDropdownOpen) { $nextTick(() => $refs.vtSearchInput?.focus()); }"
+                                class="erp-dropdown-trigger"
+                                :class="vtDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="filters.voucher_type_id ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedVoucherTypeName()">— All Voucher Types —</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.voucher_type_id">
+                                    <span @click.stop="clearVoucherType()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="vtDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+                        <div x-show="vtDropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover" style="display: none;">
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10" x-show="voucherTypesList.length > 5">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="vtDropdownSearch" x-ref="vtSearchInput" placeholder="Search voucher type..."
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="vtDropdownOpen = false">
+                                    <template x-if="vtDropdownSearch">
+                                        <button type="button" @click="vtDropdownSearch = ''; $refs.vtSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                                <div @click="clearVoucherType()" class="erp-dropdown-option" :class="!filters.voucher_type_id ? 'selected-all' : ''">
+                                    <span>— All Voucher Types —</span>
+                                </div>
+                                <template x-for="vt in getFilteredVoucherTypes()" :key="vt.id">
+                                    <div @click="selectVoucherType(vt.id)" class="erp-dropdown-option" :class="String(filters.voucher_type_id) === String(vt.id) ? 'selected' : ''">
+                                        <span class="truncate" x-text="vt.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- From Date -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.from_date" @change="currentPage = 1"
+                               title="From Date"
+                               class="w-full erp-input erp-date-input">
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.to_date" @change="currentPage = 1"
+                               title="To Date"
+                               class="w-full erp-input erp-date-input">
+                    </div>
+
+                </div>
+
+                <!-- Reset Filters Button (No Page Reload) -->
+                <button type="button" @click="resetFilters()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all duration-200 uppercase tracking-wider group active:scale-95 shrink-0 cursor-pointer">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>RESET FILTERS</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Table Container (Embedded directly inside index page) -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="erp-table-header bg-[#17365D] text-white border-b border-slate-700 text-[10px] font-black uppercase tracking-wider">
+                            <th class="px-4 py-3.5 text-center w-12">#</th>
+                            <th class="px-4 py-3.5">VOUCHER NO</th>
+                            <th class="px-4 py-3.5">DATE</th>
+                            <th class="px-4 py-3.5">VOUCHER TYPE</th>
+                            <th class="px-4 py-3.5">REFERENCE</th>
+                            <th class="px-4 py-3.5">NARRATION</th>
+                            <th class="px-4 py-3.5 text-right">TOTAL DEBIT</th>
+                            <th class="px-4 py-3.5 text-right">TOTAL CREDIT</th>
+                            <th class="px-4 py-3.5 text-center">STATUS</th>
+                            <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white text-slate-800 font-medium">
+                        <template x-for="(jv, index) in paginatedVouchers()" :key="jv.id">
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-4 py-3.5 text-center text-slate-500 font-semibold" x-text="(currentPage - 1) * pageSize + index + 1"></td>
+                                <td class="px-4 py-3.5">
+                                    <button type="button" @click="showVoucherDetails(jv.id)" class="font-bold text-[#a38c29] hover:text-[#8a7522] hover:underline font-mono" x-text="jv.voucher_no"></button>
+                                </td>
+                                <td class="px-4 py-3.5 text-slate-600 font-semibold" x-text="jv.voucher_date_formatted"></td>
+                                <td class="px-4 py-3.5 font-bold text-slate-900" x-text="jv.voucher_type_name"></td>
+                                <td class="px-4 py-3.5 text-slate-500 font-semibold" x-text="jv.reference_no"></td>
+                                <td class="px-4 py-3.5 text-slate-600 max-w-xs truncate" :title="jv.narration" x-text="jv.narration"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900" x-text="formatCurrency(jv.total_debit)"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900" x-text="formatCurrency(jv.total_credit)"></td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <template x-if="jv.status === 'Posted'">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">Posted</span>
+                                    </template>
+                                    <template x-if="jv.status !== 'Posted'">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">Draft</span>
+                                    </template>
+                                </td>
+                                <td class="px-4 py-3.5 text-right pr-4 whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button type="button" @click="showVoucherDetails(jv.id)" class="p-2 rounded-xl bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Voucher">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        <button type="button" @click="editVoucher(jv.id)" class="p-2 rounded-xl bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Edit Voucher">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <template x-if="filteredVouchers().length === 0">
+                            <tr>
+                                <td colspan="10" class="px-4 py-12 text-center text-slate-400 font-medium">
+                                    No Journal Vouchers found matching the selected filter criteria.
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Pagination Footer (Pure Client-Side Alpine - Zero URL Reload) -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+                <div>
+                    Showing <span x-text="filteredVouchers().length === 0 ? 0 : (currentPage - 1) * pageSize + 1"></span> 
+                    to <span x-text="Math.min(currentPage * pageSize, filteredVouchers().length)"></span> 
+                    of <span x-text="filteredVouchers().length"></span> entries
+                </div>
+                
+                <div class="flex items-center gap-1" x-show="totalPages() > 1">
+                    <button type="button" @click="if(currentPage > 1) currentPage--" :disabled="currentPage === 1"
+                            :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed bg-slate-100' : 'hover:bg-slate-100 bg-white cursor-pointer'"
+                            class="px-3 py-1.5 border border-slate-250 text-slate-700 rounded-lg text-xs font-bold transition">Previous</button>
+
+                    <template x-for="p in totalPages()" :key="p">
+                        <button type="button" @click="currentPage = p"
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-white border border-slate-250 text-slate-700 hover:bg-slate-100'"
+                                class="px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer" x-text="p"></button>
+                    </template>
+
+                    <button type="button" @click="if(currentPage < totalPages()) currentPage++" :disabled="currentPage === totalPages()"
+                            :class="currentPage === totalPages() ? 'opacity-50 cursor-not-allowed bg-slate-100' : 'hover:bg-slate-100 bg-white cursor-pointer'"
+                            class="px-3 py-1.5 border border-slate-250 text-slate-700 rounded-lg text-xs font-bold transition">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREATE / EDIT JOURNAL VOUCHER MODAL -->
+        <div x-show="formModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="formModalOpen = false"></div>
+
+            <div class="relative min-h-screen flex items-center justify-center p-4">
+                <div class="relative bg-white text-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden">
+                    
+                    <!-- Dark Themed Modal Header -->
+                    <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">JOURNAL VOUCHERS</span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white" x-text="isEditMode ? 'EDIT JOURNAL VOUCHER' : 'ADD JOURNAL VOUCHER'"></h3>
+                        </div>
+                        <button type="button" @click="formModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                    </div>
+
+                    <!-- Form -->
+                    <form :action="isEditMode ? '/journal-vouchers/' + editVoucherId : '{{ route('journal-vouchers.store') }}'" method="POST" @submit.prevent="validateAndSubmit($event)" class="p-6 sm:p-8 space-y-6" novalidate>
+                        @csrf
+                        <template x-if="isEditMode">
+                            <input type="hidden" name="_method" value="PUT">
+                        </template>
+
+                        <!-- Row 1: Voucher No, Date, Type, Reference -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Voucher No</label>
+                                <input type="text" name="voucher_no" x-model="form.voucher_no" readonly
+                                       class="w-full bg-slate-100 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold cursor-not-allowed">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Date <span class="text-rose-500 font-bold">*</span></label>
+                                <input type="date" name="voucher_date" required x-model="form.voucher_date"
+                                       class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Voucher Type</label>
+                                <select name="voucher_type_id" x-model="form.voucher_type_id"
+                                        class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                    <option value="">All</option>
+                                    @foreach($voucherTypes as $vt)
+                                        <option value="{{ $vt->id }}">{{ $vt->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reference No</label>
+                                <input type="text" name="reference_no" placeholder="Ref/Doc No..." x-model="form.reference_no" @input="errors.reference_no = ''"
+                                       :class="errors.reference_no ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-200 focus:ring-[#a38c29] bg-slate-50 text-slate-900'"
+                                       class="w-full hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:outline-none transition">
+                                <template x-if="errors.reference_no">
+                                    <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span x-text="errors.reference_no"></span>
+                                    </p>
+                                </template>
+                                @error('reference_no')
+                                    <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>{{ $message }}</span>
+                                    </p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Entry Lines Table -->
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Journal Entries</span>
+                                <button type="button" @click="addEntryRow()"
+                                        class="px-3.5 py-1.5 bg-amber-50 hover:bg-[#a38c29] text-[#8a7522] hover:text-white border border-amber-200/90 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Add Row</span>
+                                </button>
+                            </div>
+
+                            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                                <table id="journal-entries-table" class="w-full text-left border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                                        <tr>
+                                            <th class="px-3.5 py-3 w-4/12 border-r border-slate-200">Account Head *</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12 border-r border-slate-200">Debit (DR)</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12 border-r border-slate-200">Credit (CR)</th>
+                                            <th class="px-3.5 py-3 w-3/12 border-r border-slate-200">Line Narration</th>
+                                            <th class="px-2 py-3 text-center w-8"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-150 text-xs bg-white">
+                                        <template x-for="(line, index) in form.entries" :key="index">
+                                            <tr class="align-middle hover:bg-slate-50/50 transition-colors">
+                                                <td class="p-2.5">
+                                                    <select :name="'entries['+index+'][account_id]'" x-model="line.account_id"
+                                                            @change="if(String(line.account_id) !== '1001') line.bank_account_id = ''; if(String(line.account_id) !== '1002') line.petty_cash_box_id = ''; if(errors.rows && errors.rows[index]) delete errors.rows[index]; if(errors.bankRows && errors.bankRows[index]) delete errors.bankRows[index]; if(errors.pettyRows && errors.pettyRows[index]) delete errors.pettyRows[index]"
+                                                            :class="errors.rows && errors.rows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-white text-slate-900'"
+                                                            class="w-full border border-slate-300 px-3 py-2 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                        <option value="">Select Chart of Account...</option>
+                                                        @foreach($accounts as $acc)
+                                                            <option value="{{ $acc->account_code }}">{{ $acc->account_name }} ({{ $acc->account_code }})</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <template x-if="errors.rows && errors.rows[index]">
+                                                        <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.rows[index]"></p>
+                                                    </template>
+
+                                                    <!-- Dynamic Company Bank Account Select Box for 1001 (Bank Balances) -->
+                                                    <template x-if="String(line.account_id) === '1001'">
+                                                        <div class="mt-2">
+                                                            <label class="block text-[9px] font-black uppercase text-[#a38c29] tracking-wider mb-1">Company Bank Account <span class="text-rose-500">*</span></label>
+                                                            <select :name="'entries['+index+'][bank_account_id]'" x-model="line.bank_account_id"
+                                                                    @change="if(errors.bankRows && errors.bankRows[index]) delete errors.bankRows[index]"
+                                                                    :class="errors.bankRows && errors.bankRows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-amber-50/40 hover:bg-white text-slate-900'"
+                                                                    class="w-full border border-slate-300 px-3 py-1.5 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                                <option value="">Select Company Bank Account...</option>
+                                                                @foreach($companyBankAccounts as $bAcc)
+                                                                    <option value="{{ $bAcc->id }}">
+                                                                        {{ $bAcc->bank_name }} - {{ $bAcc->account_number }} {{ $bAcc->account_name ? '('.$bAcc->account_name.')' : '' }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            <template x-if="errors.bankRows && errors.bankRows[index]">
+                                                                <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.bankRows[index]"></p>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+
+                                                    <!-- Dynamic Petty Cash Box Select Box for 1002 (Petty Cash Box) -->
+                                                    <template x-if="String(line.account_id) === '1002'">
+                                                        <div class="mt-2">
+                                                            <label class="block text-[9px] font-black uppercase text-[#a38c29] tracking-wider mb-1">Petty Cash Box <span class="text-rose-500">*</span></label>
+                                                            <select :name="'entries['+index+'][petty_cash_box_id]'" x-model="line.petty_cash_box_id"
+                                                                    @change="if(errors.pettyRows && errors.pettyRows[index]) delete errors.pettyRows[index]"
+                                                                    :class="errors.pettyRows && errors.pettyRows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-amber-50/40 hover:bg-white text-slate-900'"
+                                                                    class="w-full border border-slate-300 px-3 py-1.5 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                                <option value="">Select Petty Cash Box...</option>
+                                                                @foreach($pettyCashBoxes as $pBox)
+                                                                    <option value="{{ $pBox->id }}">
+                                                                        {{ $pBox->box_name }} ({{ $pBox->box_code }})
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            <template x-if="errors.pettyRows && errors.pettyRows[index]">
+                                                                <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.pettyRows[index]"></p>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </td>
+
+                                                <td class="p-2.5">
+                                                    <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][debit_amount]'"
+                                                           x-model.number="line.debit_amount" @input="clearOpposite(line, 'debit'); errors.entries = '';" data-no-words
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                                                </td>
+
+                                                <td class="p-2.5">
+                                                    <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][credit_amount]'"
+                                                           x-model.number="line.credit_amount" @input="clearOpposite(line, 'credit'); errors.entries = '';" data-no-words
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                                                </td>
+
+                                                <td class="p-2.5">
+                                                    <input type="text" placeholder="Line detail..." :name="'entries['+index+'][line_narration]'"
+                                                           x-model="line.line_narration"
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-800 font-medium rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                                                </td>
+
+                                                <td class="p-2.5 text-center">
+                                                    <button type="button" @click="removeEntryRow(index)" x-show="form.entries.length > 2" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer" title="Remove row">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+
+                                    <tfoot class="bg-slate-50 border-t-2 border-slate-200 text-xs">
+                                        <tr class="font-bold">
+                                            <td class="px-3.5 py-3 uppercase tracking-wider text-[10px] font-black text-slate-700 border-r border-slate-200">TOTALS</td>
+                                            <td class="px-3.5 py-3 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="formatCurrency(calcTotalDebit())"></td>
+                                            <td class="px-3.5 py-3 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="formatCurrency(calcTotalCredit())"></td>
+                                            <td colspan="2" class="px-3.5 py-3 text-center">
+                                                <template x-if="isBalanced()">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        BALANCED (DR = CR)
+                                                    </span>
+                                                </template>
+                                                <template x-if="!isBalanced()">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase bg-rose-50 text-rose-800 border border-rose-300">
+                                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        UNBALANCED (Diff: <span x-text="formatCurrency(calcDifference())"></span>)
+                                                    </span>
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <template x-if="errors.entries">
+                                <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2 shadow-2xs">
+                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span x-text="errors.entries"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Overall Narration -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Header Narration / Remarks <span class="text-rose-500 font-bold">*</span></label>
+                            <textarea name="narration" rows="2" placeholder="Journal Voucher description..." x-model="form.narration" @input="errors.narration = ''"
+                                      :class="errors.narration ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-200 focus:ring-[#a38c29] bg-slate-50 text-slate-900'"
+                                      class="w-full hover:bg-white focus:bg-white border font-medium rounded-xl p-3.5 text-xs focus:ring-2 focus:outline-none transition resize-none"></textarea>
+                            <template x-if="errors.narration">
+                                <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span x-text="errors.narration"></span>
+                                </p>
+                            </template>
+                            @error('narration')
+                                <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>{{ $message }}</span>
+                                </p>
+                            @enderror
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</label>
+                                <select name="status" x-model="form.status" class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer">
+                                    <option value="Posted">Posted</option>
+                                    <option value="Draft">Draft</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button type="button" @click="formModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
+                                    <span x-text="isEditMode ? 'Update Journal Voucher' : 'Post Journal Voucher'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW JOURNAL VOUCHER MODAL -->
+        <div x-show="viewModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="viewModalOpen = false"></div>
+
+            <div class="relative min-h-screen flex items-center justify-center p-4">
+                <div class="relative bg-white text-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+                    
+                    <!-- Dark Themed Modal Header -->
+                    <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1" x-text="activeVoucher.voucher_type || 'JOURNAL VOUCHER'"></span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white font-mono" x-text="activeVoucher.voucher_no"></h3>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span :class="activeVoucher.status === 'Posted' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'"
+                                  class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border tracking-wider" x-text="activeVoucher.status"></span>
+                            <button type="button" @click="viewModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="p-6 sm:p-8 space-y-6">
+                        <div class="grid grid-cols-3 gap-4 text-xs">
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Voucher Date</span>
+                                <span class="font-bold text-slate-800" x-text="activeVoucher.voucher_date"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Reference No</span>
+                                <span class="font-bold text-slate-800" x-text="activeVoucher.reference_no"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Total Amount</span>
+                                <span class="font-mono font-bold text-[#a38c29]" x-text="'₹ ' + activeVoucher.total_debit"></span>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-2.5 border-r border-slate-200">Account Head</th>
+                                        <th class="px-4 py-2.5 text-right border-r border-slate-200">Debit (₹)</th>
+                                        <th class="px-4 py-2.5 text-right border-r border-slate-200">Credit (₹)</th>
+                                        <th class="px-4 py-2.5">Line Narration</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-150 font-medium bg-white">
+                                    <template x-for="entry in activeVoucher.entries" :key="entry.account_code">
+                                        <tr>
+                                            <td class="px-4 py-2.5 border-r border-slate-100">
+                                                <div class="font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></div>
+                                                <template x-if="entry.bank_account_name">
+                                                    <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Bank: ' + entry.bank_account_name"></div>
+                                                </template>
+                                                <template x-if="entry.petty_cash_box_name">
+                                                    <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Petty Cash Box: ' + entry.petty_cash_box_name"></div>
+                                                </template>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100" x-text="entry.debit_amount"></td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100" x-text="entry.credit_amount"></td>
+                                            <td class="px-4 py-2.5 text-slate-600 font-medium" x-text="entry.line_narration"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                                <tfoot class="bg-slate-50 border-t-2 border-slate-200 text-slate-800 font-bold text-xs">
+                                    <tr>
+                                        <td class="px-4 py-2.5 uppercase tracking-wider text-[10px] font-black text-slate-700 border-r border-slate-200">TOTAL</td>
+                                        <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="activeVoucher.total_debit"></td>
+                                        <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900 border-r border-slate-200" x-text="activeVoucher.total_credit"></td>
+                                        <td class="px-4 py-2.5"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase mb-1">Header Narration</span>
+                            <p class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 font-medium" x-text="activeVoucher.narration"></p>
+                        </div>
+
+                        <div class="flex justify-end pt-2 border-t border-slate-100">
+                            <button type="button" @click="viewModalOpen = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
+                                CLOSE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function journalVouchersList() {
+            return {
+                formModalOpen: false,
+                viewModalOpen: false,
+                isEditMode: false,
+                editVoucherId: null,
+                nextVoucherNo: '{{ $nextVoucherNo }}',
+                currentPage: 1,
+                pageSize: 15,
+                allVouchers: @json($vouchers),
+                errors: {
+                    reference_no: '',
+                    narration: '',
+                    entries: '',
+                    rows: {},
+                    bankRows: {},
+                    pettyRows: {}
+                },
+                voucherTypesList: @json($voucherTypes),
+                vtDropdownOpen: false,
+                vtDropdownSearch: '',
+                getSelectedVoucherTypeName() {
+                    if (!this.filters.voucher_type_id) return '— All Voucher Types —';
+                    const vt = this.voucherTypesList.find(x => String(x.id) === String(this.filters.voucher_type_id));
+                    return vt ? vt.name : '— All Voucher Types —';
+                },
+                getFilteredVoucherTypes() {
+                    if (!this.vtDropdownSearch) return this.voucherTypesList;
+                    const s = this.vtDropdownSearch.toLowerCase();
+                    return this.voucherTypesList.filter(vt => (vt.name || '').toLowerCase().includes(s) || (vt.code || '').toLowerCase().includes(s) || (vt.prefix || '').toLowerCase().includes(s));
+                },
+                selectVoucherType(id) {
+                    this.filters.voucher_type_id = String(id);
+                    this.currentPage = 1;
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
+                },
+                clearVoucherType() {
+                    this.filters.voucher_type_id = '';
+                    this.currentPage = 1;
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
+                },
+                filters: {
+                    search: '',
+                    voucher_type_id: '',
+                    from_date: '',
+                    to_date: ''
+                },
+                activeVoucher: {
+                    voucher_no: '',
+                    voucher_date: '',
+                    voucher_type: '',
+                    reference_no: '',
+                    narration: '',
+                    status: 'Posted',
+                    total_debit: '0.00',
+                    total_credit: '0.00',
+                    entries: []
+                },
+                form: {
+                    voucher_no: '{{ $nextVoucherNo }}',
+                    voucher_date: new Date().toISOString().substring(0, 10),
+                    voucher_type_id: '',
+                    reference_no: '',
+                    narration: '',
+                    status: 'Posted',
+                    entries: [
+                        { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
+                        { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
+                    ]
+                },
+
+                validateAndSubmit(e) {
+                    this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
+                    let hasError = false;
+
+                    // 1. Check Reference No uniqueness if provided
+                    if (this.form.reference_no && this.form.reference_no.trim()) {
+                        const ref = this.form.reference_no.trim().toLowerCase();
+                        const isDup = this.allVouchers.some(v => {
+                            if (this.isEditMode && v.id === this.editVoucherId) return false;
+                            return v.reference_no && v.reference_no !== '-' && v.reference_no.trim().toLowerCase() === ref;
+                        });
+                        if (isDup) {
+                            this.errors.reference_no = 'Reference No already exists for another Journal Voucher.';
+                            hasError = true;
+                        }
+                    }
+
+                    // 2. Check Header Narration / Remarks
+                    if (!this.form.narration || !this.form.narration.trim()) {
+                        this.errors.narration = 'Header narration / remarks is required.';
+                        hasError = true;
+                    }
+
+                    // 3. Check Entries Balance & Amount validity
+                    const totalD = this.calcTotalDebit();
+                    const totalC = this.calcTotalCredit();
+
+                    if (totalD === 0 && totalC === 0) {
+                        this.errors.entries = 'Please enter valid Debit or Credit amounts for the journal entries.';
+                        hasError = true;
+                    } else if (Math.abs(totalD - totalC) >= 0.01) {
+                        this.errors.entries = 'Journal Voucher must be balanced! Total Debit (₹ ' + this.formatCurrency(totalD) + ') does not equal Total Credit (₹ ' + this.formatCurrency(totalC) + ').';
+                        hasError = true;
+                    }
+
+                    // 4. Check Account Head selection & Company Bank Account (1001) / Petty Cash Box (1002) selection
+                    let validCount = 0;
+                    this.form.entries.forEach((line, idx) => {
+                        const d = parseFloat(line.debit_amount) || 0;
+                        const c = parseFloat(line.credit_amount) || 0;
+                        if (d > 0 || c > 0) {
+                            validCount++;
+                            if (!line.account_id) {
+                                this.errors.rows[idx] = 'Please select an Account Head.';
+                                hasError = true;
+                            } else if (String(line.account_id) === '1001' && !line.bank_account_id) {
+                                this.errors.bankRows[idx] = 'Please select a Company Bank Account.';
+                                hasError = true;
+                            } else if (String(line.account_id) === '1002' && !line.petty_cash_box_id) {
+                                this.errors.pettyRows[idx] = 'Please select a Petty Cash Box.';
+                                hasError = true;
+                            }
+                        }
+                    });
+
+                    if (validCount < 2) {
+                        this.errors.entries = 'A valid Journal Voucher must contain at least two non-zero entry lines.';
+                        hasError = true;
+                    }
+
+                    if (hasError) {
+                        return false;
+                    }
+
+                    e.target.submit();
+                },
+
+                // Pure In-Memory Alpine Filtering (NO URL Change & NO Page Reload)
+                filteredVouchers() {
+                    return this.allVouchers.filter(v => {
+                        // Search text filter
+                        if (this.filters.search) {
+                            const q = this.filters.search.toLowerCase().trim();
+                            const matchNo = v.voucher_no.toLowerCase().includes(q);
+                            const matchRef = v.reference_no.toLowerCase().includes(q);
+                            const matchNarr = v.narration.toLowerCase().includes(q);
+                            const matchEntry = v.entries.some(e => e.line_narration.toLowerCase().includes(q) || e.account_name.toLowerCase().includes(q) || e.account_code.toLowerCase().includes(q));
+                            if (!matchNo && !matchRef && !matchNarr && !matchEntry) return false;
+                        }
+
+                        // Voucher Type filter
+                        if (this.filters.voucher_type_id) {
+                            if (String(v.voucher_type_id) !== String(this.filters.voucher_type_id)) return false;
+                        }
+
+                        // From Date filter
+                        if (this.filters.from_date) {
+                            if (v.voucher_date < this.filters.from_date) return false;
+                        }
+
+                        // To Date filter
+                        if (this.filters.to_date) {
+                            if (v.voucher_date > this.filters.to_date) return false;
+                        }
+
+                        return true;
+                    });
+                },
+
+                paginatedVouchers() {
+                    const start = (this.currentPage - 1) * this.pageSize;
+                    return this.filteredVouchers().slice(start, start + this.pageSize);
+                },
+
+                totalPages() {
+                    return Math.ceil(this.filteredVouchers().length / this.pageSize) || 1;
+                },
+
+                stats() {
+                    const list = this.filteredVouchers();
+                    const total_vouchers = list.length;
+                    const posted_count = list.filter(v => v.status === 'Posted').length;
+                    const draft_count = list.filter(v => v.status === 'Draft').length;
+                    const total_turnover_num = list.reduce((sum, v) => sum + (parseFloat(v.total_debit) || 0), 0);
+                    
+                    return {
+                        total_vouchers,
+                        posted_count,
+                        draft_count,
+                        total_turnover: this.formatCurrency(total_turnover_num)
+                    };
+                },
+
+                resetFilters() {
+                    this.filters = {
+                        search: '',
+                        voucher_type_id: '',
+                        from_date: '',
+                        to_date: ''
+                    };
+                    this.vtDropdownOpen = false;
+                    this.vtDropdownSearch = '';
+                    this.currentPage = 1;
+                },
+
+                openCreateModal() {
+                    this.isEditMode = false;
+                    this.editVoucherId = null;
+                    this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
+                    this.form = {
+                        voucher_no: this.nextVoucherNo,
+                        voucher_date: new Date().toISOString().substring(0, 10),
+                        voucher_type_id: '',
+                        reference_no: '',
+                        narration: '',
+                        status: 'Posted',
+                        entries: [
+                            { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
+                            { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
+                        ]
+                    };
+                    this.formModalOpen = true;
+                },
+                addEntryRow() {
+                    this.form.entries.push({ account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' });
+                },
+                removeEntryRow(index) {
+                    if (this.form.entries.length > 2) {
+                        this.form.entries.splice(index, 1);
+                    }
+                },
+                clearOpposite(line, field) {
+                    if (field === 'debit' && line.debit_amount > 0) {
+                        line.credit_amount = 0.00;
+                    } else if (field === 'credit' && line.credit_amount > 0) {
+                        line.debit_amount = 0.00;
+                    }
+                },
+                calcTotalDebit() {
+                    return this.form.entries.reduce((sum, line) => sum + (parseFloat(line.debit_amount) || 0), 0);
+                },
+                calcTotalCredit() {
+                    return this.form.entries.reduce((sum, line) => sum + (parseFloat(line.credit_amount) || 0), 0);
+                },
+                calcDifference() {
+                    return Math.abs(this.calcTotalDebit() - this.calcTotalCredit());
+                },
+                isBalanced() {
+                    const totalD = this.calcTotalDebit();
+                    const totalC = this.calcTotalCredit();
+                    return totalD > 0 && Math.abs(totalD - totalC) < 0.01;
+                },
+                formatCurrency(val) {
+                    return Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+                showVoucherDetails(id) {
+                    const found = this.allVouchers.find(v => v.id === id);
+                    if (found) {
+                        this.activeVoucher = {
+                            voucher_no: found.voucher_no,
+                            voucher_date: found.voucher_date_formatted,
+                            voucher_type: found.voucher_type_name,
+                            reference_no: found.reference_no,
+                            narration: found.narration,
+                            status: found.status,
+                            total_debit: this.formatCurrency(found.total_debit),
+                            total_credit: this.formatCurrency(found.total_credit),
+                            entries: found.entries.map(e => ({
+                                account_code: e.account_code,
+                                account_name: e.account_name,
+                                bank_account_name: e.bank_account_name,
+                                petty_cash_box_name: e.petty_cash_box_name,
+                                debit_amount: this.formatCurrency(e.debit_amount),
+                                credit_amount: this.formatCurrency(e.credit_amount),
+                                line_narration: e.line_narration
+                            }))
+                        };
+                        this.viewModalOpen = true;
+                    }
+                },
+                editVoucher(id) {
+                    const found = this.allVouchers.find(v => v.id === id);
+                    if (found) {
+                        this.isEditMode = true;
+                        this.editVoucherId = id;
+                        this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
+                        this.form = {
+                            voucher_no: found.voucher_no,
+                            voucher_date: found.voucher_date,
+                            voucher_type_id: found.voucher_type_id || '',
+                            reference_no: found.reference_no === '-' ? '' : found.reference_no,
+                            narration: found.narration === '-' ? '' : found.narration,
+                            status: found.status,
+                            entries: found.entries.map(e => ({
+                                account_id: String(e.account_code),
+                                bank_account_id: e.bank_account_id ? String(e.bank_account_id) : '',
+                                petty_cash_box_id: e.petty_cash_box_id ? String(e.petty_cash_box_id) : '',
+                                debit_amount: e.debit_amount,
+                                credit_amount: e.credit_amount,
+                                line_narration: e.line_narration === '-' ? '' : e.line_narration
+                            }))
+                        };
+                        this.formModalOpen = true;
+                    }
+                },
+                deleteVoucher(id) {
+                    if (confirm('Are you sure you want to delete this Journal Voucher?')) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/journal-vouchers/' + id;
+                        
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = '{{ csrf_token() }}';
+                        
+                        const methodInput = document.createElement('input');
+                        methodInput.type = 'hidden';
+                        methodInput.name = '_method';
+                        methodInput.value = 'DELETE';
+
+                        form.appendChild(csrfInput);
+                        form.appendChild(methodInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                }
+            };
+        }
+    </script>
+</x-erp-layout>

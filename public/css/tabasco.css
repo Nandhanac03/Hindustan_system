@@ -1199,3 +1199,57 @@ select option:hover {
 .erp-modal-overlay {
     z-index: 99999 !important;
 }
+
+/* --------------------------------------------------------------------------
+   Customer Refund Modal Styling (Screenshot Replica Guaranteed)
+   -------------------------------------------------------------------------- */
+.cust-refund-modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.7) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.cust-refund-dialog {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.cust-refund-teal-header {
+    background-color: #184e68 !important;
+    color: #ffffff !important;
+}
+
+.cust-refund-card-customer {
+    background-color: #f0f7ff !important;
+    border: 1px solid #bfdbfe !important;
+}
+
+.cust-refund-card-paid {
+    background-color: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+.cust-refund-card-refunds {
+    background-color: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+}
+
+.cust-refund-card-remaining {
+    background-color: #faf5ff !important;
+    border: 1px solid #ddd6fe !important;
+}
+
+.cust-refund-emerald-highlight {
+    background-color: #ecfdf5 !important;
+    border: 1px solid #6ee7b7 !important;
+    color: #065f46 !important;
+}
+
+.cust-refund-btn-confirm {
+    background-color: #184e68 !important;
+    color: #ffffff !important;
+}
+.cust-refund-btn-confirm:hover {
+    background-color: #123e54 !important;
+}

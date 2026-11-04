@@ -3171,399 +3171,356 @@
     </div>
 
     {{-- CUSTOMER REFUND MODAL DIALOG --}}
-    <div x-show="openCustomerRefundModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] my-auto"
+    {{-- CUSTOMER REFUND MODAL DIALOG (Redesigned matching customer refund specification) --}}
+    <div x-show="openCustomerRefundModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 min-h-screen cust-refund-modal-backdrop"
+         style="background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div class="rounded-3xl shadow-2xl w-full max-w-6xl overflow-hidden transform transition-all flex flex-col max-h-[92vh] my-auto cust-refund-dialog"
+             style="background-color: #f0f4f8 !important; border: 1px solid #cbd5e1; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);"
              @click.away="openCustomerRefundModal = false">
             
-            {{-- Modal Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-primary-500/10 shrink-0 rounded-t-2xl">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return & Cancellation</span>
-                            <!-- <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Refund</span> -->
-                        </div>
-                        <h2 class="text-lg font-extrabold text-white tracking-tight font-bold uppercase mt-1">Customer Refund</h2>
-                    </div>
-                    <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
-                </div>
-            </div>
-
-            {{-- Modal Scrollable Body --}}
-            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+            {{-- Modal Content Container --}}
+            <div class="p-5 sm:p-7 overflow-y-auto space-y-5 flex-1" style="background-color: #f0f4f8 !important;">
                 
-                {{-- Return Metadata Summary Card --}}
-                <template x-if="refundModalSale">
-                    <div class="bg-slate-50/80 rounded-xl border border-slate-200/80 p-4 text-xs font-medium text-slate-700 space-y-2">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return No.</span>
-                                <span class="font-extrabold text-slate-900" x-text="refundModalSale ? ('RET-' + new Date(refundModalSale.cancelled_at || refundModalSale.updated_at || Date.now()).getFullYear() + '-' + String(refundModalSale.id || '').padStart(3, '0')) : ''"></span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Unit</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale?.unit ? formatUnitDisplay(refundModalSale.unit) : 'N/A'"></span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Date</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale ? formatDate(refundModalSale.cancelled_at || refundModalSale.updated_at) : ''"></span>
-                            </div>
+                {{-- Header Section --}}
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                             style="background-color: #e0f2fe; color: #0284c7;">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-200/60">
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Project</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale?.project ? refundModalSale.project.name : 'N/A'"></span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="refundModalSale?.customer ? refundModalSale.customer.name : 'N/A'"></span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Type</span>
-                                <span class="font-bold text-slate-800" x-text="refundModalSale?.status === 'cancelled' ? 'Cancellation' : 'Return'"></span>
-                            </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">Customer Refund</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Process refund for customer with complete details and bank impact.</p>
                         </div>
                     </div>
-                </template>
-
-                {{-- Fully Refunded Notice Banner --}}
-                <template x-if="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009">
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-emerald-800 shadow-2xs">
-                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-600">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        </div>
-                        <div class="flex-1">
-                            <span class="font-extrabold text-xs uppercase tracking-wider text-emerald-900 block">Refund Fully Completed</span>
-                            <p class="text-xs font-medium text-emerald-700 mt-0.5">The total refund amount of <strong class="font-mono font-bold" x-text="fmt(getRefundDue(refundModalSale))"></strong> has been completely refunded. Remaining balance is <strong class="font-mono font-bold">₹0.00</strong>. No further refund payments are pending.</p>
-                        </div>
-                    </div>
-                </template>
-
-                {{-- Two Column Layout --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    {{-- Left Column: Refund Details & Payment Mode --}}
-                    <div class="space-y-5">
-                        
-                        {{-- Refund Details Card --}}
-                        <div class="border border-slate-200 rounded-xl p-4 space-y-3 bg-white shadow-2xs">
-                            <div class="flex items-center gap-2 pb-2 border-b border-slate-100 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
-                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span>Refund Details</span>
-                            </div>
-
-                            <div class="space-y-2.5 text-xs">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-medium">Customer Paid Amount</span>
-                                    <span class="font-bold text-emerald-600 font-mono" x-text="fmt(refundModalSale ? getPaidTillDate(refundModalSale) : 0)"></span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-medium">Cancellation Fee <span class="text-[10px] text-slate-400">(If applicable)</span></span>
-                                    <span class="font-bold text-slate-700 font-mono" x-text="fmt(refundModalSale ? refundModalSale.cancellation_fee : 0)"></span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-medium inline-flex items-center gap-1">
-                                        Owner Approved Additional Refund
-                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Approved additional refund amount"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    </span>
-                                    <span class="font-bold text-slate-700 font-mono" x-text="fmt(refundModalSale ? refundModalSale.additional_refund_amount : 0)"></span>
-                                </div>
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                                    <span class="text-slate-700 font-bold">Total Refund Amount</span>
-                                    <span class="font-bold text-emerald-600 font-mono" x-text="fmt(refundModalSale ? getRefundDue(refundModalSale) : 0)"></span>
-                                </div>
-                                <template x-if="refundModalSale && getRefundPaid(refundModalSale) > 0">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-slate-500 font-medium">Already Refunded</span>
-                                        <span class="font-bold text-teal-600 font-mono" x-text="fmt(getRefundPaid(refundModalSale))"></span>
-                                    </div>
-                                </template>
-                                <div class="flex items-center justify-between" x-show="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
-                                    <span class="text-slate-600 font-semibold">Balance Refund Amount</span>
-                                    <span class="font-bold text-slate-800 font-mono" x-text="fmt(getRemainingRefund(refundModalSale))"></span>
-                                </div>
-                                <template x-if="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-slate-500 font-medium">Current Refund amount</span>
-                                        <span class="font-bold text-rose-500 font-mono" x-text="'- ' + fmt(customerRefundForm.refund_amount)"></span>
-                                    </div>
-                                </template>
-
-                                {{-- Balance Refund Amount Row --}}
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100">
-                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]" x-text="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0 ? 'Balance Refund Amount (After Payout)' : 'Balance Refund Amount'"></span>
-                                    <span class="font-black font-mono text-sm"
-                                          :class="Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)) > 0 ? 'text-amber-600' : 'text-emerald-600'"
-                                          x-text="fmt(Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)))"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Payment Mode --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Payment Mode <span class="text-rose-500">*</span></label>
-                            <select x-model="customerRefundForm.payment_mode"
-                                    class="w-full px-3 py-2.5 text-xs font-semibold bg-white border border-slate-250 rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-800">
-                                <template x-for="pm in paymentModesList" :key="pm.id || pm.name">
-                                    <option :value="pm.name" x-text="pm.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                        {{-- Is Historical --}}
-                        <div class="space-y-1">
-                            <label class="flex items-start gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
-                                <div class="pt-0.5">
-                                    <input type="checkbox" x-model="customerRefundForm.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Bank Balance)</span></span>
-                                    <span class="text-[10px] text-slate-500 font-medium">Voucher is created but the company bank balance is not updated.</span>
-                                </div>
-                            </label>
-                        </div>
-                        {{-- Remarks --}}
-                        <div class="space-y-1">
-                            <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Remarks <span class="text-slate-400 font-normal lowercase">(Optional)</span></label>
-                                <span class="text-[10px] text-slate-400 font-medium" x-text="(customerRefundForm.remarks ? customerRefundForm.remarks.length : 0) + '/500'"></span>
-                            </div>
-                            <textarea rows="3" x-model="customerRefundForm.remarks" maxlength="500"
-                                      placeholder="Customer refund processed as per cancellation agreement."
-                                      class="w-full px-3 py-2 text-xs border border-slate-250 rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 font-medium text-slate-800 placeholder-slate-400"></textarea>
-                        </div>
-                    </div>
-
-                    {{-- Right Column: Select Company Account & Refund Amount --}}
-                    <div class="space-y-5">
-                        
-                        {{-- Select Company Account --}}
-                        <div class="space-y-2 relative" @click.outside="bankDropdownOpen = false">
-                            <div class="flex items-center gap-1.5 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
-                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                <span>Select Company Account <span class="text-rose-500">*</span></span>
-                            </div>
-                            
-                            {{-- Hidden Required Input for Form Submission --}}
-                            <input type="hidden" name="company_bank_account_id" :value="customerRefundForm.company_bank_account_id">
-
-                            {{-- Dropdown Trigger Button --}}
-                            <div @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) { bankSearch = ''; $nextTick(() => $refs.bankSearchInput?.focus()); }"
-                                 class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs"
-                                 :class="customerRefundFormErrors.company_bank_account_id ? 'border-rose-500' : 'border-slate-300 hover:border-[#a38c29]/60'">
-                                <template x-if="getSelectedBankAccount()">
-                                    <div class="flex items-center gap-2 truncate">
-                                        <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="getSelectedBankAccount().bank_name"></span>
-                                        <span class="font-bold text-slate-800 truncate" x-text="getSelectedBankAccount().account_name || getSelectedBankAccount().bank_name"></span>
-                                        <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (getSelectedBankAccount().account_number || '—') + ')'"></span>
-                                    </div>
-                                </template>
-                                <template x-if="!getSelectedBankAccount()">
-                                    <span class="text-slate-400 font-medium">Select Company Account...</span>
-                                </template>
-                                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="bankDropdownOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-
-                            {{-- Dropdown Popover List --}}
-                            <div x-show="bankDropdownOpen" 
-                                 x-transition
-                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
-                                 style="display: none;">
-                                
-                                {{-- Search Input inside Popover --}}
-                                <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
-                                    <div class="relative">
-                                        <input type="text" 
-                                               x-model="bankSearch" 
-                                               x-ref="bankSearchInput"
-                                               placeholder="Search bank name, account no, branch..." 
-                                               class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                                        <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                    </div>
-                                </div>
-
-                                {{-- Results List --}}
-                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
-                                    <template x-for="acc in filteredCompanyBankAccounts" :key="acc.id">
-                                        <div @click="selectCompanyBank(acc.id)"
-                                             class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                                             :class="customerRefundForm.company_bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
-                                            <div class="flex flex-col min-w-0 pr-2">
-                                                <div class="flex items-center gap-1.5 truncate">
-                                                    <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
-                                                    <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
-                                                </div>
-                                                <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—') + (acc.ifsc_code ? ' • IFSC: ' + acc.ifsc_code : '')"></div>
-                                            </div>
-                                            <div class="text-right font-mono shrink-0">
-                                                <div class="text-[8px] text-slate-400 uppercase font-sans font-bold tracking-wider">Current Balance</div>
-                                                <div class="font-bold text-slate-800 text-[11px]" x-text="fmt(acc.current_balance || 0)"></div>
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <template x-if="filteredCompanyBankAccounts.length === 0">
-                                        <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
-                                    </template>
-                                </div>
-                            </div>
-                            <span x-show="customerRefundFormErrors.company_bank_account_id" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.company_bank_account_id"></span>
-
-                            {{-- Selected Bank Balance & Words Display (Screenshot 3 replica) --}}
-                            <div class="mt-1.5 space-y-0.5" x-show="getSelectedBankAccount()">
-                                <div class="flex items-center justify-between text-[11px]">
-                                    <span class="text-slate-500 font-medium">Selected Bank Balance:</span>
-                                    <span class="font-mono font-bold text-[#a38c29]" x-text="fmt(selectedBankBalance)"></span>
-                                </div>
-                                <div x-show="selectedBankBalanceInWords" 
-                                     class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
-                                     x-text="selectedBankBalanceInWords"></div>
-                            </div>
-
-                            {{-- Source Bank Account Summary Card (Image 1 replica) --}}
-                            <template x-if="getSelectedBankAccount()">
-                                <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2 shadow-2xs mt-2">
-                                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">SOURCE BANK ACCOUNT</span>
-                                        <span class="text-[11px] font-bold text-slate-800 truncate max-w-[200px]" x-text="getSelectedBankAccount().bank_name + (getSelectedBankAccount().account_number ? ' ' + getSelectedBankAccount().account_number : '')"></span>
-                                    </div>
-                                    <div class="space-y-1.5 text-xs">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <span class="text-slate-600 font-semibold text-[11px]">Current Bank Balance:</span>
-                                            <span class="font-mono font-bold text-blue-600 text-xs" x-text="fmt(getSelectedBankAccount().current_balance || 0)"></span>
-                                        </div>
-                                        <div class="flex items-center justify-between gap-2">
-                                            <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
-                                            <span class="font-mono font-bold text-rose-500 text-xs" x-text="customerRefundForm.is_historical ? '₹0.00' : ('- ' + fmt(customerRefundForm.refund_amount || 0))"></span>
-                                        </div>
-                                        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
-                                            <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">BANK BALANCE AFTER:</span>
-                                            <span class="font-mono font-black text-xs" :class="(!customerRefundForm.is_historical && ((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0)) < 0) ? 'text-rose-600' : 'text-slate-900'" x-text="customerRefundForm.is_historical ? fmt(getSelectedBankAccount().current_balance || 0) : fmt((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0))"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-
-                        {{-- Refund Amount --}}
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Refund Amount <span class="text-rose-500">*</span></label>
-                                <div class="text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
-                                    <span>Balance Refund Amount:</span>
-                                    <button type="button" 
-                                            @click="customerRefundForm.refund_amount = getRemainingRefund(refundModalSale); validateRefundAmount();"
-                                            :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
-                                            title="Click to fill full balance refund amount"
-                                            class="font-mono font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md transition text-xs shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                                        <span x-text="fmt(getRemainingRefund(refundModalSale))"></span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
-                                    ₹
-                                </div>
-                                <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount" data-no-words="true"
-                                       @input="validateRefundAmount()"
-                                       :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
-                                       :placeholder="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009 ? 'Refund fully completed (₹0.00 balance)' : 'Enter refund amount (e.g. 500000)'"
-                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition"
-                                       :class="customerRefundFormErrors.refund_amount ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009 ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : 'border-slate-250')">
-                            </div>
-                            <span class="text-[10px] text-slate-400 font-medium block" x-show="!refundModalSale || getRemainingRefund(refundModalSale) > 0.009">(Total refund amount will be transferred to customer)</span>
-                            <span x-show="customerRefundFormErrors.refund_amount" class="text-[11px] text-rose-600 font-bold block mt-1" x-text="customerRefundFormErrors.refund_amount"></span>
-
-                            {{-- Real-time validation warning if amount exceeds remaining --}}
-                            <template x-if="refundModalSale && getRemainingRefund(refundModalSale) > 0.009 && Number(customerRefundForm.refund_amount || 0) > getRemainingRefund(refundModalSale) + 0.009">
-                                <div class="mt-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-semibold flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span x-text="'Refund amount (' + fmt(customerRefundForm.refund_amount) + ') exceeds balance refund payable (' + fmt(getRemainingRefund(refundModalSale)) + ').'"></span>
-                                </div>
-                            </template>
-                            
-                            {{-- Amount in Words Box --}}
-                            <div x-show="refundAmountInWordsText" 
-                                 class="mt-2 px-3 py-1.5 bg-[#faf9f5] border border-[#a38c29]/40 rounded-xl text-xs font-bold text-[#8a7522] tracking-wide shadow-2xs flex items-center gap-2" 
-                                 x-cloak>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 012 2h-3l-4 4z"/>
-                                </svg>
-                                <span x-text="refundAmountInWordsText"></span>
-                            </div>
-                        </div>
-
-                        {{-- Insufficient Funds Error Banner (Image 2 design) --}}
-                        <template x-if="!customerRefundForm.is_historical && getSelectedBankAccount() && (Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
-                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex items-start gap-3 text-rose-800 shadow-2xs">
-                                <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="text-xs font-bold leading-relaxed" x-text="'Insufficient Bank Funds! Payout amount (' + fmt(customerRefundForm.refund_amount || 0) + ') exceeds available balance in ' + (getSelectedBankAccount().bank_name + (getSelectedBankAccount().account_number ? ' ' + getSelectedBankAccount().account_number : '')) + ' (' + fmt(getSelectedBankAccount().current_balance || 0) + ').'"></p>
-                            </div>
-                        </template>
-
-                        {{-- Info Box --}}
-                        <template x-if="!customerRefundForm.is_historical && (!getSelectedBankAccount() || !(Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0)))">
-                            <div class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
-                                <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <p class="leading-relaxed">This amount will be credited to the customer's bank account as per the selected company account.</p>
-                            </div>
-                        </template>
-                    </div>
-
+                    <button type="button" @click="openCustomerRefundModal = false" 
+                            class="px-4 py-2 rounded-xl text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0 hover:bg-slate-50"
+                            style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        <span>Back to Returns</span>
+                    </button>
                 </div>
 
-            </div>
-
-            {{-- Previous Refund Payments (history) --}}
-            <!-- <template x-if="refundModalSale && getRefundPayments(refundModalSale).length > 0">
-                <div class="px-6 py-3 border-t border-slate-100 bg-white shrink-0">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-800">Previous Refund Payments</span>
-                        <button type="button" @click="openCustomerRefundModal = false; openRefundLedger(refundModalSale)" class="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-800 underline">View Full Ledger</button>
+                {{-- Top 4 Metric Cards --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Card 1: Customer -->
+                    <div class="rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs cust-refund-card-customer"
+                         style="background-color: #f0f7ff !important; border: 1px solid #bfdbfe !important;">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                             style="background-color: #dbeafe; color: #2563eb;">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Customer</span>
+                            <div class="text-base font-extrabold text-slate-900 truncate" x-text="refundModalSale?.customer?.name || 'Customer'"></div>
+                            <div class="text-[11px] text-slate-500 font-medium truncate mt-0.5" x-text="'Customer ID : CUST-' + (refundModalSale?.customer_id ? String(refundModalSale.customer_id).padStart(4, '0') : '—')"></div>
+                        </div>
                     </div>
-                    <div class="max-h-32 overflow-y-auto border border-slate-200 rounded-lg">
-                        <table class="w-full text-[11px]">
-                            <thead class="bg-slate-50 text-slate-500 uppercase text-[9px] tracking-wider sticky top-0">
+
+                    <!-- Card 2: Total Paid -->
+                    <div class="rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs cust-refund-card-paid"
+                         style="background-color: #ecfdf5 !important; border: 1px solid #a7f3d0 !important;">
+                        <div class="w-12 h-12 rounded-2xl text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs"
+                             style="background-color: #10b981; color: #ffffff;">
+                            ₹
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Paid</span>
+                            <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight truncate" x-text="fmtIndian(refundModalSale ? getPaidTillDate(refundModalSale) : 0)"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Total Refunds -->
+                    <div class="rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs cust-refund-card-refunds"
+                         style="background-color: #fffbeb !important; border: 1px solid #fde68a !important;">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                             style="background-color: #fef3c7; color: #d97706;">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Refunds</span>
+                            <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight truncate" x-text="fmtIndian(refundModalSale ? getRefundPaid(refundModalSale) : 0)"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Remaining Balance -->
+                    <div class="rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs cust-refund-card-remaining"
+                         style="background-color: #faf5ff !important; border: 1px solid #ddd6fe !important;">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                             style="background-color: #f3e8ff; color: #9333ea;">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Remaining Balance</span>
+                            <div class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight truncate" x-text="fmtIndian(refundModalSale ? getRemainingRefund(refundModalSale) : 0)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Middle Section: Refund Calculation & Bank Details --}}
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    
+                    {{-- Left Card: Refund Calculation --}}
+                    <div class="lg:col-span-5 bg-white rounded-2xl overflow-hidden shadow-2xs flex flex-col justify-between"
+                         style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
+                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white cust-refund-teal-header"
+                             style="background-color: #184e68 !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            <span>Refund Calculation</span>
+                        </div>
+                        <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-semibold text-slate-700">Customer Paid Amount</span>
+                                    <span class="font-mono font-bold text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getPaidTillDate(refundModalSale) : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-semibold text-slate-700">Already Refunded</span>
+                                    <span class="font-mono font-bold text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getRefundPaid(refundModalSale) : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-extrabold text-slate-900">Pending Balance</span>
+                                    <span class="font-mono font-black text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getRemainingRefund(refundModalSale) : 0)"></span>
+                                </div>
+
+                                <div class="border-t border-slate-200 pt-3">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <label class="text-xs font-extrabold text-slate-900 shrink-0">This Refund Amount</label>
+                                        <div class="relative flex items-center rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-emerald-500/20 w-48 sm:w-56 cust-refund-emerald-highlight"
+                                             style="background-color: #ecfdf5 !important; border: 1px solid #6ee7b7 !important;">
+                                            <span class="text-slate-700 font-bold text-xs mr-2 shrink-0">₹</span>
+                                            <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount"
+                                                   @input="validateRefundAmount()"
+                                                   :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
+                                                   placeholder="0.00"
+                                                   class="w-full bg-transparent font-mono font-black text-sm text-slate-900 focus:outline-none text-right pr-2">
+                                            <button type="button" 
+                                                    @click="customerRefundForm.refund_amount = getRemainingRefund(refundModalSale); validateRefundAmount();"
+                                                    :disabled="refundModalSale && getRemainingRefund(refundModalSale) <= 0.009"
+                                                    title="Auto-fill full pending balance"
+                                                    class="text-slate-500 hover:text-emerald-700 transition cursor-pointer p-0.5 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div x-show="customerRefundFormErrors.refund_amount" class="text-[11px] text-rose-600 font-bold text-right mt-1" x-text="customerRefundFormErrors.refund_amount"></div>
+                                </div>
+
+                                <div class="rounded-xl px-4 py-2.5 flex items-center justify-between cust-refund-emerald-highlight"
+                                     style="background-color: #ecfdf5 !important; border: 1px solid #6ee7b7 !important; color: #065f46 !important;">
+                                    <span class="text-xs font-extrabold text-emerald-950">Remaining Balance After Refund</span>
+                                    <span class="text-sm font-black font-mono text-emerald-700" 
+                                          x-text="fmtIndian(Math.max(0, (refundModalSale ? getRemainingRefund(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)))"></span>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl p-3 flex items-center gap-2.5 text-xs text-amber-900 mt-2"
+                                 style="background-color: #fffbeb !important; border: 1px solid #fde68a !important; color: #92400e !important;">
+                                <div class="w-5 h-5 rounded-full text-white flex items-center justify-center font-bold text-xs shrink-0"
+                                     style="background-color: #2563eb;">i</div>
+                                <span class="font-medium">Refund can be processed up to the pending balance.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Right Card: Bank & Refund Details --}}
+                    <div class="lg:col-span-7 bg-white rounded-2xl overflow-hidden shadow-2xs"
+                         style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
+                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white cust-refund-teal-header"
+                             style="background-color: #184e68 !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Bank & Refund Details</span>
+                        </div>
+                        <div class="p-5 space-y-4 text-xs">
+                            
+                            <!-- Row 1: Company Bank Account & Payment Mode -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-800 mb-1.5">Company Bank Account <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <select x-model="customerRefundForm.company_bank_account_id"
+                                                @change="validateRefundAmount()"
+                                                class="w-full pl-9 pr-8 py-2.5 text-xs font-bold text-slate-800 rounded-xl appearance-none truncate cursor-pointer shadow-2xs"
+                                                style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                                            <template x-for="acc in companyBankAccountsList" :key="acc.id">
+                                                <option :value="acc.id" x-text="acc.bank_name + ' ' + (acc.account_number || '') + ' (' + (acc.account_name || 'Account') + ' - A/C: ' + (acc.account_number || '—') + ')'"></option>
+                                            </template>
+                                        </select>
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-rose-600">
+                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13H5.5L12 6.5z"/></svg>
+                                        </div>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </div>
+                                    </div>
+                                    <span x-show="customerRefundFormErrors.company_bank_account_id" class="text-[10px] text-rose-500 font-bold block mt-1" x-text="customerRefundFormErrors.company_bank_account_id"></span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-800 mb-1.5">Payment Mode <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <select x-model="customerRefundForm.payment_mode"
+                                                class="w-full pl-9 pr-8 py-2.5 text-xs font-bold text-slate-800 rounded-xl appearance-none cursor-pointer shadow-2xs"
+                                                style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                                            <template x-for="pm in paymentModesList" :key="pm.id || pm.name">
+                                                <option :value="pm.name" x-text="pm.name"></option>
+                                            </template>
+                                        </select>
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                        </div>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Bank Impact Summary & UTR / Date inputs -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                                <!-- Bank Impact Summary -->
+                                <div class="rounded-xl p-3 space-y-2"
+                                     style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                                    <div class="text-[11px] font-extrabold text-slate-800 tracking-wide">Bank Impact Summary</div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-slate-600 font-medium text-[11px]">Current Bank Balance</span>
+                                            <span class="font-mono font-bold text-slate-900 text-xs" x-text="fmtIndian(getSelectedBankAccount()?.current_balance || 0)"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-slate-600 font-medium text-[11px]">Refund Amount</span>
+                                            <span class="font-mono font-bold text-slate-900 text-xs" x-text="fmtIndian(customerRefundForm.refund_amount || 0)"></span>
+                                        </div>
+                                        <div class="rounded-lg px-2.5 py-1.5 flex items-center justify-between mt-1 cust-refund-emerald-highlight"
+                                             style="background-color: #ecfdf5 !important; border: 1px solid #6ee7b7 !important; color: #065f46 !important;">
+                                            <span class="text-[11px] font-extrabold text-emerald-950">Balance After Refund</span>
+                                            <span class="font-mono font-black text-xs text-emerald-700"
+                                                  :class="(!customerRefundForm.is_historical && ((getSelectedBankAccount()?.current_balance || 0) - (customerRefundForm.refund_amount || 0)) < 0) ? 'text-rose-600' : 'text-emerald-700'"
+                                                  x-text="customerRefundForm.is_historical ? fmtIndian(getSelectedBankAccount()?.current_balance || 0) : fmtIndian((getSelectedBankAccount()?.current_balance || 0) - (customerRefundForm.refund_amount || 0))"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- UTR & Refund Date -->
+                                <div class="space-y-2.5">
+                                    <div>
+                                        <label class="block text-xs font-extrabold text-slate-800 mb-1">UTR / Reference No.</label>
+                                        <input type="text" x-model="customerRefundForm.reference_no" placeholder="Enter UTR / Reference No."
+                                               class="w-full px-3 py-2 text-xs font-semibold text-slate-800 rounded-xl shadow-2xs"
+                                               style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-extrabold text-slate-800 mb-1">Refund Date <span class="text-rose-500">*</span></label>
+                                        <div class="relative">
+                                            <input type="date" x-model="customerRefundForm.refund_date"
+                                                   class="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-800 rounded-xl shadow-2xs"
+                                                   style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Remarks & Historical Bypass -->
+                            <div>
+                                <label class="block text-xs font-extrabold text-slate-800 mb-1">Remarks (Optional)</label>
+                                <div class="relative">
+                                    <input type="text" x-model="customerRefundForm.remarks" placeholder="Enter remarks about this refund..."
+                                           class="w-full pl-9 pr-3 py-2 text-xs font-medium text-slate-800 rounded-xl shadow-2xs"
+                                           style="background-color: #ffffff; border: 1px solid #cbd5e1;">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                </div>
+                                <label class="inline-flex items-center gap-2 mt-2 cursor-pointer text-[11px] text-slate-500 hover:text-slate-700">
+                                    <input type="checkbox" x-model="customerRefundForm.is_historical" class="w-3.5 h-3.5 rounded border-slate-300"
+                                           style="accent-color: #184e68;">
+                                    <span>Is Historical <span class="text-slate-400">(Bypass Bank Balance Deduction)</span></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bottom Section: Recent Refunds --}}
+                <div class="bg-white rounded-2xl overflow-hidden shadow-2xs"
+                     style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
+                    <div class="px-4 py-2.5 flex items-center justify-between text-white cust-refund-teal-header"
+                         style="background-color: #184e68 !important; color: #ffffff !important;">
+                        <div class="flex items-center gap-2 font-bold text-sm tracking-wide">
+                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Recent Refunds</span>
+                        </div>
+                        <button type="button" @click="openCustomerRefundModal = false; openRefundLedger(refundModalSale)" 
+                                class="text-xs font-semibold flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer hover:bg-white/20"
+                                style="background-color: rgba(255, 255, 255, 0.15); color: #ffffff;">
+                            <span>View All</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto max-h-48 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="font-bold uppercase text-[10px] tracking-wider sticky top-0"
+                                   style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569;">
                                 <tr>
-                                    <th class="px-3 py-1.5 text-left">#</th>
-                                    <th class="px-3 py-1.5 text-left">Date</th>
-                                    <th class="px-3 py-1.5 text-left">Mode</th>
-                                    <th class="px-3 py-1.5 text-right">Amount</th>
-                                    <th class="px-3 py-1.5 text-right">Balance</th>
+                                    <th class="px-4 py-2.5 text-center w-12">#</th>
+                                    <th class="px-4 py-2.5">Refund Date</th>
+                                    <th class="px-4 py-2.5">Customer</th>
+                                    <th class="px-4 py-2.5 text-right">Refund Amount</th>
+                                    <th class="px-4 py-2.5">Payment Mode</th>
+                                    <th class="px-4 py-2.5">UTR / Ref No.</th>
+                                    <th class="px-4 py-2.5 text-center">Status</th>
+                                    <th class="px-4 py-2.5 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 <template x-for="row in getRefundLedgerRows(refundModalSale)" :key="row.voucher_id + '-' + row.sl">
-                                    <tr>
-                                        <td class="px-3 py-1.5 text-slate-500" x-text="row.sl"></td>
-                                        <td class="px-3 py-1.5 text-slate-700" x-text="formatDate(row.date)"></td>
-                                        <td class="px-3 py-1.5 text-slate-700" x-text="row.payment_mode || '—'"></td>
-                                        <td class="px-3 py-1.5 text-right font-mono font-bold text-teal-600" x-text="fmt(row.amount)"></td>
-                                        <td class="px-3 py-1.5 text-right font-mono text-amber-600" x-text="fmt(row.balance)"></td>
+                                    <tr class="hover:bg-slate-50/70 transition" style="border-bottom: 1px solid #f1f5f9;">
+                                        <td class="px-4 py-2.5 text-center text-slate-500 font-semibold" x-text="row.sl"></td>
+                                        <td class="px-4 py-2.5 text-slate-800 font-semibold" x-text="formatDate(row.date)"></td>
+                                        <td class="px-4 py-2.5 text-slate-900 font-bold" x-text="refundModalSale?.customer?.name || 'Customer'"></td>
+                                        <td class="px-4 py-2.5 text-right font-mono font-black text-slate-900" x-text="fmtIndian(row.amount)"></td>
+                                        <td class="px-4 py-2.5 text-slate-700 font-medium" x-text="row.payment_mode || 'Bank Transfer'"></td>
+                                        <td class="px-4 py-2.5 text-slate-600 font-mono text-[11px]" x-text="row.reference_no || row.voucher_number || '—'"></td>
+                                        <td class="px-4 py-2.5 text-center">
+                                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                                                  style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">Processed</span>
+                                        </td>
+                                        <td class="px-4 py-2.5 text-center">
+                                            <button type="button" @click="openCustomerRefundModal = false; openRefundLedger(refundModalSale)" title="View Details" class="text-slate-400 hover:text-blue-600 transition p-1 cursor-pointer">
+                                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </button>
+                                        </td>
                                     </tr>
                                 </template>
+                                <tr x-show="!refundModalSale || !getRefundLedgerRows(refundModalSale) || getRefundLedgerRows(refundModalSale).length === 0">
+                                    <td colspan="8" class="text-center py-6 text-xs text-slate-400 italic">No refund transactions recorded yet for this return.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </template> -->
 
-            {{-- Modal Footer --}}
-            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
-                <button type="button" @click="openCustomerRefundModal = false"
-                        class="px-5 py-2.5 rounded-xl border border-slate-250 text-slate-700 text-xs font-extrabold uppercase hover:bg-slate-100 transition shadow-2xs">
-                    Cancel
-                </button>
-                <button type="button" @click="submitCustomerRefund()" 
-                        :disabled="isSubmittingRefund || (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009) || !customerRefundForm.refund_amount || Number(customerRefundForm.refund_amount) <= 0 || (refundModalSale && Number(customerRefundForm.refund_amount) > getRemainingRefund(refundModalSale) + 0.009)"
-                        class="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-extrabold uppercase transition shadow-md shadow-[#a38c29]/25 inline-flex items-center gap-2">
-                    <svg x-show="!isSubmittingRefund" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    <svg x-show="isSubmittingRefund" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>Confirm Refund</span>
-                </button>
+                {{-- Modal Footer --}}
+                <div class="flex items-center justify-end gap-3 pt-1">
+                    <button type="button" @click="openCustomerRefundModal = false"
+                            class="px-5 py-2.5 rounded-xl text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer flex items-center gap-1.5 hover:bg-slate-100"
+                            style="background-color: #ffffff; border: 1px solid #cbd5e1; color: #475569;">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" @click="submitCustomerRefund()" 
+                            :disabled="isSubmittingRefund || (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009) || !customerRefundForm.refund_amount || Number(customerRefundForm.refund_amount) <= 0 || (refundModalSale && Number(customerRefundForm.refund_amount) > getRemainingRefund(refundModalSale) + 0.009)"
+                            class="px-6 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition shadow-md inline-flex items-center gap-2 cursor-pointer cust-refund-btn-confirm"
+                            style="background-color: #184e68 !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(24, 78, 104, 0.3);">
+                        <svg x-show="!isSubmittingRefund" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <svg x-show="isSubmittingRefund" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span>Confirm Refund</span>
+                    </button>
+                </div>
+
             </div>
 
         </div>

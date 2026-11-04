@@ -91,6 +91,7 @@ class SalesController extends Controller
                             'created_at'     => $v->created_at,
                             'amount'         => $amt,
                             'payment_mode'   => $refData['payment_mode'] ?? null,
+                            'reference_no'   => $refData['reference_no'] ?? null,
                             'bank_name'      => $bank ? $bank->bank_name . ($bank->account_number ? ' (' . $bank->account_number . ')' : '') : null,
                             'remarks'        => $refData['remarks'] ?? null,
                             'processed_by'   => $v->created_by ? ($userNames[$v->created_by] ?? null) : null,
@@ -1442,6 +1443,8 @@ class SalesController extends Controller
             'company_bank_account_id' => 'required|exists:company_bank_accounts,id',
             'refund_amount'           => 'required|numeric|min:0.01',
             'payment_mode'            => 'required|string',
+            'reference_no'            => 'nullable|string|max:100',
+            'refund_date'             => 'nullable|date',
             'remarks'                 => 'nullable|string|max:500',
         ]);
 
@@ -1452,6 +1455,8 @@ class SalesController extends Controller
                 $amount = (float) $validated['refund_amount'];
                 $companyBankId = (int) $validated['company_bank_account_id'];
                 $paymentMode = $validated['payment_mode'];
+                $referenceNo = $validated['reference_no'] ?? null;
+                $refundDate = $validated['refund_date'] ?? date('Y-m-d');
                 $remarks = $validated['remarks'] ?? '';
                 $systemId = $sale->system_id ?? 1;
                 $isHistorical = $request->boolean('is_historical');
@@ -1510,6 +1515,8 @@ class SalesController extends Controller
                         ]
                     ],
                     'payment_mode' => $paymentMode,
+                    'reference_no' => $referenceNo,
+                    'refund_date'  => $refundDate,
                     'company_bank_account_id' => $companyBankId,
                     'remarks' => $remarks
                 ]);
@@ -1521,9 +1528,9 @@ class SalesController extends Controller
                     'company_bank_account_id' => $companyBankId,
                     'voucher_number'          => $voucherNumber,
                     'type'                    => 'Payment',
-                    'date'                    => date('Y-m-d'),
+                    'date'                    => $refundDate,
                     'reference_no'            => $refNoJson,
-                    'narration'               => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : '') . ($isHistorical ? ' [Historical]' : ''),
+                    'narration'               => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($referenceNo ? ' [Ref: ' . $referenceNo . ']' : '') . ($remarks ? ' (' . $remarks . ')' : '') . ($isHistorical ? ' [Historical]' : ''),
                     'created_by'              => auth()->id() ?? 1,
                     'status'                  => 'Posted',
                 ]);
