@@ -248,13 +248,14 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
                 <thead class="erp-table-header">
-                    <tr class="text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#3e3a35]">
-                        <th class="px-4 py-2.5 text-white">Date</th>
-                        <th class="px-4 py-2.5 text-white">Description</th>
-                        <th class="px-4 py-2.5 text-right text-white">Debit (Due)</th>
-                        <th class="px-4 py-2.5 text-right text-white">Credit (Paid)</th>
-                        <th class="px-4 py-2.5 text-right text-white">Running Balance</th>
-                        <th class="px-4 py-2.5 text-center text-white">Type & Status</th>
+                    <tr class="text-white font-extrabold text-[13px] uppercase tracking-wider border-b border-[#3e3a35]">
+                        <th class="px-4 py-3 text-white">Date</th>
+                        <th class="px-4 py-3 text-white">Description</th>
+                        <th class="px-4 py-3 text-right text-white">Debit (Due)</th>
+                        <th class="px-4 py-3 text-right text-white">Credit (Paid)</th>
+                        <th class="px-4 py-3 text-right text-white">Running Balance</th>
+                        <th class="px-4 py-3 text-center text-white whitespace-nowrap min-w-[310px]">Type & Status</th>
+                        <th class="px-3 py-3 text-left text-white whitespace-nowrap min-w-[90px]">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
@@ -304,133 +305,89 @@
                                 <span class="text-[8px] font-extrabold uppercase">{{ $row['running_balance'] > 0 ? 'DR' : 'CR' }}</span>
                             </span>
                         </td>
-                        <td class="px-4 py-2.5 align-middle text-center">
-                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                {{-- Type Badge --}}
-                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md border {{ $cfg['badge'] }}">
+                        <td class="px-4 py-2 align-middle">
+                            <div class="flex items-center gap-2">
+                                {{-- 1. Type Badge --}}
+                                <span class="inline-flex items-center justify-center w-[88px] h-7 px-3 text-[9px] font-extrabold uppercase rounded-lg border {{ $cfg['badge'] }} shrink-0">
                                     INSTALLMENT
                                 </span>
 
-                                {{-- Installment Status / Button --}}
-                                @if(in_array($row['status'], ['exchanged', 'cancelled', 'returned', 'resale']))
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md 
-                                        {{ $row['status'] === 'exchanged' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($row['status'] === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200') }}">
-                                        {{ ucfirst($row['status']) }}
-                                    </span>
-                                @elseif($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                {{-- 2. If Paid: Paid Badge --}}
+                                @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
+                                    <span class="inline-flex items-center justify-center px-3.5 h-7 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-2xs whitespace-nowrap shrink-0">
                                         Paid
                                     </span>
-                                    @if(!empty($row['receipts']))
-                                        @foreach($row['receipts'] as $rcpt)
-                                            <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs cursor-pointer">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                        @endforeach
-                                    @endif
-                                    @if(!empty($row['logs']))
-                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
-                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </button>
-                                    @endif
-                                @elseif($row['status'] === 'partial')
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
-                                        Partial
+                                @elseif(in_array($row['status'], ['exchanged', 'cancelled', 'returned', 'resale']))
+                                    <span class="inline-flex items-center justify-center px-3 h-7 text-[9px] font-extrabold uppercase rounded-lg shrink-0 
+                                        {{ $row['status'] === 'exchanged' ? 'bg-blue-50 text-blue-700 border border-blue-200' : ($row['status'] === 'cancelled' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200') }}">
+                                        {{ ucfirst($row['status']) }}
                                     </span>
-                                    @if(!empty($row['receipts']))
-                                        @foreach($row['receipts'] as $rcpt)
-                                            <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs cursor-pointer">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                        @endforeach
-                                    @endif
+                                @elseif($sale->status !== 'exchanged')
                                     @if(!empty($row['bounced_receipt']))
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
-                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                        {{-- Re-pay Button (matching requested UI: rounded-full pill, rose theme, circular refresh icon) --}}
+                                        <button
+                                            @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ json_encode($row['bounced_receipt']) }})"
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-1.5 w-[125px] h-7 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-[9px] font-extrabold uppercase tracking-wider rounded-full shadow-2xs transition-all whitespace-nowrap cursor-pointer shrink-0">
+                                            <span>RE-PAY</span>
+                                            <svg class="w-3 h-3 text-rose-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        </button>
+                                    @else
+                                        {{-- Regular Pay Button (Pay Installment / Pay Remaining) with same fixed width --}}
+                                        <button
+                                            @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', null)"
+                                            type="button"
+                                            class="inline-flex items-center justify-center w-[125px] h-7 px-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer shrink-0">
+                                            {{ $row['status'] === 'partial' ? 'Pay Remaining' : 'Pay Installment' }}
+                                        </button>
+                                    @endif
+
+                                    {{-- Status Badge (Pending / Overdue / Partial) placed after the button --}}
+                                    @if($row['status'] === 'partial')
+                                        <span class="inline-flex items-center justify-center px-3 h-7 text-[9px] font-extrabold uppercase rounded-lg bg-amber-100 text-amber-700 border border-amber-200 shrink-0">
+                                            Partial
                                         </span>
-                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
-                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                    @endif
-                                    @if(!empty($row['logs']))
-                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
-                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </button>
-                                    @endif
-                                    @if($sale->status !== 'exchanged')
-                                    <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
-                                        type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay' : 'Pay Remaining' }}
-                                    </button>
-                                    @endif
-                                @elseif($row['status'] === 'overdue')
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
-                                        Overdue
-                                    </span>
-                                    @if(!empty($row['bounced_receipt']))
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
-                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                    @elseif($row['status'] === 'overdue')
+                                        <span class="inline-flex items-center justify-center px-3 h-7 text-[9px] font-extrabold uppercase rounded-lg bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                                            Overdue
                                         </span>
-                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
-                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                    @endif
-                                    @if(!empty($row['logs']))
-                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
-                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </button>
-                                    @endif
-                                    @if($sale->status !== 'exchanged')
-                                    <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
-                                        type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay Installment' : 'Pay Installment' }}
-                                    </button>
-                                    @endif
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                                        Pending
-                                    </span>
-                                    @if(!empty($row['bounced_receipt']))
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[8.5px] font-black uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-300" title="{{ $row['bounced_receipt']['remarks'] ?? '' }}">
-                                            {{ strtoupper($row['bounced_receipt']['realization_status']) }} #{{ $row['bounced_receipt']['ref'] }}
+                                    @else
+                                        <span class="inline-flex items-center justify-center px-3 h-7 text-[9px] font-extrabold uppercase rounded-lg bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+                                            Pending
                                         </span>
-                                        <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt"
-                                                class="inline-flex items-center justify-center p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
                                     @endif
-                                    @if(!empty($row['logs']))
-                                        <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
-                                                class="inline-flex items-center justify-center p-1.5 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </button>
-                                    @endif
-                                    @if($sale->status !== 'exchanged')
-                                    <button
-                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}', {{ $isOutOfOrder ? 'true' : 'false' }}, '{{ addslashes($firstUnpaidLabel ?? '') }}', '{{ $row['id'] ?? '' }}', '{{ $row['raw_due_date'] ?? '' }}', {{ !empty($row['bounced_receipt']) ? json_encode($row['bounced_receipt']) : 'null' }})"
-                                        type="button"
-                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer">
-                                        {{ !empty($row['bounced_receipt']) ? 'Replace / Pay Installment' : 'Pay Installment' }}
+                                @endif
+                            </div>
+                        </td>
+                        {{-- Dedicated Actions Column for View Receipt & Clearance Log Icons (Left-aligned) --}}
+                        <td class="px-3 py-2 align-middle text-left whitespace-nowrap">
+                            <div class="inline-flex items-center justify-start gap-1.5">
+                                @if(!empty($row['bounced_receipt']))
+                                    <button type="button" @click.stop="openReceiptModal('{{ $row['bounced_receipt']['id'] }}')" title="View {{ ucfirst($row['bounced_receipt']['realization_status']) }} Receipt #{{ $row['bounced_receipt']['ref'] ?? '' }}"
+                                            class="inline-flex items-center justify-center w-7 h-7 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-all shadow-xs cursor-pointer shrink-0">
+                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    @endif
+                                @endif
+                                @if(!empty($row['receipts']))
+                                    @foreach($row['receipts'] as $rcpt)
+                                        <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
+                                                class="inline-flex items-center justify-center w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs cursor-pointer shrink-0">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    @endforeach
+                                @endif
+                                @if(!empty($row['logs']))
+                                    <button type="button" @click.stop="openInstLogsModal('{{ addslashes($row['description']) }}', {{ json_encode($row['logs']) }})" title="View Replacement & Clearance Logs"
+                                            class="inline-flex items-center justify-center w-7 h-7 bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-[#a38c29]/40 rounded-lg transition-all shadow-xs cursor-pointer shrink-0">
+                                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </button>
                                 @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic">No transactions yet for this sale. Use "Add Receipt" to record the first payment.</td>
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">No transactions yet for this sale. Use "Add Receipt" to record the first payment.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -441,6 +398,7 @@
                         <td class="px-5 py-4 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
                             ₹{{ number_format(abs($closingBalance), 2) }} <span class="text-[9px] font-extrabold uppercase text-slate-500">{{ $closingBalance > 0 ? 'DR' : 'CR' }}</span>
                         </td>
+                        <td></td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -534,25 +492,31 @@
 
     {{-- Direct Pay Installment Modal --}}
     <div x-show="modalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
-         style="display: none;" x-transition.opacity>
-         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="modalOpen = false">
-              {{-- Header --}}
-              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none text-left" 
+         x-transition:enter="transition ease-out duration-200" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="transition ease-in duration-150" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0"
+         style="display: none;">
+         <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="modalOpen = false">
+              
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-[#a38c29]/10">
                   <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                   <div class="relative z-10 flex items-center justify-between gap-4">
                       <div>
-                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="form.bounced_receipt ? 'Re-opened Installment / Cheque Replacement' : 'Installment Payment'"></span>
-                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Payment for <span x-text="form.label"></span></h2>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="form.bounced_receipt ? 'Re-opened Installment / Cheque Replacement' : 'Installment Payment'">Re-opened Installment / Cheque Replacement</span>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Payment for <span x-text="form.label">EMI 5 (Due)</span></h2>
                       </div>
-                      <button type="button" @click="modalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                      <button type="button" @click="modalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
                   </div>
               </div>
 
-              <div x-show="error" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 leading-relaxed shadow-xs" x-text="error"></div>
+              <div x-show="error" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 leading-relaxed shadow-xs" x-text="error" style="display: none;"></div>
 
               <form @submit.prevent="submitPayment()" novalidate>
-                  <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                  <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto font-sans text-xs bg-white">
                       <template x-if="form.bounced_receipt">
                           <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 space-y-1">
                               <div class="flex items-center justify-between">
@@ -565,139 +529,165 @@
                           </div>
                       </template>
 
-                      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                          {{-- When in Bounced/Cancelled Replacement mode: 2 columns for Amount & Penalty --}}
+                      <div class="space-y-4">
                           <template x-if="form.bounced_receipt">
-                              <div class="grid grid-cols-2 gap-4">
+                              <div class="space-y-4">
                                   <div class="space-y-1.5">
                                       <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
-                                      <input type="number" step="0.01" x-model.number="form.amount"
-                                             @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);"
-                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                             :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                      <input type="number" step="0.01" x-model.number="form.amount" @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
                                       <template x-if="errors.amount">
                                           <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                       </template>
                                   </div>
 
-                                  <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Penalty / Bounce Charge (₹)</label>
-                                      <input type="number" step="0.01" min="0" x-model.number="form.penalty_amount"
-                                             @input="updateCollectAmountWithPenalty()"
-                                             placeholder="0.00"
-                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
-                                      <span class="text-[9px] text-slate-400 font-medium block">Added to this EMI & customer account if > 0</span>
+                                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div class="space-y-1.5">
+                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Penalty / Bounce Charge (₹)</label>
+                                          <input type="number" step="0.01" min="0" x-model.number="form.penalty_amount" @input="updateCollectAmountWithPenalty()" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                          <span class="text-[9px] text-slate-400 font-medium block">Added to this EMI &amp; customer account if &gt; 0</span>
+                                      </div>
+
+                                      <div class="space-y-1.5">
+                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">New EMI Due / Cheque Date</label>
+                                          <input type="date" x-model="form.new_due_date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                      </div>
                                   </div>
                               </div>
                           </template>
 
-                          {{-- When in Standard Pay Installment mode: Full width single field for Amount --}}
                           <template x-if="!form.bounced_receipt">
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
-                                  <input type="number" step="0.01" x-model.number="form.amount"
-                                         @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                         :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <input type="number" step="0.01" x-model.number="form.amount" @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
                                   <template x-if="errors.amount">
                                       <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                   </template>
                               </div>
                           </template>
 
-                          {{-- When in Bounced/Cancelled Replacement mode: 2 columns for Receipt Date & New Due Date --}}
-                          <template x-if="form.bounced_receipt">
-                              <div class="grid grid-cols-2 gap-4">
-                                  <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
-                                      <input type="date" x-model="form.receipt_date"
-                                             @input="if(errors.receipt_date) delete errors.receipt_date;"
-                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                             :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
-                                      <template x-if="errors.receipt_date">
-                                          <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
-                                      </template>
-                                  </div>
-
-                                  <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">New EMI Due / Cheque Date</label>
-                                      <input type="date" x-model="form.new_due_date"
-                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm">
-                                  </div>
-                              </div>
-                          </template>
-
-                          {{-- When in Standard Pay Installment mode: Full width single field for Receipt Date --}}
-                          <template x-if="!form.bounced_receipt">
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
-                                  <input type="date" x-model="form.receipt_date"
-                                         @input="if(errors.receipt_date) delete errors.receipt_date;"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                         :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <input type="date" x-model="form.receipt_date" @input="if(errors.receipt_date) delete errors.receipt_date;" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
                                   <template x-if="errors.receipt_date">
                                       <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
                                   </template>
                               </div>
-                          </template>
 
-                          {{-- Payment Mode (Both modes, full width) --}}
-                          <div class="space-y-2">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
-                              <select x-model="form.payment_mode"
-                                      @change="if(errors.payment_mode) delete errors.payment_mode;"
-                                      class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm"
-                                      :class="errors.payment_mode ? 'border-rose-500 bg-rose-50/20' : ''">
-                                  <option value="">-- Select Payment Mode --</option>
-                                  @foreach($paymentModes as $pm)
-                                      <option value="{{ $pm->name }}">{{ $pm->name }}</option>
-                                  @endforeach
-                              </select>
-                              <template x-if="errors.payment_mode">
-                                  <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
-                              </template>
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
+                                  <select x-model="form.payment_mode" @change="if(errors.payment_mode) delete errors.payment_mode;" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm" :class="errors.payment_mode ? 'border-rose-500 bg-rose-50/20' : ''">
+                                      <option value="">-- Select Payment Mode --</option>
+                                      @foreach($paymentModes as $pm)
+                                          <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                      @endforeach
+                                  </select>
+                                  <template x-if="errors.payment_mode">
+                                      <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
+                                  </template>
+                              </div>
                           </div>
-                      </div>
 
-                      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                          <div class="grid grid-cols-2 gap-4">
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No. <span class="text-rose-500">*</span></label>
-                                  <input type="text" x-model="form.reference_no" placeholder="Enter Ref / Cheque No."
-                                         @input="if(errors.reference_no) delete errors.reference_no;"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
-                                         :class="errors.reference_no ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <input type="text" x-model="form.reference_no" placeholder="Enter Ref / Cheque No." @input="if(errors.reference_no) delete errors.reference_no;" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.reference_no ? 'border-rose-500 bg-rose-50/20' : ''">
                                   <template x-if="errors.reference_no">
                                       <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.reference_no) ? errors.reference_no[0] : errors.reference_no"></span>
                                   </template>
                               </div>
-                              <div class="space-y-1.5">
+
+                              <div class="space-y-1.5 relative" x-data="{
+                                       bankDropdownOpen: false,
+                                       bankSearch: '',
+                                       banksList: {{ json_encode($banks->map(fn($b) => ['id' => (string)$b->id, 'name' => $b->bank_name])) }},
+                                       get selectedBank() {
+                                           return this.banksList.find(b => String(b.id) === String(form.bank_id));
+                                       },
+                                       get filteredBanks() {
+                                           const q = (this.bankSearch || '').toLowerCase().trim();
+                                           if (!q) return this.banksList;
+                                           return this.banksList.filter(b => b.name && b.name.toLowerCase().includes(q));
+                                       },
+                                       selectBank(id) {
+                                           form.bank_id = id;
+                                           this.bankDropdownOpen = false;
+                                           this.bankSearch = '';
+                                       },
+                                       clearBank() {
+                                           form.bank_id = '';
+                                           this.bankDropdownOpen = false;
+                                           this.bankSearch = '';
+                                       }
+                                   }" @click.outside="bankDropdownOpen = false">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                                  <select x-model="form.bank_id"
-                                          class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm">
-                                      <option value="">-- Optional --</option>
-                                      @foreach($banks as $bank)
-                                      <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
-                                      @endforeach
-                                  </select>
+
+                                  <div @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) { bankSearch = ''; $nextTick(() => $refs.bankSearchInput?.focus()); }" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-between transition-all shadow-sm" :class="bankDropdownOpen ? 'bg-white border-[#a38c29] ring-2 ring-[#a38c29]/20' : ''">
+                                      <div class="flex items-center gap-2 truncate">
+                                          <template x-if="selectedBank">
+                                              <span class="font-bold text-slate-900 truncate" x-text="selectedBank.name"></span>
+                                          </template>
+                                          <template x-if="!selectedBank">
+                                              <span class="text-slate-400 font-medium">-- Optional --</span>
+                                          </template>
+                                      </div>
+                                      <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                          <template x-if="selectedBank">
+                                              <span @click.stop="clearBank()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                              </span>
+                                          </template>
+                                          <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="bankDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                          </svg>
+                                      </div>
+                                  </div>
+
+                                  <div x-show="bankDropdownOpen" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute left-0 right-0 z-50 mt-1 bg-white border border-[#a38c29]/40 rounded-xl shadow-[0_10px_30px_-5px_rgba(163,140,41,0.25)] overflow-hidden flex flex-col" style="display: none;">
+                                      <div class="p-2 border-b border-[#a38c29]/20 bg-[#a38c29]/10 sticky top-0 z-10">
+                                          <div class="relative">
+                                              <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#a38c29]">
+                                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                              </div>
+                                              <input type="text" x-model="bankSearch" x-ref="bankSearchInput" placeholder="Search bank name..." @keydown.escape="bankDropdownOpen = false" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 hover:border-[#a38c29] focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none">
+                                              <template x-if="bankSearch">
+                                                  <button type="button" @click="bankSearch = ''; $refs.bankSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                              </template>
+                                          </div>
+                                      </div>
+
+                                      <button type="button" @click="clearBank()" class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer" :class="!form.bank_id ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
+                                          <span>-- Optional --</span>
+                                      </button>
+
+                                      <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                          <template x-for="b in filteredBanks" :key="b.id">
+                                              <button type="button" @click="selectBank(b.id)" :class="form.bank_id == b.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-amber-50/40 text-slate-700'" class="w-full px-3 py-2 text-left text-xs transition-colors flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                                  <span class="truncate" x-text="b.name"></span>
+                                                  <span x-show="form.bank_id == b.id" class="text-[#a38c29] font-bold text-xs shrink-0">✓</span>
+                                              </button>
+                                          </template>
+                                          <div x-show="filteredBanks.length === 0" class="p-3 text-center text-slate-400 text-xs italic" style="display: none;">
+                                              No bank found matching query
+                                          </div>
+                                      </div>
+                                  </div>
                               </div>
                           </div>
 
                           <div class="space-y-1.5">
                               <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks</label>
-                              <textarea x-model="form.remarks" rows="2"
-                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all resize-none shadow-sm"></textarea>
+                              <textarea x-model="form.remarks" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all resize-none shadow-sm"></textarea>
                           </div>
                       </div>
                   </div>
 
-                  <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-                      <button type="button" @click="modalOpen = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                  <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
+                      <button type="button" @click="modalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">
                           Cancel
                       </button>
-                      <button type="submit" x-bind:disabled="submitting"
-                              class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider shadow-md flex items-center justify-center gap-2">
-                          <span x-text="submitting ? 'Recording...' : 'Collect Payment'"></span>
+                      <button type="submit" x-bind:disabled="submitting" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                          <span x-text="submitting ? 'Recording...' : 'Collect Payment'">Collect Payment</span>
                       </button>
                   </div>
               </form>
@@ -1004,11 +994,11 @@
                                       <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold uppercase rounded">Paid</span>
                                   </template>
                                   <template x-if="inst.status !== 'paid'">
-                                      <button type="button" @click="removeInstallment(index)" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Row">
+                                      <!-- <button type="button" @click="removeInstallment(index)" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Row">
                                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                           </svg>
-                                      </button>
+                                      </button> -->
                                   </template>
                               </div>
                           </div>
@@ -1041,78 +1031,88 @@
 
     {{-- View Receipt Modal --}}
     <div x-show="receiptModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
-         style="display: none;" x-transition.opacity>
-         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="receiptModalOpen = false">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-none text-left"
+         style="display: none;" 
+         x-transition:enter="transition ease-out duration-200" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="transition ease-in duration-150" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0">
+         <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="receiptModalOpen = false">
               {{-- Header --}}
-              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-3.5 border-b border-[#a38c29]/10">
                   <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                   <div class="relative z-10 flex items-center justify-between gap-4">
                       <div>
                           <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Receipt Log</span>
-                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Receipt Details</h2>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5">Receipt Details</h2>
                       </div>
-                      <button type="button" @click="receiptModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                      <button type="button" @click="receiptModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
                   </div>
               </div>
 
               <template x-if="viewReceiptData">
-                  <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                      <div class="grid grid-cols-2 gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
+                  <div class="p-5 space-y-3 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/40">
+                      {{-- Primary Details 4-Column Grid --}}
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Receipt Date</span>
                               <strong class="text-slate-800 text-xs font-bold block mt-1" x-text="formatDate(viewReceiptData.receipt_date)"></strong>
                           </div>
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount Paid</span>
-                              <strong class="text-emerald-700 text-sm font-mono font-extrabold block mt-1">₹<span x-text="Number(viewReceiptData.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                              <strong class="text-emerald-700 text-sm font-mono font-extrabold block mt-0.5">₹<span x-text="Number(viewReceiptData.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
                           </div>
-                      </div>
-
-                      <div class="grid grid-cols-2 gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</span>
-                              <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-1 bg-slate-100 text-slate-600 border border-slate-200" x-text="viewReceiptData.payment_mode"></span>
+                              <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-1 bg-slate-100 text-slate-700 border border-slate-200" x-text="viewReceiptData.payment_mode"></span>
                           </div>
                           <div>
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Transaction ID</span>
-                              <span class="text-slate-800 text-xs font-mono font-bold mt-1 block" x-text="viewReceiptData.reference_no || 'N/A'"></span>
+                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Ref / Trans ID</span>
+                              <span class="text-slate-800 text-xs font-mono font-bold mt-1 block truncate" x-text="viewReceiptData.reference_no || 'N/A'"></span>
                           </div>
                       </div>
 
-                      <template x-if="viewReceiptData.bank_name">
-                          <div class="p-5 rounded-xl border border-slate-200/80 bg-white shadow-sm flex justify-between items-center">
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</span>
-                              <strong class="text-slate-800 text-xs font-bold" x-text="viewReceiptData.bank_name"></strong>
-                          </div>
-                      </template>
-                      
-                      <template x-if="viewReceiptData.remarks">
-                          <div class="p-5 rounded-xl border border-slate-200/80 bg-[#a38c29]/5 shadow-sm">
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Remarks</span>
-                              <p class="text-slate-600 text-xs bg-amber-50/50 p-3 rounded-lg border border-amber-100/50 italic font-medium" x-text="viewReceiptData.remarks"></p>
-                          </div>
-                      </template>
-
-                      <template x-if="viewReceiptData.formatted_logs && viewReceiptData.formatted_logs.length > 0">
-                          <div class="p-4 rounded-xl border border-slate-200/80 bg-white shadow-sm space-y-2.5">
-                              <div class="flex items-center gap-1.5 text-[9px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-2">
-                                  <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                  <span>Replacement & Clearance Logs</span>
+                      {{-- Bank & Remarks side-by-side row --}}
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" x-show="viewReceiptData.bank_name || viewReceiptData.remarks">
+                          <template x-if="viewReceiptData.bank_name">
+                              <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs flex items-center justify-between" :class="!viewReceiptData.remarks ? 'sm:col-span-2' : ''">
+                                  <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</span>
+                                  <strong class="text-slate-800 text-xs font-bold" x-text="viewReceiptData.bank_name"></strong>
                               </div>
-                              <template x-for="(lg, lIdx) in viewReceiptData.formatted_logs" :key="lg.id || lIdx">
-                                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 space-y-1">
-                                      <div class="flex items-center justify-between gap-2 text-[10px]">
-                                          <div class="flex items-center gap-1.5 font-bold">
-                                              <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600" x-text="lg.old_status"></span>
-                                              <span class="text-slate-400">→</span>
-                                              <span class="px-1.5 py-0.5 rounded bg-amber-50 border border-[#a38c29]/30 text-[#8a7522]" x-text="lg.new_status"></span>
+                          </template>
+
+                          <template x-if="viewReceiptData.remarks">
+                              <div class="p-3 rounded-xl border border-slate-200/80 bg-amber-50/40 shadow-2xs flex flex-col justify-center" :class="!viewReceiptData.bank_name ? 'sm:col-span-2' : ''">
+                                  <span class="text-[9px] font-bold text-amber-800/80 uppercase tracking-wider block mb-0.5">Remarks</span>
+                                  <p class="text-slate-700 text-xs italic font-medium leading-relaxed" x-text="viewReceiptData.remarks"></p>
+                              </div>
+                          </template>
+                      </div>
+
+                      {{-- Clearance & Replacement Logs --}}
+                      <template x-if="viewReceiptData.formatted_logs && viewReceiptData.formatted_logs.length > 0">
+                          <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-2xs space-y-2">
+                              <div class="flex items-center gap-1.5 text-[9px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-1.5">
+                                  <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                  <span>Replacement &amp; Clearance Logs</span>
+                              </div>
+                              <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                  <template x-for="(lg, lIdx) in viewReceiptData.formatted_logs" :key="lg.id || lIdx">
+                                      <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/70 space-y-1">
+                                          <div class="flex items-center justify-between gap-2 text-[10px]">
+                                              <div class="flex items-center gap-1.5 font-bold">
+                                                  <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600" x-text="lg.old_status"></span>
+                                                  <span class="text-slate-400">→</span>
+                                                  <span class="px-1.5 py-0.5 rounded bg-amber-50 border border-[#a38c29]/30 text-[#8a7522]" x-text="lg.new_status"></span>
+                                              </div>
+                                              <span class="text-[9px] font-mono text-slate-400" x-text="lg.date_formatted"></span>
                                           </div>
-                                          <span class="text-[9px] font-mono text-slate-400" x-text="lg.date_formatted"></span>
+                                          <p class="text-[11px] text-slate-700 font-medium" x-text="lg.remarks"></p>
                                       </div>
-                                      <p class="text-[11px] text-slate-700 font-medium" x-text="lg.remarks"></p>
-                                  </div>
-                              </template>
+                                  </template>
+                              </div>
                           </div>
                       </template>
                   </div>
@@ -1124,9 +1124,9 @@
                   </div>
               </template>
               
-              <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-slate-50">
+              <div class="px-6 py-3 border-t border-slate-100 flex justify-end bg-white">
                   <button type="button" @click="receiptModalOpen = false" 
-                          class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                          class="px-5 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">
                       Close
                   </button>
               </div>
