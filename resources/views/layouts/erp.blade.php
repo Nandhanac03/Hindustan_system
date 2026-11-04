@@ -733,23 +733,34 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <img class="h-8 w-8 rounded-full object-cover"
-                         src="https://api.dicebear.com/7.x/initials/svg?seed={{ urlencode(auth()->user()->name) }}" alt="Avatar">
+                    <div class="h-8 w-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs ring-2 ring-[#a38c29]/25 select-none shrink-0">
+                        {{ strtoupper(mb_substr(trim(auth()->user()->name ?? 'U'), 0, 1)) }}
+                    </div>
                     <div class="hidden md:block text-left">
-                        <p class="text-xs font-bold text-slate-900  leading-tight">{{ auth()->user()->name }}</p>
-                        <p class="text-[9px] font-semibold text-slate-400 new-sign uppercase tracking-wide">
-                            {{ auth()->user()->roles->first()->name ?? 'User' }}
-                        </p>
+                        <p class="text-xs font-bold text-slate-900 leading-tight">{{ auth()->user()->name }}</p>
+                        @php
+                            $userRole = auth()->user()->roles->first()?->name;
+                        @endphp
+                        @if($userRole && strcasecmp(trim($userRole), trim(auth()->user()->name)) !== 0)
+                            <p class="text-[9px] font-semibold text-slate-400 new-sign uppercase tracking-wide">
+                                {{ $userRole }}
+                            </p>
+                        @endif
                     </div>
                 </div>
 
                 <span class="w-px h-6 bg-slate-200"></span>
 
-                <!-- Sign Out -->
-                <form method="POST" action="{{ route('logout') }}">
+                <!-- Sign Out Button -->
+                <form method="POST" action="{{ route('logout') }}" class="inline-flex">
                     @csrf
-                    <button type="submit" class="text-xs text-slate-400 new-sign hover:text-primary-600 font-bold uppercase tracking-wider transition-colors">
-                        Sign Out
+                    <button type="submit" 
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#8a7522] border border-[#a38c29]/40 hover:border-[#a38c29]/70 text-xs font-bold uppercase tracking-wider transition-all shadow-2xs cursor-pointer"
+                            title="Sign Out">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span>Sign Out</span>
                     </button>
                 </form>
             </div>
