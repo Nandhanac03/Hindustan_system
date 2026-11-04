@@ -1050,11 +1050,11 @@
                                                     </div>
                                                     <div>
                                                         <span class="text-emerald-650 block font-medium">Actual Sale Price</span>
-                                                        <strong class="text-emerald-800 font-extrabold" x-text="unit ? '₹' + Number((getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null ? getUnitActiveSale(unit).total_amount : unit.sale_amount) || 0).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-emerald-800 font-extrabold" x-text="unit ? '₹' + Number(((!isParking(unit) && getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null) ? getUnitActiveSale(unit).total_amount : unit.sale_amount) || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                     <div class="col-span-2 bg-rose-50 border border-rose-100 rounded-lg p-2.5">
                                                         <span class="text-rose-600 block font-bold text-[9px] uppercase tracking-wider">Shortfall / Difference</span>
-                                                        <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number((unit.expected_sale_amount != null && getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null) ? (Number(unit.expected_sale_amount) - Number(getUnitActiveSale(unit).total_amount)) : (unit.difference || 0)).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number((!isParking(unit) && unit.expected_sale_amount != null && getUnitActiveSale(unit) && getUnitActiveSale(unit).total_amount != null) ? (Number(unit.expected_sale_amount) - Number(getUnitActiveSale(unit).total_amount)) : (unit.difference || 0)).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                     <div x-show="getUnitActiveSale(unit)">
                                                         <span class="text-emerald-650 block font-medium">Total Amount (Tax Inc.)</span>
@@ -2719,7 +2719,14 @@ function unitsApp() {
             return rangeWithDots;
         },
 
-        isParking(typeId) {
+        isParking(typeIdOrUnit) {
+            if (!typeIdOrUnit) return false;
+            if (typeof typeIdOrUnit === 'object') {
+                const u = typeIdOrUnit;
+                if (u.unit_type && ((u.unit_type.name || '').toLowerCase() === 'parking' || (u.unit_type.category || '').toLowerCase() === 'parking')) return true;
+                return this.isParking(u.unit_type_id);
+            }
+            const typeId = typeIdOrUnit;
             if (!typeId || !this.unitTypeMap[typeId]) return false;
             const info = this.unitTypeMap[typeId];
             return (info.name || '').toLowerCase() === 'parking' || (info.category || '').toLowerCase() === 'parking';
@@ -2823,7 +2830,16 @@ function unitsApp() {
                         const activeSale = this.getUnitActiveSale(unit);
                         if (activeSale) {
                             saleCellAttrs = `class="px-1.5 py-3.5 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
-                            const totalContractVal = (activeSale.total_amount != null && Number(activeSale.total_amount) > 0) ? activeSale.total_amount : unit.sale_amount;
+                            let unitSaleVal = unit.sale_amount;
+                            if (isParkingUnit) {
+                                if ((!unitSaleVal || Number(unitSaleVal) <= 0) && unit.sale_units && unit.sale_units.length > 0) {
+                                    const su = unit.sale_units.find(s => s.sale_id === activeSale.id || (s.sale && s.sale.status === 'active'));
+                                    if (su && su.line_total) unitSaleVal = su.line_total;
+                                }
+                            } else {
+                                unitSaleVal = (activeSale.total_amount != null && Number(activeSale.total_amount) > 0) ? activeSale.total_amount : unit.sale_amount;
+                            }
+                            const totalContractVal = unitSaleVal;
                             saleAmountDisp = fmtMoney(totalContractVal);
                             if (unit.expected_sale_amount != null && totalContractVal != null) {
                                 unitDifference = Number(unit.expected_sale_amount) - Number(totalContractVal);
@@ -3830,7 +3846,16 @@ function unitsApp() {
                     if (asu) activeSale = asu.sale;
                 }
 
-                const totalContractVal = (unit.status === 'sold' && activeSale && activeSale.total_amount != null) ? activeSale.total_amount : unit.sale_amount;
+                let unitSaleVal = unit.sale_amount;
+                if (isParkingUnit) {
+                    if ((!unitSaleVal || Number(unitSaleVal) <= 0) && unit.sale_units && unit.sale_units.length > 0) {
+                        const su = unit.sale_units.find(s => activeSale && s.sale_id === activeSale.id);
+                        if (su && su.line_total) unitSaleVal = su.line_total;
+                    }
+                } else if (unit.status === 'sold' && activeSale && activeSale.total_amount != null) {
+                    unitSaleVal = activeSale.total_amount;
+                }
+                const totalContractVal = unitSaleVal;
                 saleAmount = totalContractVal ? fmtMoney(totalContractVal) : 'N/A';
                 const isSold = (unit.status || '').toLowerCase() === 'sold';
                 let customerLabel = '';
