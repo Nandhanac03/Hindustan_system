@@ -278,10 +278,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('balance_sheet');
         Route::get('/audit-trail', [\App\Http\Controllers\ReportController::class, 'auditTrail'])->name('audit_trail');
         Route::get('/approvals', [\App\Http\Controllers\ReportController::class, 'approvals'])->name('approvals');
+        Route::get('/vendor-aging', [\App\Http\Controllers\ReportController::class, 'vendorAging'])->name('vendor_aging');
     });
 
     Route::get('/trial-balance', fn() => redirect()->route('reports.trial_balance'));
     Route::get('/contractor-payout-report', fn() => redirect()->route('reports.contractor_payout_report'));
+    Route::get('/vendor-aging', fn() => redirect()->route('reports.vendor_aging'));
 
     // Sales Module
     Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');

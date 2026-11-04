@@ -738,33 +738,45 @@
         {{-- Table Container --}}
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-[#534E47] text-white uppercase text-[10px] font-black tracking-wider">
-                        <th class="py-3 px-3 w-10 text-center">#</th>
-                        <th class="py-3 px-4 min-w-[200px]">Vendor Name</th>
-                        <th class="py-3 px-3">Company ID</th>
-                        <th class="py-3 px-3 text-right" x-text="'Total Outstanding (' + currency + ')'"></th>
-                        <th class="py-3 px-3 text-right" x-text="'0 - 30 Days (' + currency + ')'"></th>
-                        <th class="py-3 px-3 text-right" x-text="'31 - 60 Days (' + currency + ')'"></th>
-                        <th class="py-3 px-3 text-right" x-text="'61 - 90 Days (' + currency + ')'"></th>
-                        <th class="py-3 px-3 text-right" x-text="'90+ Days (' + currency + ')'"></th>
-                        <th class="py-3 px-3 text-center">Last Payment Date</th>
-                        <th class="py-3 px-3">Last Payment Ref.</th>
-                        <th class="py-3 px-3 text-center print:hidden">Actions</th>
+                <thead class="erp-table-header" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">
+                    <tr class="erp-table-header border-b border-[#443f38] text-left uppercase text-[10px] font-extrabold tracking-wider" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">
+                        <th class="erp-table-header py-3 px-3 w-12 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">#</th>
+                        <th class="erp-table-header py-3 px-4 min-w-[200px] text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Vendor Name</th>
+                        <th class="erp-table-header py-3 px-3 text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Company ID</th>
+                        <th class="erp-table-header py-3 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'Total Outstanding (' + currency + ')'">Total Outstanding (₹)</th>
+                        <th class="erp-table-header py-3 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'0 - 30 Days (' + currency + ')'">0 - 30 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'31 - 60 Days (' + currency + ')'">31 - 60 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'61 - 90 Days (' + currency + ')'">61 - 90 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'90+ Days (' + currency + ')'">90+ Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Last Payment Date</th>
+                        <th class="erp-table-header py-3 px-3 text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Last Payment Ref.</th>
+                        <th class="erp-table-header py-3 px-3 text-center text-white print:hidden" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <template x-for="(row, idx) in paginatedRows" :key="row.id || idx">
-                        <tr class="hover:bg-amber-50/40 transition-colors cursor-pointer"
-                            :class="selectedVendorDetail && selectedVendorDetail.id === row.id ? 'bg-amber-50/70 font-medium' : (idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40')"
-                            @click="selectVendor(row)">
+                <template x-for="(row, idx) in paginatedRows" :key="row.id || idx">
+                    <tbody class="divide-y divide-slate-100 border-b border-slate-200">
+                        <tr class="hover:bg-amber-50/40 transition-colors cursor-pointer group"
+                            :class="expandedVendorId === row.id ? 'bg-amber-50/60 font-medium' : (idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40')"
+                            @click="toggleExpand(row.id)">
                             
-                            {{-- Row Index --}}
-                            <td class="py-3 px-3 text-center text-slate-400 font-mono text-[11px]" x-text="(currentPage - 1) * pageSize + idx + 1"></td>
+                            {{-- Row Index with Expand indicator --}}
+                            <td class="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#a38c29] transition-transform duration-200"
+                                         :class="expandedVendorId === row.id ? 'rotate-90 text-[#a38c29]' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                    <span x-text="(currentPage - 1) * pageSize + idx + 1"></span>
+                                </div>
+                            </td>
                             
                             {{-- Vendor Name --}}
                             <td class="py-3 px-4">
-                                <div class="font-bold text-slate-900 hover:text-[#a38c29] transition-colors" x-text="row.name"></div>
+                                <div class="font-bold text-slate-900 group-hover:text-[#a38c29] transition-colors flex items-center gap-1.5">
+                                    <span x-text="row.name"></span>
+                                    <span x-show="row.invoices && row.invoices.length > 0" class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-extrabold" x-text="row.invoices.length + ' inv'"></span>
+                                </div>
                                 <div class="text-[10px] text-slate-400 font-medium" x-text="row.project"></div>
                             </td>
 
@@ -794,28 +806,105 @@
                             {{-- Last Payment Ref --}}
                             <td class="py-3 px-3 font-mono text-slate-600 text-[11px]" x-text="row.last_payment_ref || '—'"></td>
 
-                            {{-- Actions (Eye Icon) --}}
+                            {{-- Actions --}}
                             <td class="py-3 px-3 text-center print:hidden" @click.stop>
-                                <button type="button" @click="selectVendor(row, true)"
-                                        class="p-1.5 rounded-lg text-slate-500 hover:text-[#a38c29] hover:bg-amber-100/60 transition-all cursor-pointer"
-                                        title="View Unpaid Invoices Drilldown">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                <button type="button" @click="toggleExpand(row.id)"
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                        :class="expandedVendorId === row.id ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-[#8a7522] border border-slate-200'"
+                                        :title="expandedVendorId === row.id ? 'Hide Invoices' : 'View Invoices'">
+                                    <span x-text="expandedVendorId === row.id ? 'Hide' : 'Invoices'"></span>
+                                    <svg class="w-3 h-3 transition-transform duration-200" :class="expandedVendorId === row.id ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                     </svg>
                                 </button>
                             </td>
 
                         </tr>
-                    </template>
 
-                    <template x-if="paginatedRows.length === 0">
-                        <tr>
-                            <td colspan="11" class="py-12 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
-                                No vendor accounts match the selected filter criteria.
+                        {{-- ── EXPANDED PART: UNPAID INVOICE DETAILS DIRECTLY IN THE TABLE ── --}}
+                        <tr x-show="expandedVendorId === row.id" x-cloak class="bg-amber-50/20">
+                            <td colspan="11" class="p-3 sm:p-4 bg-slate-50/75 border-y border-amber-200/60">
+                                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                    
+                                    {{-- Sub-header --}}
+                                    <div class="px-4 py-2.5 bg-gradient-to-r from-amber-50/50 via-white to-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                                            <h4 class="text-xs font-black uppercase text-slate-900 tracking-wide">
+                                                Unpaid Invoice Details — <span class="text-[#8a7522]" x-text="row.name"></span>
+                                            </h4>
+                                            <span class="text-[10px] font-mono font-bold text-slate-600 px-2 py-0.5 rounded bg-slate-100 border border-slate-200" x-text="row.company_id"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] font-bold text-slate-600" x-text="(row.invoices ? row.invoices.length : 0) + ' Invoices'"></span>
+                                            <button type="button" @click.stop="toggleExpand(row.id)" class="text-slate-400 hover:text-slate-700 text-xs px-2 py-0.5 rounded hover:bg-slate-100 font-bold transition">
+                                                ✕ Close
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Sub-table of Invoices --}}
+                                    <div class="overflow-x-auto custom-scrollbar">
+                                        <table class="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] font-black tracking-wider border-b border-slate-200">
+                                                    <th class="py-2.5 px-3 w-10 text-center">#</th>
+                                                    <th class="py-2.5 px-4">Invoice No.</th>
+                                                    <th class="py-2.5 px-3">Invoice Date</th>
+                                                    <th class="py-2.5 px-3">Due Date</th>
+                                                    <th class="py-2.5 px-3 text-right" x-text="'Invoice Amount (' + currency + ')'"></th>
+                                                    <th class="py-2.5 px-3 text-right" x-text="'Paid Amount (' + currency + ')'"></th>
+                                                    <th class="py-2.5 px-3 text-right" x-text="'Outstanding Amount (' + currency + ')'"></th>
+                                                    <th class="py-2.5 px-3 text-center">Days Outstanding</th>
+                                                    <th class="py-2.5 px-4 text-center">Aging Bucket</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                <template x-for="(inv, iIdx) in (row.invoices || [])" :key="inv.invoice_no || iIdx">
+                                                    <tr class="hover:bg-amber-50/30 transition-colors">
+                                                        <td class="py-2.5 px-3 text-center font-mono text-[11px] text-slate-400" x-text="iIdx + 1"></td>
+                                                        <td class="py-2.5 px-4 font-mono font-bold text-blue-800" x-text="inv.invoice_no"></td>
+                                                        <td class="py-2.5 px-3 font-mono text-slate-600" x-text="inv.invoice_date"></td>
+                                                        <td class="py-2.5 px-3 font-mono text-slate-600" x-text="inv.due_date"></td>
+                                                        <td class="py-2.5 px-3 text-right font-mono text-slate-800" x-text="formatMoney(inv.invoice_amount)"></td>
+                                                        <td class="py-2.5 px-3 text-right font-mono text-slate-500" x-text="formatMoney(inv.paid_amount)"></td>
+                                                        <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900" x-text="formatMoney(inv.outstanding_amount)"></td>
+                                                        <td class="py-2.5 px-3 text-center font-mono font-black"
+                                                            :class="inv.days_outstanding > 90 ? 'text-rose-600' : (inv.days_outstanding > 60 ? 'text-orange-600' : (inv.days_outstanding > 30 ? 'text-amber-600' : 'text-emerald-600'))"
+                                                            x-text="inv.days_outstanding">
+                                                        </td>
+                                                        <td class="py-2.5 px-4 text-center">
+                                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border shadow-2xs"
+                                                                  :class="getBucketBadgeClass(inv.bucket)">
+                                                                <span x-text="inv.bucket"></span>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <template x-if="!row.invoices || row.invoices.length === 0">
+                                                    <tr>
+                                                        <td colspan="9" class="py-6 text-center text-slate-400 italic font-medium">
+                                                            No outstanding bills or invoices recorded for this vendor.
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
                             </td>
                         </tr>
-                    </template>
+
+                    </tbody>
+                </template>
+
+                <tbody x-show="paginatedRows.length === 0">
+                    <tr>
+                        <td colspan="11" class="py-12 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
+                            No vendor accounts match the selected filter criteria.
+                        </td>
+                    </tr>
                 </tbody>
 
                 {{-- Table Grand Totals Footer --}}
