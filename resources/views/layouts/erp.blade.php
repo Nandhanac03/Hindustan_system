@@ -420,9 +420,9 @@
                 <a href="{{ route('vendors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor Master
                 </a>
-                <a href="{{ route('reports.vendor_aging') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.vendor_aging') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <!-- <a href="{{ route('reports.vendor_aging') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.vendor_aging') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor Aging Report
-                </a>
+                </a> -->
             </div>
         </div>
 
