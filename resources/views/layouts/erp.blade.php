@@ -34,7 +34,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=49.0">
+    <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}?v=50.0">
     
     {{-- CKEditor 5 — Rich Text Editor for description/narration fields --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
@@ -397,8 +397,8 @@
         </div>
 
         <!-- 🏢 Site Expense Operations -->
-        <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+       <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.') || Request::routeIs('vendors.') || Request::routeIs('reports.vendor_aging') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.') || Request::routeIs('vendors.') || Request::routeIs('reports.vendor_aging') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -419,6 +419,9 @@
                 </a>
                 <a href="{{ route('vendors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor Master
+                </a>
+                <a href="{{ route('reports.vendor_aging') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.vendor_aging') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Vendor Aging Report
                 </a>
             </div>
         </div>

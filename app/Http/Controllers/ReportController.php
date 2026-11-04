@@ -73,6 +73,10 @@ class ReportController extends Controller
         if ($report && Route::has('reports.' . $report)) {
             return redirect()->route('reports.' . $report, $request->except('report'));
         }
+        $normalized = str_replace('-', '_', (string)$report);
+        if ($normalized && Route::has('reports.' . $normalized)) {
+            return redirect()->route('reports.' . $normalized, $request->except('report'));
+        }
         return redirect()->route('reports.dashboard');
     }
 
@@ -2605,6 +2609,7 @@ class ReportController extends Controller
                             'created_at'     => $v->created_at,
                             'amount'         => $amt,
                             'payment_mode'   => $refData['payment_mode'] ?? 'Bank Transfer',
+                            'reference_no'   => $refData['reference_no'] ?? null,
                             'bank_name'      => $bank ? $bank->bank_name . ($bank->account_number ? ' (' . $bank->account_number . ')' : '') : '—',
                             'remarks'        => $refData['remarks'] ?? 'Cancellation refund payout',
                             'processed_by'   => $v->created_by ? ($userNames[$v->created_by] ?? null) : null,
@@ -5704,6 +5709,21 @@ class ReportController extends Controller
         ]);
 
         return view('reports.contractor-payout-report', array_merge($lookups, $reportData));
+    }
+
+    /**
+     * Vendor & Sundry Creditor Aging Report
+     */
+    public function vendorAging(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+
+        $service = new \App\Services\VendorAgingReportService();
+        $reportData = $service->getReportData($request->all());
+
+        return view('reports.vendor-aging', array_merge($lookups, $reportData, [
+            'activeTab' => 'vendor_aging',
+        ]));
     }
 }
 
