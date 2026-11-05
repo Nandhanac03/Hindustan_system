@@ -3,7 +3,131 @@
 @section('title', 'Site Expenses Dashboard')
 
 @section('content')
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 6mm 8mm 6mm 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    header, nav, aside, footer, button, select, input, .print\:hidden, [class*="nav"], [class*="sidebar"] {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .max-w-\[1800px\], .max-w-\[1850px\], .overflow-x-auto {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* All 5 Metric Cards in a Single Row in PDF/Print */
+    .site-expense-kpi-row {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid !important;
+    }
+    .site-expense-kpi-row > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .site-expense-kpi-row .text-xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    .site-expense-kpi-row .text-\[10px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+    .site-expense-kpi-row .w-7.h-7 {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    .site-expense-kpi-row svg, 
+    .site-expense-kpi-row i {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        font-size: 7.2pt !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    th, td {
+        padding: 5px 4px !important;
+        word-break: break-word !important;
+    }
+    th {
+        background-color: #534E47 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    td {
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+    }
+    th:last-child, td:last-child {
+        display: none !important;
+    }
+}
+</style>
+
 <div x-data="siteExpensesDashboard()" class="max-w-[1800px] mx-auto space-y-6 text-slate-800">
+
+    {{-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── --}}
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Site Expense Management</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">SITE EXPENSES REGISTER &amp; SUMMARY REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Project:</span> <span class="font-bold text-slate-800" x-text="getProjectFilterLabel()">All Projects</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Status Tab:</span> <span class="font-bold text-[#a38c29] uppercase" x-text="filterStatusTab">All</span></div>
+            </div>
+        </div>
+    </div>
 
     {{-- Top Flash Messages --}}
     @if(session('success'))
@@ -49,7 +173,19 @@
             </h1>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 print:hidden">
+            <!-- <button type="button" @click.stop.prevent="exportToExcel()" 
+                    class="h-[38px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                    title="Export Filtered Expenses to Excel">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Excel Report</span>
+            </button>
+            <button type="button" @click.stop.prevent="exportToPdf()" 
+                    class="h-[38px] px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                    title="Export / Print Filtered Expenses to PDF">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>PDF Report</span>
+            </button> -->
             <a href="{{ route('site-expenses.payment-release') }}" 
                class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300/80 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs uppercase tracking-wider">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -71,7 +207,7 @@
     </div>
 
     {{-- TOP 6 KEY METRIC CARDS ROW (Tabasco ERP Box Style - Icons Placed on Top Right) --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="site-expense-kpi-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {{-- Card 1: Total Site Expenses --}}
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
@@ -166,10 +302,30 @@
         {{-- EXPENSE REGISTER TABLE CARD --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden text-xs">
             
-            {{-- Header Row --}}
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            {{-- Header Row with Title & Export Buttons --}}
+            <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Recent Site Expenses</h3>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <div class="w-1 h-4 bg-[#a38c29] rounded-full"></div>
+                        <span>Recent Site Expenses</span>
+                    </h3>
+                    <p class="text-[10.5px] text-slate-400 font-medium mt-0.5 pl-3">Chronological record of site expenditures, vendor payments, and approval status</p>
+                </div>
+
+                {{-- Export Buttons (Export Excel & Export PDF) --}}
+                <div class="flex items-center gap-2.5 print:hidden">
+                    <button type="button" @click.stop.prevent="exportToExcel()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export Filtered Expenses to Excel">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXPORT EXCEL</span>
+                    </button>
+                    <button type="button" @click.stop.prevent="exportToPdf()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export / Print Filtered Expenses to PDF">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>EXPORT PDF</span>
+                    </button>
                 </div>
             </div>
 
@@ -234,7 +390,7 @@
                             </div>
 
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="filterProjectId && {{ $projects->count() }} > 1">
+                                <template x-if="filterProjectId">
                                     <span @click.stop="selectProjectFilter('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </span>
@@ -254,13 +410,11 @@
                              class="erp-dropdown-popover"
                              style="display: none;">
                             <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                @if($projects->count() > 1)
-                                    <div @click="selectProjectFilter('')"
-                                         class="erp-dropdown-option"
-                                         :class="!filterProjectId ? 'selected-all' : ''">
-                                        <span>All Projects</span>
-                                    </div>
-                                @endif
+                                <div @click="selectProjectFilter('')"
+                                     class="erp-dropdown-option"
+                                     :class="!filterProjectId ? 'selected-all' : ''">
+                                    <span>All Projects</span>
+                                </div>
                                 @foreach($projects as $proj)
                                     <div @click="selectProjectFilter('{{ $proj->id }}')"
                                          class="erp-dropdown-option"
@@ -1745,7 +1899,7 @@
 function siteExpensesDashboard() {
     return {
         filterSearch: '{{ request('search', '') }}',
-        filterProjectId: '{{ request('project_id', $projects->first()?->id ?? '') }}',
+        filterProjectId: '{{ request('project_id', '') }}',
         filterCategoryCode: '{{ request('category_code', '') }}',
         filterPaymentSource: '{{ request('payment_source', '') }}',
         filterPaymentMode: '{{ request('payment_mode', '') }}',
@@ -1765,6 +1919,42 @@ function siteExpensesDashboard() {
             rejected: {{ $tabCounts['rejected'] ?? 0 }},
             posted: {{ $tabCounts['posted'] ?? 0 }},
         },
+        allExpensesList: {!! json_encode($siteExpenses->map(function($exp, $idx) {
+            $formattedDate = $exp->voucher_date ? \Carbon\Carbon::parse($exp->voucher_date)->format('d-M-Y') : '—';
+            $rawDate = $exp->voucher_date ? \Carbon\Carbon::parse($exp->voucher_date)->format('Y-m-d') : '';
+            $projName = $exp->project?->name ?? '—';
+            $catName = $exp->expense_category_name ?? '—';
+            $particulars = (string)($exp->narration ?: ($exp->description ?: ($exp->payee_display_name ?: '—')));
+            $payeeName = (string)($exp->payee_display_name ?? '—');
+            $refNo = (string)($exp->transaction_reference_no ?: '—');
+            $payMode = (string)($exp->payment_mode ?: 'Bank Transfer');
+            $amt = (float)($exp->net_amount ?? 0);
+
+            return [
+                'id' => $exp->id,
+                'sl' => $idx + 1,
+                'voucher_number' => (string)($exp->voucher_number ?? ''),
+                'formatted_date' => $formattedDate,
+                'voucher_date' => $formattedDate,
+                'raw_date' => $rawDate,
+                'project_name' => $projName,
+                'project' => $projName,
+                'project_id' => (string)($exp->project_id ?? ''),
+                'category' => $catName,
+                'category_name' => $catName,
+                'category_code' => (string)($exp->expense_category_code ?? ''),
+                'particulars' => $particulars,
+                'narration' => $particulars,
+                'payee' => $payeeName,
+                'amount' => $amt,
+                'payment_source' => (string)($exp->payment_source_display_name ?? '—'),
+                'payment_source_id' => (string)($exp->company_bank_account_id ?? ''),
+                'payment_mode' => $payMode,
+                'bill_no' => $refNo,
+                'status' => (string)($exp->status ?? 'Draft'),
+                'search' => strtolower(($exp->voucher_number ?? '') . ' ' . $payeeName . ' ' . $projName . ' ' . $catName . ' ' . $particulars . ' ' . $refNo)
+            ];
+        })) !!},
 
         selectProjectFilter(id) {
             this.filterProjectId = id;
@@ -2248,8 +2438,257 @@ function siteExpensesDashboard() {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        },
+
+        getFilteredExpensesList() {
+            const search = (this.filterSearch || '').trim().toLowerCase();
+            const projId = (this.filterProjectId || '').toString().trim();
+            const catCode = (this.filterCategoryCode || '').toString().trim();
+            const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
+                ? this.categoryNames[catCode].toLowerCase().trim() 
+                : '';
+            const sourceId = (this.filterPaymentSource || '').toString().trim();
+            const mode = (this.filterPaymentMode || '').trim().toLowerCase();
+            const statusTab = (this.filterStatusTab || 'all').toLowerCase();
+
+            return (this.allExpensesList || []).filter(e => {
+                let matchesStatus = true;
+                const s = (e.status || '').toLowerCase();
+                if (statusTab === 'draft') matchesStatus = (s === 'draft');
+                else if (statusTab === 'pending') matchesStatus = (s === 'pending');
+                else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (s === 'approved' || s === 'posted');
+                else if (statusTab === 'rejected') matchesStatus = (s === 'rejected');
+
+                const matchesProj = !projId || String(e.project_id) === projId;
+                const matchesCat = !catCode || String(e.category_code) === catCode || (expectedCatName && (e.category_name || '').toLowerCase().includes(expectedCatName));
+                const matchesSource = !sourceId || String(e.payment_source_id) === sourceId;
+                const matchesMode = !mode || (e.payment_mode || '').toLowerCase() === mode;
+                const matchesSearch = !search || (e.search || '').includes(search);
+
+                return matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch;
+            });
+        },
+
+        async exportToExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('Excel library is still loading. Please wait a few seconds and try again.');
+                return;
+            }
+
+            try {
+                const list = this.getFilteredExpensesList();
+                const totalExpenseAmount = list.reduce((acc, x) => acc + (parseFloat(x.amount) || 0), 0);
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const worksheet = workbook.addWorksheet('Site Expense Report', {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Active Project Name for Header
+                let activeProjName = this.getProjectFilterLabel();
+                if (!activeProjName || activeProjName === 'All Projects') {
+                    activeProjName = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                } else {
+                    activeProjName = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - ' + activeProjName.toUpperCase();
+                }
+                const reportTitleText = activeProjName + ' - SITE EXPENSE REPORT';
+
+                // 3. Column Definitions (Site Expense Details: A to K)
+                worksheet.columns = [
+                    { key: 'sl', width: 9 },           // A: SL NO
+                    { key: 'date', width: 16 },         // B: DATE
+                    { key: 'voucher', width: 22 },      // C: VOUCHER NO.
+                    { key: 'project', width: 34 },      // D: PROJECT / SITE
+                    { key: 'category', width: 24 },     // E: CATEGORY
+                    { key: 'payee', width: 28 },        // F: PAYEE / VENDOR
+                    { key: 'particulars', width: 40 },  // G: PARTICULARS / PURPOSE
+                    { key: 'source', width: 24 },       // H: PAYMENT SOURCE
+                    { key: 'mode', width: 18 },         // I: PAYMENT MODE
+                    { key: 'status', width: 16 },       // J: STATUS
+                    { key: 'amount', width: 22 }        // K: AMOUNT (₹)
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:K2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 11; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                worksheet.mergeCells('A3:K3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = `Site Expenses Outflow & Operational Register | Generated On: ${nowStr}`;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 11; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = ['SL NO', 'DATE', 'VOUCHER NO.', 'PROJECT / SITE', 'CATEGORY', 'PAYEE / VENDOR', 'PARTICULARS / PURPOSE', 'PAYMENT SOURCE', 'PAYMENT MODE', 'STATUS', 'AMOUNT (₹)'];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 11; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let dataGrandTotal = 0;
+                list.forEach((exp, idx) => {
+                    const rowNum = 6 + idx;
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+                    const amt = parseFloat(exp.amount) || 0;
+                    dataGrandTotal += amt;
+
+                    worksheet.addRow([
+                        idx + 1,
+                        exp.formatted_date || exp.voucher_date || '',
+                        exp.voucher_number || '',
+                        exp.project_name || exp.project || '',
+                        exp.category || exp.category_name || '',
+                        exp.payee || '',
+                        exp.particulars || exp.narration || '',
+                        exp.payment_source || '',
+                        exp.payment_mode || '',
+                        exp.status || '',
+                        amt
+                    ]);
+                    worksheet.getRow(rowNum).height = 25;
+
+                    for (let c = 1; c <= 11; c++) {
+                        const cell = worksheet.getCell(rowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 3 || c === 5 || c === 10 || c === 11),
+                            color: { argb: (c === 3 ? 'FF1E40AF' : 'FF000000') }
+                        };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 11) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = 6 + list.length;
+                worksheet.mergeCells(`A${totalRowNum}:J${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 36;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                const sumCell = worksheet.getCell(`K${totalRowNum}`);
+                sumCell.value = totalExpenseAmount > 0 ? totalExpenseAmount : dataGrandTotal;
+                sumCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                sumCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                sumCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                sumCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                sumCell.border = headerBorder;
+
+                // Download XLSX with filename "site-expense-report.xlsx"
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = 'site-expense-report.xlsx';
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Export Excel Error:', err);
+                alert('An error occurred during Excel export: ' + err.message);
+            }
+        },
+
+        _isPrintingPdf: false,
+        exportToPdf() {
+            if (this._isPrintingPdf) return;
+            this._isPrintingPdf = true;
+            window.print();
+            setTimeout(() => {
+                this._isPrintingPdf = false;
+            }, 1200);
         }
     };
 }
+
+// Global window fallbacks for direct button clicks
+let _globalPrintLock = false;
+window.exportSiteExpensesExcel = function() {
+    const el = document.querySelector('[x-data]');
+    if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToExcel === 'function') {
+        el._x_dataStack[0].exportToExcel();
+    }
+};
+
+window.exportSiteExpensesPdf = function() {
+    if (_globalPrintLock) return;
+    _globalPrintLock = true;
+    window.print();
+    setTimeout(() => {
+        _globalPrintLock = false;
+    }, 1200);
+};
 </script>
 @endsection
