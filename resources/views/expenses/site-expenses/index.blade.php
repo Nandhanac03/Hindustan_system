@@ -1871,7 +1871,7 @@
 function siteExpensesDashboard() {
     return {
         filterSearch: '{{ request('search', '') }}',
-        filterProjectId: '{{ request('project_id', '') }}',
+        filterProjectId: '{{ request('project_id', $projects->first()?->id ?? '') }}',
         filterCategoryCode: '{{ request('category_code', '') }}',
         filterPaymentSource: '{{ request('payment_source', '') }}',
         filterPaymentMode: '{{ request('payment_mode', '') }}',
@@ -2039,18 +2039,18 @@ function siteExpensesDashboard() {
             try {
                 const url = new URL(window.location.href);
                 if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
-                if (projId) url.searchParams.set('project_id', projId); else url.searchParams.delete('project_id');
+                url.searchParams.delete('project_id');
                 if (catCode) url.searchParams.set('category_code', catCode); else url.searchParams.delete('category_code');
                 if (sourceId) url.searchParams.set('payment_source', sourceId); else url.searchParams.delete('payment_source');
                 if (mode) url.searchParams.set('payment_mode', mode); else url.searchParams.delete('payment_mode');
                 if (statusTab && statusTab !== 'all') url.searchParams.set('status', statusTab); else url.searchParams.delete('status');
-                window.history.replaceState({}, '', url.toString());
+                window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
             } catch(e) {}
         },
 
         resetExpenseFilters() {
             this.filterSearch = '';
-            this.filterProjectId = '';
+            this.filterProjectId = '{{ $projects->first()?->id ?? "" }}';
             this.filterCategoryCode = '';
             this.filterPaymentSource = '';
             this.filterPaymentMode = '';
