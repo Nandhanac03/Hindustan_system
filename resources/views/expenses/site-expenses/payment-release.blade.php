@@ -71,33 +71,80 @@
         box-shadow: none !important;
         border-radius: 0 !important;
     }
+
+    /* Exact table and typography as in the actual page */
     table {
         width: 100% !important;
         max-width: 100% !important;
         table-layout: auto !important;
         border-collapse: collapse !important;
-        font-size: 7.2pt !important;
+        font-size: 12px !important; /* matches text-xs on page */
     }
     thead {
         display: table-header-group !important;
     }
-    tr {
-        page-break-inside: avoid !important;
-    }
-    th, td {
-        padding: 5px 4px !important;
-        word-break: break-word !important;
-    }
-    th {
+    thead th {
+        font-size: 10px !important; /* matches text-[10px] */
+        font-weight: 800 !important;
+        padding: 8px 6px !important;
+        letter-spacing: 0.05em !important;
         background-color: #534E47 !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
-    td {
-        border-bottom: 0.5pt solid #e2e8f0 !important;
+    tr {
+        page-break-inside: avoid !important;
     }
+    tbody tr td {
+        font-size: 12px !important; /* matches text-xs font-semibold on page */
+        padding: 8px 6px !important;
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.35 !important;
+    }
+
+    /* Keep font sizes of child elements identical to actual page */
+    tbody tr td .text-\[14px\] {
+        font-size: 14px !important; /* amounts */
+        font-weight: 800 !important;
+    }
+    tbody tr td .text-xs {
+        font-size: 12px !important;
+    }
+    tbody tr td .text-\[10px\] {
+        font-size: 10px !important;
+    }
+    tbody tr td .text-\[9px\] {
+        font-size: 9px !important;
+    }
+    tbody tr td .font-mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+
+    /* Keep Voucher Number Badge readable */
+    td button[title*="voucher"],
+    td button[title*="Voucher"],
+    td button:first-child {
+        display: inline-block !important;
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Hide action column and non-essential buttons in print */
     th:last-child, td:last-child {
+        display: none !important;
+    }
+    button[title*="Toggle Part-by-Part"] {
         display: none !important;
     }
 }
