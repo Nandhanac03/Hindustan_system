@@ -3,6 +3,9 @@
 @section('title', 'Contractor Ledger Statement & Directory')
 
 @section('content')
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <style>
 /* CRITICAL: @page must be defined at the stylesheet root for Chromium/WebKit to honor landscape mode */
 @page {
@@ -70,7 +73,7 @@
         flex: none !important;
     }
 
-    /* 3. Executive Corporate Letterhead Header (Exact Treasury Report Standard) */
+    /* 3. Executive Corporate Letterhead Header */
     .print-exec-header {
         display: block !important;
         visibility: visible !important;
@@ -85,23 +88,46 @@
         background: transparent !important;
     }
 
-    /* 4. Top Golden Summary Banner */
+    /* 4. Hide legacy print banner in favor of live 4 KPI cards in a single row */
     .print-exec-banner {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        width: 100% !important;
-        margin-top: 0 !important;
+        display: none !important;
+    }
+
+    /* All 4 Metric Cards in a Single Row in PDF/Print */
+    .contractor-ledger-kpi-row {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
         margin-bottom: 12px !important;
-        padding: 10px 16px !important;
-        border: 1px solid #e6d594 !important;
-        border-radius: 10px !important;
-        background: #fffdf5 !important;
         page-break-inside: avoid !important;
-        page-break-after: avoid !important;
-        break-after: avoid !important;
-        box-sizing: border-box !important;
+    }
+    .contractor-ledger-kpi-row > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .contractor-ledger-kpi-row .text-xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    .contractor-ledger-kpi-row .text-\[10px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+    .contractor-ledger-kpi-row .w-7.h-7 {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    .contractor-ledger-kpi-row svg {
+        width: 12px !important;
+        height: 12px !important;
     }
 
     /* 5. Table Container */
@@ -330,16 +356,22 @@
                 </h1>
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <!-- <button type="button" @click="printLedger()"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Export PDF</span>
+            <div class="flex items-center gap-2.5 print:hidden">
+                <!-- <button type="button" @click.stop.prevent="exportToExcel()"
+                        class="h-[38px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Contractor Ledger to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Excel Report</span>
+                </button>
+                <button type="button" @click.stop.prevent="printLedger()"
+                        class="h-[38px] px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Contractor Ledger to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>PDF Report</span>
                 </button> -->
 
                 <a href="{{ route('contractors.index') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
-                   
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs uppercase tracking-wider">
                     <span>+ Contractor Master</span>
                 </a>
             </div>
@@ -480,65 +512,65 @@
             </div>
         </div>
 
-        <!-- Filtered Contractor Ledger KPI Summary (Upgraded with Icons & Hover Effects) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Card 1: Total Net Claims Accrued -->
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL NET CLAIMS ACCRUED</span>
-                    <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Verified RA Bill Liability</div>
+    </div>
+
+    <!-- Filtered Contractor Ledger KPI Summary (All 4 cards in a row in print & web) -->
+    <div class="contractor-ledger-kpi-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Total Net Claims Accrued -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL NET CLAIMS ACCRUED</span>
+                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
-
-            <!-- Card 2: Total Disbursements Released -->
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSEMENTS RELEASED</span>
-                    <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Paid Outflow via Treasury</div>
-                </div>
-            </div>
-
-            <!-- Card 3: Outstanding Ledger Balance -->
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">OUTSTANDING LEDGER BALANCE</span>
-                    <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5 5 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Payable Remaining</div>
-                </div>
-            </div>
-
-            <!-- Card 4: Registered Contractors -->
-            <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">REGISTERED CONTRACTORS</span>
-                    <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors">{{ count($contractors) }} Payees</div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Master Accounts Linked</div>
-                </div>
+            <div>
+                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Verified RA Bill Liability</div>
             </div>
         </div>
 
+        <!-- Card 2: Total Disbursements Released -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL DISBURSEMENTS RELEASED</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Paid Outflow via Treasury</div>
+            </div>
+        </div>
+
+        <!-- Card 3: Outstanding Ledger Balance -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">OUTSTANDING LEDGER BALANCE</span>
+                <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5 5 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Payable Remaining</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Registered Contractors -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">REGISTERED CONTRACTORS</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors">{{ count($contractors) }} Payees</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Master Accounts Linked</div>
+            </div>
+        </div>
     </div>
 
     <!-- ── 4. CONTRACTOR RUNNING ACCOUNT LEDGER STATEMENT TABLE CARD ── -->
@@ -561,13 +593,26 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto print:hidden">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Filtered Count:</span>
+            <div class="flex items-center gap-2.5 print:hidden">
+                <button type="button" @click.stop.prevent="exportToExcel()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Contractor Ledger to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click.stop.prevent="printLedger()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Contractor Ledger to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
+                <!-- <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider ml-1">Filtered Count:</span>
                 <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-50 border border-slate-200 text-slate-800 shadow-2xs"
                       x-text="filteredLedgerEntries().length + ' Entries'">
-                </span>
+                </span> -->
             </div>
         </div>
+        
 
         <div class="overflow-x-auto">
             <table class="ledger-print-table w-full text-left border-collapse">
@@ -1104,8 +1149,250 @@ function raBillLedger() {
             this.viewModalOpen = true;
         },
 
+        _isPrintingPdf: false,
         printLedger() {
+            if (this._isPrintingPdf) return;
+            this._isPrintingPdf = true;
             window.print();
+            setTimeout(() => {
+                this._isPrintingPdf = false;
+            }, 1200);
+        },
+
+        async exportToExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('Excel library is still loading. Please wait a few seconds and try again.');
+                return;
+            }
+
+            try {
+                const groups = this.groupedLedger();
+                const totals = this.getLedgerTotals();
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const worksheet = workbook.addWorksheet('Contractor Ledger Report', {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Active Contractor Name for Header
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                let contractorTitle = (this.getSelectedContractorName() || '').trim();
+                if (contractorTitle && contractorTitle !== 'All Contractors') {
+                    const cleanContractor = contractorTitle.toUpperCase();
+                    if (!cleanContractor.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
+                        reportTitleText += ' - ' + cleanContractor;
+                    }
+                }
+                reportTitleText += ' - CONTRACTOR LEDGER REPORT';
+
+                // 3. Column Definitions (10 Columns)
+                worksheet.columns = [
+                    { key: 'sl', width: 9 },              // A: SL NO
+                    { key: 'date', width: 16 },            // B: DATE
+                    { key: 'contractor', width: 32 },      // C: CONTRACTOR
+                    { key: 'project', width: 28 },         // D: PROJECT / UNIT
+                    { key: 'type', width: 20 },            // E: TRANSACTION TYPE
+                    { key: 'ref', width: 22 },             // F: REF / VOUCHER NO.
+                    { key: 'particulars', width: 44 },     // G: PARTICULARS / PURPOSE
+                    { key: 'debit', width: 22 },           // H: DEBIT / CLAIM (₹)
+                    { key: 'credit', width: 22 },          // I: CREDIT / PAID (₹)
+                    { key: 'balance', width: 22 }          // J: RUNNING BALANCE (₹)
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:J2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                worksheet.mergeCells('A3:J3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = `Contractor Running Account Statement & Balance Register | Generated On: ${nowStr}`;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'DATE',
+                    'CONTRACTOR',
+                    'PROJECT / UNIT',
+                    'TRANSACTION TYPE',
+                    'REF / VOUCHER NO.',
+                    'PARTICULARS / PURPOSE',
+                    'DEBIT / CLAIM (₹)',
+                    'CREDIT / PAID (₹)',
+                    'RUNNING BALANCE (₹)'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 10; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let slNo = 1;
+                let dataTotalDebit = 0;
+                let dataTotalCredit = 0;
+
+                groups.forEach(group => {
+                    (group.entries || []).forEach(entry => {
+                        const rowNum = 6 + (slNo - 1);
+                        const isEven = (slNo - 1) % 2 === 0;
+                        const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                        const debitAmt = parseFloat(entry.net_approved) || 0;
+                        const creditAmt = parseFloat(entry.paid_amount) || 0;
+                        const balanceAmt = parseFloat(entry.running_balance) || 0;
+                        dataTotalDebit += debitAmt;
+                        dataTotalCredit += creditAmt;
+
+                        worksheet.addRow([
+                            slNo,
+                            entry.date_formatted || entry.date || '',
+                            entry.contractor_name || group.contractor_name || '',
+                            entry.project_name ? (entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')) : '',
+                            entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released',
+                            entry.ref_no || '',
+                            entry.particulars || '',
+                            debitAmt,
+                            creditAmt,
+                            balanceAmt
+                        ]);
+                        worksheet.getRow(rowNum).height = 25;
+
+                        for (let c = 1; c <= 10; c++) {
+                            const cell = worksheet.getCell(rowNum, c);
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                            cell.border = thinBorder;
+                            cell.font = {
+                                name: 'Calibri',
+                                size: 10,
+                                bold: (c === 1 || c === 3 || c === 5 || c === 8 || c === 9 || c === 10),
+                                color: { 
+                                    argb: (c === 8 ? 'FF1E40AF' : (c === 9 ? 'FF047857' : (c === 10 ? 'FFB91C1C' : 'FF000000')))
+                                }
+                            };
+                            cell.alignment = {
+                                horizontal: 'center',
+                                vertical: 'middle',
+                                wrapText: true
+                            };
+                            if (c === 8 || c === 9 || c === 10) {
+                                cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                            }
+                        }
+
+                        slNo++;
+                    });
+                });
+
+                // Total Summary Row
+                const totalRowNum = 6 + (slNo - 1);
+                worksheet.mergeCells(`A${totalRowNum}:G${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 36;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 7; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Total Debit Cell (Col H / 8)
+                const debitCell = worksheet.getCell(totalRowNum, 8);
+                debitCell.value = totals.netClaimed > 0 ? totals.netClaimed : dataTotalDebit;
+                debitCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                debitCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                debitCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                debitCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                debitCell.border = headerBorder;
+
+                // Total Credit Cell (Col I / 9)
+                const creditCell = worksheet.getCell(totalRowNum, 9);
+                creditCell.value = totals.paid > 0 ? totals.paid : dataTotalCredit;
+                creditCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                creditCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                creditCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                creditCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                creditCell.border = headerBorder;
+
+                // Total Balance Cell (Col J / 10)
+                const balTotal = (totals.netClaimed - totals.paid) || (dataTotalDebit - dataTotalCredit);
+                const balanceCell = worksheet.getCell(totalRowNum, 10);
+                balanceCell.value = balTotal;
+                balanceCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                balanceCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                balanceCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                balanceCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                balanceCell.border = headerBorder;
+
+                // Download XLSX
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = 'contractor-ledger-report.xlsx';
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Export Excel Error:', err);
+                alert('An error occurred during Excel export: ' + err.message);
+            }
         },
 
         resetFilters() {
@@ -1210,5 +1497,22 @@ function raBillLedger() {
         }
     };
 }
+
+window.exportContractorLedgerExcel = function() {
+    const el = document.querySelector('[x-data]');
+    if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToExcel === 'function') {
+        el._x_dataStack[0].exportToExcel();
+    }
+};
+
+let _globalLedgerPrintLock = false;
+window.exportContractorLedgerPdf = function() {
+    if (_globalLedgerPrintLock) return;
+    _globalLedgerPrintLock = true;
+    window.print();
+    setTimeout(() => {
+        _globalLedgerPrintLock = false;
+    }, 1200);
+};
 </script>
 @endsection

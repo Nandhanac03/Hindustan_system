@@ -685,6 +685,30 @@ class SiteExpenseController extends Controller
 
         $siteExpenses = $query->paginate(20)->withQueryString();
 
+        $exportExpenses = (clone $query)->get()->map(function ($exp) {
+            $bal = (float) $exp->balance_amount;
+            $net = (float) $exp->net_amount;
+            $paid = (float) $exp->paid_amount;
+            $isCleared = ($bal <= 0.001);
+            return [
+                'id' => $exp->id,
+                'voucher_number' => $exp->voucher_number,
+                'voucher_date' => $exp->voucher_date ? \Carbon\Carbon::parse($exp->voucher_date)->format('d-M-Y') : '',
+                'project_name' => $exp->project->name ?? 'Global Project',
+                'floor_name' => $exp->floor->name ?? ($exp->tower_block_tag ?: 'General Site'),
+                'expense_category_name' => $exp->expense_category_name ?? '',
+                'payee_display_name' => $exp->payee_display_name,
+                'gross_amount' => (float) $exp->gross_amount,
+                'net_amount' => $net,
+                'paid_amount' => $paid,
+                'balance_amount' => $bal,
+                'status' => $isCleared ? 'Cleared' : ($paid > 0 ? 'Partially Paid' : 'Pending Release'),
+                'payment_source_name' => $exp->payment_source_display_name,
+                'transaction_reference_no' => $exp->transaction_reference_no ?? '',
+                'narration' => $exp->narration ?? '',
+            ];
+        });
+
         // Summary KPI Calculations
         $allApproved = SiteExpense::where('status', 'Approved');
         if (!empty($selectedProjectId)) {
@@ -727,6 +751,7 @@ class SiteExpenseController extends Controller
 
         return view('expenses.site-expenses.payment-release', compact(
             'siteExpenses',
+            'exportExpenses',
             'projects',
             'defaultProjectId',
             'selectedProjectId',

@@ -174,18 +174,6 @@
         </div>
 
         <div class="flex items-center gap-2.5 print:hidden">
-            <!-- <button type="button" @click.stop.prevent="exportToExcel()" 
-                    class="h-[38px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                    title="Export Filtered Expenses to Excel">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>Excel Report</span>
-            </button>
-            <button type="button" @click.stop.prevent="exportToPdf()" 
-                    class="h-[38px] px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                    title="Export / Print Filtered Expenses to PDF">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>PDF Report</span>
-            </button> -->
             <a href="{{ route('site-expenses.payment-release') }}" 
                class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300/80 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs uppercase tracking-wider">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -310,22 +298,6 @@
                         <span>Recent Site Expenses</span>
                     </h3>
                     <p class="text-[10.5px] text-slate-400 font-medium mt-0.5 pl-3">Chronological record of site expenditures, vendor payments, and approval status</p>
-                </div>
-
-                {{-- Export Buttons (Export Excel & Export PDF) --}}
-                <div class="flex items-center gap-2.5 print:hidden">
-                    <button type="button" @click.stop.prevent="exportToExcel()" 
-                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                            title="Export Filtered Expenses to Excel">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>EXPORT EXCEL</span>
-                    </button>
-                    <button type="button" @click.stop.prevent="exportToPdf()" 
-                            class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                            title="Export / Print Filtered Expenses to PDF">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        <span>EXPORT PDF</span>
-                    </button>
                 </div>
             </div>
 
@@ -2489,13 +2461,15 @@ function siteExpensesDashboard() {
                 });
 
                 // 2. Active Project Name for Header
-                let activeProjName = this.getProjectFilterLabel();
-                if (!activeProjName || activeProjName === 'All Projects') {
-                    activeProjName = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
-                } else {
-                    activeProjName = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - ' + activeProjName.toUpperCase();
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                const projName = (this.getProjectFilterLabel() || '').trim();
+                if (projName && projName !== 'All Projects') {
+                    const cleanProj = projName.toUpperCase();
+                    if (!cleanProj.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
+                        reportTitleText += ' - ' + cleanProj;
+                    }
                 }
-                const reportTitleText = activeProjName + ' - SITE EXPENSE REPORT';
+                reportTitleText += ' - SITE EXPENSE REPORT';
 
                 // 3. Column Definitions (Site Expense Details: A to K)
                 worksheet.columns = [

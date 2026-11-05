@@ -3,7 +3,127 @@
 @section('title', 'Site Expense Payment Release Desk')
 
 @section('content')
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 6mm 8mm 6mm 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    header, nav, aside, footer, button, select, input, .print\:hidden, [class*="nav"], [class*="sidebar"], .erp-filter-card {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+
+    /* All 4 Metric Cards in a Single Row in PDF/Print */
+    #dashboard-stats {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid !important;
+    }
+    #dashboard-stats > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    #dashboard-stats .text-xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    #dashboard-stats .text-\[10px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-stats .w-7.h-7 {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    #dashboard-stats svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    #table-container {
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        font-size: 7.2pt !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    th, td {
+        padding: 5px 4px !important;
+        word-break: break-word !important;
+    }
+    th {
+        background-color: #534E47 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    td {
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+    }
+    th:last-child, td:last-child {
+        display: none !important;
+    }
+}
+</style>
+
 <div x-data="siteExpensePaymentRelease()" class="space-y-6">
+
+    {{-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── --}}
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Treasury & Site Disbursements</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">SITE EXPENSE TREASURY PAYMENT RELEASE REGISTER</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Project:</span> <span class="font-bold text-slate-800" x-text="getProjectFilterLabel()">All Projects</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Vendor/Payee:</span> <span class="font-bold text-[#a38c29]" x-text="getVendorFilterLabel()">All Vendors</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-slate-800">{{ $siteExpenses->total() }}</span></div>
+            </div>
+        </div>
+    </div>
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -388,6 +508,22 @@
                 <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Site Expense Payment Release Register</span>
                 <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $siteExpenses->total() }} Records</span>
+            </div>
+
+            {{-- Table Head Export Buttons (Export Excel & Export PDF) --}}
+            <div class="flex items-center gap-2.5 print:hidden">
+                <button type="button" @click.stop.prevent="exportToExcel()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Payment Release Register to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click.stop.prevent="exportToPdf()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Payment Release Register to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
             </div>
         </div>
 
@@ -1160,6 +1296,8 @@ function siteExpensePaymentRelease() {
         disbursePaidAmount: '',
         companyBankAccounts: @json($companyBankAccounts ?? []),
         payeeBalances: @json($payeeBalances ?? []),
+        exportExpenses: @json($exportExpenses ?? []),
+        _isPrintingPdf: false,
         bankOpen: false,
         bankSearch: '',
         
@@ -1455,8 +1593,271 @@ function siteExpensePaymentRelease() {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        },
+
+        exportToPdf() {
+            if (this._isPrintingPdf) return;
+            this._isPrintingPdf = true;
+            window.print();
+            setTimeout(() => {
+                this._isPrintingPdf = false;
+            }, 1200);
+        },
+
+        async exportToExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('Excel library is still loading. Please wait a few seconds and try again.');
+                return;
+            }
+
+            try {
+                const list = this.exportExpenses && this.exportExpenses.length > 0 ? this.exportExpenses : [];
+                
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const worksheet = workbook.addWorksheet('Payment Release Report', {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Active Project Name for Header
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                const projName = (this.getProjectFilterLabel() || '').trim();
+                if (projName && projName !== 'All Projects') {
+                    const cleanProj = projName.toUpperCase();
+                    if (!cleanProj.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
+                        reportTitleText += ' - ' + cleanProj;
+                    }
+                }
+                reportTitleText += ' - PAYMENT RELEASE REGISTER';
+
+                // 3. Column Definitions (10 Columns: A to J)
+                worksheet.columns = [
+                    { key: 'sl', width: 9 },              // A: SL NO
+                    { key: 'date', width: 16 },            // B: DATE
+                    { key: 'voucher', width: 22 },         // C: VOUCHER NO.
+                    { key: 'project', width: 32 },         // D: PROJECT / SITE
+                    { key: 'category', width: 24 },        // E: EXPENSE CATEGORY
+                    { key: 'payee', width: 28 },           // F: PAYEE / VENDOR
+                    { key: 'net', width: 22 },             // G: NET APPROVED (₹)
+                    { key: 'paid', width: 22 },            // H: PAID AMOUNT (₹)
+                    { key: 'balance', width: 22 },         // I: BALANCE DUE (₹)
+                    { key: 'status', width: 18 }           // J: STATUS
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:J2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                worksheet.mergeCells('A3:J3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = `Site Expense Treasury Payment Release & Disbursement Register | Generated On: ${nowStr}`;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'DATE',
+                    'VOUCHER NO.',
+                    'PROJECT / SITE',
+                    'EXPENSE CATEGORY',
+                    'PAYEE / VENDOR',
+                    'NET APPROVED (₹)',
+                    'PAID AMOUNT (₹)',
+                    'BALANCE DUE (₹)',
+                    'STATUS'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 10; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalNet = 0;
+                let totalPaid = 0;
+                let totalBal = 0;
+
+                list.forEach((exp, idx) => {
+                    const rowNum = 6 + idx;
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const net = parseFloat(exp.net_amount) || 0;
+                    const paid = parseFloat(exp.paid_amount) || 0;
+                    const bal = parseFloat(exp.balance_amount) || 0;
+                    totalNet += net;
+                    totalPaid += paid;
+                    totalBal += bal;
+
+                    worksheet.addRow([
+                        idx + 1,
+                        exp.voucher_date || '',
+                        exp.voucher_number || '',
+                        exp.project_name || '',
+                        exp.expense_category_name || '',
+                        exp.payee_display_name || '',
+                        net,
+                        paid,
+                        bal,
+                        exp.status || ''
+                    ]);
+                    worksheet.getRow(rowNum).height = 25;
+
+                    for (let c = 1; c <= 10; c++) {
+                        const cell = worksheet.getCell(rowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 3 || c === 7 || c === 8 || c === 9 || c === 10),
+                            color: {
+                                argb: (c === 7 ? 'FF1E40AF' : (c === 8 ? 'FF047857' : (c === 9 ? 'FFB91C1C' : 'FF000000')))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 7 || c === 8 || c === 9) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = 6 + list.length;
+                worksheet.mergeCells(`A${totalRowNum}:F${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 36;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 6; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col G (7): Net Approved Total
+                const netCell = worksheet.getCell(totalRowNum, 7);
+                netCell.value = totalNet;
+                netCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                netCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                netCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                netCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                netCell.border = headerBorder;
+
+                // Col H (8): Paid Amount Total
+                const paidCell = worksheet.getCell(totalRowNum, 8);
+                paidCell.value = totalPaid;
+                paidCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                paidCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                paidCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                paidCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                paidCell.border = headerBorder;
+
+                // Col I (9): Balance Due Total
+                const balCell = worksheet.getCell(totalRowNum, 9);
+                balCell.value = totalBal;
+                balCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                balCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                balCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                balCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                balCell.border = headerBorder;
+
+                // Col J (10): Status
+                const statusCell = worksheet.getCell(totalRowNum, 10);
+                statusCell.value = '';
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                statusCell.border = headerBorder;
+
+                // Download XLSX
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = 'site-expense-payment-release-report.xlsx';
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Export Excel Error:', err);
+                alert('An error occurred during Excel export: ' + err.message);
+            }
         }
     };
 }
+
+let _globalSiteExpenseReleasePrintLock = false;
+window.exportSiteExpenseReleasePdf = function() {
+    if (_globalSiteExpenseReleasePrintLock) return;
+    _globalSiteExpenseReleasePrintLock = true;
+    window.print();
+    setTimeout(() => {
+        _globalSiteExpenseReleasePrintLock = false;
+    }, 1200);
+};
+
+window.exportSiteExpenseReleaseExcel = function() {
+    const el = document.querySelector('[x-data]');
+    if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToExcel === 'function') {
+        el._x_dataStack[0].exportToExcel();
+    }
+};
 </script>
 @endsection
