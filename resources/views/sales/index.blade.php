@@ -157,6 +157,22 @@
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
+            <button @click="exportSalesReport()" type="button"
+                    class="h-[38px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-1.5 uppercase tracking-wider cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Sale Report</span>
+            </button>
+
+            <button @click="exportUnitsExcel()" type="button"
+                    class="h-[38px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-1.5 uppercase tracking-wider cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Unit Report</span>
+            </button>
+
             <button @click="resetFilters()"
                     class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -2218,6 +2234,10 @@
 
     </div>
 
+    <div id="salesExcelContainer" class="hidden" style="display: none;">
+        @include('partials.sales_excel_table', ['salesList' => $salesList ?? collect(), 'project' => $project ?? null])
+    </div>
+
 </div>
 {{-- ═══════════════════════════════════════════
      ALPINE.JS LOGIC
@@ -2225,6 +2245,16 @@
 <script>
 function salesApp() {
     return {
+        exportSalesReport() {
+            if (typeof window.exportSalesReport === 'function') {
+                window.exportSalesReport();
+            }
+        },
+        exportUnitsExcel() {
+            if (typeof window.exportUnitsExcel === 'function') {
+                window.exportUnitsExcel();
+            }
+        },
         sales: [],
         currentPage: 1,
         perPage: 10,
@@ -4850,5 +4880,646 @@ window.fmtIndian = function(value) {
     if (isNaN(num)) return '₹0.00';
     return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+    let isExportingUnits = false;
+
+    function buildUnitsWorksheet(workbook, sheetName, bannerTitle, sheetUnits, appData) {
+        if (!sheetUnits || sheetUnits.length === 0) return;
+
+        // Sanitize sheet name for Excel rules (max 31 chars, no special chars)
+        const safeSheetName = (sheetName || 'Units').replace(/[\\/?*:[\]]/g, '').trim().substring(0, 31) || 'Units';
+
+        const worksheet = workbook.addWorksheet(safeSheetName, {
+            views: [{ showGridLines: true }]
+        });
+
+        // 12 Column Definitions (Without Actions column)
+        worksheet.columns = [
+            { header: 'FLOOR', key: 'floor', width: 15 },
+            { header: 'FLOOR NO.', key: 'floor_no', width: 16 },
+            { header: 'TYPE', key: 'type', width: 14 },
+            { header: 'DOOR NO', key: 'door_no', width: 14 },
+            { header: 'BUILT UP AREA (IN SQ FT)', key: 'built_up_area', width: 22 },
+            { header: 'CARPET AREA (IN SQ FT)', key: 'carpet_area', width: 22 },
+            { header: '₹ EXPECTED / SQ.FT', key: 'expected_rate', width: 20 },
+            { header: '₹ EXPECTED SALE', key: 'expected_sale', width: 22 },
+            { header: '₹ SALE PER SQ.FT', key: 'sale_rate', width: 20 },
+            { header: '₹ SALE AMOUNT', key: 'sale_amount', width: 26 },
+            { header: 'DIFFERENCE', key: 'difference', width: 18 },
+            { header: 'STATUS', key: 'status', width: 16 }
+        ];
+
+        // 1. Top Title Banner Row (Row 1) - Center Aligned
+        worksheet.spliceRows(1, 0, []); // Insert row 1
+        
+        worksheet.mergeCells('A1:L1');
+        const titleCell = worksheet.getCell('A1');
+        titleCell.value = bannerTitle;
+        titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(1).height = 36;
+
+        ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1'].forEach(cellCoord => {
+            const c = worksheet.getCell(cellCoord);
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+
+        // 2. Table Header Row (Row 2) - Brand Gold
+        const headerRow = worksheet.getRow(2);
+        headerRow.height = 30;
+        headerRow.values = [
+            'FLOOR',
+            'FLOOR NO.',
+            'TYPE',
+            'DOOR NO',
+            'BUILT UP AREA (IN SQ FT)',
+            'CARPET AREA (IN SQ FT)',
+            '₹ EXPECTED / SQ.FT',
+            '₹ EXPECTED SALE',
+            '₹ SALE PER SQ.FT',
+            '₹ SALE AMOUNT',
+            'DIFFERENCE',
+            'STATUS'
+        ];
+
+        for (let col = 1; col <= 12; col++) {
+            const cell = headerRow.getCell(col);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'medium', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+        }
+
+        // Helpers
+        const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
+        const fmtMoney = (v) => {
+            if (v == null || v === '') return 'N/A';
+            const num = Number(v);
+            if (isNaN(num)) return v;
+            if (num < 0) {
+                return '₹ -' + Math.abs(num).toLocaleString('en-IN');
+            }
+            return '₹' + num.toLocaleString('en-IN');
+        };
+        const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') + ' Sq Ft' : 'N/A';
+
+        // Group units by floor
+        let groups = [];
+        let currentFloorId = null;
+        let currentGroup = null;
+        for (let unit of sheetUnits) {
+            let floorId = unit.floor ? unit.floor.id : (unit.floor_id || 'default');
+            let floorName = unit.floor ? unit.floor.name : (unit.floor_name || 'Ground Floor');
+            if (floorId !== currentFloorId) {
+                currentFloorId = floorId;
+                currentGroup = {
+                    floor_id: floorId,
+                    floor_name: floorName,
+                    units: []
+                };
+                groups.push(currentGroup);
+            }
+            currentGroup.units.push(unit);
+        }
+
+        // 3. Populate Data Rows Floor-by-Floor
+        let currentRowIdx = 3;
+
+        groups.forEach((group) => {
+            const startRow = currentRowIdx;
+            const endRow = currentRowIdx + group.units.length - 1;
+            const floorDisplayName = (group.floor_name || 'Floor').toUpperCase();
+
+            group.units.forEach((unit, uIdx) => {
+                const row = worksheet.getRow(currentRowIdx);
+                const isParkingUnit = unit.unit_type && (
+                    (unit.unit_type.name || '').toLowerCase() === 'parking' || 
+                    (unit.unit_type.category || '').toLowerCase() === 'parking'
+                );
+
+                const floorName = unit.floor ? unit.floor.name : group.floor_name;
+                const unitTypeName = unit.unit_type ? unit.unit_type.name : '';
+                const doorNo = unit.door_no || '';
+                const builtUpArea = fmtArea(unit.built_up_area);
+                const carpetArea = fmtArea(unit.carpet_area);
+                const expRate = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
+                const expSale = fmtMoney(unit.expected_sale_amount);
+                const saleRate = isParkingUnit ? 'N/A' : (unit.sale_rate_per_sqft ? fmtMoney(unit.sale_rate_per_sqft) : 'N/A');
+
+                let activeSale = null;
+                if (appData && typeof appData.getUnitActiveSale === 'function') {
+                    activeSale = appData.getUnitActiveSale(unit);
+                } else if (unit.sale) {
+                    activeSale = unit.sale;
+                } else if (unit.sale_units && unit.sale_units.length > 0) {
+                    const asu = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
+                    if (asu) activeSale = asu.sale;
+                }
+
+                let unitSaleVal = unit.sale_amount;
+                if (isParkingUnit) {
+                    if ((!unitSaleVal || Number(unitSaleVal) <= 0) && unit.sale_units && unit.sale_units.length > 0) {
+                        const su = unit.sale_units.find(s => activeSale && s.sale_id === activeSale.id);
+                        if (su && su.line_total) unitSaleVal = su.line_total;
+                    }
+                } else if (unit.status === 'sold' && activeSale && activeSale.total_amount != null) {
+                    unitSaleVal = activeSale.total_amount;
+                }
+                const totalContractVal = unitSaleVal;
+                let saleAmount = totalContractVal ? fmtMoney(totalContractVal) : 'N/A';
+                const isSold = (unit.status || '').toLowerCase() === 'sold';
+                let customerLabel = '';
+                if (isSold && activeSale && activeSale.customer && activeSale.customer.name) {
+                    customerLabel = '\nSOLD TO: ' + activeSale.customer.name.toUpperCase();
+                    saleAmount += customerLabel;
+                }
+
+                const diffVal = (isSold && unit.expected_sale_amount != null && totalContractVal != null) ? (Number(unit.expected_sale_amount) - Number(totalContractVal)) : unit.difference;
+                const diff = fmtMoney(diffVal);
+                const rawStatus = (unit.status || 'available').toLowerCase();
+                const statusDisplay = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+
+                row.values = [
+                    uIdx === 0 ? floorDisplayName : '', // Col 1: Floor
+                    floorName,                          // Col 2: Floor No.
+                    unitTypeName,                       // Col 3: Type
+                    doorNo,                             // Col 4: Door No
+                    builtUpArea,                        // Col 5: Built Up Area
+                    carpetArea,                         // Col 6: Carpet Area
+                    expRate,                            // Col 7: Expected / Sq.Ft
+                    expSale,                            // Col 8: Expected Sale
+                    saleRate,                           // Col 9: Sale Per Sq.Ft
+                    saleAmount,                         // Col 10: Sale Amount
+                    diff,                               // Col 11: Difference
+                    statusDisplay                       // Col 12: Status
+                ];
+
+                row.height = isSold && customerLabel ? 38 : 28;
+                const isLastInFloor = uIdx === group.units.length - 1;
+
+                // Style Columns B to L (Cols 2 to 12)
+                for (let col = 2; col <= 12; col++) {
+                    const cell = row.getCell(col);
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1E293B' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: isLastInFloor ? 'medium' : 'thin', color: isLastInFloor ? { argb: 'FFA38C29' } : { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+
+                    // Subtle alternating row tint
+                    if (uIdx % 2 === 1) {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBFBFA' } };
+                    }
+
+                    // Door No Bold
+                    if (col === 4) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                    }
+
+                    // Expected Sale Bold Emerald
+                    if (col === 8) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
+                    }
+
+                    // Sale Amount
+                    if (col === 10) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: isSold ? { argb: 'FF047857' } : { argb: 'FF64748B' } };
+                    }
+
+                    // Difference styling (highlight negative difference if any)
+                    if (col === 11) {
+                        const numDiff = Number(unit.difference);
+                        if (!isNaN(numDiff) && numDiff < 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                        }
+                    }
+
+                    // Status Badge Color
+                    if (col === 12) {
+                        if (rawStatus === 'sold') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFBE123C' } };
+                        } else if (rawStatus === 'available') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF047857' } };
+                        } else if (rawStatus === 'blocked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFB45309' } };
+                        } else if (rawStatus === 'booked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E7FF' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF4338CA' } };
+                        }
+                    }
+                }
+
+                currentRowIdx++;
+            });
+
+            // Merge Column A for Floor with Smart Orientation & Warm Gold Styling
+            if (endRow >= startRow) {
+                if (endRow > startRow) {
+                    worksheet.mergeCells(startRow, 1, endRow, 1);
+                }
+                const floorCell = worksheet.getCell(startRow, 1);
+                floorCell.value = floorDisplayName;
+                floorCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+                floorCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } };
+
+                const useVerticalRotation = group.units.length >= 3;
+                floorCell.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    textRotation: useVerticalRotation ? 90 : 0,
+                    wrapText: true
+                };
+
+                for (let r = startRow; r <= endRow; r++) {
+                    const c = worksheet.getCell(r, 1);
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } };
+                    c.border = {
+                        top: r === startRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        bottom: r === endRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        left: { style: 'medium', color: { argb: 'FFA38C29' } },
+                        right: { style: 'medium', color: { argb: 'FFA38C29' } }
+                    };
+                }
+            }
+        });
+
+        // 4. Bottom Footer Banner Row (Row N+1)
+        const footerRowIdx = currentRowIdx;
+        worksheet.mergeCells(`A${footerRowIdx}:L${footerRowIdx}`);
+        const footLeft = worksheet.getCell(`A${footerRowIdx}`);
+        footLeft.value = `Total Units: ${sheetUnits.length}`;
+        footLeft.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+        footLeft.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        footLeft.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(footerRowIdx).height = 32;
+
+        ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(c => {
+            const cell = worksheet.getCell(`${c}${footerRowIdx}`);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+    }
+
+    async function exportUnitsExcel() {
+        if (isExportingUnits) return;
+        isExportingUnits = true;
+
+        try {
+            let appData = null;
+            try {
+                const rootEl = document.querySelector('[x-data*="salesApp"]');
+                if (rootEl && window.Alpine) {
+                    appData = window.Alpine.$data(rootEl);
+                }
+            } catch (e) {
+                console.warn('Alpine $data retrieval:', e);
+            }
+
+            const projectId = appData?.filters?.project_id || '';
+            const projectNameUpper = (appData?.selectedFilterProjectName || 'PROJECT').toUpperCase();
+            const filename = `Unit_Report.xlsx`;
+
+            // Fetch units for current project from API
+            const url = projectId ? `{{ url('units') }}?project=${projectId}` : `{{ url('units') }}`;
+            const res = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            const units = Array.isArray(data.units) ? data.units : [];
+
+            if (units.length === 0) {
+                alert("No units available to export for this project.");
+                return;
+            }
+
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Hindustan ERP';
+            workbook.lastModifiedBy = 'Hindustan ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            // 1. Primary Sheet: All Units Master
+            buildUnitsWorksheet(
+                workbook,
+                'All Units',
+                `${projectNameUpper} - UNIT REPORT`,
+                units,
+                appData
+            );
+
+            // 2. Unit Type Wise Breakup Sheets (e.g. Shop, Apartment, Parking)
+            const typeMap = {};
+            units.forEach(unit => {
+                const typeName = unit.unit_type ? unit.unit_type.name : 'Other';
+                if (!typeMap[typeName]) {
+                    typeMap[typeName] = [];
+                }
+                typeMap[typeName].push(unit);
+            });
+
+            // Generate a dedicated tab for each Unit Type
+            Object.keys(typeMap).forEach(typeName => {
+                const typeUnits = typeMap[typeName];
+                const sheetTitle = `${projectNameUpper} - ${typeName.toUpperCase()} REPORT`;
+                buildUnitsWorksheet(
+                    workbook,
+                    typeName,
+                    sheetTitle,
+                    typeUnits,
+                    appData
+                );
+            });
+
+            // Write workbook and download
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const blobUrl = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = blobUrl;
+            anchor.download = filename;
+            anchor.click();
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error('Export units error:', err);
+            alert("Failed to export unit report.");
+        } finally {
+            setTimeout(() => {
+                isExportingUnits = false;
+            }, 1000);
+        }
+    }
+
+    let isExportingSales = false;
+
+    async function exportSalesReport() {
+        if (isExportingSales) return;
+        isExportingSales = true;
+
+        try {
+            let appData = null;
+            try {
+                const rootEl = document.querySelector('[x-data*="salesApp"]');
+                if (rootEl && window.Alpine) {
+                    appData = window.Alpine.$data(rootEl);
+                }
+            } catch (e) {
+                console.warn('Alpine $data retrieval:', e);
+            }
+
+            const projectId = appData?.filters?.project_id || '';
+            const projectNameUpper = (appData?.selectedFilterProjectName || 'PROJECT').toUpperCase();
+            const filename = `Sale_Report.xlsx`;
+
+            // Always ensure the table has the fresh data for the selected project
+            try {
+                const tableUrl = projectId ? `{{ route('sales.excel-table') }}?project_id=${projectId}` : `{{ route('sales.excel-table') }}`;
+                const res = await fetch(tableUrl, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    const html = await res.text();
+                    const container = document.getElementById('salesExcelContainer');
+                    if (container) {
+                        container.innerHTML = html;
+                    }
+                }
+            } catch (fetchErr) {
+                console.warn('Could not refresh sales excel table via API:', fetchErr);
+            }
+
+            const table = document.querySelector("#salesExcelTable");
+            if (!table) {
+                alert("No sale report table available to export.");
+                return;
+            }
+
+            // Create workbook and worksheet
+            const workbook = new ExcelJS.Workbook();
+            const sheetName = 'Sale Report';
+            const worksheet = workbook.addWorksheet(sheetName);
+
+            // Configure views and page setups
+            worksheet.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, activePane: 'bottomRight' }];
+            worksheet.pageSetup = {
+                paperSize: 8, // A3
+                orientation: 'landscape',
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0
+            };
+            worksheet.pageSetup.printTitles = '1:3';
+
+            // Set column widths from colgroup/cols
+            const cols = table.querySelectorAll("colgroup col");
+            if (cols.length > 0) {
+                worksheet.columns = Array.from(cols).map((col) => {
+                    const widthPt = col.style.width || col.getAttribute("width");
+                    let widthVal = 15;
+                    if (widthPt) {
+                        const match = widthPt.match(/[\d\.]+/);
+                        if (match) {
+                            const val = parseFloat(match[0]);
+                            if (widthPt.includes("pt")) {
+                                widthVal = val / 6.5;
+                            } else {
+                                widthVal = val / 7.5;
+                            }
+                        }
+                    }
+                    return { width: Math.max(widthVal, 8) };
+                });
+            }
+
+            // Helper to convert CSS color to Hex
+            function cssColorToHex(cssColor) {
+                if (!cssColor) return null;
+                cssColor = cssColor.trim();
+                if (cssColor.startsWith('#')) {
+                    let hex = cssColor.substring(1);
+                    if (hex.length === 3) {
+                        hex = hex.split('').map(c => c + c).join('');
+                    }
+                    return 'FF' + hex.toUpperCase();
+                }
+                if (cssColor.startsWith('rgb')) {
+                    const parts = cssColor.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                        const r = parseInt(parts[0]).toString(16).padStart(2, '0');
+                        const g = parseInt(parts[1]).toString(16).padStart(2, '0');
+                        const b = parseInt(parts[2]).toString(16).padStart(2, '0');
+                        return 'FF' + (r + g + b).toUpperCase();
+                    }
+                }
+                const nameMap = {
+                    'white': 'FFFFFFFF',
+                    'black': 'FF000000',
+                    'red': 'FFFF0000',
+                    'green': 'FF00FF00',
+                    'blue': 'FF0000FF'
+                };
+                return nameMap[cssColor.toLowerCase()] || null;
+            }
+
+            // Parse grid rows and cells
+            const rows = table.querySelectorAll("tr");
+            const mergedCells = [];
+
+            function isMerged(r, c) {
+                return mergedCells.some(m => r >= m.s.r && r <= m.e.r && c >= m.s.c && c <= m.e.c);
+            }
+
+            rows.forEach((tr, rIdx) => {
+                const sheetRow = worksheet.getRow(rIdx + 1);
+                
+                const heightAttr = tr.getAttribute("height") || tr.style.height;
+                if (heightAttr) {
+                    const match = heightAttr.match(/[\d\.]+/);
+                    if (match) {
+                        sheetRow.height = parseFloat(match[0]);
+                    }
+                }
+
+                const cells = tr.cells;
+                let colIdx = 1;
+
+                for (let cIdx = 0; cIdx < cells.length; cIdx++) {
+                    const cell = cells[cIdx];
+
+                    while (isMerged(rIdx + 1, colIdx)) {
+                        colIdx++;
+                    }
+
+                    const colspan = parseInt(cell.getAttribute("colspan")) || 1;
+                    const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
+
+                    if (colspan > 1 || rowspan > 1) {
+                        worksheet.mergeCells(rIdx + 1, colIdx, rIdx + rowspan, colIdx + colspan - 1);
+                        mergedCells.push({
+                            s: { r: rIdx + 1, c: colIdx },
+                            e: { r: rIdx + rowspan, c: colIdx + colspan - 1 }
+                        });
+                    }
+
+                    const excelCell = worksheet.getCell(rIdx + 1, colIdx);
+                    const rawVal = cell.textContent ? cell.textContent.trim() : '';
+
+                    const bgColorAttr = cell.getAttribute("bgcolor") || cell.style.backgroundColor;
+                    const bgColorHex = cssColorToHex(bgColorAttr);
+                    
+                    const textColorAttr = cell.style.color;
+                    const textColorHex = cssColorToHex(textColorAttr) || 'FF000000';
+
+                    const isBold = cell.tagName === 'TH' || cell.style.fontWeight === 'bold';
+                    const fontSizeMatch = (cell.style.fontSize || '').match(/[\d\.]+/);
+                    const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[0]) : 10;
+
+                    let horizAlign = cell.style.textAlign || 'center';
+                    if (horizAlign === 'start') horizAlign = 'center';
+                    if (horizAlign === 'end') horizAlign = 'center';
+
+                    let vertAlign = cell.style.verticalAlign || 'middle';
+                    const numberFormat = cell.style.msoNumberFormat || '';
+                    
+                    if (numberFormat.includes('dd-mmm-yyyy') || numberFormat.includes('dd\\-mmm\\-yyyy')) {
+                        if (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal)) {
+                            excelCell.value = new Date(rawVal);
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                        excelCell.numFormat = 'dd-mmm-yyyy';
+                    } else if (numberFormat.includes('0\\.0%') || numberFormat.includes('0.0%')) {
+                        const parsedFloat = parseFloat(rawVal);
+                        if (!isNaN(parsedFloat)) {
+                            excelCell.value = parsedFloat;
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                        excelCell.numFormat = '0.0%';
+                    } else if (numberFormat.includes('\\#\\,\\#\\#0') || numberFormat.includes('#,##0')) {
+                        const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
+                        const parsedNum = parseFloat(cleanVal);
+                        if (rawVal && !isNaN(parsedNum)) {
+                            excelCell.value = parsedNum;
+                        } else {
+                            excelCell.value = '';
+                        }
+                        excelCell.numFormat = '#,##0';
+                    } else {
+                        if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal)) {
+                            excelCell.value = parseFloat(rawVal);
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                    }
+
+                    excelCell.font = {
+                        name: 'Calibri',
+                        size: fontSize,
+                        bold: isBold,
+                        color: { argb: textColorHex }
+                    };
+
+                    if (bgColorHex) {
+                        excelCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: bgColorHex }
+                        };
+                    }
+
+                    excelCell.alignment = {
+                        horizontal: horizAlign || 'center',
+                        vertical: vertAlign,
+                        wrapText: true
+                    };
+
+                    excelCell.border = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    colIdx += colspan;
+                }
+            });
+
+            // Write workbook and download
+            const data = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = filename;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export sales error:', err);
+            alert("Failed to export sales report.");
+        } finally {
+            setTimeout(() => { isExportingSales = false; }, 1000);
+        }
+    }
+
+    // Export aliases
+    window.exportSalesReport = exportSalesReport;
+    window.exportCurrentTable = exportSalesReport;
+    window.exportUnitsExcel = exportUnitsExcel;
 </script>
 </x-erp-layout>

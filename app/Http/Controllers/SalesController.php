@@ -109,14 +109,67 @@ class SalesController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['sales' => $sales]);
         }
+        $selectedProjectId = $request->project_id ?: ($projectsList->first()?->id ?? null);
+        $selectedProject = $selectedProjectId ? Project::find($selectedProjectId) : $projectsList->first();
+
+        $salesListQuery = Sale::with([
+            'customer', 
+            'unit.unitType', 
+            'unit.floor', 
+            'project', 
+            'broker', 
+            'saleUnits.unit.unitType', 
+            'saleUnits.unit.floor',
+            'extraWorks',
+            'receipts',
+            'customerInstallments'
+        ])->where('status', 'active');
+
+        if ($selectedProject) {
+            $salesListQuery->where('project_id', $selectedProject->id);
+        }
+
+        $salesList = $salesListQuery->orderByDesc('sale_date')->get();
+
         return view('sales.index', [
-            'projects' => Project::orderBy('name')->get(),
+            'projects' => $projectsList,
+            'project' => $selectedProject,
+            'salesList' => $salesList,
             'customers' => Customer::orderBy('name')->get(),
             'brokers' => Broker::orderBy('name')->get(),
             'bankAccounts' => Bank::where('status', 'active')->orderBy('bank_name')->get(),
             'companyBankAccounts' => CompanyBankAccount::where('status', 'active')->orderBy('bank_name')->get(),
             'unitTypes' => UnitType::where('is_active', true)->orderBy('name')->get(),
             'paymentModes' => PaymentMode::where('status', 'active')->orderBy('name')->get(),
+        ]);
+    }
+    public function salesExcelTable(Request $request): View
+    {
+        $projectId = $request->project_id ?: $request->project;
+        $project = $projectId ? Project::find($projectId) : Project::first();
+
+        $query = Sale::with([
+            'customer', 
+            'unit.unitType', 
+            'unit.floor', 
+            'project', 
+            'broker', 
+            'saleUnits.unit.unitType', 
+            'saleUnits.unit.floor',
+            'extraWorks',
+            'receipts',
+            'customerInstallments'
+        ])->where('status', 'active');
+
+        if ($project) {
+            $query->where('project_id', $project->id);
+        }
+
+        $salesList = $query->orderByDesc('sale_date')->get();
+
+        return view('partials.sales_excel_table', [
+            'project' => $project,
+            'salesList' => $salesList
         ]);
     }
     public function availableUnits(int $projectId): JsonResponse

@@ -287,6 +287,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     // Sales Module
     Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');
+    Route::get('/sales/excel-table', [\App\Http\Controllers\SalesController::class, 'salesExcelTable'])->name('sales.excel-table');
     Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
     Route::get('/sales/available-units/{project}', [SalesController::class, 'availableUnits'])->name('sales.available-units');
     Route::get('/sales/{id}', [\App\Http\Controllers\SalesController::class, 'show'])->name('sales.show');
