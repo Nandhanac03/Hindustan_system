@@ -116,8 +116,10 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // ── Recent Bookings (replaces Approvals) ──────────────────────────────
-        $recentBookings = $bookingQuery()->with(['unit', 'customer'])
+        // ── Recent Bookings (Active sales only; excludes exchanged and cancelled) ──
+        $recentBookings = $bookingQuery()
+            ->where('status', 'active')
+            ->with(['unit', 'customer'])
             ->latest()
             ->take(5)
             ->get();

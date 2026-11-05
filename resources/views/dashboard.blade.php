@@ -429,7 +429,7 @@
                     @php
                         $bColor = match($booking->status) {
                             'pending'  => ['bg'=>'bg-amber-50','text'=>'text-amber-600','border'=>'border-amber-200'],
-                            'approved' => ['bg'=>'bg-emerald-50','text'=>'text-emerald-600','border'=>'border-emerald-200'],
+                            'approved', 'active' => ['bg'=>'bg-emerald-50','text'=>'text-emerald-600','border'=>'border-emerald-200'],
                             'rejected','cancelled' => ['bg'=>'bg-rose-50','text'=>'text-rose-600','border'=>'border-rose-200'],
                             default    => ['bg'=>'bg-slate-50','text'=>'text-slate-600','border'=>'border-slate-200'],
                         };
