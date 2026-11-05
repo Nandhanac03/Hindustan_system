@@ -3268,17 +3268,33 @@
                             <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                             <span>Refund Calculation</span>
                         </div>
-                        <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                            <div class="space-y-3">
+                        <div class="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
+                            <div class="space-y-2.5">
                                 <div class="flex items-center justify-between text-xs">
                                     <span class="font-semibold text-slate-700">Customer Paid Amount</span>
                                     <span class="font-mono font-bold text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getPaidTillDate(refundModalSale) : 0)"></span>
                                 </div>
                                 <div class="flex items-center justify-between text-xs">
+                                    <span class="font-semibold text-slate-700">Cancellation Fee (If applicable)</span>
+                                    <span class="font-mono font-bold text-sm"
+                                          :class="refundModalSale && Number(refundModalSale.cancellation_fee) > 0 ? 'text-rose-600' : 'text-slate-900'"
+                                          x-text="refundModalSale && Number(refundModalSale.cancellation_fee) > 0 ? '- ' + fmtIndian(refundModalSale.cancellation_fee) : '₹0.00'"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-semibold text-slate-700">Owner Approved Additional Refund</span>
+                                    <span class="font-mono font-bold text-sm"
+                                          :class="refundModalSale && Number(refundModalSale.additional_refund_amount) > 0 ? 'text-emerald-600' : 'text-slate-900'"
+                                          x-text="refundModalSale && Number(refundModalSale.additional_refund_amount) > 0 ? '+ ' + fmtIndian(refundModalSale.additional_refund_amount) : '₹0.00'"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100">
+                                    <span class="font-semibold text-slate-800">Total Refund Amount</span>
+                                    <span class="font-mono font-bold text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getRefundDue(refundModalSale) : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs">
                                     <span class="font-semibold text-slate-700">Already Refunded</span>
                                     <span class="font-mono font-bold text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getRefundPaid(refundModalSale) : 0)"></span>
                                 </div>
-                                <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
                                     <span class="font-extrabold text-slate-900">Pending Balance</span>
                                     <span class="font-mono font-black text-slate-900 text-sm" x-text="fmtIndian(refundModalSale ? getRemainingRefund(refundModalSale) : 0)"></span>
                                 </div>
