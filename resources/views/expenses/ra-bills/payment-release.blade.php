@@ -472,16 +472,16 @@
                                                 <span class="text-[10.5px] font-bold text-slate-600">Total Outflow Disbursed: <strong class="text-emerald-700 font-mono font-black text-xs">₹{{ number_format((float)$bill->paid_amount, 2) }}</strong></span>
                                             </div>
 
-                                            <div class="overflow-x-auto">
+                                            <div class="overflow-x-auto rounded-lg border border-[#c8ddf2]">
                                                 <table class="w-full text-left border-collapse text-[10.5px]">
-                                                    <thead>
-                                                        <tr class="bg-[#a38c29] text-white text-[9px] font-black uppercase tracking-wider border-b border-[#8a7522]">
-                                                            <th class="px-3 py-2">INSTALLMENT #</th>
-                                                            <th class="px-3 py-2">DISBURSEMENT DATE</th>
-                                                            <th class="px-3 py-2">CORPORATE BANK ACCOUNT</th>
-                                                            <th class="px-3 py-2">PAYMENT MODE & REF #</th>
-                                                            <th class="px-3 py-2 text-right text-emerald-100">DISBURSED AMOUNT (₹)</th>
-                                                            <th class="px-3 py-2 text-right">ACTION</th>
+                                                    <thead class="bg-[#e9f2fb]" style="background-color: #e9f2fb;">
+                                                        <tr class="bg-[#e9f2fb] text-slate-800 text-[9px] font-black uppercase tracking-wider border-b border-[#c8ddf2]" style="background-color: #e9f2fb;">
+                                                            <th class="px-3 py-2 text-slate-800 font-black">INSTALLMENT #</th>
+                                                            <th class="px-3 py-2 text-slate-800 font-black">DISBURSEMENT DATE</th>
+                                                            <th class="px-3 py-2 text-slate-800 font-black">CORPORATE BANK ACCOUNT</th>
+                                                            <th class="px-3 py-2 text-slate-800 font-black">PAYMENT MODE & REF #</th>
+                                                            <th class="px-3 py-2 text-right text-slate-800 font-black">DISBURSED AMOUNT (₹)</th>
+                                                            <th class="px-3 py-2 text-right text-slate-800 font-black">ACTION</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-slate-100 font-semibold text-slate-800">

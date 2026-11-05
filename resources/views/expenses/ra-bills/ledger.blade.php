@@ -670,16 +670,16 @@
                                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             Detailed Transaction Log
                                         </h4>
-                                        <div class="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm">
+                                        <div class="overflow-hidden rounded-lg border border-[#c8ddf2] bg-white shadow-sm">
                                             <table class="w-full text-left border-collapse">
-                                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                                                    <tr class="erp-table-header border-b border-slate-700 text-left">
-                                                        <th class="px-4 py-2.5 w-28 border-r border-slate-600 erp-table-header">Date</th>
-                                                        <th class="px-4 py-2.5 border-r border-slate-600 erp-table-header">Event Details</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-blue-100 erp-table-header">Debit (Claim)</th>
-                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-slate-600 text-emerald-100 erp-table-header">Credit (Paid)</th>
-                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-slate-600 text-rose-100 erp-table-header">Balance Due</th>
-                                                        <th class="px-2 py-2.5 text-center w-[85px] whitespace-nowrap erp-table-header">Action</th>
+                                                <thead class="bg-[#e9f2fb]" style="background-color: #e9f2fb;">
+                                                    <tr class="bg-[#e9f2fb] text-slate-800 uppercase text-[10px] font-extrabold tracking-wider border-b border-[#c8ddf2] text-left" style="background-color: #e9f2fb;">
+                                                        <th class="px-4 py-2.5 w-28 border-r border-[#c8ddf2] text-slate-800 font-black">Date</th>
+                                                        <th class="px-4 py-2.5 border-r border-[#c8ddf2] text-slate-800 font-black">Event Details</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-[#c8ddf2] text-slate-800 font-black">Debit (Claim)</th>
+                                                        <th class="px-4 py-2.5 text-right w-28 border-r border-[#c8ddf2] text-slate-800 font-black">Credit (Paid)</th>
+                                                        <th class="px-4 py-2.5 text-right w-32 border-r border-[#c8ddf2] text-slate-800 font-black">Balance Due</th>
+                                                        <th class="px-2 py-2.5 text-center w-[85px] whitespace-nowrap text-slate-800 font-black">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
