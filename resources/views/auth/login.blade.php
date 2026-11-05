@@ -1,98 +1,257 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    @if (session('status'))
-        <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-3 shadow-xs">
-            <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <span class="font-medium text-xs">{{ session('status') }}</span>
-        </div>
-    @endif
+<x-guest-layout :cardless="true">
+    <style>
+        .login-card {
+            width: 100%;
+            max-width: 1180px;
+            background: #ffffff;
+            border-radius: 36px;
+            box-shadow: 0 25px 60px -15px rgba(85, 70, 40, 0.16), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e7dfd1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            min-height: 700px;
+        }
+        @media (max-width: 860px) {
+            .login-card {
+                flex-direction: column;
+                max-width: 500px;
+                min-height: auto;
+                border-radius: 28px;
+            }
+            .login-left-col {
+                width: 100% !important;
+                height: 320px !important;
+                border-right: none !important;
+                border-bottom: 1px solid #e2dac9;
+            }
+            .login-right-col {
+                width: 100% !important;
+                padding: 36px 24px !important;
+            }
+        }
+        .login-left-col {
+            width: 50%;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            background: #2e4b77;
+            border-right: 1px solid #e5dccb;
+        }
+        .login-showcase-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center bottom;
+            display: block;
+            pointer-events: none;
+            user-select: none;
+        }
+        .login-right-col {
+            width: 50%;
+            flex: 1;
+            background-color: #ffffff;
+            padding: 48px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .login-input {
+            width: 100%;
+            padding: 15px 18px 15px 48px;
+            background-color: #ffffff !important;
+            border: 1px solid #e3ddd0;
+            border-radius: 14px;
+            font-size: 14px;
+            color: #24211d;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            box-sizing: border-box;
+        }
+        .login-input:focus {
+            border-color: #a48b48;
+            box-shadow: 0 0 0 4px rgba(164, 139, 72, 0.16);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 15px 28px;
+            background: linear-gradient(180deg, #b89f5d 0%, #a48b48 100%);
+            border: 1px solid #9e8542;
+            border-radius: 14px;
+            color: #ffffff;
+            font-size: 14.5px;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 14px rgba(164, 139, 72, 0.32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .login-btn:hover {
+            filter: brightness(1.05);
+            box-shadow: 0 7px 18px rgba(164, 139, 72, 0.42);
+            transform: translateY(-1px);
+        }
+        .login-btn:active {
+            transform: translateY(0);
+        }
+    </style>
 
-    <!-- Authentication Error Alert Banner -->
-    @if ($errors->any())
-        <div class="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs shadow-xs animate-fade-in">
-            <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <div class="flex-1 space-y-0.5">
-                    <div class="flex items-center justify-between">
-                        <h4 class="font-extrabold text-rose-900 text-xs uppercase tracking-wider">Invalid Username or Password</h4>
-                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-200/60 text-rose-800 uppercase tracking-widest">Failed</span>
-                    </div>
-                    <p class="text-[11px] text-rose-700 font-medium leading-relaxed">
-                        {{ $errors->first('email') ?: ($errors->first('password') ?: $errors->first()) }}
+    <!-- Split 2-Column Auth Showcase Card -->
+    <div class="login-card">
+
+        <!-- Left Column: Showcase Card Framed with Matching Sand Dune Curves Top & Bottom -->
+        <div class="login-left-col">
+            <img src="{{ asset('img/login-building-full.png') }}?v=2" 
+                 alt="Tabasco Hindustan Building" 
+                 class="login-showcase-img">
+        </div>
+
+        <!-- Right Column: Login Authentication Form -->
+        <div class="login-right-col">
+
+            <!-- Form Wrapper Centered -->
+            <div style="width: 100%; max-width: 430px; margin: auto; padding: 24px 0;">
+                <!-- Tabasco Monogram & Tagline -->
+                <div style="text-align: center;">
+                    <img src="{{ asset('img/logo-tabasco.png') }}?v=15" alt="Tabasco Human Capital" style="height: 72px; width: auto; margin: 0 auto; object-fit: contain; display: block;">
+                    <p style="font-size: 11px; font-weight: 700; color: #a48c34; letter-spacing: 0.25em; text-transform: uppercase; margin-top: 12px; margin-bottom: 0;">
+                        BUILD • MANAGE • GROW
                     </p>
                 </div>
+
+                <!-- Headline -->
+                <div style="text-align: center; margin-top: 24px; margin-bottom: 26px;">
+                    <h1 style="font-size: 28px; font-weight: 800; color: #201e1a; letter-spacing: -0.015em; margin: 0;">Welcome Back!</h1>
+                    <p style="font-size: 13.5px; color: #7f786a; font-weight: 400; margin: 6px 0 0 0;">Sign in to your account to continue</p>
+                </div>
+
+                <!-- Session Status -->
+                @if (session('status'))
+                    <div style="margin-bottom: 16px; padding: 12px 16px; border-radius: 12px; background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                        <svg style="width: 18px; height: 18px; color: #16a34a; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>{{ session('status') }}</span>
+                    </div>
+                @endif
+
+                <!-- Authentication Error Alert Banner -->
+                @if ($errors->any())
+                    <div style="margin-bottom: 16px; padding: 12px 16px; border-radius: 12px; background-color: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; font-size: 13px;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 3px;">
+                            <svg style="width: 16px; height: 16px; color: #e11d48; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span>Invalid Username or Password</span>
+                        </div>
+                        <p style="font-size: 12px; color: #be123c; margin: 0;">
+                            {{ $errors->first('email') ?: ($errors->first('password') ?: $errors->first()) }}
+                        </p>
+                    </div>
+                @endif
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    <!-- Email Address or Username -->
+                    <div style="position: relative; margin-bottom: 16px;">
+                        <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <input id="email"
+                               type="text"
+                               name="email"
+                               value="{{ old('email') }}"
+                               required
+                               autofocus
+                               autocomplete="username"
+                               placeholder="Email Address or Username"
+                               class="login-input" />
+                    </div>
+
+                    <!-- Password -->
+                    <div style="position: relative; margin-bottom: 16px;">
+                        <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input id="password"
+                               type="password"
+                               name="password"
+                               required
+                               autocomplete="current-password"
+                               placeholder="Password"
+                               class="login-input"
+                               style="padding-right: 46px;" />
+                        <button type="button"
+                                id="togglePassword"
+                                onclick="togglePasswordVisibility()"
+                                style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: #9c9485; cursor: pointer; display: flex; align-items: center;">
+                            <svg id="eyeIcon" style="width: 19px; height: 19px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Remember me & Forgot Password -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 24px;">
+                        <label style="display: inline-flex; align-items: center; cursor: pointer; user-select: none;">
+                            <input id="remember_me" type="checkbox" name="remember"
+                                   style="width: 17px; height: 17px; border-radius: 4px; border: 1px solid #d4ccbd; accent-color: #a48b48; cursor: pointer;">
+                            <span style="margin-left: 9px; font-size: 13px; color: #6e675b; font-weight: 500;">Remember me</span>
+                        </label>
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" style="font-size: 13px; font-weight: 600; color: #6e675b; text-decoration: none;" onmouseover="this.style.color='#a48b48'" onmouseout="this.style.color='#6e675b'">
+                                Forgot Password?
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="login-btn">
+                        <span>Login</span>
+                        <span style="font-size: 16px; font-weight: 700;">→</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer Copyright -->
+            <div style="text-align: center; width: 100%; padding-top: 16px;">
+                <p style="font-size: 11.5px; color: #9c9588; font-weight: 400; margin: 0; letter-spacing: 0.01em;">
+                    © 2026 Hindustan ERP. All rights reserved.
+                </p>
             </div>
         </div>
-    @endif
-
-    <form method="POST" action="{{ route('login') }}" class="space-y-4">
-        @csrf
-
-        <!-- Email Address or Username -->
-        <div class="space-y-1.5">
-            <label for="email" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Email Address or Username</label>
-            <input id="email"
-                   type="text"
-                   name="email"
-                   value="{{ old('email') }}"
-                   required
-                   autofocus
-                   autocomplete="username"
-                   placeholder="Enter your email or username"
-                   class="w-full bg-white border {{ $errors->has('email') ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/15 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/10 text-slate-900' }} rounded-xl text-xs px-4 py-3 placeholder-slate-400 focus:outline-none transition shadow-xs font-medium" />
-        </div>
-
-        <!-- Password -->
-        <div class="space-y-1.5">
-            <div class="relative">
-                <input id="password"
-                       type="password"
-                       name="password"
-                       required
-                       autocomplete="current-password"
-                       placeholder="••••••••"
-                       class="w-full bg-white border {{ $errors->has('password') ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/15 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/10 text-slate-900' }} rounded-xl text-xs px-4 py-3 pr-10 placeholder-slate-400 focus:outline-none transition shadow-xs font-medium" />
-                <button type="button" id="togglePassword"
-                        onclick="(function(){var i=document.getElementById('password'),b=document.getElementById('togglePassword');if(i.type==='password'){i.type='text';b.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-4 h-4\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88\'/></svg>';}else{i.type='password';b.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-4 h-4\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z\'/><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z\'/></svg>';}})();"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Remember Me -->
-        <div class="flex items-center justify-between">
-            <label for="remember_me" class="inline-flex items-center cursor-pointer">
-                <input id="remember_me"
-                       type="checkbox"
-                       name="remember"
-                       class="rounded border-slate-300 bg-white text-[#a38c29] focus:ring-[#a38c29]/20 focus:ring-offset-0 w-4 h-4 cursor-pointer" />
-                <span class="ms-2 text-xs text-slate-500 font-medium select-none">Remember this session</span>
-            </label>
-        </div>
-
-        <!-- Action Submit -->
-        <div class="pt-2">
-            <button type="submit" class="w-full py-3 px-4 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold transition shadow-lg shadow-[#a38c29]/20 tracking-wide uppercase">
-                Sign In
-            </button>
-        </div>
-
-        <div class="text-center pt-2">
-            <span class="text-xs text-slate-500">Need access? Contact your administrator.</span>
-        </div>
-    </form>
+    </div>
 
     <script>
+        function togglePasswordVisibility() {
+            var input = document.getElementById('password');
+            var eye = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />';
+            } else {
+                input.type = 'password';
+                eye.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+            }
+        }
+
         window.addEventListener('pageshow', function (event) {
             var navEntries = window.performance && window.performance.getEntriesByType ? window.performance.getEntriesByType('navigation') : [];
             var isBackForward = navEntries.length > 0 && navEntries[0].type === 'back_forward';
