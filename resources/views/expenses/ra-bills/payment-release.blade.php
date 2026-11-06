@@ -3,7 +3,157 @@
 @section('title', 'Contractor Payment Release Desk')
 
 @section('content')
+@php
+    $filterProjects = $raBills->pluck('project')->filter()->unique('id')->sortBy('name');
+    $defaultProjectId = $filterProjects->first()?->id ?? '';
+    $projectsJson = collect($filterProjects ?? [])->map(fn($p) => (object)['id' => $p->id, 'name' => $p->name])->toJson();
+
+    $filterContractors = collect($contractors);
+    foreach($raBills as $b) {
+        if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
+            $cName = $b->contractor->name ?? $b->contractor_name;
+            if ($cName) {
+                $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
+            }
+        }
+    }
+    $filterContractorsList = $filterContractors->unique('id')->sortBy('name')->values()->toJson();
+    $verifiedBills = $raBills->filter(fn($b) => !empty($b->verified_date));
+@endphp
+
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 6mm 8mm 6mm 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    header, nav, aside, footer, button, select, input, .print\:hidden, [class*="nav"], [class*="sidebar"] {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+
+    /* All 4 Metric Cards in a Single Row in PDF/Print */
+    #dashboard-stats {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid !important;
+    }
+    #dashboard-stats > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    #dashboard-stats .text-xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    #dashboard-stats .text-\[10px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-stats .w-7.h-7 {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    #dashboard-stats svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    #table-container {
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* Exact table styling identical to actual page */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        font-size: 12px !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    thead th {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        padding: 8px 6px !important;
+        letter-spacing: 0.05em !important;
+        background-color: #534E47 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    tbody tr td {
+        font-size: 12px !important;
+        padding: 8px 6px !important;
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.35 !important;
+    }
+
+    /* Hide action column and non-essential buttons in print */
+    th:last-child, td:last-child {
+        display: none !important;
+    }
+    button[title*="Toggle Part-by-Part"],
+    button[title*="Toggle"] {
+        display: none !important;
+    }
+}
+</style>
+
 <div x-data="raBillPaymentRelease()" class="space-y-6">
+
+    {{-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── --}}
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Treasury & Contractor Disbursements</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">CONTRACTOR PAYMENT RELEASE & DISBURSEMENT REGISTER</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Project:</span> <span class="font-bold text-slate-800" x-text="getProjectFilterLabel()">All Projects</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Contractor:</span> <span class="font-bold text-[#a38c29]" x-text="getContractorFilterLabel()">All Contractors</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-slate-800" x-text="getVisibleCount()">{{ $verifiedBills->count() }}</span></div>
+            </div>
+        </div>
+    </div>
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -24,7 +174,7 @@
     </div>
 
     <!-- Executive Treasury KPI Metrics Bar (Upgraded with Icons & Hover Effects) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="dashboard-stats">
         <!-- Card 1: Verified Payable Claims -->
         <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
@@ -304,11 +454,7 @@
     </div>
 
     <!-- Payment Disbursal Desk Table -->
-    @php
-        // Only show verified bills on the Payment Release page
-        $verifiedBills = $raBills->filter(fn($b) => !empty($b->verified_date));
-    @endphp
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="table-container">
         <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -319,6 +465,22 @@
                       x-text="getVisibleCount() + ' Records'">
                     {{ $verifiedBills->count() }} Records
                 </span>
+            </div>
+
+            {{-- Table Head Export Buttons (Export Excel & Export PDF) --}}
+            <div class="flex items-center gap-2.5 print:hidden">
+                <button type="button" @click.stop.prevent="exportToExcel()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Contractor Payment Release Register to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click.stop.prevent="exportToPdf()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Contractor Payment Release Register to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
             </div>
         </div>
 
@@ -927,27 +1089,60 @@
 </div>
 
 <script>
+let _globalRaPaymentPrintLock = false;
+window.exportRaBillPaymentReleasePdf = function() {
+    if (_globalRaPaymentPrintLock) return;
+    _globalRaPaymentPrintLock = true;
+    window.print();
+    setTimeout(() => {
+        _globalRaPaymentPrintLock = false;
+    }, 1200);
+};
+
 function raBillPaymentRelease() {
     const defaultProjectId = '{{ $defaultProjectId }}';
     return {
         filterContractorId: '',
         filterProjectId: defaultProjectId,
         filterStatus: '',
+        projectsList: {!! $projectsJson !!},
+        contractorsList: {!! $filterContractorsList !!},
         allBills: [
-            @foreach($raBills as $bill)
+            @foreach($verifiedBills as $bill)
             @php
                 $isCleared = ((float)$bill->balance_amount <= 0.001);
-                $isVerified = !empty($bill->verified_date);
+                $isVerified = true;
                 $isPartiallyPaid = ($isVerified && !$isCleared && (float)$bill->paid_amount > 0);
-                $bStatus = $isCleared ? 'cleared' : ($isPartiallyPaid ? 'partially_paid' : ($isVerified ? 'pending' : 'unverified'));
+                $statusVal = $isCleared ? 'cleared' : ($isPartiallyPaid ? 'partially_paid' : 'pending');
+                $statusText = $isCleared ? 'Cleared' : ($isPartiallyPaid ? 'Partially Paid' : 'Pending Release');
+
+                $paidDates = $bill->payments->map(function($p) {
+                    return $p->payment_date ? $p->payment_date->format('d/m/Y') : null;
+                })->filter()->unique()->values()->join(', ');
             @endphp
             {
+                id: {{ $bill->id }},
                 contractor_id: '{{ $bill->contractor_id }}',
+                contractor_name: '{{ addslashes($bill->contractor_name ?: ($bill->contractor->name ?? "General Contractor")) }}',
                 project_id: '{{ $bill->project_id }}',
-                status: '{{ $bStatus }}',
+                project_name: '{{ addslashes($bill->project->name ?? "Site Project") }}',
+                ra_bill_number: '{{ addslashes($bill->ra_bill_number) }}',
+                submit_date: '{{ $bill->submit_date ? $bill->submit_date->format("d/m/Y") : "—" }}',
+                gross_amount: {{ (float)$bill->gross_amount }},
+                verified_date: '{{ $bill->verified_date ? $bill->verified_date->format("d/m/Y") : "—" }}',
+                correction_amount: {{ (float)$bill->correction_amount }},
+                net_approved_amount: {{ (float)$bill->net_approved_amount }},
+                due_date: '{{ $bill->due_date ? $bill->due_date->format("d/m/Y") : "—" }}',
+                paid_date: '{{ $paidDates ?: "—" }}',
+                paid_amount: {{ (float)$bill->paid_amount }},
+                balance_amount: {{ (float)$bill->balance_amount }},
+                status: '{{ $statusVal }}',
+                status_text: '{{ $statusText }}'
             },
             @endforeach
         ],
+
+        applyFilter() {},
 
         resetFilters() {
             this.filterContractorId = '';
@@ -968,19 +1163,331 @@ function raBillPaymentRelease() {
             return true;
         },
 
+        getFilteredBills() {
+            return this.allBills.filter(b => this.matchesFilter(b.contractor_id, b.project_id, b.status));
+        },
+
         getVisibleCount() {
-            return this.allBills.filter(b => {
-                if (this.filterContractorId && String(b.contractor_id) !== String(this.filterContractorId)) {
-                    return false;
+            return this.getFilteredBills().length;
+        },
+
+        getProjectFilterLabel() {
+            if (!this.filterProjectId) return 'All Projects';
+            const p = (this.projectsList || []).find(x => x.id == this.filterProjectId);
+            return p ? p.name : 'All Projects';
+        },
+
+        getContractorFilterLabel() {
+            if (!this.filterContractorId) return 'All Contractors';
+            const c = (this.contractorsList || []).find(x => x.id == this.filterContractorId);
+            return c ? c.name : 'All Contractors';
+        },
+
+        exportToPdf() {
+            window.exportRaBillPaymentReleasePdf();
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                    return;
                 }
-                if (this.filterProjectId && String(b.project_id) !== String(this.filterProjectId)) {
-                    return false;
+
+                const list = this.getFilteredBills();
+                if (!list || list.length === 0) {
+                    alert('No records available to export for the current filters.');
+                    return;
                 }
-                if (this.filterStatus && b.status !== this.filterStatus) {
-                    return false;
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const worksheet = workbook.addWorksheet('Contractor Payment Release', {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Active Project / Contractor Name for Header
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                const projTitle = (this.getProjectFilterLabel() || '').trim();
+                if (projTitle && projTitle !== 'All Projects') {
+                    const cleanProj = projTitle.toUpperCase();
+                    if (!cleanProj.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
+                        reportTitleText += ' - ' + cleanProj;
+                    }
                 }
-                return true;
-            }).length;
+                const contTitle = (this.getContractorFilterLabel() || '').trim();
+                if (contTitle && contTitle !== 'All Contractors') {
+                    const cleanCont = contTitle.toUpperCase();
+                    if (!cleanCont.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
+                        reportTitleText += ' - ' + cleanCont;
+                    }
+                }
+                reportTitleText += ' - CONTRACTOR PAYMENT RELEASE REGISTER';
+
+                // 3. Column Definitions (14 Columns: SL, RA Bill, Contractor, Project, Submit Date, Amount, Verified Date, Correction, Net After Correction, Due Date, Paid Date, Paid Amount, Balance Due, Status)
+                worksheet.columns = [
+                    { key: 'sl', width: 9 },                 // A: SL NO
+                    { key: 'bill_no', width: 18 },            // B: RA BILL NO
+                    { key: 'contractor', width: 32 },         // C: CONTRACTOR
+                    { key: 'project', width: 28 },            // D: PROJECT
+                    { key: 'submit_date', width: 18 },        // E: RA BILL SUBMIT DATE
+                    { key: 'gross_amount', width: 20 },       // F: RA BILL AMOUNT (₹)
+                    { key: 'verified_date', width: 18 },      // G: RA BILL VERIFIED DATE
+                    { key: 'correction_amount', width: 22 },  // H: CORRECTION OF BILL (₹)
+                    { key: 'after_correction', width: 24 },   // I: RA BILL AFTER CORRECTION (₹)
+                    { key: 'due_date', width: 18 },           // J: RA BILL DUE DATE
+                    { key: 'paid_date', width: 20 },          // K: RA BILL PAID DATE
+                    { key: 'paid_amount', width: 20 },        // L: PAID AMOUNT (₹)
+                    { key: 'balance_amount', width: 20 },     // M: BALANCE DUE (₹)
+                    { key: 'status', width: 18 }              // N: STATUS
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:N2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 14; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                worksheet.mergeCells('A3:N3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = `Contractor Treasury Payment Release & Disbursement Register | Generated On: ${nowStr}`;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 14; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'RA BILL NO.',
+                    'CONTRACTOR',
+                    'PROJECT',
+                    'RA BILL SUBMIT DATE',
+                    'RA BILL AMOUNT (₹)',
+                    'RA BILL VERIFIED DATE',
+                    'CORRECTION OF BILL (₹)',
+                    'RA BILL AFTER CORRECTION (₹)',
+                    'RA BILL DUE DATE',
+                    'RA BILL PAID DATE',
+                    'PAID AMOUNT (₹)',
+                    'BALANCE DUE (₹)',
+                    'STATUS'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 14; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalGross = 0;
+                let totalCorrection = 0;
+                let totalNet = 0;
+                let totalPaid = 0;
+                let totalBal = 0;
+
+                list.forEach((bill, idx) => {
+                    const rowNum = 6 + idx;
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const gross = parseFloat(bill.gross_amount) || 0;
+                    const correction = parseFloat(bill.correction_amount) || 0;
+                    const net = parseFloat(bill.net_approved_amount) || 0;
+                    const paid = parseFloat(bill.paid_amount) || 0;
+                    const bal = parseFloat(bill.balance_amount) || 0;
+
+                    totalGross += gross;
+                    totalCorrection += correction;
+                    totalNet += net;
+                    totalPaid += paid;
+                    totalBal += bal;
+
+                    worksheet.addRow([
+                        idx + 1,
+                        bill.ra_bill_number || '',
+                        bill.contractor_name || '',
+                        bill.project_name || '',
+                        bill.submit_date || '—',
+                        gross,
+                        bill.verified_date || '—',
+                        correction,
+                        net,
+                        bill.due_date || '—',
+                        bill.paid_date || '—',
+                        paid,
+                        bal,
+                        bill.status_text || ''
+                    ]);
+                    worksheet.getRow(rowNum).height = 25;
+
+                    for (let c = 1; c <= 14; c++) {
+                        const cell = worksheet.getCell(rowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 2 || c === 6 || c === 8 || c === 9 || c === 12 || c === 13 || c === 14),
+                            color: {
+                                argb: (c === 6 ? 'FF0F172A' : (c === 8 ? 'FFB91C1C' : (c === 9 ? 'FF1E40AF' : (c === 12 ? 'FF047857' : (c === 13 ? 'FFB91C1C' : 'FF000000')))))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 6 || c === 8 || c === 9 || c === 12 || c === 13) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = 6 + list.length;
+                worksheet.mergeCells(`A${totalRowNum}:E${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 36;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 5; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col F (6): Gross Amount Total
+                const grossCell = worksheet.getCell(totalRowNum, 6);
+                grossCell.value = totalGross;
+                grossCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                grossCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                grossCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                grossCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                grossCell.border = headerBorder;
+
+                // Col G (7): Verified Date blank fill
+                const vDateCell = worksheet.getCell(totalRowNum, 7);
+                vDateCell.value = '';
+                vDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                vDateCell.border = headerBorder;
+
+                // Col H (8): Correction Amount Total
+                const corrCell = worksheet.getCell(totalRowNum, 8);
+                corrCell.value = totalCorrection;
+                corrCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                corrCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                corrCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                corrCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                corrCell.border = headerBorder;
+
+                // Col I (9): Net Approved Total (After Correction)
+                const netCell = worksheet.getCell(totalRowNum, 9);
+                netCell.value = totalNet;
+                netCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                netCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                netCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                netCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                netCell.border = headerBorder;
+
+                // Col J (10): Due Date blank fill
+                const dDateCell = worksheet.getCell(totalRowNum, 10);
+                dDateCell.value = '';
+                dDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                dDateCell.border = headerBorder;
+
+                // Col K (11): Paid Date blank fill
+                const pDateCell = worksheet.getCell(totalRowNum, 11);
+                pDateCell.value = '';
+                pDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                pDateCell.border = headerBorder;
+
+                // Col L (12): Total Paid
+                const paidCell = worksheet.getCell(totalRowNum, 12);
+                paidCell.value = totalPaid;
+                paidCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                paidCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                paidCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                paidCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                paidCell.border = headerBorder;
+
+                // Col M (13): Total Balance Due
+                const balCell = worksheet.getCell(totalRowNum, 13);
+                balCell.value = totalBal;
+                balCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                balCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                balCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                balCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                balCell.border = headerBorder;
+
+                // Col N (14): Blank fill for aesthetic consistency
+                const statusCell = worksheet.getCell(totalRowNum, 14);
+                statusCell.value = '';
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                statusCell.border = headerBorder;
+
+                // Download XLSX
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = 'contractor-payment-release-register.xlsx';
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Export Excel Error:', err);
+                alert('An error occurred during Excel export: ' + err.message);
+            }
         },
 
         disburseModalOpen: false,
