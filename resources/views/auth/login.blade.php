@@ -70,13 +70,37 @@
             color: #24211d;
             font-family: inherit;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
             box-shadow: 0 1px 2px rgba(0,0,0,0.02);
             box-sizing: border-box;
         }
         .login-input:focus {
             border-color: #a48b48;
             box-shadow: 0 0 0 4px rgba(164, 139, 72, 0.16);
+        }
+        .login-input.has-error {
+            border-color: #e11d48 !important;
+            background-color: #fffafb !important;
+            box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12) !important;
+        }
+        .login-input.has-error:focus {
+            border-color: #be123c !important;
+            box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2) !important;
+        }
+        .login-field-error {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #e11d48;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+            padding-left: 4px;
+            animation: fadeInError 0.2s ease;
+        }
+        @keyframes fadeInError {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .login-btn {
             width: 100%;
@@ -161,51 +185,69 @@
                 @endif
 
                 <!-- Login Form -->
-                <form method="POST" action="{{ route('login') }}">
+                <form id="loginForm" method="POST" action="{{ route('login') }}" novalidate>
                     @csrf
 
                     <!-- Email Address or Username -->
                     <div style="position: relative; margin-bottom: 16px;">
-                        <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
-                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                        <div style="position: relative;">
+                            <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
+                                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <input id="email"
+                                   type="text"
+                                   name="email"
+                                   value="{{ old('email') }}"
+                                   autofocus
+                                   autocomplete="username"
+                                   placeholder="Email Address or Username"
+                                   class="login-input" />
                         </div>
-                        <input id="email"
-                               type="text"
-                               name="email"
-                               value="{{ old('email') }}"
-                               required
-                               autofocus
-                               autocomplete="username"
-                               placeholder="Email Address or Username"
-                               class="login-input" />
+                        <div id="email-error" class="login-field-error" style="display: none;">
+                            <svg style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="error-msg-content">Please enter your email address or username.</span>
+                        </div>
                     </div>
 
                     <!-- Password -->
                     <div style="position: relative; margin-bottom: 16px;">
-                        <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
-                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
+                        <div style="position: relative;">
+                            <div style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9c9485; display: flex; align-items: center; pointer-events: none;">
+                                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <input id="password"
+                                   type="password"
+                                   name="password"
+                                   autocomplete="current-password"
+                                   placeholder="Password"
+                                   class="login-input"
+                                   style="padding-right: 46px;" />
+                            <button type="button"
+                                    id="togglePassword"
+                                    onclick="togglePasswordVisibility()"
+                                    style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: #9c9485; cursor: pointer; display: flex; align-items: center;">
+                                <svg id="eyeIcon" style="width: 19px; height: 19px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
                         </div>
-                        <input id="password"
-                               type="password"
-                               name="password"
-                               required
-                               autocomplete="current-password"
-                               placeholder="Password"
-                               class="login-input"
-                               style="padding-right: 46px;" />
-                        <button type="button"
-                                id="togglePassword"
-                                onclick="togglePasswordVisibility()"
-                                style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: #9c9485; cursor: pointer; display: flex; align-items: center;">
-                            <svg id="eyeIcon" style="width: 19px; height: 19px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <div id="password-error" class="login-field-error" style="display: none;">
+                            <svg style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                        </button>
+                            <span class="error-msg-content">Please enter your password.</span>
+                        </div>
                     </div>
 
                     <!-- Remember me & Forgot Password -->
@@ -251,6 +293,69 @@
                 eye.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
             }
         }
+
+        // Custom Form Validation (Suppresses default browser validation tooltips)
+        document.getElementById('loginForm')?.addEventListener('submit', function (e) {
+            var emailInput = document.getElementById('email');
+            var passwordInput = document.getElementById('password');
+            var emailError = document.getElementById('email-error');
+            var passwordError = document.getElementById('password-error');
+            var isValid = true;
+
+            // Validate email or username
+            if (!emailInput.value.trim()) {
+                isValid = false;
+                emailInput.classList.add('has-error');
+                if (emailError) {
+                    var span = emailError.querySelector('.error-msg-content');
+                    if (span) span.textContent = 'Please enter your email address or username.';
+                    emailError.style.display = 'flex';
+                }
+            } else {
+                emailInput.classList.remove('has-error');
+                if (emailError) emailError.style.display = 'none';
+            }
+
+            // Validate password
+            if (!passwordInput.value) {
+                isValid = false;
+                passwordInput.classList.add('has-error');
+                if (passwordError) {
+                    var span = passwordError.querySelector('.error-msg-content');
+                    if (span) span.textContent = 'Please enter your password.';
+                    passwordError.style.display = 'flex';
+                }
+            } else {
+                passwordInput.classList.remove('has-error');
+                if (passwordError) passwordError.style.display = 'none';
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                if (!emailInput.value.trim()) {
+                    emailInput.focus();
+                } else if (!passwordInput.value) {
+                    passwordInput.focus();
+                }
+            }
+        });
+
+        // Real-time error dismissal upon typing
+        document.getElementById('email')?.addEventListener('input', function () {
+            if (this.value.trim()) {
+                this.classList.remove('has-error');
+                var err = document.getElementById('email-error');
+                if (err) err.style.display = 'none';
+            }
+        });
+
+        document.getElementById('password')?.addEventListener('input', function () {
+            if (this.value) {
+                this.classList.remove('has-error');
+                var err = document.getElementById('password-error');
+                if (err) err.style.display = 'none';
+            }
+        });
 
         window.addEventListener('pageshow', function (event) {
             var navEntries = window.performance && window.performance.getEntriesByType ? window.performance.getEntriesByType('navigation') : [];

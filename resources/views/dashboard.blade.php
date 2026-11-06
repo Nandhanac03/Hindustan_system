@@ -111,7 +111,7 @@
 @endif
 
     {{-- KPI Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {{-- Units (Slate Theme) --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-800 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-400 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(30,41,59,0.15)] cursor-default">
@@ -180,6 +180,44 @@
                 </p>
             </div>
         </div>
+
+        {{-- Total Payables (Rose / Crimson Theme - Matches Screenshot) --}}
+        @php
+            $payFormatted = $currencySymbol . number_format($totalPayables, 2);
+            $payCompact = '';
+            if ($totalPayables >= 10000000) {
+                $payCompact = $currencySymbol . number_format($totalPayables / 10000000, 2) . ' Cr';
+            } elseif ($totalPayables >= 100000) {
+                $payCompact = $currencySymbol . number_format($totalPayables / 100000, 2) . ' L';
+            }
+        @endphp
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.18)] cursor-default"
+             title="Contractor RA Bills Paid: {{ $currencySymbol }}{{ number_format($contractorRaBillPayable, 2) }} | Site Expenses Paid: {{ $currencySymbol }}{{ number_format($siteExpensePayable, 2) }} | Broker Commission Paid: {{ $currencySymbol }}{{ number_format($brokerCommissionPayable, 2) }}">
+            <div class="flex items-center justify-between mb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-200/70 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        {{-- Document / Bill Icon matching requested screenshot --}}
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">TOTAL PAYABLES</span>
+                </div>
+                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider">Total Paid</span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-rose-600 transition-colors duration-300">
+                    {!! $payFormatted !!}
+                    @if($payCompact)
+                        <span class="text-xs font-bold text-rose-600 font-sans tracking-normal ml-1">({{ $payCompact }})</span>
+                    @endif
+                </span>
+                <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider mt-1.5">
+                    (Contractor + Vendor + Others)
+                </p>
+            </div>
+        </div>
+
     </div>
 
     {{-- REVENUE CHART + UNIT STATUS DONUT --}}

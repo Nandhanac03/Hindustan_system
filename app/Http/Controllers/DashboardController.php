@@ -86,6 +86,50 @@ class DashboardController extends Controller
         // Outstanding = Sales - Collections
         $outstanding = max(0.00, $totalSales - $totalCollections);
 
+        // ── Payables Breakdown (Paid Amount Only) ─────────────────────────────
+        // 1. Site Expense (Paid Amount)
+        // ── Total Payables (Contractor RA Bills + Site Expenses / Vendors + Brokerage) ──
+        // 1. Site Expense / Vendor (Paid Amount)
+        $siteExpenseQuery = \App\Models\SiteExpense::query();
+        if ($activeProject) {
+            $siteExpenseQuery->where('project_id', $activeProject->id);
+        }
+        $siteExpensePayable = (float) $siteExpenseQuery->sum('paid_amount');
+
+        // 2. Contractor RA Bill (Paid Amount)
+        $raBillQuery = \App\Models\RaBill::query();
+        if ($activeProject) {
+            $raBillQuery->where('project_id', $activeProject->id);
+        }
+        $contractorRaBillPayable = (float) $raBillQuery->whereNotIn('status', ['rejected', 'cancelled', 'draft'])->sum('paid_amount');
+
+        // 3. Customer Refund (Paid Amount)
+        $customerRefundPayable = (float) $totalRefundsPaid;
+
+        // 4. Broker Commission (Paid Amount)
+        // 3. Broker Commission (Paid Amount)
+        $brokerageQuery = \App\Models\Brokerage::query();
+        if ($activeProject) {
+            $brokerageQuery->whereHas('sale', fn($q) => $q->where('project_id', $activeProject->id));
+        }
+        $brokerCommissionPayable = (float) $brokerageQuery->sum('paid_amount');
+
+        // 5. Other Payables (Other posted payment vouchers)
+        $customerRefundPayable = (float) $totalRefundsPaid;
+        $otherPayables = 0.0;
+        try {
+            $allPostedPayments = (float) \App\Models\VoucherLine::whereHas('voucher', function ($q) {
+                $q->where('type', 'Payment')->where('status', 'Posted');
+            })->sum('debit');
+            $otherPayables = max(0.0, $allPostedPayments - $totalRefundsPaid);
+        } catch (\Throwable $e) {
+            $otherPayables = 0.0;
+        }
+
+        // Total Payables (Total Paid Amount)
+        $totalPayables = $siteExpensePayable + $contractorRaBillPayable + $customerRefundPayable + $brokerCommissionPayable;
+        // Total Payables = Contractor Paid + Vendor/Site Expense Paid + Broker Commission Paid
+
         // ── Recent Units ───────────────────────────────────────────────────
         $recentUnits = $unitQuery()->with(['project', 'floor', 'unitType'])->latest()
             ->take(5)
@@ -220,7 +264,13 @@ class DashboardController extends Controller
             'donutAvailable',
             'donutSold',
             'donutReserved',
-            'cashFlowSeries'
+            'cashFlowSeries',
+            'siteExpensePayable',
+            'contractorRaBillPayable',
+            'customerRefundPayable',
+            'brokerCommissionPayable',
+            'otherPayables',
+            'totalPayables'
         ));
     }
 }
