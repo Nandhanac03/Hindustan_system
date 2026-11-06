@@ -299,6 +299,17 @@
                     </h3>
                     <p class="text-[10.5px] text-slate-400 font-medium mt-0.5 pl-3">Chronological record of site expenditures, vendor payments, and approval status</p>
                 </div>
+
+                {{-- Table Head Export Buttons (Export Excel & Export PDF matching payment-release) --}}
+                <div class="flex items-center gap-2.5 print:hidden">
+                    <button type="button" @click.stop.prevent="exportToExcel()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export Filtered Site Expenses Register to Excel">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXPORT EXCEL</span>
+                    </button>
+                    
+                </div>
             </div>
 
             {{-- Professional Segmented Pill Tabs Bar (Instant Live Filtering) --}}
@@ -2620,13 +2631,13 @@ function siteExpensesDashboard() {
                 sumCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 sumCell.border = headerBorder;
 
-                // Download XLSX with filename "site-expense-report.xlsx"
+                // Download XLSX with filename "site expense report.xlsx"
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                anchor.download = 'site-expense-report.xlsx';
+                anchor.download = 'site expense report.xlsx';
                 anchor.click();
                 window.URL.revokeObjectURL(url);
             } catch (err) {

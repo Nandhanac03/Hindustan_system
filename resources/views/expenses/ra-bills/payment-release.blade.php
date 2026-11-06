@@ -1140,7 +1140,15 @@ function raBillPaymentRelease() {
                 paid_amount: {{ (float)$bill->paid_amount }},
                 balance_amount: {{ (float)$bill->balance_amount }},
                 status: '{{ $statusVal }}',
-                status_text: '{{ $statusText }}'
+                status_text: '{{ $statusText }}',
+                payments_list: [
+                    @foreach($bill->payments as $p)
+                    {
+                        paid_date: '{{ $p->payment_date ? $p->payment_date->format("d/m/Y") : "—" }}',
+                        paid_amount: {{ (float)$p->paid_amount }}
+                    },
+                    @endforeach
+                ]
             },
             @endforeach
         ],
@@ -1354,9 +1362,9 @@ function raBillPaymentRelease() {
                 let totalNet = 0;
                 let totalPaid = 0;
                 let totalBal = 0;
+                let currentRowNum = 6;
 
                 list.forEach((bill, idx) => {
-                    const rowNum = 6 + idx;
                     const isEven = idx % 2 === 0;
                     const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
 
@@ -1372,6 +1380,30 @@ function raBillPaymentRelease() {
                     totalPaid += paid;
                     totalBal += bal;
 
+                    const payments = (Array.isArray(bill.payments_list) && bill.payments_list.length > 0)
+                        ? bill.payments_list
+                        : null;
+
+                    let runningPaid = 0;
+                    let firstPaymentDate = '—';
+                    let firstPaymentAmount = 0;
+                    let firstBal = bal;
+                    let firstStatus = bill.status_text || '';
+
+                    if (payments) {
+                        firstPaymentDate = payments[0].paid_date || '—';
+                        firstPaymentAmount = parseFloat(payments[0].paid_amount) || 0;
+                        runningPaid += firstPaymentAmount;
+
+                        firstBal = Math.max(0, Math.round((net - runningPaid) * 100) / 100);
+                        if (payments.length === 1 && Math.abs(firstBal - bal) < 0.05) {
+                            firstBal = bal;
+                        }
+                        firstStatus = (firstBal <= 0.001) ? 'Cleared' : (runningPaid > 0 ? 'Partially Paid' : (bill.status_text || 'Pending Release'));
+                    }
+
+                    // Main Bill Row
+                    const mainRowNum = currentRowNum++;
                     worksheet.addRow([
                         idx + 1,
                         bill.ra_bill_number || '',
@@ -1382,15 +1414,15 @@ function raBillPaymentRelease() {
                         correction,
                         net,
                         bill.due_date || '—',
-                        bill.paid_date || '—',
-                        paid,
-                        bal,
-                        bill.status_text || ''
+                        firstPaymentDate,
+                        firstPaymentAmount,
+                        firstBal,
+                        firstStatus
                     ]);
-                    worksheet.getRow(rowNum).height = 25;
+                    worksheet.getRow(mainRowNum).height = 25;
 
                     for (let c = 1; c <= 13; c++) {
-                        const cell = worksheet.getCell(rowNum, c);
+                        const cell = worksheet.getCell(mainRowNum, c);
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         cell.border = thinBorder;
                         cell.font = {
@@ -1410,10 +1442,64 @@ function raBillPaymentRelease() {
                             cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         }
                     }
+
+                    // Subsequent Payment Rows (if multiple payments exist)
+                    if (payments && payments.length > 1) {
+                        for (let p = 1; p < payments.length; p++) {
+                            const subRowNum = currentRowNum++;
+                            const subPayAmount = parseFloat(payments[p].paid_amount) || 0;
+                            runningPaid += subPayAmount;
+
+                            let subBal = Math.max(0, Math.round((net - runningPaid) * 100) / 100);
+                            if (p === payments.length - 1 && Math.abs(subBal - bal) < 0.05) {
+                                subBal = bal;
+                            }
+                            const subStatus = (subBal <= 0.001) ? 'Cleared' : (runningPaid > 0 ? 'Partially Paid' : 'Pending Release');
+
+                            worksheet.addRow([
+                                '', // 1: SL NO
+                                '', // 2: RA Bill No
+                                '', // 3: Contractor
+                                '', // 4: Submit Date
+                                '', // 5: RA Bill Amount
+                                '', // 6: Verified Date
+                                '', // 7: Correction
+                                '', // 8: After Correction
+                                '', // 9: Due Date
+                                payments[p].paid_date || '—', // 10: Paid Date
+                                subPayAmount,                 // 11: Paid Amount
+                                subBal,                       // 12: Balance Due
+                                subStatus                     // 13: Status
+                            ]);
+                            worksheet.getRow(subRowNum).height = 25;
+
+                            for (let c = 1; c <= 13; c++) {
+                                const subCell = worksheet.getCell(subRowNum, c);
+                                subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                                subCell.border = thinBorder;
+                                subCell.font = {
+                                    name: 'Calibri',
+                                    size: 10,
+                                    bold: (c === 11 || c === 12 || c === 13),
+                                    color: {
+                                        argb: (c === 11 ? 'FF047857' : (c === 12 ? 'FFB91C1C' : 'FF000000'))
+                                    }
+                                };
+                                subCell.alignment = {
+                                    horizontal: 'center',
+                                    vertical: 'middle',
+                                    wrapText: true
+                                };
+                                if (c === 11 || c === 12) {
+                                    subCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                                }
+                            }
+                        }
+                    }
                 });
 
                 // Total Summary Row
-                const totalRowNum = 6 + list.length;
+                const totalRowNum = currentRowNum;
                 worksheet.mergeCells(`A${totalRowNum}:D${totalRowNum}`);
                 const totalRow = worksheet.getRow(totalRowNum);
                 totalRow.height = 36;
