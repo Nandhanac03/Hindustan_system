@@ -1190,15 +1190,15 @@ function raBillLedger() {
 
                 // 3. Column Definitions (9 Columns)
                 worksheet.columns = [
-                    { key: 'sl', width: 9 },              // A: SL NO
-                    { key: 'date', width: 16 },            // B: DATE
-                    { key: 'contractor', width: 32 },      // C: CONTRACTOR
-                    { key: 'type', width: 20 },            // D: TRANSACTION TYPE
-                    { key: 'ref', width: 22 },             // E: REF / VOUCHER NO.
-                    { key: 'particulars', width: 44 },     // F: PARTICULARS / PURPOSE
-                    { key: 'debit', width: 22 },           // G: DEBIT / CLAIM (₹)
-                    { key: 'credit', width: 22 },          // H: CREDIT / PAID (₹)
-                    { key: 'balance', width: 22 }          // I: RUNNING BALANCE (₹)
+                    { key: 'sl', width: 9 },                 // A: SL NO
+                    { key: 'date', width: 16 },               // B: DATE
+                    { key: 'contractor', width: 32 },         // C: CONTRACTOR
+                    { key: 'type', width: 20 },               // D: TRANSACTION TYPE
+                    { key: 'ref', width: 22 },                // E: REF / VOUCHER NO.
+                    { key: 'verified_engineer', width: 28 },  // F: VERIFIED ENGINEER
+                    { key: 'debit', width: 22 },              // G: DEBIT / CLAIM (₹)
+                    { key: 'credit', width: 22 },             // H: CREDIT / PAID (₹)
+                    { key: 'balance', width: 22 }             // I: RUNNING BALANCE (₹)
                 ];
 
                 const thinBorder = {
@@ -1261,7 +1261,7 @@ function raBillLedger() {
                     'CONTRACTOR',
                     'TRANSACTION TYPE',
                     'REF / VOUCHER NO.',
-                    'PARTICULARS / PURPOSE',
+                    'VERIFIED ENGINEER',
                     'DEBIT / CLAIM (₹)',
                     'CREDIT / PAID (₹)',
                     'RUNNING BALANCE (₹)'
@@ -1297,13 +1297,22 @@ function raBillLedger() {
                         dataTotalDebit += debitAmt;
                         dataTotalCredit += creditAmt;
 
+                        // Extract only engineer name (strip designation in parentheses if present)
+                        let engineerOnly = '';
+                        if (entry.engineer_name) {
+                            const match = entry.engineer_name.match(/^([^(]+)/);
+                            engineerOnly = match ? match[1].trim() : entry.engineer_name.trim();
+                        } else if (entry.type === 'CLAIM' && entry.status === 'Verified') {
+                            engineerOnly = 'Site Engineer';
+                        }
+
                         worksheet.addRow([
                             slNo,
                             entry.date_formatted || entry.date || '',
                             entry.contractor_name || group.contractor_name || '',
                             entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released',
                             entry.ref_no || '',
-                            entry.particulars || '',
+                            engineerOnly,
                             debitAmt,
                             creditAmt,
                             balanceAmt
@@ -1430,6 +1439,7 @@ function raBillLedger() {
                     (e.project_name && e.project_name.toLowerCase().includes(q)) ||
                     (e.unit_name && e.unit_name.toLowerCase().includes(q)) ||
                     (e.particulars && e.particulars.toLowerCase().includes(q)) ||
+                    (e.engineer_name && e.engineer_name.toLowerCase().includes(q)) ||
                     (e.ra_bill_number && e.ra_bill_number.toLowerCase().includes(q)) ||
                     (e.ref_no && e.ref_no.toLowerCase().includes(q))
                 );
