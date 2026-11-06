@@ -242,7 +242,7 @@
                 <div>
                     <!-- Tabasco Monogram & Tagline -->
                     <div style="text-align: center; margin-bottom: 2px;">
-                        <img src="{{ asset('img/logo-tabasco.png') }}?v=16" alt="Tabasco Human Capital" style="height: 68px; width: auto; margin: 0 auto; object-fit: contain; display: block;">
+                        <img src="{{ asset('img/logo-tabasco.png') }}?v=16" alt="Tabasco Human Capital" style="height: 90px; width: auto; margin: 0 auto; object-fit: contain; display: block;">
                         <p style="font-size: 10.5px; font-weight: 700; color: #b8861e; letter-spacing: 0.28em; text-transform: uppercase; margin-top: 10px; margin-bottom: 0;">
                             BUILD • MANAGE • GROW
                         </p>
