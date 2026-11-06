@@ -1774,9 +1774,16 @@ function siteExpensePaymentRelease() {
                 let totalNet = 0;
                 let totalPaid = 0;
                 let totalBal = 0;
+                let currentRowNum = 6;
+
+                const subHeaderBorder = {
+                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+                };
 
                 list.forEach((exp, idx) => {
-                    const rowNum = 6 + idx;
                     const isEven = idx % 2 === 0;
                     const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
 
@@ -1787,6 +1794,7 @@ function siteExpensePaymentRelease() {
                     totalPaid += paid;
                     totalBal += bal;
 
+                    const mainRowNum = currentRowNum++;
                     worksheet.addRow([
                         idx + 1,
                         exp.voucher_date || '',
@@ -1799,10 +1807,10 @@ function siteExpensePaymentRelease() {
                         bal,
                         exp.status || ''
                     ]);
-                    worksheet.getRow(rowNum).height = 25;
+                    worksheet.getRow(mainRowNum).height = 25;
 
                     for (let c = 1; c <= 10; c++) {
-                        const cell = worksheet.getCell(rowNum, c);
+                        const cell = worksheet.getCell(mainRowNum, c);
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         cell.border = thinBorder;
                         cell.font = {
@@ -1822,10 +1830,124 @@ function siteExpensePaymentRelease() {
                             cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         }
                     }
+
+                    // Expanded Part: Detailed Statement of Amount Paid (Disbursement History)
+                    const payments = (Array.isArray(exp.payments) && exp.payments.length > 0) ? exp.payments : null;
+                    if (payments && payments.length > 0) {
+                        // 1. Sub-banner: Statement Title
+                        const bannerRowNum = currentRowNum++;
+                        const totalDisbursedFormatted = paid.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        worksheet.addRow([
+                            '', // Indent Col A
+                            `↳ PART-BY-PART PAYMENT DISBURSEMENT HISTORY — VOUCHER #${exp.voucher_number || ''}  (Total Outflow Disbursed: ₹${totalDisbursedFormatted})`,
+                            '', '', '', '', '', '', '', ''
+                        ]);
+                        worksheet.mergeCells(`B${bannerRowNum}:J${bannerRowNum}`);
+                        const bannerRow = worksheet.getRow(bannerRowNum);
+                        bannerRow.height = 22;
+                        
+                        const indentCell = worksheet.getCell(bannerRowNum, 1);
+                        indentCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF8EE' } };
+                        indentCell.border = thinBorder;
+
+                        const bannerCell = worksheet.getCell(bannerRowNum, 2);
+                        bannerCell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF854D0E' } };
+                        bannerCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                        for (let c = 2; c <= 10; c++) {
+                            const cCell = worksheet.getCell(bannerRowNum, c);
+                            cCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF8EE' } };
+                            cCell.border = thinBorder;
+                        }
+
+                        // 2. Sub-table Headers
+                        const subHeaderRowNum = currentRowNum++;
+                        worksheet.addRow([
+                            '', // A
+                            'INSTALLMENT #',                  // B
+                            'DISBURSEMENT DATE',              // C
+                            'CORPORATE BANK / LOAN ACCOUNT',  // D
+                            'PAYMENT MODE & REF #',           // E
+                            'REMARKS',                        // F
+                            'DISBURSED AMOUNT (₹)',           // G
+                            'CUMULATIVE PAID (₹)',            // H
+                            'BALANCE DUE (₹)',                // I
+                            'STATUS'                          // J
+                        ]);
+                        const subHeaderRow = worksheet.getRow(subHeaderRowNum);
+                        subHeaderRow.height = 20;
+
+                        const subIndent = worksheet.getCell(subHeaderRowNum, 1);
+                        subIndent.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                        subIndent.border = thinBorder;
+
+                        for (let c = 2; c <= 10; c++) {
+                            const shCell = worksheet.getCell(subHeaderRowNum, c);
+                            shCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
+                            shCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+                            shCell.border = subHeaderBorder;
+                            shCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                        }
+
+                        // 3. Sub-table Payment Detail Rows
+                        let runningPaid = 0;
+                        payments.forEach((pItem, pIdx) => {
+                            const payRowNum = currentRowNum++;
+                            const pAmount = parseFloat(pItem.paid_amount) || 0;
+                            runningPaid += pAmount;
+
+                            let currentBal = Math.max(0, Math.round((net - runningPaid) * 100) / 100);
+                            if (pIdx === payments.length - 1 && Math.abs(currentBal - bal) < 0.05) {
+                                currentBal = bal;
+                            }
+                            const currentStatus = (currentBal <= 0.001) ? 'Cleared' : (runningPaid > 0 ? 'Partially Paid' : 'Pending Release');
+
+                            worksheet.addRow([
+                                '', // A: Indent
+                                pItem.installment_no || `Part ${pIdx + 1}`, // B
+                                pItem.payment_date || '—',                  // C
+                                pItem.bank_loan_account || '—',             // D
+                                pItem.payment_mode_ref || '—',              // E
+                                pItem.remarks || '—',                       // F
+                                pAmount,                                    // G: Disbursed Amount
+                                runningPaid,                                // H: Cumulative Paid
+                                currentBal,                                 // I: Balance Due
+                                currentStatus                               // J: Status
+                            ]);
+
+                            const pRow = worksheet.getRow(payRowNum);
+                            pRow.height = 20;
+
+                            const pIndent = worksheet.getCell(payRowNum, 1);
+                            pIndent.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                            pIndent.border = thinBorder;
+
+                            for (let c = 2; c <= 10; c++) {
+                                const pCell = worksheet.getCell(payRowNum, c);
+                                pCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                                pCell.border = thinBorder;
+                                pCell.font = {
+                                    name: 'Calibri',
+                                    size: 9,
+                                    bold: (c === 2 || c === 7 || c === 8 || c === 9 || c === 10),
+                                    color: {
+                                        argb: (c === 2 ? 'FFB45309' : (c === 7 ? 'FF047857' : (c === 8 ? 'FF047857' : (c === 9 ? 'FFB91C1C' : 'FF000000'))))
+                                    }
+                                };
+                                pCell.alignment = {
+                                    horizontal: (c === 4 ? 'left' : 'center'),
+                                    vertical: 'middle',
+                                    wrapText: true
+                                };
+                                if (c === 7 || c === 8 || c === 9) {
+                                    pCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                                }
+                            }
+                        });
+                    }
                 });
 
                 // Total Summary Row
-                const totalRowNum = 6 + list.length;
+                const totalRowNum = currentRowNum;
                 worksheet.mergeCells(`A${totalRowNum}:F${totalRowNum}`);
                 const totalRow = worksheet.getRow(totalRowNum);
                 totalRow.height = 36;

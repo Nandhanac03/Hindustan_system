@@ -690,6 +690,28 @@ class SiteExpenseController extends Controller
             $net = (float) $exp->net_amount;
             $paid = (float) $exp->paid_amount;
             $isCleared = ($bal <= 0.001);
+
+            $payments = $exp->payments->map(function ($pay, $idx) {
+                $bankOrLoan = $pay->companyBankAccount 
+                    ? ($pay->companyBankAccount->bank_name . ($pay->companyBankAccount->account_number ? ' (A/C: ' . $pay->companyBankAccount->account_number . ')' : ''))
+                    : ($pay->loan 
+                        ? ($pay->loan->lender_name . ($pay->loan->account_number ? ' (A/C: ' . $pay->loan->account_number . ')' : ''))
+                        : 'Corporate Bank Account');
+
+                $modeRaw = $pay->payment_mode ?? 'Bank Transfer';
+                $modeLabel = str_replace('_', ' ', ucwords(strtolower($modeRaw), '_'));
+                $modeWithRef = $modeLabel . ($pay->reference_no ? ' ' . $pay->reference_no : '');
+
+                return [
+                    'installment_no' => 'Part ' . ($idx + 1),
+                    'payment_date' => $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('d/m/Y') : '—',
+                    'bank_loan_account' => $bankOrLoan,
+                    'payment_mode_ref' => $modeWithRef,
+                    'remarks' => $pay->remarks ?: '—',
+                    'paid_amount' => (float) $pay->paid_amount,
+                ];
+            })->values()->all();
+
             return [
                 'id' => $exp->id,
                 'voucher_number' => $exp->voucher_number,
@@ -706,6 +728,7 @@ class SiteExpenseController extends Controller
                 'payment_source_name' => $exp->payment_source_display_name,
                 'transaction_reference_no' => $exp->transaction_reference_no ?? '',
                 'narration' => $exp->narration ?? '',
+                'payments' => $payments,
             ];
         });
 
