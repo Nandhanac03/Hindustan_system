@@ -357,18 +357,6 @@
             </div>
 
             <div class="flex items-center gap-2.5 print:hidden">
-                <!-- <button type="button" @click.stop.prevent="exportToExcel()"
-                        class="h-[38px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                        title="Export Filtered Contractor Ledger to Excel">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Excel Report</span>
-                </button>
-                <button type="button" @click.stop.prevent="printLedger()"
-                        class="h-[38px] px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs uppercase tracking-wider cursor-pointer active:scale-[0.98]"
-                        title="Export / Print Contractor Ledger to PDF">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>PDF Report</span>
-                </button> -->
 
                 <a href="{{ route('contractors.index') }}"
                    class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs uppercase tracking-wider">
@@ -592,6 +580,22 @@
                         <span x-show="!selectedLedgerContractorId">across <strong class="text-slate-700 font-bold">all registered contractors</strong></span>
                     </p>
                 </div>
+            </div>
+
+            {{-- Table Head Export Buttons (Export Excel & Export PDF) --}}
+            <div class="flex items-center gap-2.5 print:hidden">
+                <button type="button" @click.stop.prevent="exportToExcel()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Contractor Ledger to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click.stop.prevent="exportToPdf()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Contractor Ledger to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
             </div>
         </div>
         
@@ -1141,6 +1145,10 @@ function raBillLedger() {
             }, 1200);
         },
 
+        exportToPdf() {
+            this.printLedger();
+        },
+
         async exportToExcel() {
             if (typeof ExcelJS === 'undefined') {
                 alert('Excel library is still loading. Please wait a few seconds and try again.');
@@ -1156,33 +1164,41 @@ function raBillLedger() {
                 workbook.creator = 'TABASCO ERP';
                 workbook.created = new Date();
 
-                const worksheet = workbook.addWorksheet('Contractor Ledger Report', {
+                const contractorTitle = (this.getSelectedContractorName() || '').trim();
+                const isContractorFiltered = Boolean(this.selectedLedgerContractorId && contractorTitle && contractorTitle !== 'All Contractors');
+
+                let sheetName = 'Contractor Ledger';
+                if (isContractorFiltered) {
+                    sheetName = contractorTitle.replace(/[\\/?*[\]:]/g, '').trim().substring(0, 31) || 'Contractor Ledger';
+                }
+
+                const worksheet = workbook.addWorksheet(sheetName, {
                     views: [{ showGridLines: true }]
                 });
 
                 // 2. Active Contractor Name for Header
                 let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
-                let contractorTitle = (this.getSelectedContractorName() || '').trim();
-                if (contractorTitle && contractorTitle !== 'All Contractors') {
+                if (isContractorFiltered) {
                     const cleanContractor = contractorTitle.toUpperCase();
                     if (!cleanContractor.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
                         reportTitleText += ' - ' + cleanContractor;
                     }
+                    reportTitleText += ' - CONTRACTOR STATEMENT LEDGER';
+                } else {
+                    reportTitleText += ' - CONTRACTOR LEDGER REPORT';
                 }
-                reportTitleText += ' - CONTRACTOR LEDGER REPORT';
 
-                // 3. Column Definitions (10 Columns)
+                // 3. Column Definitions (9 Columns)
                 worksheet.columns = [
                     { key: 'sl', width: 9 },              // A: SL NO
                     { key: 'date', width: 16 },            // B: DATE
                     { key: 'contractor', width: 32 },      // C: CONTRACTOR
-                    { key: 'project', width: 28 },         // D: PROJECT / UNIT
-                    { key: 'type', width: 20 },            // E: TRANSACTION TYPE
-                    { key: 'ref', width: 22 },             // F: REF / VOUCHER NO.
-                    { key: 'particulars', width: 44 },     // G: PARTICULARS / PURPOSE
-                    { key: 'debit', width: 22 },           // H: DEBIT / CLAIM (₹)
-                    { key: 'credit', width: 22 },          // I: CREDIT / PAID (₹)
-                    { key: 'balance', width: 22 }          // J: RUNNING BALANCE (₹)
+                    { key: 'type', width: 20 },            // D: TRANSACTION TYPE
+                    { key: 'ref', width: 22 },             // E: REF / VOUCHER NO.
+                    { key: 'particulars', width: 44 },     // F: PARTICULARS / PURPOSE
+                    { key: 'debit', width: 22 },           // G: DEBIT / CLAIM (₹)
+                    { key: 'credit', width: 22 },          // H: CREDIT / PAID (₹)
+                    { key: 'balance', width: 22 }          // I: RUNNING BALANCE (₹)
                 ];
 
                 const thinBorder = {
@@ -1204,28 +1220,32 @@ function raBillLedger() {
                 worksheet.getRow(1).height = 14;
 
                 // Row 2: Top Title Banner (Navy Slate #2C3E50)
-                worksheet.mergeCells('A2:J2');
+                worksheet.mergeCells('A2:I2');
                 const row2 = worksheet.getRow(2);
                 row2.height = 36;
                 const cellA2 = worksheet.getCell('A2');
                 cellA2.value = reportTitleText;
                 cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
                 cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                for (let c = 1; c <= 10; c++) {
+                for (let c = 1; c <= 9; c++) {
                     worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     worksheet.getCell(2, c).border = headerBorder;
                 }
 
                 // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
                 const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                worksheet.mergeCells('A3:J3');
+                worksheet.mergeCells('A3:I3');
                 const row3 = worksheet.getRow(3);
                 row3.height = 25;
                 const cellA3 = worksheet.getCell('A3');
-                cellA3.value = `Contractor Running Account Statement & Balance Register | Generated On: ${nowStr}`;
+                if (isContractorFiltered) {
+                    cellA3.value = `Contractor: ${contractorTitle} | Statement Ledger & Balance Register | Generated On: ${nowStr}`;
+                } else {
+                    cellA3.value = `Contractor Running Account Statement & Balance Register | Generated On: ${nowStr}`;
+                }
                 cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                for (let c = 1; c <= 10; c++) {
+                for (let c = 1; c <= 9; c++) {
                     worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
                     worksheet.getCell(3, c).border = headerBorder;
                 }
@@ -1239,7 +1259,6 @@ function raBillLedger() {
                     'SL NO',
                     'DATE',
                     'CONTRACTOR',
-                    'PROJECT / UNIT',
                     'TRANSACTION TYPE',
                     'REF / VOUCHER NO.',
                     'PARTICULARS / PURPOSE',
@@ -1249,7 +1268,7 @@ function raBillLedger() {
                 ];
                 const row5 = worksheet.addRow(headerTitles);
                 row5.height = 30;
-                for (let c = 1; c <= 10; c++) {
+                for (let c = 1; c <= 9; c++) {
                     const hCell = worksheet.getCell(5, c);
                     hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
                     hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1282,7 +1301,6 @@ function raBillLedger() {
                             slNo,
                             entry.date_formatted || entry.date || '',
                             entry.contractor_name || group.contractor_name || '',
-                            entry.project_name ? (entry.project_name + (entry.unit_name ? ' — Unit: ' + entry.unit_name : '')) : '',
                             entry.type === 'CLAIM' ? 'Verified Claim' : 'Payment Released',
                             entry.ref_no || '',
                             entry.particulars || '',
@@ -1292,16 +1310,16 @@ function raBillLedger() {
                         ]);
                         worksheet.getRow(rowNum).height = 25;
 
-                        for (let c = 1; c <= 10; c++) {
+                        for (let c = 1; c <= 9; c++) {
                             const cell = worksheet.getCell(rowNum, c);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                             cell.border = thinBorder;
                             cell.font = {
                                 name: 'Calibri',
                                 size: 10,
-                                bold: (c === 1 || c === 3 || c === 5 || c === 8 || c === 9 || c === 10),
+                                bold: (c === 1 || c === 3 || c === 4 || c === 7 || c === 8 || c === 9),
                                 color: { 
-                                    argb: (c === 8 ? 'FF1E40AF' : (c === 9 ? 'FF047857' : (c === 10 ? 'FFB91C1C' : 'FF000000')))
+                                    argb: (c === 7 ? 'FF1E40AF' : (c === 8 ? 'FF047857' : (c === 9 ? 'FFB91C1C' : 'FF000000')))
                                 }
                             };
                             cell.alignment = {
@@ -1309,7 +1327,7 @@ function raBillLedger() {
                                 vertical: 'middle',
                                 wrapText: true
                             };
-                            if (c === 8 || c === 9 || c === 10) {
+                            if (c === 7 || c === 8 || c === 9) {
                                 cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                             }
                         }
@@ -1320,7 +1338,7 @@ function raBillLedger() {
 
                 // Total Summary Row
                 const totalRowNum = 6 + (slNo - 1);
-                worksheet.mergeCells(`A${totalRowNum}:G${totalRowNum}`);
+                worksheet.mergeCells(`A${totalRowNum}:F${totalRowNum}`);
                 const totalRow = worksheet.getRow(totalRowNum);
                 totalRow.height = 36;
 
@@ -1329,13 +1347,13 @@ function raBillLedger() {
                 labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
                 labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-                for (let c = 1; c <= 7; c++) {
+                for (let c = 1; c <= 6; c++) {
                     worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     worksheet.getCell(totalRowNum, c).border = headerBorder;
                 }
 
-                // Total Debit Cell (Col H / 8)
-                const debitCell = worksheet.getCell(totalRowNum, 8);
+                // Total Debit Cell (Col G / 7)
+                const debitCell = worksheet.getCell(totalRowNum, 7);
                 debitCell.value = totals.netClaimed > 0 ? totals.netClaimed : dataTotalDebit;
                 debitCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 debitCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1343,8 +1361,8 @@ function raBillLedger() {
                 debitCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 debitCell.border = headerBorder;
 
-                // Total Credit Cell (Col I / 9)
-                const creditCell = worksheet.getCell(totalRowNum, 9);
+                // Total Credit Cell (Col H / 8)
+                const creditCell = worksheet.getCell(totalRowNum, 8);
                 creditCell.value = totals.paid > 0 ? totals.paid : dataTotalCredit;
                 creditCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 creditCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1352,9 +1370,9 @@ function raBillLedger() {
                 creditCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 creditCell.border = headerBorder;
 
-                // Total Balance Cell (Col J / 10)
+                // Total Balance Cell (Col I / 9)
                 const balTotal = (totals.netClaimed - totals.paid) || (dataTotalDebit - dataTotalCredit);
-                const balanceCell = worksheet.getCell(totalRowNum, 10);
+                const balanceCell = worksheet.getCell(totalRowNum, 9);
                 balanceCell.value = balTotal;
                 balanceCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 balanceCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1368,7 +1386,12 @@ function raBillLedger() {
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                anchor.download = 'contractor-ledger-report.xlsx';
+                let fileName = 'contractor-ledger-report.xlsx';
+                if (isContractorFiltered) {
+                    const safeContractor = contractorTitle.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+                    fileName = `${safeContractor}_Ledger_Report.xlsx`;
+                }
+                anchor.download = fileName;
                 anchor.click();
                 window.URL.revokeObjectURL(url);
             } catch (err) {
