@@ -3174,33 +3174,40 @@
     {{-- CUSTOMER REFUND MODAL DIALOG (Redesigned matching customer refund specification) --}}
     <div x-show="openCustomerRefundModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-5 min-h-screen cust-refund-modal-backdrop"
          style="background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-        <div class="rounded-3xl shadow-2xl w-full max-w-6xl overflow-hidden transform transition-all flex flex-col max-h-[92vh] my-auto cust-refund-dialog"
-             style="background-color: #f0f4f8 !important; border: 1px solid #cbd5e1; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);"
+        <div class="rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] my-auto cust-refund-dialog"
+             style="background-color: #f0f4f8 !important; border: none !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);"
              @click.away="openCustomerRefundModal = false">
             
-            {{-- Modal Content Container --}}
-            <div class="p-5 sm:p-7 overflow-y-auto space-y-5 flex-1" style="background-color: #f0f4f8 !important;">
-                
-                {{-- Header Section --}}
-                <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
-                             style="background-color: #e0f2fe; color: #0284c7;">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            {{-- Header (Fixed at Top) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 shrink-0 rounded-t-2xl border-none">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">Customer Refund</h2>
-                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Process refund for customer with complete details and bank impact.</p>
+                            <!-- <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Refund</span>
+                            </div> -->
+                            <h2 class="text-sm sm:text-base font-extrabold text-white tracking-wider uppercase">Customer Refund</h2>
+                            <p class="text-[11px] text-slate-300 mt-0.5 font-normal">Process refund for customer with complete details and bank impact.</p>
                         </div>
                     </div>
-                    <button type="button" @click="openCustomerRefundModal = false" 
-                            class="px-4 py-2 rounded-xl text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0 hover:bg-slate-50"
-                            style="background-color: #ffffff; border: 1px solid #cbd5e1;">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                        <span>Back to Returns</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <!-- <button type="button" @click="openCustomerRefundModal = false" 
+                                class="px-3 py-1.5 rounded-lg text-white/90 hover:text-white bg-white/10 hover:bg-white/20 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            <span>Back to Returns</span>
+                        </button> -->
+                        <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 cursor-pointer text-xs" title="Close">✕</button>
+                    </div>
                 </div>
+            </div>
 
+            {{-- Modal Body (Scrollable in between) --}}
+            <div class="p-5 sm:p-7 overflow-y-auto space-y-5 flex-1 min-h-0" style="background-color: #f0f4f8 !important;">
+                
                 {{-- Top 4 Metric Cards --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Card 1: Customer -->
@@ -3263,9 +3270,9 @@
                     {{-- Left Card: Refund Calculation --}}
                     <div class="lg:col-span-5 bg-white rounded-2xl overflow-hidden shadow-2xs flex flex-col justify-between"
                          style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
-                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white cust-refund-teal-header"
-                             style="background-color: #184e68 !important; color: #ffffff !important;">
-                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white sales-desk-table-header erp-table-header"
+                             style="background-color: #534E47 !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                             <span>Refund Calculation</span>
                         </div>
                         <div class="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
@@ -3342,9 +3349,9 @@
                     {{-- Right Card: Bank & Refund Details --}}
                     <div class="lg:col-span-7 bg-white rounded-2xl overflow-hidden shadow-2xs"
                          style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
-                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white cust-refund-teal-header"
-                             style="background-color: #184e68 !important; color: #ffffff !important;">
-                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <div class="px-4 py-3 flex items-center gap-2.5 font-bold text-sm tracking-wide text-white sales-desk-table-header erp-table-header"
+                             style="background-color: #534E47 !important; color: #ffffff !important;">
+                            <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             <span>Bank & Refund Details</span>
                         </div>
                         <div class="p-5 space-y-4 text-xs">
@@ -3452,7 +3459,7 @@
                                 </div>
                                 <label class="inline-flex items-center gap-2 mt-2 cursor-pointer text-[11px] text-slate-500 hover:text-slate-700">
                                     <input type="checkbox" x-model="customerRefundForm.is_historical" class="w-3.5 h-3.5 rounded border-slate-300"
-                                           style="accent-color: #184e68;">
+                                           style="accent-color: #a38c29;">
                                     <span>Is Historical <span class="text-slate-400">(Bypass Bank Balance Deduction)</span></span>
                                 </label>
                             </div>
@@ -3463,10 +3470,10 @@
                 {{-- Bottom Section: Recent Refunds --}}
                 <div class="bg-white rounded-2xl overflow-hidden shadow-2xs"
                      style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px;">
-                    <div class="px-4 py-2.5 flex items-center justify-between text-white cust-refund-teal-header"
-                         style="background-color: #184e68 !important; color: #ffffff !important;">
+                    <div class="px-4 py-2.5 flex items-center justify-between text-white sales-desk-table-header erp-table-header"
+                         style="background-color: #534E47 !important; color: #ffffff !important;">
                         <div class="flex items-center gap-2 font-bold text-sm tracking-wide">
-                            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>Recent Refunds</span>
                         </div>
                         <button type="button" @click="openCustomerRefundModal = false; openRefundLedger(refundModalSale)" 
@@ -3477,18 +3484,18 @@
                         </button>
                     </div>
                     <div class="overflow-x-auto max-h-48 overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="font-bold uppercase text-[10px] tracking-wider sticky top-0"
-                                   style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569;">
-                                <tr>
-                                    <th class="px-4 py-2.5 text-center w-12">#</th>
-                                    <th class="px-4 py-2.5">Refund Date</th>
-                                    <th class="px-4 py-2.5">Customer</th>
-                                    <th class="px-4 py-2.5 text-right">Refund Amount</th>
-                                    <th class="px-4 py-2.5">Payment Mode</th>
-                                    <th class="px-4 py-2.5">UTR / Ref No.</th>
-                                    <th class="px-4 py-2.5 text-center">Status</th>
-                                    <th class="px-4 py-2.5 text-center">Action</th>
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="sales-desk-table-header erp-table-header font-bold uppercase text-[10px] tracking-wider sticky top-0"
+                                   style="background-color: #534E47 !important; color: #ffffff !important; border-bottom: 1px solid #443f38;">
+                                <tr class="sales-desk-table-header" style="background-color: #534E47 !important; color: #ffffff !important;">
+                                    <th class="px-4 py-2.5 text-center w-12 sales-desk-table-header" style="color: #ffffff !important;">#</th>
+                                    <th class="px-4 py-2.5 sales-desk-table-header" style="color: #ffffff !important;">Refund Date</th>
+                                    <th class="px-4 py-2.5 sales-desk-table-header" style="color: #ffffff !important;">Customer</th>
+                                    <th class="px-4 py-2.5 text-right sales-desk-table-header" style="color: #ffffff !important;">Refund Amount</th>
+                                    <th class="px-4 py-2.5 sales-desk-table-header" style="color: #ffffff !important;">Payment Mode</th>
+                                    <th class="px-4 py-2.5 sales-desk-table-header" style="color: #ffffff !important;">UTR / Ref No.</th>
+                                    <th class="px-4 py-2.5 text-center sales-desk-table-header" style="color: #ffffff !important;">Status</th>
+                                    <th class="px-4 py-2.5 text-center sales-desk-table-header" style="color: #ffffff !important;">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -3519,8 +3526,10 @@
                     </div>
                 </div>
 
-                {{-- Modal Footer --}}
-                <div class="flex items-center justify-end gap-3 pt-1">
+            </div>
+
+            {{-- Sticky Modal Footer (Fixed at Bottom) --}}
+            <div class="px-6 py-3.5 bg-white border-t border-slate-200/80 flex items-center justify-end gap-3 shrink-0 rounded-b-2xl z-10 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
                     <button type="button" @click="openCustomerRefundModal = false"
                             class="px-5 py-2.5 rounded-xl text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer flex items-center gap-1.5 hover:bg-slate-100"
                             style="background-color: #ffffff; border: 1px solid #cbd5e1; color: #475569;">
@@ -3529,15 +3538,13 @@
                     </button>
                     <button type="button" @click="submitCustomerRefund()" 
                             :disabled="isSubmittingRefund || (refundModalSale && getRemainingRefund(refundModalSale) <= 0.009) || !customerRefundForm.refund_amount || Number(customerRefundForm.refund_amount) <= 0 || (refundModalSale && Number(customerRefundForm.refund_amount) > getRemainingRefund(refundModalSale) + 0.009)"
-                            class="px-6 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition shadow-md inline-flex items-center gap-2 cursor-pointer cust-refund-btn-confirm"
-                            style="background-color: #184e68 !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(24, 78, 104, 0.3);">
+                            class="px-6 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition shadow-md inline-flex items-center gap-2 cursor-pointer theme-btn cust-refund-btn-confirm"
+                            style="background: linear-gradient(135deg, #a38c29 0%, #8a7522 100%) !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(163, 140, 41, 0.35);">
                         <svg x-show="!isSubmittingRefund" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <svg x-show="isSubmittingRefund" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span>Confirm Refund</span>
                     </button>
                 </div>
-
-            </div>
 
         </div>
     </div>
