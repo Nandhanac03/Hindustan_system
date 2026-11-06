@@ -1253,22 +1253,21 @@ function raBillPaymentRelease() {
                     subtitleText = `Contractor Treasury Payment Release & Disbursement Register | Generated On: ${nowStr}`;
                 }
 
-                // 3. Column Definitions (14 Columns: SL, RA Bill, Contractor, Project, Submit Date, Amount, Verified Date, Correction, Net After Correction, Due Date, Paid Date, Paid Amount, Balance Due, Status)
+                // 3. Column Definitions (13 Columns: SL, RA Bill, Contractor, Submit Date, Amount, Verified Date, Correction, Net After Correction, Due Date, Paid Date, Paid Amount, Balance Due, Status)
                 worksheet.columns = [
                     { key: 'sl', width: 9 },                 // A: SL NO
                     { key: 'bill_no', width: 18 },            // B: RA BILL NO
                     { key: 'contractor', width: 32 },         // C: CONTRACTOR
-                    { key: 'project', width: 28 },            // D: PROJECT
-                    { key: 'submit_date', width: 18 },        // E: RA BILL SUBMIT DATE
-                    { key: 'gross_amount', width: 20 },       // F: RA BILL AMOUNT (₹)
-                    { key: 'verified_date', width: 18 },      // G: RA BILL VERIFIED DATE
-                    { key: 'correction_amount', width: 22 },  // H: CORRECTION OF BILL (₹)
-                    { key: 'after_correction', width: 24 },   // I: RA BILL AFTER CORRECTION (₹)
-                    { key: 'due_date', width: 18 },           // J: RA BILL DUE DATE
-                    { key: 'paid_date', width: 20 },          // K: RA BILL PAID DATE
-                    { key: 'paid_amount', width: 20 },        // L: PAID AMOUNT (₹)
-                    { key: 'balance_amount', width: 20 },     // M: BALANCE DUE (₹)
-                    { key: 'status', width: 18 }              // N: STATUS
+                    { key: 'submit_date', width: 18 },        // D: RA BILL SUBMIT DATE
+                    { key: 'gross_amount', width: 20 },       // E: RA BILL AMOUNT (₹)
+                    { key: 'verified_date', width: 18 },      // F: RA BILL VERIFIED DATE
+                    { key: 'correction_amount', width: 22 },  // G: CORRECTION OF BILL (₹)
+                    { key: 'after_correction', width: 24 },   // H: RA BILL AFTER CORRECTION (₹)
+                    { key: 'due_date', width: 18 },           // I: RA BILL DUE DATE
+                    { key: 'paid_date', width: 20 },          // J: RA BILL PAID DATE
+                    { key: 'paid_amount', width: 20 },        // K: PAID AMOUNT (₹)
+                    { key: 'balance_amount', width: 20 },     // L: BALANCE DUE (₹)
+                    { key: 'status', width: 18 }              // M: STATUS
                 ];
 
                 const thinBorder = {
@@ -1290,27 +1289,27 @@ function raBillPaymentRelease() {
                 worksheet.getRow(1).height = 14;
 
                 // Row 2: Top Title Banner (Navy Slate #2C3E50)
-                worksheet.mergeCells('A2:N2');
+                worksheet.mergeCells('A2:M2');
                 const row2 = worksheet.getRow(2);
                 row2.height = 36;
                 const cellA2 = worksheet.getCell('A2');
                 cellA2.value = reportTitleText;
                 cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
                 cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                for (let c = 1; c <= 14; c++) {
+                for (let c = 1; c <= 13; c++) {
                     worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     worksheet.getCell(2, c).border = headerBorder;
                 }
 
                 // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
-                worksheet.mergeCells('A3:N3');
+                worksheet.mergeCells('A3:M3');
                 const row3 = worksheet.getRow(3);
                 row3.height = 25;
                 const cellA3 = worksheet.getCell('A3');
                 cellA3.value = subtitleText;
                 cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                for (let c = 1; c <= 14; c++) {
+                for (let c = 1; c <= 13; c++) {
                     worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
                     worksheet.getCell(3, c).border = headerBorder;
                 }
@@ -1324,7 +1323,6 @@ function raBillPaymentRelease() {
                     'SL NO',
                     'RA BILL NO.',
                     'CONTRACTOR',
-                    'PROJECT',
                     'RA BILL SUBMIT DATE',
                     'RA BILL AMOUNT (₹)',
                     'RA BILL VERIFIED DATE',
@@ -1338,7 +1336,7 @@ function raBillPaymentRelease() {
                 ];
                 const row5 = worksheet.addRow(headerTitles);
                 row5.height = 30;
-                for (let c = 1; c <= 14; c++) {
+                for (let c = 1; c <= 13; c++) {
                     const hCell = worksheet.getCell(5, c);
                     hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
                     hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1378,7 +1376,6 @@ function raBillPaymentRelease() {
                         idx + 1,
                         bill.ra_bill_number || '',
                         bill.contractor_name || '',
-                        bill.project_name || '',
                         bill.submit_date || '—',
                         gross,
                         bill.verified_date || '—',
@@ -1392,16 +1389,16 @@ function raBillPaymentRelease() {
                     ]);
                     worksheet.getRow(rowNum).height = 25;
 
-                    for (let c = 1; c <= 14; c++) {
+                    for (let c = 1; c <= 13; c++) {
                         const cell = worksheet.getCell(rowNum, c);
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         cell.border = thinBorder;
                         cell.font = {
                             name: 'Calibri',
                             size: 10,
-                            bold: (c === 1 || c === 2 || c === 6 || c === 8 || c === 9 || c === 12 || c === 13 || c === 14),
+                            bold: (c === 1 || c === 2 || c === 5 || c === 7 || c === 8 || c === 11 || c === 12 || c === 13),
                             color: {
-                                argb: (c === 6 ? 'FF0F172A' : (c === 8 ? 'FFB91C1C' : (c === 9 ? 'FF1E40AF' : (c === 12 ? 'FF047857' : (c === 13 ? 'FFB91C1C' : 'FF000000')))))
+                                argb: (c === 5 ? 'FF0F172A' : (c === 7 ? 'FFB91C1C' : (c === 8 ? 'FF1E40AF' : (c === 11 ? 'FF047857' : (c === 12 ? 'FFB91C1C' : 'FF000000')))))
                             }
                         };
                         cell.alignment = {
@@ -1409,7 +1406,7 @@ function raBillPaymentRelease() {
                             vertical: 'middle',
                             wrapText: true
                         };
-                        if (c === 6 || c === 8 || c === 9 || c === 12 || c === 13) {
+                        if (c === 5 || c === 7 || c === 8 || c === 11 || c === 12) {
                             cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         }
                     }
@@ -1417,7 +1414,7 @@ function raBillPaymentRelease() {
 
                 // Total Summary Row
                 const totalRowNum = 6 + list.length;
-                worksheet.mergeCells(`A${totalRowNum}:E${totalRowNum}`);
+                worksheet.mergeCells(`A${totalRowNum}:D${totalRowNum}`);
                 const totalRow = worksheet.getRow(totalRowNum);
                 totalRow.height = 36;
 
@@ -1426,13 +1423,13 @@ function raBillPaymentRelease() {
                 labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
                 labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-                for (let c = 1; c <= 5; c++) {
+                for (let c = 1; c <= 4; c++) {
                     worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     worksheet.getCell(totalRowNum, c).border = headerBorder;
                 }
 
-                // Col F (6): Gross Amount Total
-                const grossCell = worksheet.getCell(totalRowNum, 6);
+                // Col E (5): Gross Amount Total
+                const grossCell = worksheet.getCell(totalRowNum, 5);
                 grossCell.value = totalGross;
                 grossCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 grossCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1440,14 +1437,14 @@ function raBillPaymentRelease() {
                 grossCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 grossCell.border = headerBorder;
 
-                // Col G (7): Verified Date blank fill
-                const vDateCell = worksheet.getCell(totalRowNum, 7);
+                // Col F (6): Verified Date blank fill
+                const vDateCell = worksheet.getCell(totalRowNum, 6);
                 vDateCell.value = '';
                 vDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 vDateCell.border = headerBorder;
 
-                // Col H (8): Correction Amount Total
-                const corrCell = worksheet.getCell(totalRowNum, 8);
+                // Col G (7): Correction Amount Total
+                const corrCell = worksheet.getCell(totalRowNum, 7);
                 corrCell.value = totalCorrection;
                 corrCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 corrCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1455,8 +1452,8 @@ function raBillPaymentRelease() {
                 corrCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 corrCell.border = headerBorder;
 
-                // Col I (9): Net Approved Total (After Correction)
-                const netCell = worksheet.getCell(totalRowNum, 9);
+                // Col H (8): Net Approved Total (After Correction)
+                const netCell = worksheet.getCell(totalRowNum, 8);
                 netCell.value = totalNet;
                 netCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 netCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1464,20 +1461,20 @@ function raBillPaymentRelease() {
                 netCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 netCell.border = headerBorder;
 
-                // Col J (10): Due Date blank fill
-                const dDateCell = worksheet.getCell(totalRowNum, 10);
+                // Col I (9): Due Date blank fill
+                const dDateCell = worksheet.getCell(totalRowNum, 9);
                 dDateCell.value = '';
                 dDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 dDateCell.border = headerBorder;
 
-                // Col K (11): Paid Date blank fill
-                const pDateCell = worksheet.getCell(totalRowNum, 11);
+                // Col J (10): Paid Date blank fill
+                const pDateCell = worksheet.getCell(totalRowNum, 10);
                 pDateCell.value = '';
                 pDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 pDateCell.border = headerBorder;
 
-                // Col L (12): Total Paid
-                const paidCell = worksheet.getCell(totalRowNum, 12);
+                // Col K (11): Total Paid
+                const paidCell = worksheet.getCell(totalRowNum, 11);
                 paidCell.value = totalPaid;
                 paidCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 paidCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1485,8 +1482,8 @@ function raBillPaymentRelease() {
                 paidCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 paidCell.border = headerBorder;
 
-                // Col M (13): Total Balance Due
-                const balCell = worksheet.getCell(totalRowNum, 13);
+                // Col L (12): Total Balance Due
+                const balCell = worksheet.getCell(totalRowNum, 12);
                 balCell.value = totalBal;
                 balCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 balCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -1494,8 +1491,8 @@ function raBillPaymentRelease() {
                 balCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 balCell.border = headerBorder;
 
-                // Col N (14): Blank fill for aesthetic consistency
-                const statusCell = worksheet.getCell(totalRowNum, 14);
+                // Col M (13): Blank fill for aesthetic consistency
+                const statusCell = worksheet.getCell(totalRowNum, 13);
                 statusCell.value = '';
                 statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 statusCell.border = headerBorder;
