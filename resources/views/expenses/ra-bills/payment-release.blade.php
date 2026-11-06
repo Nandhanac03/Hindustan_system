@@ -260,23 +260,26 @@
                         search: '',
                         contractorsList: {{ $filterContractorsList }},
                         getSelectedContractorName() {
-                            if (!filterContractorId) return 'All Contractors';
-                            const c = this.contractorsList.find(x => x.id == filterContractorId);
+                            const currentId = (typeof filterContractorId !== 'undefined' && filterContractorId) ? filterContractorId : this.filterContractorId;
+                            if (!currentId) return 'All Contractors';
+                            const c = this.contractorsList.find(x => String(x.id) === String(currentId));
                             return c ? c.name : 'All Contractors';
                         },
                         getFilteredContractorsList() {
                             if (!this.search) return this.contractorsList;
                             const s = this.search.toLowerCase();
-                            return this.contractorsList.filter(c => c.name.toLowerCase().includes(s));
+                            return this.contractorsList.filter(c => (c.name || '').toLowerCase().includes(s));
                         },
                         select(id) {
                             filterContractorId = id;
+                            this.filterContractorId = id;
                             this.open = false;
                             this.search = '';
                             applyFilter();
                         },
                         clear() {
                             filterContractorId = '';
+                            this.filterContractorId = '';
                             this.open = false;
                             this.search = '';
                             applyFilter();
@@ -299,7 +302,7 @@
 
                         <div class="flex items-center gap-1.5 shrink-0 ml-2">
                             <template x-if="filterContractorId">
-                                <span @click.stop="clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                <span @click.stop="filterContractorId = ''; clear()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
@@ -333,7 +336,7 @@
                         </div>
 
                         {{-- All Contractors Option --}}
-                        <button type="button" @click="clear()" 
+                        <button type="button" @click="filterContractorId = ''; clear()" 
                                 class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer"
                                 :class="!filterContractorId ? 'bg-[#a38c29]/10 text-[#8a7522] font-black' : ''">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -343,15 +346,15 @@
                         {{-- Options List --}}
                         <div class="overflow-y-auto flex-1 p-1 space-y-0.5 max-h-52">
                             <template x-for="cont in getFilteredContractorsList()" :key="cont.id">
-                                <button type="button" @click="select(cont.id)" 
+                                <button type="button" @click="filterContractorId = cont.id; select(cont.id)" 
                                         class="w-full px-2.5 py-1.5 text-left text-xs rounded-xl transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium"
-                                        :class="filterContractorId == cont.id ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'">
+                                        :class="String(filterContractorId) === String(cont.id) ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'hover:bg-slate-50 text-slate-700'">
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <div :class="filterContractorId == cont.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                        <div :class="String(filterContractorId) === String(cont.id) ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
                                              class="w-5 h-5 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 transition-colors"
                                              x-text="(cont.name || '?').charAt(0).toUpperCase()">
                                         </div>
-                                        <span class="truncate text-xs" :class="filterContractorId == cont.id ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="cont.name"></span>
+                                        <span class="truncate text-xs" :class="String(filterContractorId) === String(cont.id) ? 'text-[#8a7522] font-bold' : 'text-slate-800'" x-text="cont.name"></span>
                                     </div>
                                 </button>
                             </template>
@@ -1179,8 +1182,11 @@ function raBillPaymentRelease() {
 
         getContractorFilterLabel() {
             if (!this.filterContractorId) return 'All Contractors';
-            const c = (this.contractorsList || []).find(x => x.id == this.filterContractorId);
-            return c ? c.name : 'All Contractors';
+            const c = (this.contractorsList || []).find(x => String(x.id) === String(this.filterContractorId));
+            if (c && c.name) return c.name;
+            const b = (this.allBills || []).find(x => String(x.contractor_id) === String(this.filterContractorId));
+            if (b && b.contractor_name) return b.contractor_name;
+            return 'All Contractors';
         },
 
         exportToPdf() {
@@ -1200,32 +1206,52 @@ function raBillPaymentRelease() {
                     return;
                 }
 
+                const selectedContractor = this.getContractorFilterLabel();
+                const isContractorFiltered = Boolean(this.filterContractorId && selectedContractor && selectedContractor !== 'All Contractors');
+
+                const selectedProject = this.getProjectFilterLabel();
+                const isProjectFiltered = Boolean(this.filterProjectId && selectedProject && selectedProject !== 'All Projects');
+
                 // 1. Initialize Workbook & Worksheet
                 const workbook = new ExcelJS.Workbook();
                 workbook.creator = 'TABASCO ERP';
                 workbook.created = new Date();
 
-                const worksheet = workbook.addWorksheet('Contractor Payment Release', {
+                // Worksheet Name: Particular Contractor Name if filtered, otherwise 'Payment Release'
+                let sheetName = 'Payment Release';
+                if (isContractorFiltered) {
+                    sheetName = selectedContractor.replace(/[\\/?*[\]:]/g, '').trim().substring(0, 31) || 'Payment Release';
+                }
+                const worksheet = workbook.addWorksheet(sheetName, {
                     views: [{ showGridLines: true }]
                 });
 
-                // 2. Active Project / Contractor Name for Header
+                // 2. Active Project / Contractor Name for Header (Row 2 & Row 3)
                 let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
-                const projTitle = (this.getProjectFilterLabel() || '').trim();
-                if (projTitle && projTitle !== 'All Projects') {
-                    const cleanProj = projTitle.toUpperCase();
+                if (isProjectFiltered) {
+                    const cleanProj = selectedProject.toUpperCase();
                     if (!cleanProj.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
                         reportTitleText += ' - ' + cleanProj;
                     }
                 }
-                const contTitle = (this.getContractorFilterLabel() || '').trim();
-                if (contTitle && contTitle !== 'All Contractors') {
-                    const cleanCont = contTitle.toUpperCase();
+                if (isContractorFiltered) {
+                    const cleanCont = selectedContractor.toUpperCase();
                     if (!cleanCont.includes('TABASCO HINDUSTAN INFRA DEVELOPERS')) {
                         reportTitleText += ' - ' + cleanCont;
                     }
+                    reportTitleText += ' - CONTRACTOR PAYMENT RELEASE STATEMENT';
+                } else {
+                    reportTitleText += ' - CONTRACTOR PAYMENT RELEASE REGISTER';
                 }
-                reportTitleText += ' - CONTRACTOR PAYMENT RELEASE REGISTER';
+
+                // Subtitle (Row 3)
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                let subtitleText = '';
+                if (isContractorFiltered) {
+                    subtitleText = `Contractor: ${selectedContractor} | Project: ${selectedProject} | Generated On: ${nowStr}`;
+                } else {
+                    subtitleText = `Contractor Treasury Payment Release & Disbursement Register | Generated On: ${nowStr}`;
+                }
 
                 // 3. Column Definitions (14 Columns: SL, RA Bill, Contractor, Project, Submit Date, Amount, Verified Date, Correction, Net After Correction, Due Date, Paid Date, Paid Amount, Balance Due, Status)
                 worksheet.columns = [
@@ -1277,12 +1303,11 @@ function raBillPaymentRelease() {
                 }
 
                 // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
-                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
                 worksheet.mergeCells('A3:N3');
                 const row3 = worksheet.getRow(3);
                 row3.height = 25;
                 const cellA3 = worksheet.getCell('A3');
-                cellA3.value = `Contractor Treasury Payment Release & Disbursement Register | Generated On: ${nowStr}`;
+                cellA3.value = subtitleText;
                 cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 for (let c = 1; c <= 14; c++) {
@@ -1481,7 +1506,12 @@ function raBillPaymentRelease() {
                 const url = window.URL.createObjectURL(blob);
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                anchor.download = 'contractor-payment-release-register.xlsx';
+                let fileName = 'contractor-payment-release-register.xlsx';
+                if (isContractorFiltered) {
+                    const safeContractor = selectedContractor.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+                    fileName = `${safeContractor}_Payment_Release_Register.xlsx`;
+                }
+                anchor.download = fileName;
                 anchor.click();
                 window.URL.revokeObjectURL(url);
             } catch (err) {
