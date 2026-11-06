@@ -708,11 +708,25 @@ class UnitController extends Controller
         $firstLogIdsSubquery = function ($q) {
             $q->selectRaw('MIN(id)')
               ->from('unit_rate_logs')
+              ->where(function ($sub) {
+                  $sub->whereIn('reason', ['Initial Rate', 'Bulk creation', 'Initial rate', 'Initial unit rate', 'Unit Creation'])
+                      ->orWhere(function ($s2) {
+                          $s2->where('amount_change', 0)
+                             ->where(function ($s3) {
+                                 $s3->whereNull('reason')
+                                    ->orWhere('reason', '');
+                             });
+                      });
+              })
               ->groupBy('unit_id');
         };
 
         $query = \App\Models\UnitRateLog::with(['unit.project', 'unit.floor', 'unit.unitType', 'user'])
-            ->whereNotIn('id', $firstLogIdsSubquery);
+            ->whereNotIn('id', $firstLogIdsSubquery)
+            ->where(function ($q) {
+                $q->whereNull('reason')
+                  ->orWhereNotIn('reason', ['Initial Rate', 'Bulk creation', 'Initial rate', 'Initial unit rate', 'Unit Creation']);
+            });
 
         // Filtering
         if ($projectId) {
@@ -733,7 +747,11 @@ class UnitController extends Controller
         $logs = $query->orderBy('id', 'desc')->paginate(50)->withQueryString();
 
         // Calculate KPI Stats
-        $kpiQuery = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery);
+        $kpiQuery = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)
+            ->where(function ($q) {
+                $q->whereNull('reason')
+                  ->orWhereNotIn('reason', ['Initial Rate', 'Bulk creation', 'Initial rate', 'Initial unit rate', 'Unit Creation']);
+            });
         if ($projectId) {
             $kpiQuery->whereHas('unit', function ($q) use ($projectId) {
                 $q->where('project_id', $projectId);

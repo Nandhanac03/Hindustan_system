@@ -39,7 +39,26 @@ class UnitRateLog extends Model
             ->orderBy('id', 'desc')
             ->first();
 
-        return $prev ? (float)$prev->rate : 0.0;
+        if ($prev) {
+            return (float)$prev->rate;
+        }
+
+        // If no prior log exists, deduce the previous rate from amount_change if available
+        if ($this->amount_change != 0 && $this->unit) {
+            $isParking = $this->unit->unitType && (strtolower($this->unit->unitType->name) === 'parking' || strtolower($this->unit->unitType->category) === 'parking');
+            if ($isParking) {
+                $oldPrice = (float)$this->rate - (float)$this->amount_change;
+                return $oldPrice > 0 ? (float)$oldPrice : 0.0;
+            }
+
+            if ((float)($this->unit->built_up_area ?? 0) > 0) {
+                $rateDiff = (float)$this->amount_change / (float)$this->unit->built_up_area;
+                $oldRate = (float)$this->rate - $rateDiff;
+                return $oldRate > 0 ? (float)$oldRate : 0.0;
+            }
+        }
+
+        return 0.0;
     }
 
     public static function boot(): void
