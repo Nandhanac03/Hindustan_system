@@ -5725,5 +5725,20 @@ class ReportController extends Controller
             'activeTab' => 'vendor_aging',
         ]));
     }
+
+    /**
+     * Cash Flow & Liquidity Forecast Report
+     */
+    public function liquidityForecast(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+
+        $service = new \App\Services\LiquidityForecastService();
+        $reportData = $service->getForecastData($request->all());
+
+        return view('reports.liquidity-forecast', array_merge($lookups, $reportData, [
+            'activeTab' => 'liquidity_forecast',
+        ]));
+    }
 }
 
