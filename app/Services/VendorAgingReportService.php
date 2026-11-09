@@ -243,8 +243,9 @@ class VendorAgingReportService
 
             if ($se->payments) {
                 foreach ($se->payments as $pmt) {
+                    $pmtDate = $pmt->payment_date ? ($pmt->payment_date instanceof \DateTimeInterface ? $pmt->payment_date->format('Y-m-d') : (string)$pmt->payment_date) : null;
                     $entities[$targetVendorId]['payments'][] = [
-                        'date'   => $pmt->payment_date,
+                        'date'   => $pmtDate,
                         'amount' => (float)$pmt->paid_amount,
                         'ref'    => $pmt->reference_no ?: ('EXP-PMT-' . $pmt->id)
                     ];
@@ -278,8 +279,9 @@ class VendorAgingReportService
             $outstanding = max(0, $billTotal - $paidAmount);
 
             foreach ($billPayments as $bp) {
+                $bpDate = $bp->date ? ($bp->date instanceof \DateTimeInterface ? $bp->date->format('Y-m-d') : (string)$bp->date) : null;
                 $entities[$targetVendorId]['payments'][] = [
-                    'date'   => $bp->date,
+                    'date'   => $bpDate,
                     'amount' => (float)$bp->amount,
                     'ref'    => $bp->voucher_id ? ('Voucher #' . $bp->voucher_id) : ('BP-' . $bp->id)
                 ];
@@ -345,8 +347,9 @@ class VendorAgingReportService
                     ->get();
 
                 foreach ($debitLines as $dl) {
+                    $dlDate = $dl->voucher_date ? ($dl->voucher_date instanceof \DateTimeInterface ? $dl->voucher_date->format('Y-m-d') : (string)$dl->voucher_date) : null;
                     $e['payments'][] = [
-                        'date'   => $dl->voucher_date,
+                        'date'   => $dlDate,
                         'amount' => (float)$dl->debit,
                         'ref'    => $dl->voucher_number ?: ('Voucher #' . $dl->v_id)
                     ];
@@ -362,7 +365,7 @@ class VendorAgingReportService
         foreach ($entities as $k => $e) {
             // Sort invoices descending by invoice date
             usort($e['invoices'], function ($a, $b) {
-                return strcmp($b['invoice_date_raw'] ?? '', $a['invoice_date_raw'] ?? '');
+                return strcmp((string)($b['invoice_date_raw'] ?? ''), (string)($a['invoice_date_raw'] ?? ''));
             });
 
             $totOut = 0.0;
@@ -394,7 +397,9 @@ class VendorAgingReportService
             $lastPaymentRef = '—';
             if (!empty($e['payments'])) {
                 usort($e['payments'], function ($a, $b) {
-                    return strcmp($b['date'] ?? '', $a['date'] ?? '');
+                    $dateA = !empty($a['date']) ? ($a['date'] instanceof \DateTimeInterface ? $a['date']->format('Y-m-d') : (string)$a['date']) : '';
+                    $dateB = !empty($b['date']) ? ($b['date'] instanceof \DateTimeInterface ? $b['date']->format('Y-m-d') : (string)$b['date']) : '';
+                    return strcmp($dateB, $dateA);
                 });
                 $lp = $e['payments'][0];
                 $lastPaymentDate = !empty($lp['date']) ? Carbon::parse($lp['date'])->format('d/m/Y') : '—';
@@ -424,7 +429,7 @@ class VendorAgingReportService
             if ($b['total_outstanding'] != $a['total_outstanding']) {
                 return $b['total_outstanding'] <=> $a['total_outstanding'];
             }
-            return strcmp($a['name'], $b['name']);
+            return strcmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
         });
 
         // Re-index row IDs sequentially

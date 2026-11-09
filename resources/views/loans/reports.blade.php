@@ -824,12 +824,8 @@
                                 }
                             };
 
-                            if (c === 1 || c === 2 || c === 7 || c === 8 || c === 9) {
-                                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                            } else if (c === 3) {
-                                cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true, indent: 1 };
-                            } else if (c === 4 || c === 5 || c === 6) {
-                                cell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true, indent: 1 };
+                            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                            if (c === 4 || c === 5 || c === 6) {
                                 cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                             }
                         }
@@ -855,7 +851,7 @@
                     const cellD = worksheet.getCell(totalRowNum, 4);
                     cellD.value = totalSanctionedSum;
                     cellD.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                    cellD.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                    cellD.alignment = { horizontal: 'center', vertical: 'middle' };
                     cellD.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                     cellD.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     cellD.border = headerBorder;
@@ -864,7 +860,7 @@
                     const cellE = worksheet.getCell(totalRowNum, 5);
                     cellE.value = totalRepaidSum;
                     cellE.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF34D399' } }; // Light emerald
-                    cellE.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                    cellE.alignment = { horizontal: 'center', vertical: 'middle' };
                     cellE.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                     cellE.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     cellE.border = headerBorder;
@@ -873,7 +869,7 @@
                     const cellF = worksheet.getCell(totalRowNum, 6);
                     cellF.value = totalOutstandingSum;
                     cellF.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFF87171' } }; // Light rose
-                    cellF.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                    cellF.alignment = { horizontal: 'center', vertical: 'middle' };
                     cellF.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                     cellF.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                     cellF.border = headerBorder;
@@ -957,14 +953,10 @@
                                 cCell.border = thinBorder;
                                 cCell.font = { name: 'Calibri', size: 10, bold: (c === 1 || c === 2 || c === 8 || c === 9) };
                                 
+                                cCell.alignment = { horizontal: 'center', vertical: 'middle' };
                                 if (c === 8) {
-                                    cCell.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
                                     cCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                                     cCell.font.color = { argb: 'FFB91C1C' };
-                                } else if (c === 4) {
-                                    cCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-                                } else {
-                                    cCell.alignment = { horizontal: 'center', vertical: 'middle' };
                                 }
                             }
                         });
@@ -987,7 +979,7 @@
                         const dueSumCell = worksheet.getCell(`H${totalDueRowNum}`);
                         dueSumCell.value = totalDuesSum;
                         dueSumCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFF87171' } };
-                        dueSumCell.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                        dueSumCell.alignment = { horizontal: 'center', vertical: 'middle' };
                         dueSumCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         dueSumCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                         dueSumCell.border = headerBorder;
@@ -1076,13 +1068,9 @@
                                 cCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: pRowBg } };
                                 cCell.border = thinBorder;
                                 cCell.font = { name: 'Calibri', size: 10, bold: (c === 1 || c === 2 || c === 7 || c === 8 || c === 9) };
+                                cCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-                                if (c === 1 || c === 2 || c === 4 || c === 5 || c === 6) {
-                                    cCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                                } else if (c === 3) {
-                                    cCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-                                } else if (c === 7 || c === 8 || c === 9) {
-                                    cCell.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                                if (c === 7 || c === 8 || c === 9) {
                                     cCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                                     if (c === 7) cCell.font.color = { argb: 'FF047857' };
                                     if (c === 8) cCell.font.color = { argb: 'FF8A7522' };
@@ -1110,7 +1098,7 @@
                         const hCellG = worksheet.getCell(`G${totalHistRowNum}`);
                         hCellG.value = totalHistPrincipal;
                         hCellG.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF34D399' } };
-                        hCellG.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                        hCellG.alignment = { horizontal: 'center', vertical: 'middle' };
                         hCellG.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         hCellG.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                         hCellG.border = headerBorder;
@@ -1119,7 +1107,7 @@
                         const hCellH = worksheet.getCell(`H${totalHistRowNum}`);
                         hCellH.value = totalHistInterest;
                         hCellH.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFBBF24' } };
-                        hCellH.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                        hCellH.alignment = { horizontal: 'center', vertical: 'middle' };
                         hCellH.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         hCellH.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                         hCellH.border = headerBorder;
@@ -1128,7 +1116,7 @@
                         const hCellI = worksheet.getCell(`I${totalHistRowNum}`);
                         hCellI.value = totalHistPaid;
                         hCellI.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                        hCellI.alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+                        hCellI.alignment = { horizontal: 'center', vertical: 'middle' };
                         hCellI.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                         hCellI.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                         hCellI.border = headerBorder;
@@ -1140,8 +1128,7 @@
                     const downloadUrl = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = downloadUrl;
-                    const dateTag = new Date().toISOString().slice(0, 10);
-                    link.download = `loan-outstanding-summary-report-${dateTag}.xlsx`;
+                    link.download = 'loan-outstanding-summary-report.xlsx';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

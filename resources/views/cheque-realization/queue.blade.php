@@ -1,5 +1,8 @@
 <x-erp-layout title="Cheque Clearance Queue" headerTitle="Cheque Clearance Queue">
 
+    {{-- ExcelJS CDN Library for Client-side Excel Export --}}
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{
         processModalOpen: false,
         viewModalOpen: false,
@@ -280,6 +283,253 @@
             }
 
             event.target.submit();
+        },
+
+        formatDateForExcel(d) {
+            if (!d) return '—';
+            const dateObj = new Date(d);
+            if (isNaN(dateObj.getTime())) return d;
+            return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                    return;
+                }
+
+                const list = this.filteredReceipts;
+                if (!list || list.length === 0) {
+                    alert('No instruments available to export for the current filters.');
+                    return;
+                }
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const isRealizedTab = '{{ request()->routeIs('cheque-realization.realized') ? '1' : '0' }}' === '1';
+                const sheetTitle = isRealizedTab ? 'Realized Instruments' : 'Clearance Queue';
+                const worksheet = workbook.addWorksheet(sheetTitle, {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Report Header Titles
+                const reportTitleText = isRealizedTab
+                    ? 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. - REALIZED INSTRUMENTS REGISTER'
+                    : 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. - CHEQUE CLEARANCE QUEUE REGISTER';
+
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const modeFilterText = this.filters.payment_mode ? this.filters.payment_mode : 'All Modes';
+                const statusFilterText = this.filters.status ? this.filters.status.toUpperCase() : (isRealizedTab ? 'REALIZED' : 'AWAITING CLEARANCE');
+                const subtitleText = `Scope: ${statusFilterText} | Payment Mode: ${modeFilterText} | Total Instruments: ${list.length} | Generated On: ${nowStr}`;
+
+                // 3. Column Definitions (12 Columns)
+                worksheet.columns = [
+                    { key: 'sl', width: 10 },                   // A: SL NO
+                    { key: 'ref', width: 22 },                  // B: RECEIPT NO.
+                    { key: 'receipt_date', width: 18 },         // C: RECEIPT DATE
+                    { key: 'cheque_date', width: 18 },          // D: CHEQUE DATE
+                    { key: 'customer', width: 32 },             // E: CUSTOMER NAME
+                    { key: 'unit', width: 20 },                 // F: UNIT
+                    { key: 'company_bank', width: 34 },         // G: COMPANY BANK ACCOUNT
+                    { key: 'customer_bank', width: 26 },        // H: CUSTOMER / DRAWEE BANK
+                    { key: 'amount', width: 24 },               // I: AMOUNT (₹)
+                    { key: 'mode', width: 18 },                 // J: PAYMENT MODE
+                    { key: 'status', width: 22 },               // K: CLEARANCE STATUS
+                    { key: 'bank_ref', width: 24 }              // L: REF / CHEQUE NO.
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:L2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 12; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                worksheet.mergeCells('A3:L3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = subtitleText;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 12; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'RECEIPT NO.',
+                    'RECEIPT DATE',
+                    'CHEQUE DATE',
+                    'CUSTOMER NAME',
+                    'UNIT',
+                    'COMPANY BANK ACCOUNT',
+                    'CUSTOMER / DRAWEE BANK',
+                    'AMOUNT (₹)',
+                    'PAYMENT MODE',
+                    'CLEARANCE STATUS',
+                    'REF / CHEQUE NO.'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 12; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalAmount = 0;
+                let currentRowNum = 6;
+
+                list.forEach((r, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const amountNum = parseFloat(r.amount) || 0;
+                    totalAmount += amountNum;
+
+                    const receiptDateFormatted = r.date_formatted || this.formatDateForExcel(r.date);
+                    const chequeDateFormatted = r.cheque_date_formatted || (r.cheque_date ? this.formatDateForExcel(r.cheque_date) : '—');
+                    let unitDisplay = '—';
+                    if (r.unit_number && r.unit_number !== '—') {
+                        const uStr = String(r.unit_number).trim();
+                        unitDisplay = uStr.toLowerCase().startsWith('unit') ? uStr : 'Unit ' + uStr;
+                    }
+                    
+                    const compBankDisplay = r.company_bank_account_name && r.company_bank_account_name !== '—'
+                        ? (r.company_bank_account_name + (r.company_bank_account_number ? ' (A/C: ' + r.company_bank_account_number + ')' : ''))
+                        : '—Not Assigned—';
+                    const custBankDisplay = r.customer_bank || r.drawee_bank || '—';
+                    const statusLabel = r.status_display_name || (r.realization_status ? r.realization_status.toUpperCase() : 'PENDING');
+                    const refCheque = r.bank_reference_no || r.ref || '—';
+
+                    const mainRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        idx + 1,
+                        r.ref || r.receipt_no || '—',
+                        receiptDateFormatted,
+                        chequeDateFormatted,
+                        r.customer_name || 'General Payer',
+                        unitDisplay,
+                        compBankDisplay,
+                        custBankDisplay,
+                        amountNum,
+                        r.payment_mode || 'Cheque',
+                        statusLabel,
+                        refCheque
+                    ]);
+                    worksheet.getRow(mainRowNum).height = 25;
+
+                    for (let c = 1; c <= 12; c++) {
+                        const cell = worksheet.getCell(mainRowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 2 || c === 9 || c === 11),
+                            color: {
+                                argb: (c === 9 ? 'FF047857' : (c === 11 ? (statusLabel.includes('BOUNCED') ? 'FFB91C1C' : 'FF0F172A') : 'FF000000'))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 9) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = currentRowNum;
+                worksheet.mergeCells(`A${totalRowNum}:H${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 34;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = `GRAND TOTAL (${list.length} INSTRUMENTS):`;
+                labelCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                for (let c = 1; c <= 8; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col I (9): Total Amount
+                const totAmtCell = worksheet.getCell(totalRowNum, 9);
+                totAmtCell.value = totalAmount;
+                totAmtCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                totAmtCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                totAmtCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                totAmtCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                totAmtCell.border = headerBorder;
+
+                // Col J..L (10..12): Blank fill
+                for (let c = 10; c <= 12; c++) {
+                    const emptyCell = worksheet.getCell(totalRowNum, c);
+                    emptyCell.value = '';
+                    emptyCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    emptyCell.border = headerBorder;
+                }
+
+                // Download XLSX (No date appended to filename as requested)
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = isRealizedTab ? 'Realized_Instruments_Register.xlsx' : 'Cheque_Clearance_Queue_Register.xlsx';
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('An error occurred while generating the Excel report: ' + err.message);
+            }
         }
     }">
 
@@ -812,16 +1062,26 @@
 
         {{-- Main Table matching Receipt Management Table Styling (Original Gold Header & Clean Rows) --}}
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 bg-slate-50 text-slate-900 border-b border-slate-200 flex items-center justify-between">
+            <div class="px-6 py-4 bg-slate-50 text-slate-900 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">
                         {{ request()->routeIs('cheque-realization.realized') ? 'REALIZED INSTRUMENTS' : 'INSTRUMENTS AWAITING CLEARANCE' }}
                     </h3>
                     <p class="text-xs text-slate-500 font-medium mt-0.5" x-text="`Showing ${filteredReceipts.length > 0 ? (currentPage - 1) * perPage + 1 : 0}–${Math.min(currentPage * perPage, filteredReceipts.length)} of ${filteredReceipts.length} instruments`"></p>
                 </div>
-                <span class="px-3 py-1 rounded-full {{ request()->routeIs('cheque-realization.realized') ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200' }} text-xs font-black border uppercase tracking-wider"
-                      x-text="`${filteredReceipts.length} {{ request()->routeIs('cheque-realization.realized') ? 'REALIZED' : 'PENDING' }}`">
-                </span>
+                <div class="flex items-center gap-3 flex-wrap">
+                    {{-- Export Excel Button (Without PDF as requested) --}}
+                    <button type="button" 
+                            @click.stop.prevent="exportToExcel()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export Cheque Realization Queue to Excel">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXPORT EXCEL</span>
+                    </button>
+                    <span class="px-3 py-1 rounded-full {{ request()->routeIs('cheque-realization.realized') ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200' }} text-xs font-black border uppercase tracking-wider"
+                          x-text="`${filteredReceipts.length} {{ request()->routeIs('cheque-realization.realized') ? 'REALIZED' : 'PENDING' }}`">
+                    </span>
+                </div>
             </div>
 
             <div class="overflow-x-auto">

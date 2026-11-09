@@ -1,6 +1,120 @@
 <x-erp-layout title="Cheque & Receipt Entry Desk" headerTitle="Cheque & Receipt Entry Workspace">
 
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 8mm 6mm;
+    }
+    body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    header, nav, aside, footer, button, select, input, .print\:hidden, .print-hide, .filter-panel, [class*="nav"], [class*="sidebar"] {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+
+    /* All 4 Metric KPI Cards in a Single Row in PDF/Print */
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 > a,
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-2xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-\[10px\],
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-\[9px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Exact table styling identical to actual theme */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        font-size: 8pt !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    thead th {
+        font-size: 7.5pt !important;
+        font-weight: 800 !important;
+        padding: 5px 4px !important;
+        letter-spacing: 0.05em !important;
+        background-color: #534E47 !important;
+        color: #ffffff !important;
+        border: 1px solid #443f38 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    tbody tr td {
+        font-size: 7.5pt !important;
+        padding: 4px 3px !important;
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+        border-right: 0.5pt solid #f1f5f9 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Hide action column in print */
+    th:last-child, td:last-child {
+        display: none !important;
+    }
+}
+</style>
+
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="chequeReceiptEntryDesk()" x-init="init()">
+
+        <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
+        <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Customer Collections & Treasury Management</span>
+                    </div>
+                    <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                    <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">CHEQUE & RECEIPT ENTRY DISPLAY REGISTER</h2>
+                </div>
+                <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                    <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                    <div><span class="font-bold text-slate-400 uppercase">Payment Mode:</span> <span class="font-bold text-[#a38c29]" x-text="filters.payment_mode || 'All Modes'"></span></div>
+                    <div><span class="font-bold text-slate-400 uppercase">Status Scope:</span> <span class="font-bold text-[#a38c29]" x-text="filters.realization_status ? filters.realization_status.toUpperCase() : 'All Statuses'"></span></div>
+                    <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-slate-800" x-text="filteredReceipts.length + ' Receipts'"></span></div>
+                </div>
+            </div>
+        </div>
         
 
         
@@ -128,7 +242,7 @@
         </div>
 
         <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all print:hidden print-hide filter-panel">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
 
@@ -357,6 +471,24 @@
                           x-text="filteredReceipts.length + ' Records'">
                     </span>
                 </div>
+
+                {{-- Table Head Export Buttons (Export Excel & Export PDF) --}}
+                <div class="flex items-center gap-2.5 flex-wrap print:hidden print-hide">
+                    <button type="button" 
+                            @click.stop.prevent="exportToExcel()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export Cheque & Receipt Register to Excel">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXPORT EXCEL</span>
+                    </button>
+                    <button type="button" 
+                            @click.stop.prevent="exportToPdf()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Print / Save Cheque & Receipt Register as PDF">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>EXPORT PDF</span>
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -461,7 +593,7 @@
             </div>
 
             {{-- Table Footer Pagination Bar --}}
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl">
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl print:hidden print-hide">
                 <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                     SHOWING <span x-text="filteredReceipts.length ? (currentPage - 1) * perPage + 1 : 0"></span> TO <span x-text="Math.min(currentPage * perPage, filteredReceipts.length)"></span> OF <span x-text="filteredReceipts.length"></span> RECORDS
                 </div>
@@ -921,6 +1053,7 @@
             },
             currentPage: 1,
             perPage: 20,
+            isPrinting: false,
 
             isPaymentModeExpanded(mode) {
                 if (!mode) return false;
@@ -1003,6 +1136,9 @@
             },
 
             get paginatedReceipts() {
+                if (this.isPrinting) {
+                    return this.filteredReceipts;
+                }
                 const start = (this.currentPage - 1) * this.perPage;
                 return this.filteredReceipts.slice(start, start + this.perPage);
             },
@@ -1879,8 +2015,266 @@
                 setTimeout(() => {
                     this.toast.open = false;
                 }, 4000);
+            },
+
+            exportToPdf() {
+                this.isPrinting = true;
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        window.print();
+                        setTimeout(() => {
+                            this.isPrinting = false;
+                        }, 1000);
+                    }, 150);
+                });
+            },
+
+            formatDateForExcel(d) {
+                if (!d) return '—';
+                const dateObj = new Date(d);
+                if (isNaN(dateObj.getTime())) return d;
+                return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            },
+
+            async exportToExcel() {
+                try {
+                    if (typeof ExcelJS === 'undefined') {
+                        alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                        return;
+                    }
+
+                    const list = this.filteredReceipts;
+                    if (!list || list.length === 0) {
+                        alert('No cheque or receipt records available to export for the current filters.');
+                        return;
+                    }
+
+                    // 1. Initialize Workbook & Worksheet
+                    const workbook = new ExcelJS.Workbook();
+                    workbook.creator = 'TABASCO ERP';
+                    workbook.created = new Date();
+
+                    const worksheet = workbook.addWorksheet('Cheque & Receipt Register', {
+                        views: [{ showGridLines: true }]
+                    });
+
+                    // 2. Report Header Titles
+                    const reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. - CHEQUE & RECEIPT ENTRY REGISTER';
+                    const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const modeFilterText = this.filters.payment_mode ? this.filters.payment_mode : 'All Modes';
+                    const statusFilterText = this.filters.realization_status ? this.filters.realization_status.toUpperCase() : 'All Statuses';
+                    const subtitleText = `Payment Mode: ${modeFilterText} | Status: ${statusFilterText} | Total Records: ${list.length} | Generated On: ${nowStr}`;
+
+                    // 3. Column Definitions (11 Columns)
+                    worksheet.columns = [
+                        { key: 'sl', width: 10 },                   // A: SL NO
+                        { key: 'ref', width: 22 },                  // B: RECEIPT NO.
+                        { key: 'date', width: 18 },                 // C: RECEIPT DATE
+                        { key: 'customer', width: 34 },             // D: CUSTOMER NAME
+                        { key: 'unit', width: 22 },                 // E: UNIT
+                        { key: 'company_bank', width: 34 },         // F: COMPANY BANK ACCOUNT
+                        { key: 'customer_bank', width: 26 },        // G: CUSTOMER BANK
+                        { key: 'amount', width: 26 },               // H: AMOUNT (₹)
+                        { key: 'mode', width: 20 },                 // I: PAYMENT MODE
+                        { key: 'status', width: 22 },               // J: REALIZATION STATUS
+                        { key: 'instrument_no', width: 24 }         // K: REF / CHEQUE NO.
+                    ];
+
+                    const thinBorder = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    const headerBorder = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+
+                    // Row 1: Spacer
+                    worksheet.addRow([]);
+                    worksheet.getRow(1).height = 14;
+
+                    // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                    worksheet.mergeCells('A2:K2');
+                    const row2 = worksheet.getRow(2);
+                    row2.height = 36;
+                    const cellA2 = worksheet.getCell('A2');
+                    cellA2.value = reportTitleText;
+                    cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    for (let c = 1; c <= 11; c++) {
+                        worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                        worksheet.getCell(2, c).border = headerBorder;
+                    }
+
+                    // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                    worksheet.mergeCells('A3:K3');
+                    const row3 = worksheet.getRow(3);
+                    row3.height = 25;
+                    const cellA3 = worksheet.getCell('A3');
+                    cellA3.value = subtitleText;
+                    cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    for (let c = 1; c <= 11; c++) {
+                        worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                        worksheet.getCell(3, c).border = headerBorder;
+                    }
+
+                    // Row 4: Spacer
+                    worksheet.addRow([]);
+                    worksheet.getRow(4).height = 10;
+
+                    // Row 5: Table Header Row (Slate #34495E)
+                    const headerTitles = [
+                        'SL NO',
+                        'RECEIPT NO.',
+                        'RECEIPT DATE',
+                        'CUSTOMER NAME',
+                        'UNIT',
+                        'COMPANY BANK ACCOUNT',
+                        'CUSTOMER BANK',
+                        'AMOUNT (₹)',
+                        'PAYMENT MODE',
+                        'REALIZATION STATUS',
+                        'REF / CHEQUE NO.'
+                    ];
+                    const row5 = worksheet.addRow(headerTitles);
+                    row5.height = 30;
+                    for (let c = 1; c <= 11; c++) {
+                        const hCell = worksheet.getCell(5, c);
+                        hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                        hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                        hCell.border = headerBorder;
+                        hCell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                    }
+
+                    // Data Rows (Row 6+)
+                    let totalAmount = 0;
+                    let currentRowNum = 6;
+
+                    list.forEach((r, idx) => {
+                        const isEven = idx % 2 === 0;
+                        const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                        const amountNum = parseFloat(r.amount) || 0;
+                        totalAmount += amountNum;
+
+                        const dateFormatted = this.formatDateForExcel(r.date);
+                        const unitDisplay = (r.door_no ? ('Door No: ' + r.door_no) : (r.unit_name || '—')) + (r.floor_name ? (' · ' + r.floor_name) : '');
+                        const compBankDisplay = r.company_bank_account_name && r.company_bank_account_name !== '—'
+                            ? (r.company_bank_account_name + (r.company_bank_account_number ? ' (A/C: ' + r.company_bank_account_number + ')' : ''))
+                            : '—Not Assigned—';
+                        const custBankDisplay = r.customer_bank || r.drawee_bank || '—';
+                        const statusLabel = r.status_display_name || (r.realization_status ? r.realization_status.toUpperCase() : 'PENDING');
+                        const refCheque = r.reference_no || '—';
+
+                        const mainRowNum = currentRowNum++;
+                        worksheet.addRow([
+                            idx + 1,
+                            r.ref || '—',
+                            dateFormatted,
+                            r.customer_name || 'General Payer',
+                            unitDisplay,
+                            compBankDisplay,
+                            custBankDisplay,
+                            amountNum,
+                            r.payment_mode || 'Cash',
+                            statusLabel,
+                            refCheque
+                        ]);
+                        worksheet.getRow(mainRowNum).height = 25;
+
+                        for (let c = 1; c <= 11; c++) {
+                            const cell = worksheet.getCell(mainRowNum, c);
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                            cell.border = thinBorder;
+                            cell.font = {
+                                name: 'Calibri',
+                                size: 10,
+                                bold: (c === 1 || c === 2 || c === 8 || c === 10),
+                                color: {
+                                    argb: (c === 8 ? 'FF047857' : (c === 10 ? (statusLabel.includes('BOUNCED') ? 'FFB91C1C' : 'FF0F172A') : 'FF000000'))
+                                }
+                            };
+                            cell.alignment = {
+                                horizontal: 'center',
+                                vertical: 'middle',
+                                wrapText: true
+                            };
+                            if (c === 8) {
+                                cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                            }
+                        }
+                    });
+
+                    // Total Summary Row
+                    const totalRowNum = currentRowNum;
+                    worksheet.mergeCells(`A${totalRowNum}:G${totalRowNum}`);
+                    const totalRow = worksheet.getRow(totalRowNum);
+                    totalRow.height = 34;
+
+                    const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                    labelCell.value = `GRAND TOTAL (${list.length} RECEIPTS):`;
+                    labelCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    for (let c = 1; c <= 7; c++) {
+                        worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                        worksheet.getCell(totalRowNum, c).border = headerBorder;
+                    }
+
+                    // Col H (8): Total Amount
+                    const totAmtCell = worksheet.getCell(totalRowNum, 8);
+                    totAmtCell.value = totalAmount;
+                    totAmtCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                    totAmtCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                    totAmtCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    totAmtCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    totAmtCell.border = headerBorder;
+
+                    // Col I..K (9..11): Blank fill
+                    for (let c = 9; c <= 11; c++) {
+                        const emptyCell = worksheet.getCell(totalRowNum, c);
+                        emptyCell.value = '';
+                        emptyCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                        emptyCell.border = headerBorder;
+                    }
+
+                    // Download XLSX
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.download = 'Cheque_Receipt_Register.xlsx';
+                    anchor.click();
+                    window.URL.revokeObjectURL(url);
+                } catch (err) {
+                    console.error('Excel Export Error:', err);
+                    alert('An error occurred while generating the Excel report: ' + err.message);
+                }
             }
         };
     }
+
+    window.exportChequeReceiptExcel = function() {
+        const el = document.querySelector('[x-data]');
+        if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToExcel === 'function') {
+            el._x_dataStack[0].exportToExcel();
+        }
+    };
+    window.exportChequeReceiptPdf = function() {
+        const el = document.querySelector('[x-data]');
+        if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToPdf === 'function') {
+            el._x_dataStack[0].exportToPdf();
+        }
+    };
     </script>
 </x-erp-layout>
