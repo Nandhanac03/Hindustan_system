@@ -3,6 +3,9 @@
 @section('title', 'Broker Commission Ledger & Directory')
 
 @section('content')
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <style>
 /* CRITICAL: @page must be defined at the stylesheet root for Chromium/WebKit to honor landscape mode */
 @page {
@@ -172,13 +175,15 @@
         page-break-after: avoid !important;
         break-after: avoid !important;
     }
-    table.ledger-print-table thead th {
-        background-color: #a38c29 !important;
+    table.ledger-print-table thead th,
+    thead.erp-table-header th,
+    .erp-table-header {
+        background-color: #534E47 !important;
         color: #ffffff !important;
         font-size: 6.8pt !important;
         font-weight: 800 !important;
         padding: 7px 5px !important;
-        border: 0.5pt solid #8a7522 !important;
+        border: 0.5pt solid #443f38 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         letter-spacing: 0.25px !important;
@@ -216,8 +221,8 @@
         padding: 7px 5px !important;
         font-size: 7.2pt !important;
         background-color: #f8fafc !important;
-        border-top: 1.5pt solid #a38c29 !important;
-        border-bottom: 1.5pt solid #a38c29 !important;
+        border-top: 1.5pt solid #534E47 !important;
+        border-bottom: 1.5pt solid #534E47 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         font-weight: 800 !important;
@@ -647,8 +652,20 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto print:hidden">
-                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Filtered Deals:</span>
+            <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-auto print:hidden">
+                <button type="button" @click.stop.prevent="exportToExcel()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export Filtered Broker Commission Ledger to Excel">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click.stop.prevent="printLedger()" 
+                        class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                        title="Export / Print Broker Commission Ledger to PDF">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
+                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider ml-1">Filtered Deals:</span>
                 <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-50 border border-slate-200 text-slate-800 shadow-2xs"
                       x-text="filteredDeals().length + ' Deals'">
                 </span>
@@ -1246,6 +1263,414 @@ function brokerCommissionLedger() {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                    return;
+                }
+
+                const list = this.filteredDeals();
+                if (!list || list.length === 0) {
+                    alert('No deals available to export for the current filters.');
+                    return;
+                }
+
+                const selectedBroker = this.getSelectedBrokerName();
+                const isBrokerFiltered = Boolean(this.selectedLedgerBrokerId && selectedBroker && selectedBroker !== 'All Brokers');
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                let sheetName = 'Commission Ledger';
+                if (isBrokerFiltered) {
+                    sheetName = selectedBroker.replace(/[\\/?*[\]:]/g, '').trim().substring(0, 31) || 'Commission Ledger';
+                }
+                const worksheet = workbook.addWorksheet(sheetName, {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Report Header Titles
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                if (isBrokerFiltered) {
+                    const cleanBrk = selectedBroker.toUpperCase();
+                    reportTitleText += ' - ' + cleanBrk + ' COMMISSION LEDGER';
+                } else {
+                    reportTitleText += ' - BROKER COMMISSION DEALS & AUDIT LEDGER';
+                }
+
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                let subtitleText = `Broker: ${selectedBroker} | Generated On: ${nowStr}`;
+
+                // 3. Column Definitions (11 Columns - No Project column, wide & generously spaced)
+                worksheet.columns = [
+                    { key: 'sl', width: 10 },                   // A: SL NO
+                    { key: 'sale_no', width: 28 },              // B: BOOKING / SALE NO.
+                    { key: 'date', width: 20 },                 // C: BOOKING DATE
+                    { key: 'broker_name', width: 34 },          // D: BROKER NAME
+                    { key: 'customer_name', width: 32 },        // E: CUSTOMER NAME
+                    { key: 'unit_door', width: 22 },            // F: UNIT / DOOR NO.
+                    { key: 'sale_value', width: 26 },           // G: NET SALE VALUE (₹)
+                    { key: 'commission_amount', width: 28 },    // H: COMMISSION ACCRUED (₹)
+                    { key: 'paid_amount', width: 26 },          // I: PAID AMOUNT (₹)
+                    { key: 'balance_due', width: 26 },          // J: BALANCE DUE (₹)
+                    { key: 'status', width: 20 }                // K: STATUS
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                const subHeaderBorder = {
+                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:K2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 38;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 11; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                worksheet.mergeCells('A3:K3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 26;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = subtitleText;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 11; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'BOOKING / SALE NO.',
+                    'BOOKING DATE',
+                    'BROKER NAME',
+                    'CUSTOMER NAME',
+                    'UNIT / DOOR NO.',
+                    'NET SALE VALUE (₹)',
+                    'COMMISSION ACCRUED (₹)',
+                    'PAID AMOUNT (₹)',
+                    'BALANCE DUE (₹)',
+                    'STATUS'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 34;
+                for (let c = 1; c <= 11; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalSale = 0;
+                let totalCommission = 0;
+                let totalPaid = 0;
+                let totalBalance = 0;
+                let currentRowNum = 6;
+
+                list.forEach((deal, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const saleVal = parseFloat(deal.net_sale_value) || 0;
+                    const commVal = parseFloat(deal.commission_amount) || 0;
+                    const paidVal = parseFloat(deal.paid_amount) || 0;
+                    const balVal = parseFloat(deal.balance_due) || 0;
+
+                    totalSale += saleVal;
+                    totalCommission += commVal;
+                    totalPaid += paidVal;
+                    totalBalance += balVal;
+
+                    let statusLabel = 'Pending';
+                    if (deal.status === 'paid' || (commVal > 0 && paidVal >= commVal)) {
+                        statusLabel = 'Paid Out';
+                    } else if (deal.status === 'partial' || paidVal > 0) {
+                        statusLabel = 'Partially Paid';
+                    }
+
+                    const mainRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        idx + 1,
+                        deal.sale_number || '',
+                        deal.sale_date_formatted || deal.sale_date || '—',
+                        deal.broker_name || '',
+                        deal.customer_name || '—',
+                        deal.unit_name ? `Unit: ${deal.unit_name}` : '—',
+                        saleVal,
+                        commVal,
+                        paidVal,
+                        balVal,
+                        statusLabel
+                    ]);
+                    worksheet.getRow(mainRowNum).height = 32;
+
+                    for (let c = 1; c <= 11; c++) {
+                        const cell = worksheet.getCell(mainRowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 2 || c === 7 || c === 8 || c === 9 || c === 10 || c === 11),
+                            color: {
+                                argb: (c === 8 ? 'FF047857' : (c === 9 ? 'FF1E40AF' : (c === 10 ? 'FFB91C1C' : 'FF000000')))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: (c === 2 || c === 4 || c === 5 ? 'left' : 'center'),
+                            vertical: 'middle',
+                            wrapText: true,
+                            indent: (c === 2 || c === 4 || c === 5 ? 1 : 0)
+                        };
+                        if (c === 7 || c === 8 || c === 9 || c === 10) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+
+                    // Expanded Part: Detailed Transaction Log under this deal
+                    const entries = (Array.isArray(deal.entries) && deal.entries.length > 0) ? deal.entries : null;
+                    if (entries && entries.length > 0) {
+                        // 1. Sub-banner
+                        const bannerRowNum = currentRowNum++;
+                        const commFormatted = commVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const paidFormatted = paidVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const balFormatted = balVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                        worksheet.addRow([
+                            '', // Indent A
+                            `↳ DETAILED TRANSACTION LOG — SALE #${deal.sale_number || ''} (${deal.broker_name || ''})  [Accrued: ₹${commFormatted} | Disbursed: ₹${paidFormatted} | Balance: ₹${balFormatted}]`,
+                            '', '', '', '', '', '', '', '', ''
+                        ]);
+                        worksheet.mergeCells(`B${bannerRowNum}:K${bannerRowNum}`);
+                        const bannerRow = worksheet.getRow(bannerRowNum);
+                        bannerRow.height = 26;
+
+                        const indentCell = worksheet.getCell(bannerRowNum, 1);
+                        indentCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF8EE' } };
+                        indentCell.border = thinBorder;
+
+                        for (let c = 2; c <= 11; c++) {
+                            const bCell = worksheet.getCell(bannerRowNum, c);
+                            bCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF8EE' } };
+                            bCell.border = thinBorder;
+                            bCell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF854D0E' } };
+                            bCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                        }
+
+                        // 2. Sub-table Headers
+                        const subHeaderRowNum = currentRowNum++;
+                        worksheet.addRow([
+                            '', // A: Indent
+                            'DATE',                             // B
+                            'EVENT TYPE',                       // C
+                            'REF / VOUCHER NO.',                // D
+                            'PARTICULARS / EVENT DETAILS',       // E
+                            '',                                 // F (merged with E)
+                            'SOURCE / BANK ACCOUNT',            // G
+                            'COMMISSION CLAIM (₹)',             // H
+                            'PAYOUT RELEASED (₹)',              // I
+                            'RUNNING BALANCE (₹)',              // J
+                            'PAYMENT MODE'                      // K
+                        ]);
+                        worksheet.mergeCells(`E${subHeaderRowNum}:F${subHeaderRowNum}`);
+                        const subHeaderRow = worksheet.getRow(subHeaderRowNum);
+                        subHeaderRow.height = 24;
+
+                        const subIndent = worksheet.getCell(subHeaderRowNum, 1);
+                        subIndent.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                        subIndent.border = thinBorder;
+
+                        for (let c = 2; c <= 11; c++) {
+                            const shCell = worksheet.getCell(subHeaderRowNum, c);
+                            shCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
+                            shCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+                            shCell.border = subHeaderBorder;
+                            shCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                        }
+
+                        // 3. Sub-table Detail Rows
+                        entries.forEach((eItem) => {
+                            const entRowNum = currentRowNum++;
+                            const claimAmt = parseFloat(eItem.net_approved) || 0;
+                            const payAmt = parseFloat(eItem.paid_amount) || 0;
+                            const runBal = parseFloat(eItem.running_balance) || 0;
+
+                            // Strip project name from particulars for clean event details
+                            let cleanParticulars = eItem.particulars || '—';
+                            if (deal.project_name) {
+                                cleanParticulars = cleanParticulars.replace(new RegExp(deal.project_name + '\\s*[-–—]\\s*', 'gi'), '');
+                                cleanParticulars = cleanParticulars.replace(new RegExp('\\s*[-–—]\\s*' + deal.project_name, 'gi'), '');
+                                cleanParticulars = cleanParticulars.replace(new RegExp(deal.project_name, 'gi'), '');
+                            }
+                            cleanParticulars = cleanParticulars.replace(/\(\s*[-–—]\s*/g, '(').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+
+                            worksheet.addRow([
+                                '', // A: Indent
+                                eItem.date_formatted || eItem.date || '—',                                    // B
+                                eItem.type === 'CLAIM' ? 'Commission Allocated' : 'Payment Released',          // C
+                                eItem.ref_no || '—',                                                          // D
+                                cleanParticulars,                                                             // E
+                                '',                                                                           // F (merged with E)
+                                eItem.company_bank_account_name || '—',                                       // G
+                                claimAmt,                                                                     // H
+                                payAmt,                                                                       // I
+                                runBal,                                                                       // J
+                                eItem.payment_mode || (eItem.type === 'CLAIM' ? 'Commission Credit' : 'Payment') // K
+                            ]);
+                            worksheet.mergeCells(`E${entRowNum}:F${entRowNum}`);
+                            const eRow = worksheet.getRow(entRowNum);
+                            eRow.height = 26;
+
+                            const eIndent = worksheet.getCell(entRowNum, 1);
+                            eIndent.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                            eIndent.border = thinBorder;
+
+                            for (let c = 2; c <= 11; c++) {
+                                const eCell = worksheet.getCell(entRowNum, c);
+                                eCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                                eCell.border = thinBorder;
+                                eCell.font = {
+                                    name: 'Calibri',
+                                    size: 9,
+                                    bold: (c === 3 || c === 8 || c === 9 || c === 10),
+                                    color: {
+                                        argb: (c === 8 ? 'FF047857' : (c === 9 ? 'FF1E40AF' : (c === 10 ? 'FFB91C1C' : 'FF334155')))
+                                    }
+                                };
+                                eCell.alignment = {
+                                    horizontal: (c === 5 ? 'left' : 'center'),
+                                    vertical: 'middle',
+                                    wrapText: true,
+                                    indent: (c === 5 ? 1 : 0)
+                                };
+                                if (c === 8 || c === 9 || c === 10) {
+                                    eCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = currentRowNum;
+                worksheet.mergeCells(`A${totalRowNum}:F${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 38;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 6; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col G (7): Total Net Sale Value
+                const saleCell = worksheet.getCell(totalRowNum, 7);
+                saleCell.value = totalSale;
+                saleCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                saleCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                saleCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                saleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                saleCell.border = headerBorder;
+
+                // Col H (8): Total Commission Accrued
+                const commCell = worksheet.getCell(totalRowNum, 8);
+                commCell.value = totalCommission;
+                commCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                commCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                commCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                commCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                commCell.border = headerBorder;
+
+                // Col I (9): Total Paid Amount
+                const paidCell = worksheet.getCell(totalRowNum, 9);
+                paidCell.value = totalPaid;
+                paidCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                paidCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                paidCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                paidCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                paidCell.border = headerBorder;
+
+                // Col J (10): Total Balance Due
+                const balCell = worksheet.getCell(totalRowNum, 10);
+                balCell.value = totalBalance;
+                balCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                balCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                balCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                balCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                balCell.border = headerBorder;
+
+                // Col K (11): Blank fill
+                const statusCell = worksheet.getCell(totalRowNum, 11);
+                statusCell.value = '';
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                statusCell.border = headerBorder;
+
+                // Download XLSX
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                let fileName = 'broker-commission-ledger.xlsx';
+                if (isBrokerFiltered) {
+                    const safeBroker = selectedBroker.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+                    fileName = `${safeBroker}_Commission_Ledger.xlsx`;
+                }
+                anchor.download = fileName;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('An error occurred while generating the Excel report: ' + err.message);
+            }
         }
     };
 }

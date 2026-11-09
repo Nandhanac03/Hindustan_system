@@ -1,6 +1,120 @@
 <x-erp-layout title="Broker Statement & Payout Ledger" headerTitle="Brokerage Reports Center">
 
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 6mm 8mm 6mm 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 8pt !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    header, nav, aside, footer, button, select, input, .print\:hidden, .print-hide, .filter-panel, [class*="nav"], [class*="sidebar"] {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+
+    /* All 4 Metric KPI Cards in a Single Row in PDF/Print */
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left-width: 5px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-2xl {
+        font-size: 11pt !important;
+        line-height: 1.2 !important;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-\[10px\] {
+        font-size: 6.5pt !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Exact table styling identical to actual theme */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        font-size: 9pt !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    thead th {
+        font-size: 8.5pt !important;
+        font-weight: 800 !important;
+        padding: 6px 5px !important;
+        letter-spacing: 0.05em !important;
+        background-color: #534E47 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    tbody tr td {
+        font-size: 8.5pt !important;
+        padding: 6px 5px !important;
+        border-bottom: 0.5pt solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Hide action column in print */
+    th:last-child, td:last-child {
+        display: none !important;
+    }
+}
+</style>
+
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="brokerPayoutApp()" x-init="init()">
+
+    {{-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── --}}
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Brokerage Reports Center</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">BROKER STATEMENT & PAYOUT LEDGER</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Broker:</span> <span class="font-bold text-[#a38c29]" x-text="selectedFilterBrokerName"></span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Project:</span> <span class="font-bold text-slate-800" x-text="selectedFilterProjectName"></span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-slate-800" x-text="filteredLedger.length"></span></div>
+            </div>
+        </div>
+    </div>
 
     {{-- Top Header & Reports Export Bar --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
@@ -14,7 +128,7 @@
             <div class="flex flex-wrap items-center gap-2.5">
                 {{-- Record Broker Payout Button --}}
                 <button @click="openPayoutModal()" 
-                        class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0">
+                        class="h-[38px] px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0">
                     <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     <span>Record Broker Payout</span>
                 </button>
@@ -118,7 +232,7 @@
         </div>
 
         {{-- Search & Filter Panel --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all print:hidden print-hide filter-panel">
             <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-1">
@@ -336,14 +450,30 @@
 
         {{-- Section A: Individual Broker Statement of Account (Running Ledger Table) --}}
         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
-            <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">A. Individual Broker Statement of Account (Running Ledger)</h2>
+                    <span class="text-xs font-bold text-slate-400 ml-2" x-text="filteredLedger.length + ' records found'"></span>
                 </div>
-                <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
+
+                {{-- Table Head Export Buttons (Export Excel & Export PDF) --}}
+                <div class="flex items-center gap-2.5 print:hidden">
+                    <button type="button" @click.stop.prevent="exportToExcel()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export Filtered Broker Statement to Excel">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXPORT EXCEL</span>
+                    </button>
+                    <button type="button" @click.stop.prevent="exportToPdf()" 
+                            class="h-[36px] px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]"
+                            title="Export / Print Broker Statement to PDF">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>EXPORT PDF</span>
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -432,7 +562,7 @@
                 </table>
             </div>
 
-            <div class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden print-hide">
                 <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                     SHOWING <span class="text-slate-900 font-black" x-text="filteredLedger.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0"></span> TO <span class="text-slate-900 font-black" x-text="Math.min(currentPage * pageSize, filteredLedger.length)"></span> OF <span class="text-slate-900 font-black" x-text="filteredLedger.length"></span> ENTRIES
                 </div>
@@ -1354,6 +1484,8 @@ function brokerPayoutApp() {
             return found ? found.name : (list.length > 0 ? list[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)');
         },
 
+        isPrinting: false,
+
         init() {
             if (this.companyBankAccounts.length > 0) {
                 this.modalData.company_bank_account_id = String(this.companyBankAccounts[0].id);
@@ -1362,6 +1494,8 @@ function brokerPayoutApp() {
                 this.filters.project_id = String(this.projects[0].id);
             }
             this.modalData.payment_mode = this.getDefaultPaymentMode();
+            window.addEventListener('beforeprint', () => { this.isPrinting = true; });
+            window.addEventListener('afterprint', () => { this.isPrinting = false; });
         },
 
         formatBrokeragesList(brokerages, broker) {
@@ -1735,6 +1869,9 @@ function brokerPayoutApp() {
         },
 
         get pagedLedger() {
+            if (this.isPrinting) {
+                return this.filteredLedger;
+            }
             const start = (this.currentPage - 1) * this.pageSize;
             return this.filteredLedger.slice(start, start + this.pageSize);
         },
@@ -2002,9 +2139,301 @@ function brokerPayoutApp() {
             printWin.document.open();
             printWin.document.write(html);
             printWin.document.close();
+        },
+
+        exportToPdf() {
+            this.isPrinting = true;
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        this.isPrinting = false;
+                    }, 800);
+                }, 150);
+            });
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                    return;
+                }
+
+                const list = this.filteredLedger;
+                if (!list || list.length === 0) {
+                    alert('No transactions available to export for the current filters.');
+                    return;
+                }
+
+                const selectedBroker = this.selectedFilterBrokerName;
+                const isBrokerFiltered = Boolean(this.filters.broker_id && selectedBroker && selectedBroker !== 'All Brokers');
+
+                const selectedProject = this.selectedFilterProjectName;
+                const isProjectFiltered = Boolean(this.filters.project_id && selectedProject && selectedProject !== 'All Projects');
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                // Worksheet Name: Particular Broker Name if filtered, otherwise 'Broker Statement'
+                let sheetName = 'Broker Statement';
+                if (isBrokerFiltered) {
+                    sheetName = selectedBroker.replace(/[\\/?*[\]:]/g, '').trim().substring(0, 31) || 'Broker Statement';
+                }
+                const worksheet = workbook.addWorksheet(sheetName, {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Report Header Titles
+                let reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD';
+                if (isBrokerFiltered) {
+                    const cleanBrk = selectedBroker.toUpperCase();
+                    reportTitleText += ' - ' + cleanBrk + ' STATEMENT OF ACCOUNT';
+                } else {
+                    reportTitleText += ' - BROKER STATEMENT & PAYOUT LEDGER';
+                }
+
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                let subtitleText = `Broker: ${selectedBroker} | Generated On: ${nowStr}`;
+
+                // 3. Column Definitions (10 Columns - Wider for readability, Project removed)
+                worksheet.columns = [
+                    { key: 'sl', width: 10 },                   // A: SL NO
+                    { key: 'date', width: 20 },                 // B: TRANSACTION DATE
+                    { key: 'broker', width: 32 },               // C: BROKER NAME
+                    { key: 'ref_no', width: 26 },               // D: REFERENCE / VOUCHER NO.
+                    { key: 'description', width: 55 },          // E: DESCRIPTION / PARTICULARS
+                    { key: 'payment_mode', width: 32 },         // F: PAYMENT MODE
+                    { key: 'credit', width: 26 },               // G: COMMISSION ALLOCATED (₹)
+                    { key: 'debit', width: 24 },                // H: PAYOUT RELEASED (₹)
+                    { key: 'running_balance', width: 26 },      // I: RUNNING BALANCE (₹)
+                    { key: 'status', width: 18 }                // J: STATUS
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:J2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                worksheet.mergeCells('A3:J3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = subtitleText;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'TRANSACTION DATE',
+                    'BROKER NAME',
+                    'REF / VOUCHER NO.',
+                    'DESCRIPTION / PARTICULARS',
+                    'PAYMENT MODE',
+                    'COMMISSION ALLOCATED (₹)',
+                    'PAYOUT RELEASED (₹)',
+                    'RUNNING BALANCE (₹)',
+                    'STATUS'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 10; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalCredit = 0;
+                let totalDebit = 0;
+                let currentRowNum = 6;
+
+                list.forEach((entry, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const credit = parseFloat(entry.credit) || 0;
+                    const debit = parseFloat(entry.debit) || 0;
+                    const runningBal = parseFloat(entry.running_balance) || 0;
+
+                    totalCredit += credit;
+                    totalDebit += debit;
+
+                    const dateFormatted = entry.date ? this.formatDate(entry.date) : '—';
+                    let statusLabel = 'Pending';
+                    if (entry.status === 'paid' || debit > 0) {
+                        statusLabel = 'Paid';
+                    } else if (entry.status === 'partial') {
+                        statusLabel = 'Partially Paid';
+                    } else if (credit > 0) {
+                        statusLabel = 'Allocated';
+                    }
+
+                    const mainRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        idx + 1,
+                        dateFormatted,
+                        entry.broker_name || '',
+                        entry.ref_no || '',
+                        entry.description || '',
+                        entry.payment_mode || '—',
+                        credit,
+                        debit,
+                        runningBal,
+                        statusLabel
+                    ]);
+                    worksheet.getRow(mainRowNum).height = 25;
+
+                    for (let c = 1; c <= 10; c++) {
+                        const cell = worksheet.getCell(mainRowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 4 || c === 7 || c === 8 || c === 9 || c === 10),
+                            color: {
+                                argb: (c === 7 ? 'FF047857' : (c === 8 ? 'FFB91C1C' : (c === 9 ? 'FF0F172A' : 'FF000000')))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: (c === 5 ? 'left' : 'center'),
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 7 || c === 8 || c === 9) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = currentRowNum;
+                worksheet.mergeCells(`A${totalRowNum}:F${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 36;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 6; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col G (7): Total Commission Allocated
+                const credCell = worksheet.getCell(totalRowNum, 7);
+                credCell.value = totalCredit;
+                credCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                credCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                credCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                credCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                credCell.border = headerBorder;
+
+                // Col H (8): Total Payout Released
+                const debCell = worksheet.getCell(totalRowNum, 8);
+                debCell.value = totalDebit;
+                debCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                debCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                debCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                debCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                debCell.border = headerBorder;
+
+                // Col I (9): Total Net Payable Balance
+                const netBalCell = worksheet.getCell(totalRowNum, 9);
+                netBalCell.value = (totalCredit - totalDebit);
+                netBalCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                netBalCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                netBalCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                netBalCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                netBalCell.border = headerBorder;
+
+                // Col J (10): Blank fill
+                const statusCell = worksheet.getCell(totalRowNum, 10);
+                statusCell.value = '';
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                statusCell.border = headerBorder;
+
+                // Download XLSX
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                let fileName = 'broker-statement-payout-ledger.xlsx';
+                if (isBrokerFiltered) {
+                    const safeBroker = selectedBroker.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+                    fileName = `${safeBroker}_Broker_Statement.xlsx`;
+                }
+                anchor.download = fileName;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('An error occurred while generating the Excel report: ' + err.message);
+            }
         }
     };
 }
+
+window.exportBrokerStatementExcel = function() {
+    const el = document.querySelector('[x-data]');
+    if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToExcel === 'function') {
+        el._x_dataStack[0].exportToExcel();
+    }
+};
+window.exportBrokerStatementPdf = function() {
+    const el = document.querySelector('[x-data]');
+    if (el && el._x_dataStack && el._x_dataStack[0] && typeof el._x_dataStack[0].exportToPdf === 'function') {
+        el._x_dataStack[0].exportToPdf();
+    }
+};
 </script>
 
 </x-erp-layout>

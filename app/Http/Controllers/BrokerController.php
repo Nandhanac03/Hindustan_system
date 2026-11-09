@@ -269,7 +269,8 @@ class BrokerController extends Controller
                     $status = 'partial';
                 }
 
-                $particulars = "Brokerage Commission for Sale #{$saleNo}" . ($projectName ? " ({$projectName}" . ($unitDoor ? " - Unit {$unitDoor}" : "") . " - {$customerName})" : "");
+                $details = array_filter([$unitDoor ? "Unit {$unitDoor}" : '', $customerName]);
+                $particulars = "Brokerage Commission for Sale #{$saleNo}" . (!empty($details) ? " (" . implode(' - ', $details) . ")" : "");
 
                 $totalCommissionAccrued += $commAmount;
 
@@ -523,7 +524,8 @@ class BrokerController extends Controller
                 $customerName = $sale?->customer?->name ?? 'Customer';
                 $projectName = $sale?->project?->name ?? '';
 
-                $desc = "Commission Allocated for Sale #{$saleNo}" . ($projectName ? " ({$projectName}" . ($unitDoor ? " {$unitDoor}" : "") . " - {$customerName})" : "");
+                $details = array_filter([$unitDoor, $customerName]);
+                $desc = "Commission Allocated for Sale #{$saleNo}" . (!empty($details) ? " (" . implode(' - ', $details) . ")" : "");
 
                 $commAmt = (float)$entry->commission_amount;
                 $paidAmt = (float)$entry->paid_amount;
