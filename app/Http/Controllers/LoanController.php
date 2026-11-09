@@ -969,6 +969,26 @@ class LoanController extends Controller
         $emiDueToday = (clone $emiDueQuery)->where('due_date', $today)->get();
         $emiDueThisMonth = (clone $emiDueQuery)->whereBetween('due_date', [$startOfMonth, $endOfMonth])->get();
 
+        // Loan EMI Payment History (50 records per page)
+        $emiPaymentHistoryQuery = EmiSchedule::with('loan.project')
+            ->where(function ($q) {
+                $q->where('status', 'Paid')
+                  ->orWhere('amount_paid', '>', 0)
+                  ->orWhereNotNull('paid_date');
+            });
+
+        if ($selectedProjectId) {
+            $emiPaymentHistoryQuery->whereHas('loan', function ($q) use ($selectedProjectId) {
+                $q->where('project_id', $selectedProjectId);
+            });
+        }
+
+        $emiPaymentHistory = $emiPaymentHistoryQuery
+            ->orderByRaw('COALESCE(paid_date, due_date) DESC')
+            ->orderByDesc('id')
+            ->paginate(50)
+            ->withQueryString();
+
         return view('loans.reports', compact(
             'projects',
             'selectedProjectId',
@@ -978,7 +998,8 @@ class LoanController extends Controller
             'totalPaidPrincipal',
             'totalInterestPaid',
             'emiDueToday',
-            'emiDueThisMonth'
+            'emiDueThisMonth',
+            'emiPaymentHistory'
         ));
     }
 

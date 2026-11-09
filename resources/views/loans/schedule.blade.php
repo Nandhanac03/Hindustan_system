@@ -1,14 +1,129 @@
 <x-erp-layout title="Loan Repayment Schedule" headerTitle="Loan Repayment Schedule Manager">
 
+{{-- ExcelJS CDN Library for Executive Client-side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <style>
     /* Suppress automatically injected amount-in-words elements in modals */
     [data-no-words="true"] .amount-in-words-label,
     .pay-modal-box .amount-in-words-label {
         display: none !important;
     }
+
+    @media print {
+        @page {
+            size: landscape;
+            margin: 6mm 8mm 6mm 8mm;
+        }
+        html, body {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 8pt !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        header, nav, aside, footer, button, select, input, .print\:hidden, .print-hide, [class*="nav"], [class*="sidebar"] {
+            display: none !important;
+        }
+        .print\:block {
+            display: block !important;
+        }
+
+        /* 4 KPI cards in a single row */
+        .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+            page-break-inside: avoid !important;
+        }
+        .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 > div {
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            border-left-width: 5px !important;
+            box-shadow: none !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-xl,
+        .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .text-2xl {
+            font-size: 11pt !important;
+            line-height: 1.2 !important;
+        }
+        .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 p {
+            font-size: 6.5pt !important;
+            line-height: 1.1 !important;
+        }
+
+        /* Table styling with standard #534E47 header */
+        table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: auto !important;
+            border-collapse: collapse !important;
+            font-size: 8.5pt !important;
+        }
+        thead {
+            display: table-header-group !important;
+        }
+        thead th, .erp-table-header, thead.erp-table-header th {
+            font-size: 8pt !important;
+            font-weight: 800 !important;
+            padding: 6px 5px !important;
+            letter-spacing: 0.05em !important;
+            background-color: #534E47 !important;
+            color: #ffffff !important;
+            border: 0.5pt solid #443f38 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        tr {
+            page-break-inside: avoid !important;
+        }
+        tbody tr td {
+            font-size: 8pt !important;
+            padding: 5px 4px !important;
+            border-bottom: 0.5pt solid #e2e8f0 !important;
+            vertical-align: middle !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Hide action column in print */
+        th:last-child, td:last-child {
+            display: none !important;
+        }
+    }
 </style>
 
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="scheduleApp()">
+
+    {{-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── --}}
+    <div class="print-exec-header hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Treasury & Debt Servicing</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">BANK LOAN REPAYMENT SCHEDULE & EMI AUDIT LEDGER</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Loan A/C:</span> <span class="font-mono font-bold text-slate-900">{{ $loan->loan_account_no }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Lender:</span> <span class="font-bold text-[#a38c29]">{{ $loan->lender_name }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Sanctioned:</span> <span class="font-mono font-bold text-slate-800">₹{{ number_format((float)$loan->principal_amount, 2) }}</span></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Loan summary card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6">
         <div class="space-y-1.5">
@@ -21,16 +136,29 @@
             <p class="text-xs text-slate-500 font-medium">Lending Bank: <span class="font-bold text-slate-700" x-text="loan.lender_name"></span> | Project: <span class="font-bold text-slate-700">{{ $loan->project->name ?? '—' }}</span></p>
         </div>
 
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap items-center gap-2.5 print:hidden">
             @if($loan->status === 'Active')
                 <button @click="openPrepayModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Prepayment & Reschedule
+                    <span>Prepayment & Reschedule</span>
                 </button>
             @endif
             <a href="{{ route('loans.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition border border-slate-200 uppercase tracking-wide">
                 &larr; Back Master
             </a>
+            {{-- EXPORT EXCEL & EXPORT PDF buttons right after Back Master button --}}
+            <button type="button" @click.stop.prevent="exportToExcel()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-wide transition shadow hover:shadow-md cursor-pointer active:scale-[0.98]"
+                    title="Export Loan Repayment Schedule to Excel">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>EXPORT EXCEL</span>
+            </button>
+            <button type="button" @click.stop.prevent="exportToPdf()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-wide transition shadow hover:shadow-md cursor-pointer active:scale-[0.98]"
+                    title="Export / Print Loan Repayment Schedule to PDF">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>EXPORT PDF</span>
+            </button>
         </div>
     </div>
 
@@ -995,6 +1123,8 @@
 function scheduleApp() {
     return {
         loan: {!! json_encode($loan) !!},
+        emiSchedules: {!! json_encode($loan->emiSchedules ?? []) !!},
+        prepayments: {!! json_encode($loan->prepayments ?? []) !!},
         companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},
         paymentModes: {!! json_encode($paymentModes ?? []) !!},
         payModalOpen: false,
@@ -1421,6 +1551,369 @@ function scheduleApp() {
                 this.isSubmitting = false;
                 this.showToast('A network error occurred while applying prepayment.', 'error');
             });
+        },
+
+        exportToPdf() {
+            window.print();
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is still loading. Please wait a moment and try again.');
+                    return;
+                }
+
+                const schedules = this.emiSchedules || this.loan.emi_schedules || this.loan.emiSchedules || [];
+                if (!schedules || schedules.length === 0) {
+                    alert('No EMI schedules available to export for this loan.');
+                    return;
+                }
+
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const sheetName = 'Repayment Schedule';
+                const worksheet = workbook.addWorksheet(sheetName, {
+                    views: [{ showGridLines: true }]
+                });
+
+                const reportTitleText = `TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - LOAN A/C #${this.loan.loan_account_no || ''} REPAYMENT SCHEDULE`;
+                const nowStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const principalFormatted = Number(this.loan.principal_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const outstandingFormatted = Number(this.loan.outstanding_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const subtitleText = `Lender: ${this.loan.lender_name || '—'} | Principal: ₹${principalFormatted} | Balance: ₹${outstandingFormatted} | Rate: ${this.loan.interest_rate || 0}% P.A | Generated On: ${nowStr}`;
+
+                // 9 Columns: Generously widened and spaced
+                worksheet.columns = [
+                    { key: 'inst_no', width: 12 },               // A: INST NO
+                    { key: 'due_date', width: 20 },              // B: DUE DATE
+                    { key: 'principal', width: 28 },             // C: PRINCIPAL COMPONENT (₹)
+                    { key: 'interest', width: 28 },              // D: INTEREST COMPONENT (₹)
+                    { key: 'emi', width: 26 },                   // E: EMI AMOUNT (₹)
+                    { key: 'paid', width: 26 },                  // F: AMOUNT PAID (₹)
+                    { key: 'balance', width: 26 },               // G: BALANCE DUE (₹)
+                    { key: 'paid_date', width: 20 },             // H: PAID DATE
+                    { key: 'status', width: 20 }                 // I: STATUS
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Top Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:I2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 38;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 9; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                worksheet.mergeCells('A3:I3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 26;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = subtitleText;
+                cellA3.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 9; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Header Row (Slate #34495E)
+                const headerTitles = [
+                    'INST NO',
+                    'DUE DATE',
+                    'PRINCIPAL COMPONENT (₹)',
+                    'INTEREST COMPONENT (₹)',
+                    'EMI AMOUNT (₹)',
+                    'AMOUNT PAID (₹)',
+                    'BALANCE DUE (₹)',
+                    'PAID DATE',
+                    'STATUS'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 34;
+                for (let c = 1; c <= 9; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                }
+
+                // Data Rows (Row 6+)
+                let totalPrincipal = 0;
+                let totalInterest = 0;
+                let totalEmi = 0;
+                let totalPaid = 0;
+                let totalBalance = 0;
+                let currentRowNum = 6;
+
+                const formatD = (dStr) => {
+                    if (!dStr) return '—';
+                    const d = new Date(dStr);
+                    return isNaN(d) ? dStr : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                };
+
+                schedules.forEach((inst, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    const principal = parseFloat(inst.principal_component) || 0;
+                    const interest = parseFloat(inst.interest_component) || 0;
+                    const emi = parseFloat(inst.emi_amount) || 0;
+                    const paid = parseFloat(inst.amount_paid) || 0;
+                    const balance = Math.max(0, emi - paid);
+
+                    totalPrincipal += principal;
+                    totalInterest += interest;
+                    totalEmi += emi;
+                    totalPaid += paid;
+                    totalBalance += balance;
+
+                    const mainRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        inst.installment_no,
+                        formatD(inst.due_date),
+                        principal,
+                        interest,
+                        emi,
+                        paid,
+                        balance,
+                        formatD(inst.paid_date),
+                        inst.status || 'Due'
+                    ]);
+                    worksheet.getRow(mainRowNum).height = 30;
+
+                    for (let c = 1; c <= 9; c++) {
+                        const cell = worksheet.getCell(mainRowNum, c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 10,
+                            bold: (c === 1 || c === 5 || c === 6 || c === 7 || c === 9),
+                            color: {
+                                argb: (c === 5 ? 'FF1E40AF' : (c === 6 ? 'FF047857' : (c === 7 ? 'FFB91C1C' : 'FF000000')))
+                            }
+                        };
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle',
+                            wrapText: true
+                        };
+                        if (c === 3 || c === 4 || c === 5 || c === 6 || c === 7) {
+                            cell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                        }
+                    }
+                });
+
+                // Total Summary Row
+                const totalRowNum = currentRowNum;
+                worksheet.mergeCells(`A${totalRowNum}:B${totalRowNum}`);
+                const totalRow = worksheet.getRow(totalRowNum);
+                totalRow.height = 38;
+
+                const labelCell = worksheet.getCell(`A${totalRowNum}`);
+                labelCell.value = 'TOTAL SUMMARY';
+                labelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                labelCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+                for (let c = 1; c <= 2; c++) {
+                    worksheet.getCell(totalRowNum, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(totalRowNum, c).border = headerBorder;
+                }
+
+                // Col C (3): Total Principal
+                const princCell = worksheet.getCell(totalRowNum, 3);
+                princCell.value = totalPrincipal;
+                princCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                princCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                princCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                princCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                princCell.border = headerBorder;
+
+                // Col D (4): Total Interest
+                const intCell = worksheet.getCell(totalRowNum, 4);
+                intCell.value = totalInterest;
+                intCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                intCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                intCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                intCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                intCell.border = headerBorder;
+
+                // Col E (5): Total EMI
+                const emiCell = worksheet.getCell(totalRowNum, 5);
+                emiCell.value = totalEmi;
+                emiCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                emiCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                emiCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                emiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                emiCell.border = headerBorder;
+
+                // Col F (6): Total Paid
+                const paidCell = worksheet.getCell(totalRowNum, 6);
+                paidCell.value = totalPaid;
+                paidCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                paidCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                paidCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                paidCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                paidCell.border = headerBorder;
+
+                // Col G (7): Total Balance Due
+                const balCell = worksheet.getCell(totalRowNum, 7);
+                balCell.value = totalBalance;
+                balCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                balCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                balCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                balCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                balCell.border = headerBorder;
+
+                // Col H & I (8, 9): Blank fill
+                for (let c = 8; c <= 9; c++) {
+                    const emptyCell = worksheet.getCell(totalRowNum, c);
+                    emptyCell.value = '';
+                    emptyCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    emptyCell.border = headerBorder;
+                }
+
+                // Prepayment History (if any)
+                const prepayments = this.prepayments || this.loan.prepayments || [];
+                if (prepayments && prepayments.length > 0) {
+                    currentRowNum++;
+                    worksheet.addRow([]); // Spacer
+                    currentRowNum++;
+
+                    const prepayBannerRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        '↳ PREPAYMENT & RESCHEDULING AUDIT HISTORY',
+                        '', '', '', '', '', '', '', ''
+                    ]);
+                    worksheet.mergeCells(`A${prepayBannerRowNum}:I${prepayBannerRowNum}`);
+                    const pBannerRow = worksheet.getRow(prepayBannerRowNum);
+                    pBannerRow.height = 26;
+
+                    for (let c = 1; c <= 9; c++) {
+                        const pbCell = worksheet.getCell(prepayBannerRowNum, c);
+                        pbCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF8EE' } };
+                        pbCell.border = thinBorder;
+                        pbCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF854D0E' } };
+                        pbCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                    }
+
+                    const prepayHeaderRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        'DATE',
+                        '',
+                        'PREPAYMENT AMOUNT (₹)',
+                        '',
+                        'PREVIOUS OUTSTANDING (₹)',
+                        '',
+                        'NEW OUTSTANDING (₹)',
+                        'RESCHEDULE MODE',
+                        ''
+                    ]);
+                    worksheet.mergeCells(`A${prepayHeaderRowNum}:B${prepayHeaderRowNum}`);
+                    worksheet.mergeCells(`C${prepayHeaderRowNum}:D${prepayHeaderRowNum}`);
+                    worksheet.mergeCells(`E${prepayHeaderRowNum}:F${prepayHeaderRowNum}`);
+                    worksheet.mergeCells(`H${prepayHeaderRowNum}:I${prepayHeaderRowNum}`);
+                    const pHeaderRow = worksheet.getRow(prepayHeaderRowNum);
+                    pHeaderRow.height = 24;
+
+                    for (let c = 1; c <= 9; c++) {
+                        const phCell = worksheet.getCell(prepayHeaderRowNum, c);
+                        phCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
+                        phCell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                        phCell.border = headerBorder;
+                        phCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    }
+
+                    prepayments.forEach((pLog) => {
+                        const pRowNum = currentRowNum++;
+                        const pDate = pLog.prepayment_date ? formatD(pLog.prepayment_date) : '—';
+                        const pAmt = parseFloat(pLog.prepayment_amount) || 0;
+                        const prevOut = parseFloat(pLog.previous_outstanding) || 0;
+                        const newOut = parseFloat(pLog.new_outstanding) || 0;
+                        const resMode = pLog.reschedule_option === 'reduce_emi' ? 'Reduce EMI' : 'Reduce Tenure';
+
+                        worksheet.addRow([
+                            pDate,
+                            '',
+                            pAmt,
+                            '',
+                            prevOut,
+                            '',
+                            newOut,
+                            resMode,
+                            ''
+                        ]);
+                        worksheet.mergeCells(`A${pRowNum}:B${pRowNum}`);
+                        worksheet.mergeCells(`C${pRowNum}:D${pRowNum}`);
+                        worksheet.mergeCells(`E${pRowNum}:F${pRowNum}`);
+                        worksheet.mergeCells(`H${pRowNum}:I${pRowNum}`);
+                        const prRow = worksheet.getRow(pRowNum);
+                        prRow.height = 26;
+
+                        for (let c = 1; c <= 9; c++) {
+                            const prCell = worksheet.getCell(pRowNum, c);
+                            prCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                            prCell.border = thinBorder;
+                            prCell.font = { name: 'Calibri', size: 9.5, bold: (c === 3 || c === 7) };
+                            prCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                            if (c === 3 || c === 5 || c === 7) {
+                                prCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                            }
+                            if (c === 3) prCell.font.color = { argb: 'FF047857' };
+                            if (c === 7) prCell.font.color = { argb: 'FFB91C1C' };
+                        }
+                    });
+                }
+
+                // Download file
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                const safeAcc = (this.loan.loan_account_no || 'loan').replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+                anchor.download = `Loan_${safeAcc}_Repayment_Schedule.xlsx`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('An error occurred while generating the Excel report: ' + err.message);
+            }
         }
     }
 }
