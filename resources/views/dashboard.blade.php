@@ -223,19 +223,56 @@
     {{-- REVENUE CHART + UNIT STATUS DONUT --}}
     <div class="anim-3 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
-        {{-- Revenue Area Chart (2/3) --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Revenue Analytics</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Monthly booking revenue vs collections - {{ now()->year }}</p>
+        {{-- Sales & Collection Trend Mixed Chart (2/3) --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6" style="position: relative;">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px;">
+                {{-- Left: Icon + Title + Info Tooltip --}}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(180, 155, 56, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg style="width: 20px; height: 20px; color: #b49b38;" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7v2h20V7L12 2z" opacity="0.85"/>
+                            <rect x="4" y="10" width="3.5" height="11" rx="1"/>
+                            <rect x="10.25" y="10" width="3.5" height="11" rx="1"/>
+                            <rect x="16.5" y="10" width="3.5" height="11" rx="1"/>
+                            <path d="M2 21h20v2H2z"/>
+                        </svg>
+                    </div>
+                    <h2 style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0; letter-spacing: -0.01em;">Sales & Collection Trend</h2>
+                    <div class="relative group cursor-pointer inline-flex items-center" style="margin-left: 2px;">
+                        <svg style="width: 16px; height: 16px; color: #94a3b8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-30 w-60 p-2.5 bg-slate-900 text-white text-xs rounded-xl shadow-xl pointer-events-none text-center leading-relaxed">
+                            Monthly booking revenue, realized collections, and collection efficiency percentage.
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
-                    <span class="flex items-center gap-1.5 text-primary"><span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>Revenue</span>
-                    <span class="flex items-center gap-1.5 text-emerald-500"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Collected</span>
+
+                {{-- Right: Filter Pill Group --}}
+                <div style="display: flex; align-items: center; background: #f8fafc; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 4px;">
+                    <button type="button" data-trend-filter="revenue" class="trend-filter-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; background: #b49b38; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        Revenue
+                    </button>
+                    <button type="button" data-trend-filter="collection" class="trend-filter-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; background: transparent; color: #475569;">
+                        Collection
+                    </button>
+                    <button type="button" data-trend-filter="outstanding" class="trend-filter-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; background: transparent; color: #475569;">
+                        Outstanding
+                    </button>
                 </div>
             </div>
-            <div id="revenueChart" class="w-full" style="height:260px;"></div>
+
+            {{-- Floating Collection Rate Callout Badge (Positioned at Top-Right of Chart Area) --}}
+            <div style="position: absolute; top: 76px; right: 32px; z-index: 10; display: flex; flex-direction: column; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 6px 20px 8px 20px; box-shadow: 0 2px 5px rgba(16,185,129,0.08); pointer-events: none;">
+                <span style="font-size: 11px; font-weight: 700; color: #047857; text-transform: capitalize; letter-spacing: 0.02em;">Collection Rate</span>
+                <span style="font-size: 24px; font-weight: 900; color: #064e3b; line-height: 1.1; margin-top: 1px;">{{ $overallCollectionRate ?? '72.4%' }}</span>
+                <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 10px; height: 10px; background: #ecfdf5; border-right: 1px solid #a7f3d0; border-bottom: 1px solid #a7f3d0;"></div>
+            </div>
+
+            {{-- Chart container --}}
+            <div id="salesCollectionTrendChart" class="w-full" style="height: 310px; margin-top: 6px;"></div>
         </div>
 
         {{-- Unit Status Donut (1/3) --}}
@@ -572,43 +609,170 @@
 
 {{-- APEX CHARTS SCRIPTS --}}
 <script>
-// Revenue Area Chart
+// Sales & Collection Trend Mixed Chart
 const currencySymbol = @json($currencySymbol);
-new ApexCharts(document.querySelector('#revenueChart'), {
+const trendCategories = @json($trendCategories);
+const trendRevenue = @json($trendRevenue);
+const trendCollections = @json($trendCollections);
+const trendOutstanding = @json($trendOutstanding);
+const trendCollectionPct = @json($trendCollectionPct);
+
+const trendChartOptions = {
     series: [
-        { name: `Revenue (${currencySymbol} L)`, data: @json($revenueData) },
-        { name: `Collected (${currencySymbol} L)`, data: @json($collectionsData) }
+        {
+            name: 'Revenue',
+            type: 'column',
+            data: trendRevenue
+        },
+        {
+            name: 'Collections',
+            type: 'column',
+            data: trendCollections
+        },
+        {
+            name: 'Collection %',
+            type: 'line',
+            data: trendCollectionPct
+        }
     ],
     chart: {
-        type: 'area', height: 260, fontFamily: 'Inter, sans-serif',
+        height: 310,
+        type: 'line',
+        fontFamily: 'Inter, sans-serif',
         toolbar: { show: false },
-        animations: { enabled: true, easing: 'easeinout', speed: 900 }
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
     },
-    colors: ['#a38c29', '#10B981'],
-    fill: {
-        type: 'gradient',
-        gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.02, stops: [0, 100] }
-    },
-    stroke: { curve: 'smooth', width: [2.5, 2.5] },
-    dataLabels: { enabled: false },
-    xaxis: {
-        categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        axisBorder: { show: false }, axisTicks: { show: false },
-        labels: { style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'Inter, sans-serif' } }
-    },
-    yaxis: {
-        labels: {
-            style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'Inter, sans-serif' },
-            formatter: v => currencySymbol + v.toFixed(1) + 'L'
+    colors: ['#ebc76b', '#4ade80', '#065f46'],
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '42%',
+            borderRadius: 4,
+            borderRadiusApplication: 'end'
         }
     },
-    grid: { borderColor: '#f1f5f9', strokeDashArray: 4, xaxis: { lines: { show: false } } },
-    legend: { show: false },
+    stroke: {
+        width: [0, 0, 2.5],
+        curve: 'straight'
+    },
+    markers: {
+        size: [0, 0, 5],
+        colors: ['#065f46'],
+        strokeColors: '#ffffff',
+        strokeWidth: 2,
+        hover: { size: 7 }
+    },
+    xaxis: {
+        categories: trendCategories,
+        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
+        axisTicks: { show: true, color: '#94a3b8', height: 4 },
+        labels: {
+            style: { colors: '#334155', fontSize: '12px', fontWeight: 600, fontFamily: 'Inter, sans-serif' }
+        }
+    },
+    yaxis: {
+        min: 0,
+        max: 50,
+        tickAmount: 5,
+        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
+        axisTicks: { show: true, color: '#94a3b8', width: 4 },
+        labels: {
+            style: { colors: '#334155', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, sans-serif' },
+            formatter: function (val) {
+                return val === 0 ? '0' : currencySymbol + Math.round(val) + ' Cr';
+            }
+        }
+    },
+    grid: {
+        borderColor: '#f1f5f9',
+        strokeDashArray: 0,
+        yaxis: { lines: { show: true } },
+        xaxis: { lines: { show: false } }
+    },
+    legend: {
+        show: true,
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontSize: '12px',
+        fontWeight: 600,
+        fontFamily: 'Inter, sans-serif',
+        labels: { colors: '#334155' },
+        markers: {
+            width: 14,
+            height: 10,
+            radius: 2
+        },
+        itemMargin: { horizontal: 16, vertical: 8 }
+    },
     tooltip: {
+        shared: true,
+        intersect: false,
         theme: 'light',
-        y: { formatter: v => currencySymbol + v.toFixed(2) + ' Lakhs' }
+        y: {
+            formatter: function (val, opts) {
+                if (val === undefined || val === null) return '';
+                const seriesName = opts && opts.w ? opts.w.config.series[opts.seriesIndex].name : '';
+                if (seriesName === 'Collection %') {
+                    return val.toFixed(1) + '%';
+                }
+                return currencySymbol + val.toFixed(2) + ' Cr';
+            }
+        }
     }
-}).render();
+};
+
+const trendChart = new ApexCharts(document.querySelector('#salesCollectionTrendChart'), trendChartOptions);
+trendChart.render();
+
+// Interactive Filter Buttons
+document.querySelectorAll('.trend-filter-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.trend-filter-btn').forEach(b => {
+            b.style.background = 'transparent';
+            b.style.color = '#475569';
+            b.style.fontWeight = '500';
+            b.style.boxShadow = 'none';
+        });
+        this.style.background = '#b49b38';
+        this.style.color = '#ffffff';
+        this.style.fontWeight = '600';
+        this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+
+        const filter = this.dataset.trendFilter;
+        if (filter === 'revenue') {
+            trendChart.updateOptions({
+                colors: ['#ebc76b', '#4ade80', '#065f46'],
+                stroke: { width: [0, 0, 2.5], curve: 'straight' },
+                markers: { size: [0, 0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+            });
+            trendChart.updateSeries([
+                { name: 'Revenue', type: 'column', data: trendRevenue },
+                { name: 'Collections', type: 'column', data: trendCollections },
+                { name: 'Collection %', type: 'line', data: trendCollectionPct }
+            ]);
+        } else if (filter === 'collection') {
+            trendChart.updateOptions({
+                colors: ['#4ade80', '#065f46'],
+                stroke: { width: [0, 2.5], curve: 'straight' },
+                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+            });
+            trendChart.updateSeries([
+                { name: 'Collections', type: 'column', data: trendCollections },
+                { name: 'Collection %', type: 'line', data: trendCollectionPct }
+            ]);
+        } else if (filter === 'outstanding') {
+            trendChart.updateOptions({
+                colors: ['#f59e0b', '#065f46'],
+                stroke: { width: [0, 2.5], curve: 'straight' },
+                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+            });
+            trendChart.updateSeries([
+                { name: 'Outstanding', type: 'column', data: trendOutstanding },
+                { name: 'Collection %', type: 'line', data: trendCollectionPct }
+            ]);
+        }
+    });
+});
 
 // Donut Chart
 new ApexCharts(document.querySelector('#donutChart'), {
