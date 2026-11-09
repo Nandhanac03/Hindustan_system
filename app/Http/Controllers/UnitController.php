@@ -744,7 +744,8 @@ class UnitController extends Controller
                 $q->where('floor_id', $request->floor_id);
             });
         }
-        $logs = $query->orderBy('id', 'desc')->paginate(50)->withQueryString();
+        $perPage = ($request->input('per_page') === 'all' || $request->has('export')) ? 10000 : 50;
+        $logs = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
         // Calculate KPI Stats
         $kpiQuery = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)

@@ -49,8 +49,10 @@ class VendorAgingReportService
         // 3. Build Real Dataset from Database for Vendor Master accounts
         $allVendors = $this->buildRealDataset($asOnDate, $defaultProjectName, $systemId);
 
-        // 4. Filter by Project (if specified)
-        $selectedProject = $filters['project'] ?? 'All Projects';
+        // 4. Filter by Project (defaults to the first project if not specified)
+        $selectedProject = isset($filters['project']) && $filters['project'] !== ''
+            ? $filters['project']
+            : ($allProjects[0] ?? 'All Projects');
         $rows = $allVendors;
         if ($selectedProject && $selectedProject !== 'All Projects' && $selectedProject !== 'All') {
             $rows = array_values(array_filter($rows, function ($v) use ($selectedProject) {

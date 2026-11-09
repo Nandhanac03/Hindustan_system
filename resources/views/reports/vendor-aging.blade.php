@@ -149,6 +149,35 @@
         padding-bottom: 6px !important;
     }
 
+    /* Compact Spacing for Print */
+    .space-y-6 > * + * {
+        margin-top: 8px !important;
+    }
+
+    /* Web Banner Compact in Print */
+    .bg-gradient-to-r.from-\[\#fdfaf3\] {
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] .w-12.h-12 {
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 6px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] h1 {
+        font-size: 11pt !important;
+    }
+    .bg-gradient-to-r.from-\[\#fdfaf3\] p,
+    .bg-gradient-to-r.from-\[\#fdfaf3\] div {
+        font-size: 6.5pt !important;
+        margin-top: 2px !important;
+    }
+
     /* 6 KPI Metric Cards in Print */
     #dashboard-stats {
         display: grid !important;
@@ -170,21 +199,119 @@
         min-width: 0 !important;
         overflow: hidden !important;
     }
-    #dashboard-stats .text-xl {
+    #dashboard-stats .text-xl,
+    #dashboard-stats .text-2xl {
         font-size: 9.5pt !important;
         line-height: 1.15 !important;
     }
+    #dashboard-stats .text-\[10px\],
+    #dashboard-stats .text-xs {
+        font-size: 6pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-stats svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+    #dashboard-stats .w-7 {
+        width: 18px !important;
+        height: 18px !important;
+    }
 
-    /* Charts in Print */
+    /* 3 Visual Analytical Charts in Print (Non-Overlapping, Fully Contained) */
     #dashboard-charts {
         display: grid !important;
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 8px !important;
-        margin-top: 12px !important;
-        margin-bottom: 16px !important;
+        margin-top: 10px !important;
+        margin-bottom: 24px !important;
         width: 100% !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+        clear: both !important;
+    }
+    #dashboard-charts > div {
+        padding: 6px 8px 8px 8px !important;
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+    #dashboard-charts h3 {
+        font-size: 7.5pt !important;
+        margin-bottom: 1px !important;
+        line-height: 1.2 !important;
+    }
+    #dashboard-charts p {
+        font-size: 5.5pt !important;
+        line-height: 1.1 !important;
+    }
+    #dashboard-charts .min-h-\[220px\],
+    #dashboard-charts .min-h-\[210px\] {
+        min-height: 155px !important;
+        height: 155px !important;
+        max-height: 165px !important;
+        overflow: hidden !important;
+    }
+    #dashboard-charts .apexcharts-canvas {
+        max-height: 160px !important;
+        margin: 0 auto !important;
+    }
+    #dashboard-charts .apexcharts-canvas svg {
+        max-height: 115px !important;
+        width: 100% !important;
+    }
+    #dashboard-charts .apexcharts-legend {
+        position: static !important;
+        padding: 2px 0 0 0 !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        max-height: 38px !important;
+        overflow: hidden !important;
+    }
+    #dashboard-charts .apexcharts-legend-series {
+        margin: 1px 3px !important;
+    }
+    #dashboard-charts .apexcharts-legend-text {
+        font-size: 5.8pt !important;
+        line-height: 1.1 !important;
+        color: #475569 !important;
+    }
+    #dashboard-charts .apexcharts-legend-marker,
+    .apexcharts-legend-marker {
+        width: 6px !important;
+        height: 6px !important;
+        border-radius: 50% !important;
+        margin-right: 3px !important;
+    }
+    #dashboard-charts .space-y-3 > * + * {
+        margin-top: 4px !important;
+    }
+    #dashboard-charts .h-3 {
+        height: 6px !important;
+    }
+    #dashboard-charts .pt-2.space-y-3 {
+        padding-top: 2px !important;
+        min-height: 155px !important;
+        height: 155px !important;
+    }
+
+    /* Table Container Clear Separation */
+    #vendor-aging-table-card {
+        margin-top: 24px !important;
+        clear: both !important;
+        display: block !important;
+        page-break-before: auto !important;
+    }
+    #vendor-aging-table-card > div:first-child {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
     }
 
     /* Table Formatting for Print */
@@ -210,7 +337,7 @@
         line-height: 1.25 !important;
     }
     th {
-        background-color: #a38c29 !important;
+        background-color: var(--erp-table-header-bg, #534E47) !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -220,6 +347,17 @@
     td {
         border-bottom: 0.5pt solid #e2e8f0 !important;
         font-size: 7pt !important;
+    }
+    /* Vendor ID / Company ID Pill in Print */
+    td span[x-text="row.company_id"],
+    td span.font-mono {
+        font-size: 6pt !important;
+        padding: 1px 4px !important;
+        border-radius: 3px !important;
+        border: 0.5pt solid #cbd5e1 !important;
+        background-color: #f8fafc !important;
+        line-height: 1.1 !important;
+        display: inline-block !important;
     }
 }
 </style>
@@ -261,7 +399,7 @@
                 <div>
                     <div class="flex items-center gap-2.5">
                         <h1 class="text-lg sm:text-xl font-black tracking-tight uppercase text-slate-900">Vendor & Sundry Creditor Aging Report</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">Accounts Payable</span>
+                        <!-- <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">Accounts Payable</span> -->
                     </div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mt-1">
                         <span>Accounting</span>
@@ -714,10 +852,7 @@
                     Vendor & Sundry Creditor Aging Details
                 </h3>
                 <div class="flex items-center gap-2 mt-1 pl-3">
-                    <span class="text-xs font-black text-[#a38c29]" x-text="filteredRows.length + ' Vendors'">32 Vendors</span>
-                    <span class="text-slate-300">•</span>
-                    <p class="text-[10.5px] font-medium text-slate-500">Comprehensive chronological aging categorized into 0-30, 31-60, 61-90, and 90+ delinquency buckets.</p>
-                </div>
+                    <span class="text-xs font-black text-[#a38c29]" x-text="filteredRows.length + ' Vendors'">32 Vendors</span>                </div>
             </div>
 
             {{-- Export Buttons (Export Excel & Export PDF) --}}
@@ -781,7 +916,7 @@
 
                             {{-- Company ID --}}
                             <td class="py-3 px-3">
-                                <span class="font-mono text-[11px] font-bold text-slate-700 px-2 py-0.5 rounded bg-slate-100 border border-slate-200" x-text="row.company_id"></span>
+                                <span class="font-mono text-[10px] font-bold text-slate-700 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200" x-text="row.company_id"></span>
                             </td>
 
                             {{-- Total Outstanding --}}
@@ -935,7 +1070,7 @@
         </div>
 
         {{-- Table Pagination Footer --}}
-        <div class="p-3.5 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-white">
+        <div class="p-3.5 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-white print:hidden">
             <div x-text="'Showing ' + (filteredRows.length > 0 ? (currentPage - 1) * pageSize + 1 : 0) + ' to ' + Math.min(currentPage * pageSize, filteredRows.length) + ' of ' + filteredRows.length + ' entries'"></div>
 
             <div class="flex items-center gap-1" x-show="filteredRows.length > 0">
@@ -973,7 +1108,7 @@
          x-transition:leave="transition ease-in duration-150" 
          x-transition:leave-start="opacity-100" 
          x-transition:leave-end="opacity-0">
-         <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="vendorModalOpen = false">
+         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="vendorModalOpen = false">
               
               {{-- Header --}}
               <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-[#a38c29]/10">
@@ -992,70 +1127,96 @@
               <template x-if="modalVendor">
                   <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/40">
                       
-                      {{-- Primary Vendor & Summary 4-Column Card --}}
-                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
-                          <div>
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Vendor Name</span>
-                              <strong class="text-slate-900 text-xs font-bold block mt-1" x-text="modalVendor.name"></strong>
-                              <span class="text-[10px] text-slate-500 font-mono block mt-0.5" x-text="modalVendor.company_id"></span>
-                          </div>
-                          <div>
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Outstanding</span>
-                              <strong class="text-slate-900 text-sm font-mono font-black block mt-0.5" x-text="currency + ' ' + formatMoney(modalVendor.total_outstanding)"></strong>
-                          </div>
-                          <div>
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</span>
-                              <span class="text-slate-700 text-xs font-semibold block mt-1 truncate" x-text="modalVendor.project || '—'"></span>
-                          </div>
-                          <div>
-                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Last Payment</span>
-                              <strong class="text-slate-800 text-xs font-mono font-bold block mt-1" x-text="modalVendor.last_payment_date || '—'"></strong>
-                              <span class="text-[10px] text-slate-400 font-mono block mt-0.5" x-text="modalVendor.last_payment_ref || ''"></span>
+                      {{-- Primary Vendor Details (Unified Info Bar - Non-card design) --}}
+                      <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+                          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                              
+                              {{-- Vendor Profile --}}
+                              <div class="flex items-center gap-3 pr-2" style="border-top: none !important;">
+                                  <div class="w-10 h-10 rounded-xl bg-[#a38c29]/15 border border-[#a38c29]/30 flex items-center justify-center text-[#7c691c] font-black text-sm shrink-0 uppercase shadow-2xs"
+                                       x-text="modalVendor.name ? modalVendor.name.charAt(0).toUpperCase() : 'V'">
+                                  </div>
+                                  <div class="min-w-0">
+                                      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Vendor Name</span>
+                                      <strong class="text-slate-900 text-xs font-bold block truncate" x-text="modalVendor.name"></strong>
+                                      <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200/60" x-text="modalVendor.company_id"></span>
+                                  </div>
+                              </div>
+
+                              {{-- Project --}}
+                              <div class="sm:pl-4 pr-2 flex flex-col justify-center" style="border-top: none !important;">
+                                  <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Project</span>
+                                  <div class="flex items-center gap-1.5 mt-1">
+                                      <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                      <span class="text-slate-700 text-xs font-semibold truncate" x-text="modalVendor.project || '—'"></span>
+                                  </div>
+                              </div>
+
+                              {{-- Last Payment --}}
+                              <div class="sm:pl-4 pr-2 flex flex-col justify-center" style="border-top: none !important;">
+                                  <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Last Payment</span>
+                                  <div class="mt-1">
+                                      <div class="flex items-center gap-1.5 text-slate-800 text-xs font-mono font-bold">
+                                          <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                          <span x-text="modalVendor.last_payment_date || '—'"></span>
+                                      </div>
+                                      <span class="text-[10px] text-slate-500 font-mono block mt-0.5" x-text="modalVendor.last_payment_ref ? 'Ref: ' + modalVendor.last_payment_ref : 'No Reference'"></span>
+                                  </div>
+                              </div>
+
+                              {{-- Total Outstanding --}}
+                              <div class="sm:pl-4 flex flex-col justify-center" style="border-top: none !important;">
+                                  <span class="text-[9px] font-extrabold text-[#7c691c] uppercase tracking-wider block">Total Outstanding</span>
+                                  <div class="mt-0.5">
+                                      <strong class="text-rose-600 text-base font-mono font-black block tracking-tight" x-text="currency + ' ' + formatMoney(modalVendor.total_outstanding)"></strong>
+                                  </div>
+                              </div>
+
                           </div>
                       </div>
 
-                      {{-- Aging Buckets Breakdown (4 Accent Cards) --}}
+                      {{-- Aging Buckets Breakdown (Theme Style Cards) --}}
                       <div>
                           <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Aging Delinquency Buckets</span>
                           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                              <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200/70 shadow-2xs">
+                              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/90 border-l-[5px] border-l-emerald-500 shadow-2xs">
                                   <span class="text-[9px] font-black text-emerald-800 uppercase tracking-wide block">0 - 30 Days</span>
-                                  <strong class="text-emerald-700 text-sm font-mono font-extrabold block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_0_30)"></strong>
+                                  <strong class="text-emerald-700 text-base font-mono font-black block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_0_30)"></strong>
                               </div>
-                              <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200/70 shadow-2xs">
+                              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/90 border-l-[5px] border-l-amber-500 shadow-2xs">
                                   <span class="text-[9px] font-black text-amber-800 uppercase tracking-wide block">31 - 60 Days</span>
-                                  <strong class="text-amber-700 text-sm font-mono font-extrabold block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_31_60)"></strong>
+                                  <strong class="text-amber-700 text-base font-mono font-black block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_31_60)"></strong>
                               </div>
-                              <div class="p-3 bg-orange-50/50 rounded-xl border border-orange-200/70 shadow-2xs">
+                              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/90 border-l-[5px] border-l-orange-500 shadow-2xs">
                                   <span class="text-[9px] font-black text-orange-800 uppercase tracking-wide block">61 - 90 Days</span>
-                                  <strong class="text-orange-700 text-sm font-mono font-extrabold block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_61_90)"></strong>
+                                  <strong class="text-orange-700 text-base font-mono font-black block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_61_90)"></strong>
                               </div>
-                              <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-200/70 shadow-2xs">
+                              <div class="bg-white p-3.5 rounded-2xl border border-slate-200/90 border-l-[5px] border-l-rose-500 shadow-2xs">
                                   <span class="text-[9px] font-black text-rose-800 uppercase tracking-wide block">90+ Days (Critical)</span>
-                                  <strong class="text-rose-700 text-sm font-mono font-extrabold block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_90_plus)"></strong>
+                                  <strong class="text-rose-700 text-base font-mono font-black block mt-1" x-text="currency + ' ' + formatMoney(modalVendor.bucket_90_plus)"></strong>
                               </div>
                           </div>
                       </div>
 
                       {{-- Invoices Sub-Table inside Modal --}}
-                      <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                           <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
                               <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Unpaid Invoices Breakdown</span>
                               <span class="text-[11px] font-bold text-slate-500 font-mono" x-text="(modalVendor.invoices ? modalVendor.invoices.length : 0) + ' Invoices'"></span>
                           </div>
                           <div class="overflow-x-auto custom-scrollbar">
                               <table class="w-full text-left border-collapse text-xs">
-                                  <thead>
-                                      <tr class="bg-slate-100/80 text-slate-700 uppercase text-[9px] font-black tracking-wider border-b border-slate-200">
-                                          <th class="py-2 px-3 w-8 text-center">#</th>
-                                          <th class="py-2 px-3">Invoice No.</th>
-                                          <th class="py-2 px-3">Invoice Date</th>
-                                          <th class="py-2 px-3">Due Date</th>
-                                          <th class="py-2 px-3 text-right">Invoice Amount</th>
-                                          <th class="py-2 px-3 text-right">Paid Amount</th>
-                                          <th class="py-2 px-3 text-right">Outstanding</th>
-                                          <th class="py-2 px-3 text-center">Days Overdue</th>
-                                          <th class="py-2 px-3 text-center">Bucket</th>
+                                  <thead class="erp-table-header" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">
+                                      <tr class="erp-table-header text-white uppercase text-[9px] font-black tracking-wider border-b border-[#3e3a35]" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">
+                                          <th class="erp-table-header py-2.5 px-3 w-8 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">#</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Invoice No.</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Invoice Date</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Due Date</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Invoice Amount</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Paid Amount</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-right text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Outstanding</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Days Overdue</th>
+                                          <th class="erp-table-header py-2.5 px-3 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Bucket</th>
                                       </tr>
                                   </thead>
                                   <tbody class="divide-y divide-slate-100">
@@ -1121,7 +1282,7 @@ function vendorAgingApp() {
         filters: {
             search: '',
             vendor: 'all',
-            project: 'all',
+            project: @json($selectedProject ?? ($allProjects[0] ?? 'all')),
             aging_bucket: 'all',
             overdue_only: false,
         },
@@ -1260,7 +1421,7 @@ function vendorAgingApp() {
         resetFilters() {
             this.filters.search = '';
             this.filters.vendor = 'all';
-            this.filters.project = 'all';
+            this.filters.project = this.allProjectsList.length > 0 ? this.allProjectsList[0] : 'all';
             this.filters.aging_bucket = 'all';
             this.filters.overdue_only = false;
             this.currentPage = 1;

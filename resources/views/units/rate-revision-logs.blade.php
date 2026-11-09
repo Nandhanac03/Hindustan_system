@@ -1,5 +1,8 @@
 <x-erp-layout title="Rate Revision Logs" headerTitle="Rate Revision Engine">
 
+{{-- ExcelJS CDN Library for High-Fidelity Client-Side Excel Export --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <script>
 window.rateRevisionInitialData = {
     projectId: '{{ $projectId ?? '' }}',
@@ -241,6 +244,15 @@ window.rateRevisionInitialData = {
                     class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
+            </button>
+
+            {{-- Export Excel Button (Client-side ExcelJS) --}}
+            <button type="button"
+                    @click="exportToExcel()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 h-[38px] text-xs font-extrabold uppercase tracking-wider shadow hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                    title="Export Rate Revision Register to Excel">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>EXPORT EXCEL</span>
             </button>
         </div>
     </div>
@@ -526,6 +538,208 @@ function rateRevisionApp(config = window.rateRevisionInitialData || {}) {
             this.unitTypeOpen = false;
             this.floorOpen = false;
             this.fetchLogs(1);
+        },
+
+        async exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('ExcelJS library is loading. Please wait a moment and try again.');
+                    return;
+                }
+
+                let list = this.logs;
+                // If there are more pages than current view, fetch all matching records
+                if (this.pagination.total > this.logs.length) {
+                    let params = new URLSearchParams();
+                    params.append('per_page', 'all');
+                    if (this.projectId) params.append('project_id', this.projectId);
+                    if (this.unitTypeId) params.append('unit_type_id', this.unitTypeId);
+                    if (this.floorId) params.append('floor_id', this.floorId);
+
+                    const res = await fetch(`{{ route('rate-revision.index') }}?${params.toString()}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success && data.logs) {
+                        list = data.logs;
+                    }
+                }
+
+                if (!list || list.length === 0) {
+                    alert('No rate revision logs available to export.');
+                    return;
+                }
+
+                // 1. Initialize Workbook & Worksheet
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'TABASCO ERP';
+                workbook.created = new Date();
+
+                const worksheet = workbook.addWorksheet('Rate Revisions', {
+                    views: [{ showGridLines: true }]
+                });
+
+                // 2. Report Header Titles
+                const reportTitleText = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. - UNIT RATE REVISION REGISTER';
+                const subtitleText = `Project: ${this.selectedProjectName} | Unit Type: ${this.selectedUnitTypeName} | Floor: ${this.selectedFloorName} | Total Records: ${list.length}`;
+
+                // 3. Column Definitions (10 Columns - Project removed, Reason expanded)
+                worksheet.columns = [
+                    { key: 'sl', width: 8 },             // A: SL NO
+                    { key: 'unit', width: 18 },           // B: UNIT
+                    { key: 'floor', width: 18 },          // C: FLOOR
+                    { key: 'type', width: 18 },           // D: UNIT TYPE
+                    { key: 'old_rate', width: 22 },       // E: OLD RATE / SQFT
+                    { key: 'new_rate', width: 22 },       // F: NEW RATE / SQFT
+                    { key: 'change', width: 20 },         // G: RATE CHANGE
+                    { key: 'date', width: 18 },           // H: EFFECTIVE DATE
+                    { key: 'user', width: 24 },           // I: CHANGED BY
+                    { key: 'reason', width: 45 }          // J: REASON (expanded width)
+                ];
+
+                const thinBorder = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                };
+
+                const headerBorder = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
+                // Row 1: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(1).height = 14;
+
+                // Row 2: Title Banner (Navy Slate #2C3E50)
+                worksheet.mergeCells('A2:J2');
+                const row2 = worksheet.getRow(2);
+                row2.height = 36;
+                const cellA2 = worksheet.getCell('A2');
+                cellA2.value = reportTitleText;
+                cellA2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(2, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    worksheet.getCell(2, c).border = headerBorder;
+                }
+
+                // Row 3: Subtitle Banner (Cyan/Ocean Blue #007398)
+                worksheet.mergeCells('A3:J3');
+                const row3 = worksheet.getRow(3);
+                row3.height = 25;
+                const cellA3 = worksheet.getCell('A3');
+                cellA3.value = subtitleText;
+                cellA3.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                cellA3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                for (let c = 1; c <= 10; c++) {
+                    worksheet.getCell(3, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    worksheet.getCell(3, c).border = headerBorder;
+                }
+
+                // Row 4: Spacer
+                worksheet.addRow([]);
+                worksheet.getRow(4).height = 10;
+
+                // Row 5: Table Headers (Theme Slate #34495E)
+                const headerTitles = [
+                    'SL NO',
+                    'UNIT',
+                    'FLOOR',
+                    'UNIT TYPE',
+                    'OLD RATE / SQFT (₹)',
+                    'NEW RATE / SQFT (₹)',
+                    'RATE CHANGE (₹)',
+                    'EFFECTIVE DATE',
+                    'CHANGED BY',
+                    'REASON'
+                ];
+                const row5 = worksheet.addRow(headerTitles);
+                row5.height = 30;
+                for (let c = 1; c <= 10; c++) {
+                    const hCell = worksheet.getCell(5, c);
+                    hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+                    hCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    hCell.border = headerBorder;
+                    hCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                }
+
+                // Data Rows (Row 6+)
+                let currentRowNum = 6;
+                list.forEach((log, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
+
+                    const oldRate = Number(log.previous_rate || 0);
+                    const newRate = Number(log.rate || 0);
+                    const rateDiff = Number(log.rate_diff || 0);
+
+                    const mainRowNum = currentRowNum++;
+                    worksheet.addRow([
+                        idx + 1,
+                        log.door_no || '—',
+                        log.floor_name || '—',
+                        log.unit_type_name || '—',
+                        oldRate > 0 ? oldRate : '—',
+                        newRate,
+                        rateDiff !== 0 ? (rateDiff > 0 ? '+' + rateDiff.toFixed(2) : rateDiff.toFixed(2)) : '0.00',
+                        log.effective_from || '—',
+                        log.user_name ? (log.user_name + (log.user_role ? ' (' + log.user_role + ')' : '')) : 'System',
+                        log.reason || '—'
+                    ]);
+
+                    const dataRow = worksheet.getRow(mainRowNum);
+                    dataRow.height = 24;
+
+                    for (let c = 1; c <= 10; c++) {
+                        const cell = dataRow.getCell(c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                        cell.border = thinBorder;
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                        cell.font = { name: 'Calibri', size: 10 };
+
+                        // Currency numbers
+                        if (c === 5 && typeof cell.value === 'number') {
+                            cell.numFmt = '#,##0.00';
+                        }
+                        if (c === 6 && typeof cell.value === 'number') {
+                            cell.numFmt = '#,##0.00';
+                            cell.font = { name: 'Calibri', size: 10, bold: true };
+                        }
+                        if (c === 7) {
+                            if (rateDiff > 0) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF16A34A' } };
+                            } else if (rateDiff < 0) {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFE11D48' } };
+                            }
+                        }
+                    }
+                });
+
+                // Generate Buffer and Download (Filename WITHOUT date)
+                const fileName = 'Rate_Revision_Register.xlsx';
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+            } catch (err) {
+                console.error('Error generating Excel export:', err);
+                alert('An error occurred while generating the Excel file. Please try again.');
+            }
         },
         goToPage(page) {
             if (page < 1 || page > this.pagination.last_page || page === this.pagination.current_page) return;
