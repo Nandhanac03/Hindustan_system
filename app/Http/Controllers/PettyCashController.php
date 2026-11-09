@@ -13,12 +13,28 @@ use App\Models\ChartOfAccount;
 use App\Models\VoucherType;
 use App\Models\CompanyBankAccount;
 use App\Models\Category;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Carbon\Carbon;
 
 class PettyCashController extends Controller
 {
+    private function ensureHistoricalColumn(): void
+    {
+        try {
+            if (Schema::hasTable('petty_cash_transactions') && !Schema::hasColumn('petty_cash_transactions', 'is_historical')) {
+                Schema::table('petty_cash_transactions', function (Blueprint $table) {
+                    $table->boolean('is_historical')->default(false)->after('status');
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore if already exists or lacks DDL privileges
+        }
+    }
+
     public function balanceRegister(Request $request)
     {
+        $this->ensureHistoricalColumn();
         // 1. Fetch available projects for the dropdown
         $projects = Project::where('is_active', true)->get();
         
@@ -61,8 +77,10 @@ class PettyCashController extends Controller
         if ($selectedDate) {
             $previousTransactions = (clone $transactionsQuery)->whereDate('transaction_date', '<', $selectedDate)->get();
             foreach ($previousTransactions as $t) {
-                $openingBalance += $t->cash_in;
-                $openingBalance -= $t->cash_out;
+                if (!$t->is_historical) {
+                    $openingBalance += $t->cash_in;
+                    $openingBalance -= $t->cash_out;
+                }
             }
             $transactionsQuery->whereDate('transaction_date', $selectedDate);
         } else {
@@ -103,7 +121,9 @@ class PettyCashController extends Controller
             
             $cashIn += $vCashIn;
             $cashOut += $vCashOut;
-            $runningBalance += ($vCashIn - $vCashOut);
+            if (!$t->is_historical) {
+                $runningBalance += ($vCashIn - $vCashOut);
+            }
 
             $transactions->push((object)[
                 'id' => $t->id,
@@ -115,7 +135,8 @@ class PettyCashController extends Controller
                 'cash_out' => $vCashOut,
                 'balance' => $runningBalance,
                 'reference' => $t->reference_no,
-                'status' => $t->status
+                'status' => $t->status,
+                'is_historical' => (bool)($t->is_historical ?? false),
             ]);
         }
 
@@ -407,6 +428,7 @@ class PettyCashController extends Controller
     }
     public function dailySiteExpenses(Request $request)
     {
+        $this->ensureHistoricalColumn();
         $projects = Project::where('is_active', true)->get();
         
         $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
@@ -528,6 +550,7 @@ class PettyCashController extends Controller
                 'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
                 'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
                 'created_by' => $expense->creator?->name ?? 'System Admin',
+                'is_historical' => (bool)($expense->is_historical ?? false),
             ];
         };
 
@@ -599,6 +622,7 @@ class PettyCashController extends Controller
 
     public function storeExpense(Request $request)
     {
+        $this->ensureHistoricalColumn();
         $request->validate([
             'project_id' => 'required|exists:projects,id',
             'transaction_date' => 'required|date',
@@ -611,6 +635,7 @@ class PettyCashController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'particulars' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'is_historical' => 'nullable|boolean',
         ]);
 
         $catInput = $request->input('category_id') ?: $request->input('category');
@@ -646,19 +671,22 @@ class PettyCashController extends Controller
 
         $availBal = (float)($pettyCashBox->current_balance ?? 0);
         $expenseAmount = (float)$request->amount;
+        $isHistorical = $request->boolean('is_historical');
 
-        if ($availBal <= 0) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'No Petty Cash Available! The current petty cash balance is ₹ 0.00. Please perform a bank cash withdrawal (Contra) first.')
-                ->with('show_expense_modal', true);
-        }
+        if (!$isHistorical) {
+            if ($availBal <= 0) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'No Petty Cash Available! The current petty cash balance is ₹ 0.00. Please perform a bank cash withdrawal (Contra) first, or check "Is Historical".')
+                    ->with('show_expense_modal', true);
+            }
 
-        if ($expenseAmount > $availBal) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Insufficient Petty Cash Balance! Entered amount (₹ ' . number_format($expenseAmount, 2) . ') exceeds available balance (₹ ' . number_format($availBal, 2) . ').')
-                ->with('show_expense_modal', true);
+            if ($expenseAmount > $availBal) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Insufficient Petty Cash Balance! Entered amount (₹ ' . number_format($expenseAmount, 2) . ') exceeds available balance (₹ ' . number_format($availBal, 2) . ').')
+                    ->with('show_expense_modal', true);
+            }
         }
 
         $attachmentPath = null;
@@ -669,8 +697,8 @@ class PettyCashController extends Controller
             $attachmentPath = 'petty-cash-attachments/' . $filename;
         }
 
-        $balanceBefore = $pettyCashBox->current_balance;
-        $balanceAfter = $balanceBefore - $request->amount;
+        $balanceBefore = (float)$pettyCashBox->current_balance;
+        $balanceAfter = $isHistorical ? $balanceBefore : ($balanceBefore - $expenseAmount);
 
         $transaction = PettyCashTransaction::create([
             'petty_cash_box_id' => $pettyCashBox->id,
@@ -687,6 +715,7 @@ class PettyCashController extends Controller
             'balance' => $balanceAfter,
             'created_by' => auth()->id(),
             'status' => 'approved',
+            'is_historical' => $isHistorical,
         ]);
 
         if ($attachmentPath) {
@@ -694,7 +723,9 @@ class PettyCashController extends Controller
             $transaction->save();
         }
 
-        $pettyCashBox->update(['current_balance' => $balanceAfter]);
+        if (!$isHistorical) {
+            $pettyCashBox->update(['current_balance' => $balanceAfter]);
+        }
 
         if ($request->input('submit_action') === 'save_new') {
             return redirect()->back()->with('success', 'Site expense recorded successfully.')->with('show_expense_modal', true);
@@ -705,6 +736,7 @@ class PettyCashController extends Controller
 
     public function updateExpense(Request $request, $id)
     {
+        $this->ensureHistoricalColumn();
         $request->validate([
             'category_id' => 'nullable',
             'category' => 'nullable',
@@ -714,6 +746,7 @@ class PettyCashController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'particulars' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'is_historical' => 'nullable|boolean',
         ]);
 
         $transaction = PettyCashTransaction::findOrFail($id);
@@ -743,17 +776,27 @@ class PettyCashController extends Controller
         $oldAmount = (float)$transaction->cash_out;
         $newAmount = (float)$request->amount;
         $currentBalance = (float)$pettyCashBox->current_balance;
+        $wasHistorical = (bool)($transaction->is_historical ?? false);
+        $isHistorical = $request->boolean('is_historical');
 
         // Effective available balance before this expense deduction
-        $effectiveBalance = $currentBalance + $oldAmount;
+        $effectiveBalance = $wasHistorical ? $currentBalance : ($currentBalance + $oldAmount);
 
-        if ($newAmount > $effectiveBalance) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Insufficient Petty Cash Balance! New amount (₹ ' . number_format($newAmount, 2) . ') exceeds available capacity (₹ ' . number_format($effectiveBalance, 2) . ').');
+        if (!$isHistorical) {
+            if ($effectiveBalance <= 0) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'No Petty Cash Available! Available capacity is ₹ 0.00. Please perform a bank cash withdrawal (Contra) first, or check "Is Historical".');
+            }
+            if ($newAmount > $effectiveBalance) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Insufficient Petty Cash Balance! New amount (₹ ' . number_format($newAmount, 2) . ') exceeds available capacity (₹ ' . number_format($effectiveBalance, 2) . ').');
+            }
+            $balanceAfter = $effectiveBalance - $newAmount;
+        } else {
+            $balanceAfter = $effectiveBalance;
         }
-
-        $balanceAfter = $effectiveBalance - $newAmount;
 
         $attachmentPath = $transaction->attachment_path;
         if ($request->hasFile('attachment')) {
@@ -771,7 +814,8 @@ class PettyCashController extends Controller
             'payment_mode' => $request->payment_mode,
             'cash_out' => $newAmount,
             'balance' => $balanceAfter,
-            'attachment_path' => $attachmentPath
+            'attachment_path' => $attachmentPath,
+            'is_historical' => $isHistorical,
         ]);
 
         $pettyCashBox->update(['current_balance' => $balanceAfter]);

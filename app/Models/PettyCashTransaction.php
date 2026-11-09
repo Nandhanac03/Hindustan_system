@@ -25,6 +25,11 @@ class PettyCashTransaction extends Model
         'balance',
         'created_by',
         'status',
+        'is_historical',
+    ];
+
+    protected $casts = [
+        'is_historical' => 'boolean',
     ];
 
     public function pettyCashBox()

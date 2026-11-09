@@ -614,6 +614,19 @@
                                 </p>
                                 @error('particulars') <span class="text-rose-500 text-[10px] mt-1 block font-bold">{{ $message }}</span> @enderror
                             </div>
+
+                            <!-- Is Historical Checkbox -->
+                            <div>
+                                <label class="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                                    <div class="pt-0.5">
+                                        <input type="checkbox" name="is_historical" x-model="newExpense.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Petty Cash Balance)</span></span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Expense voucher is recorded for historical tracking, but the Petty Cash In-Hand Balance will not be deducted.</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -626,7 +639,7 @@
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-wider">Petty Cash Live Status</span>
                                 <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider"
                                       :class="isInsufficient ? 'bg-rose-600 text-white' : 'bg-[#a38c29] text-white'">
-                                    <span x-text="isInsufficient ? 'EXCEEDED' : 'LIVE'"></span>
+                                    <span x-text="newExpense.is_historical ? 'HISTORICAL' : (isInsufficient ? 'EXCEEDED' : 'LIVE')"></span>
                                 </span>
                             </div>
                             
@@ -649,8 +662,21 @@
                                 </div>
                             </div>
 
+                            <!-- Historical Mode Info Banner -->
+                            <template x-if="newExpense.is_historical">
+                                <div class="mt-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold space-y-1 shadow-2xs">
+                                    <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-emerald-900">
+                                        <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span>Historical Mode Active</span>
+                                    </div>
+                                    <p class="text-[10px] leading-tight text-emerald-700 font-medium">
+                                        Petty cash balance deduction is bypassed for this historical expense entry.
+                                    </p>
+                                </div>
+                            </template>
+
                             <!-- Live Insufficient Warning Alert -->
-                            <template x-if="isInsufficient">
+                            <template x-if="isInsufficient && !newExpense.is_historical">
                                 <div class="mt-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold space-y-1 shadow-2xs">
                                     <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-rose-900">
                                         <svg class="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -663,14 +689,14 @@
                             </template>
 
                             <!-- Zero Balance Warning Alert -->
-                            <template x-if="availableBalance <= 0">
+                            <template x-if="availableBalance <= 0 && !newExpense.is_historical">
                                 <div class="mt-3 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold space-y-1 shadow-2xs">
                                     <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-amber-900">
                                         <svg class="w-4 h-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                         <span>No Cash Available!</span>
                                     </div>
                                     <p class="text-[10px] leading-tight text-amber-700 font-medium">
-                                        Petty cash balance is ₹ 0.00. Please deposit funds or perform Bank Cash Withdrawal first.
+                                        Petty cash balance is ₹ 0.00. Please deposit funds, perform Bank Cash Withdrawal, or check "Is Historical".
                                     </p>
                                 </div>
                             </template>
@@ -719,14 +745,14 @@
                     </button>
                     <div class="flex items-center gap-3">
                         <button type="button" @click="submitExpenseForm('save_new')" 
-                                :disabled="isInsufficient || availableBalance <= 0"
-                                :class="(isInsufficient || availableBalance <= 0) ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-300' : 'text-[#8a7522] bg-white border border-[#a38c29]/50 hover:bg-[#a38c29]/10'"
+                                :disabled="!newExpense.is_historical && (isInsufficient || availableBalance <= 0)"
+                                :class="(!newExpense.is_historical && (isInsufficient || availableBalance <= 0)) ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-300' : 'text-[#8a7522] bg-white border border-[#a38c29]/50 hover:bg-[#a38c29]/10'"
                                 class="px-5 py-2.5 text-xs font-extrabold rounded-xl transition-all uppercase tracking-wider shadow-2xs cursor-pointer">
                             Save & New
                         </button>
                         <button type="button" @click="submitExpenseForm('save_post')" 
-                                :disabled="isInsufficient || availableBalance <= 0"
-                                :class="(isInsufficient || availableBalance <= 0) ? 'opacity-40 cursor-not-allowed bg-slate-300 border-slate-300 text-slate-500' : 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white shadow-md shadow-[#a38c29]/25 hover:shadow-lg active:scale-95'"
+                                :disabled="!newExpense.is_historical && (isInsufficient || availableBalance <= 0)"
+                                :class="(!newExpense.is_historical && (isInsufficient || availableBalance <= 0)) ? 'opacity-40 cursor-not-allowed bg-slate-300 border-slate-300 text-slate-500' : 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white shadow-md shadow-[#a38c29]/25 hover:shadow-lg active:scale-95'"
                                 class="px-6 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-wider cursor-pointer">
                             Save & Post
                         </button>
@@ -989,6 +1015,19 @@
                                     <span x-text="editErrors.particulars"></span>
                                 </p>
                             </div>
+
+                            <!-- Is Historical Checkbox -->
+                            <div>
+                                <label class="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/50 transition">
+                                    <div class="pt-0.5">
+                                        <input type="checkbox" name="is_historical" x-model="selectedExp.is_historical" value="1" class="w-4 h-4 text-[#a38c29] bg-white border-slate-300 rounded focus:ring-[#a38c29] focus:ring-2 cursor-pointer">
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Is Historical <span class="text-slate-400 normal-case font-medium tracking-normal ml-1">(Bypass Petty Cash Balance)</span></span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Expense voucher is recorded for historical tracking, but the Petty Cash In-Hand Balance will not be deducted.</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -1001,7 +1040,7 @@
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-wider">Live Payout Update</span>
                                 <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider"
                                       :class="isEditInsufficient ? 'bg-rose-600 text-white' : 'bg-[#a38c29] text-white'">
-                                    <span x-text="isEditInsufficient ? 'EXCEEDED' : 'LIVE'"></span>
+                                    <span x-text="selectedExp.is_historical ? 'HISTORICAL' : (isEditInsufficient ? 'EXCEEDED' : 'LIVE')"></span>
                                 </span>
                             </div>
 
@@ -1010,7 +1049,7 @@
                                     <span class="text-slate-500 font-medium">Available Balance:</span>
                                     <span class="font-bold font-mono text-slate-900" x-text="formatCurrency(availableBalance)"></span>
                                 </div>
-                                <div class="flex items-center justify-between text-slate-600">
+                                <div class="flex items-center justify-between text-slate-600" x-show="!originalEditIsHistorical">
                                     <span class="font-medium">+ Original Amount:</span>
                                     <span class="font-bold font-mono text-slate-700" x-text="formatCurrency(originalEditAmount)"></span>
                                 </div>
@@ -1030,8 +1069,21 @@
                                 </div>
                             </div>
 
+                            <!-- Historical Mode Info Banner -->
+                            <template x-if="selectedExp.is_historical">
+                                <div class="mt-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold space-y-1 shadow-2xs">
+                                    <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-emerald-900">
+                                        <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span>Historical Mode Active</span>
+                                    </div>
+                                    <p class="text-[10px] leading-tight text-emerald-700 font-medium">
+                                        Petty cash balance deduction is bypassed for this historical expense entry.
+                                    </p>
+                                </div>
+                            </template>
+
                             <!-- Insufficient Balance Warning Banner -->
-                            <template x-if="isEditInsufficient">
+                            <template x-if="isEditInsufficient && !selectedExp.is_historical">
                                 <div class="mt-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold space-y-1 shadow-2xs">
                                     <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-rose-900">
                                         <svg class="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -1077,8 +1129,8 @@
                         Cancel
                     </button>
                     <button type="submit" 
-                            :disabled="isEditInsufficient"
-                            :class="isEditInsufficient ? 'opacity-40 cursor-not-allowed bg-slate-300 border-slate-300 text-slate-500' : 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white shadow-md shadow-[#a38c29]/25 hover:shadow-lg active:scale-95'"
+                            :disabled="!selectedExp.is_historical && (isEditInsufficient || effectiveEditBalance <= 0)"
+                            :class="(!selectedExp.is_historical && (isEditInsufficient || effectiveEditBalance <= 0)) ? 'opacity-40 cursor-not-allowed bg-slate-300 border-slate-300 text-slate-500' : 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white shadow-md shadow-[#a38c29]/25 hover:shadow-lg active:scale-95'"
                             class="px-6 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-wider cursor-pointer">
                         Update Expense
                     </button>
@@ -1108,6 +1160,7 @@ function dailySiteExpenses() {
             payment_mode: '{{ old('payment_mode', (isset($paymentModes) && count($paymentModes) > 0) ? $paymentModes->first()->name : 'Cash') }}',
             bill_no: '{{ old('bill_no', '') }}',
             particulars: `{{ old('particulars', '') }}`,
+            is_historical: {{ old('is_historical') ? 'true' : 'false' }},
         },
         submitAction: 'save_post',
         newExpenseAmount: '{{ old('amount', '') }}',
@@ -1138,10 +1191,11 @@ function dailySiteExpenses() {
         },
 
         get balanceAfterPayout() {
-            return this.availableBalance - this.parsedAmount;
+            return this.newExpense.is_historical ? this.availableBalance : (this.availableBalance - this.parsedAmount);
         },
 
         get isInsufficient() {
+            if (this.newExpense.is_historical) return false;
             return this.parsedAmount > this.availableBalance && this.parsedAmount > 0;
         },
 
@@ -1226,6 +1280,7 @@ function dailySiteExpenses() {
                     'attachment_url' => $e->attachment_path ? asset($e->attachment_path) : '',
                     'attachment_name' => $e->attachment_path ? basename($e->attachment_path) : '',
                     'created_by' => $e->creator?->name ?? 'System Admin',
+                    'is_historical' => (bool)($e->is_historical ?? false),
                 ];
             })) !!};
         },
@@ -1272,7 +1327,7 @@ function dailySiteExpenses() {
             if (!this.newExpenseAmount || isNaN(amt) || amt <= 0) {
                 this.expenseErrors.amount = 'Please enter an expense amount.';
                 hasError = true;
-            } else if (this.isInsufficient) {
+            } else if (!this.newExpense.is_historical && this.isInsufficient) {
                 this.expenseErrors.amount = 'Amount exceeds available petty cash balance.';
                 hasError = true;
             }
@@ -1337,6 +1392,7 @@ function dailySiteExpenses() {
         },
 
         originalEditAmount: 0,
+        originalEditIsHistorical: false,
 
         get parsedEditAmount() {
             const val = parseFloat(this.selectedExp.amount);
@@ -1344,14 +1400,15 @@ function dailySiteExpenses() {
         },
 
         get effectiveEditBalance() {
-            return this.availableBalance + this.originalEditAmount;
+            return this.originalEditIsHistorical ? this.availableBalance : (this.availableBalance + this.originalEditAmount);
         },
 
         get balanceAfterEdit() {
-            return this.effectiveEditBalance - this.parsedEditAmount;
+            return this.selectedExp.is_historical ? this.effectiveEditBalance : (this.effectiveEditBalance - this.parsedEditAmount);
         },
 
         get isEditInsufficient() {
+            if (this.selectedExp.is_historical) return false;
             return this.parsedEditAmount > this.effectiveEditBalance && this.parsedEditAmount > 0;
         },
 
@@ -1361,8 +1418,9 @@ function dailySiteExpenses() {
         },
 
         openEditModal(exp) {
-            this.selectedExp = Object.assign({}, exp);
+            this.selectedExp = Object.assign({ is_historical: false }, exp, { is_historical: Boolean(exp.is_historical) });
             this.originalEditAmount = parseFloat(exp.amount) || 0;
+            this.originalEditIsHistorical = Boolean(exp.is_historical);
             this.updateUrl = '{{ url('petty-cash/daily-site-expenses') }}/' + exp.id;
             this.editErrors = {
                 transaction_date: '',
@@ -1402,7 +1460,7 @@ function dailySiteExpenses() {
             if (!this.selectedExp.amount || isNaN(amt) || amt <= 0) {
                 this.editErrors.amount = 'Please enter an amount.';
                 hasError = true;
-            } else if (this.isEditInsufficient) {
+            } else if (!this.selectedExp.is_historical && this.isEditInsufficient) {
                 this.editErrors.amount = 'Amount exceeds effective available petty cash.';
                 hasError = true;
             }
