@@ -25,10 +25,12 @@ class Voucher extends Model
         'edited_by',
         'status', // Draft, Posted, Cancelled
         'reversal_of_id',
+        'is_historical',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_historical' => 'boolean',
     ];
 
     public function lines(): HasMany

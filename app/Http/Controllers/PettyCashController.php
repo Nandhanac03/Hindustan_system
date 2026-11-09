@@ -27,8 +27,125 @@ class PettyCashController extends Controller
                     $table->boolean('is_historical')->default(false)->after('status');
                 });
             }
+            if (Schema::hasTable('vouchers') && !Schema::hasColumn('vouchers', 'is_historical')) {
+                Schema::table('vouchers', function (Blueprint $table) {
+                    $table->boolean('is_historical')->default(false)->after('status');
+                });
+            }
         } catch (\Throwable $e) {
             // Ignore if already exists or lacks DDL privileges
+        }
+    }
+
+    private function syncExpenseVoucher(PettyCashTransaction $transaction, ?string $categoryName = null, ?int $projectId = null): Voucher
+    {
+        $systemId = $projectId
+            ?? $transaction->pettyCashBox?->project_id
+            ?? auth()->user()?->system_id
+            ?? 1;
+
+        if (!$categoryName) {
+            $categoryName = $transaction->category?->category
+                ?? trim(explode('-', (string) $transaction->narration)[0] ?: 'General');
+        }
+
+        $expenseLedgerAccount = \App\Models\Account::withoutGlobalScopes()->firstOrCreate(
+            ['name' => $categoryName, 'system_id' => $systemId],
+            ['type' => 'Expense', 'code' => 'EXP-' . rand(1000, 9999), 'is_active' => true]
+        );
+
+        $cashLedgerAccount = \App\Models\Account::withoutGlobalScopes()
+            ->where('name', 'Petty Cash Box')
+            ->where('system_id', $systemId)
+            ->first();
+
+        if (!$cashLedgerAccount) {
+            $cashLedgerAccount = \App\Models\Account::withoutGlobalScopes()->firstOrCreate(
+                ['name' => 'Petty Cash Box'],
+                ['type' => 'Asset', 'code' => 'CA-' . rand(1000, 9999), 'system_id' => $systemId, 'is_active' => true]
+            );
+        }
+
+        $voucher = null;
+        if ($transaction->voucher_id) {
+            $voucher = Voucher::withoutGlobalScopes()->find($transaction->voucher_id);
+        }
+        if (!$voucher && $transaction->voucher_number) {
+            $voucher = Voucher::withoutGlobalScopes()
+                ->where('voucher_number', $transaction->voucher_number)
+                ->first();
+        }
+
+        $expenseAmount = (float) $transaction->cash_out;
+        $isHistorical = (bool) ($transaction->is_historical ?? false);
+
+        if ($voucher) {
+            $voucher->update([
+                'system_id' => $systemId,
+                'voucher_number' => $transaction->voucher_number,
+                'type' => 'Payment',
+                'date' => $transaction->transaction_date,
+                'narration' => $transaction->narration,
+                'reference_no' => $transaction->reference_no,
+                'edited_by' => auth()->id() ?? $transaction->created_by ?? 1,
+                'status' => 'Posted',
+                'is_historical' => $isHistorical,
+            ]);
+        } else {
+            $voucher = Voucher::create([
+                'system_id' => $systemId,
+                'company_bank_account_id' => null,
+                'voucher_number' => $transaction->voucher_number,
+                'type' => 'Payment',
+                'date' => $transaction->transaction_date,
+                'narration' => $transaction->narration,
+                'reference_no' => $transaction->reference_no,
+                'created_by' => $transaction->created_by ?? auth()->id() ?? 1,
+                'status' => 'Posted',
+                'is_historical' => $isHistorical,
+            ]);
+        }
+
+        if ((int) $transaction->voucher_id !== (int) $voucher->id) {
+            $transaction->voucher_id = $voucher->id;
+            $transaction->save();
+        }
+
+        \App\Models\VoucherLine::where('voucher_id', $voucher->id)->delete();
+
+        // Expense Account Line (Debit - Expense increases)
+        \App\Models\VoucherLine::create([
+            'voucher_id' => $voucher->id,
+            'account_id' => $expenseLedgerAccount->id,
+            'debit' => $expenseAmount,
+            'credit' => 0,
+            'line_narration' => $transaction->narration,
+        ]);
+
+        // Petty Cash Box Line (Credit - Petty Cash Asset decreases)
+        \App\Models\VoucherLine::create([
+            'voucher_id' => $voucher->id,
+            'account_id' => $cashLedgerAccount->id,
+            'debit' => 0,
+            'credit' => $expenseAmount,
+            'line_narration' => 'Paid from Petty Cash Box (' . ($transaction->payment_mode ?: 'Cash') . ')',
+        ]);
+
+        return $voucher;
+    }
+
+    private function backfillMissingExpenseVouchers(): void
+    {
+        $unlinkedExpenses = PettyCashTransaction::with(['category', 'pettyCashBox'])
+            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
+            ->where(function ($q) {
+                $q->whereNull('voucher_id')
+                  ->orWhereDoesntHave('voucher.lines');
+            })
+            ->get();
+
+        foreach ($unlinkedExpenses as $expense) {
+            $this->syncExpenseVoucher($expense);
         }
     }
 
@@ -429,6 +546,7 @@ class PettyCashController extends Controller
     public function dailySiteExpenses(Request $request)
     {
         $this->ensureHistoricalColumn();
+        $this->backfillMissingExpenseVouchers();
         $projects = Project::where('is_active', true)->get();
         
         $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
@@ -723,6 +841,8 @@ class PettyCashController extends Controller
             $transaction->save();
         }
 
+        $this->syncExpenseVoucher($transaction, $categoryName, (int) $project->id);
+
         if (!$isHistorical) {
             $pettyCashBox->update(['current_balance' => $balanceAfter]);
         }
@@ -817,6 +937,8 @@ class PettyCashController extends Controller
             'attachment_path' => $attachmentPath,
             'is_historical' => $isHistorical,
         ]);
+
+        $this->syncExpenseVoucher($transaction, $categoryName, (int) $pettyCashBox->project_id);
 
         $pettyCashBox->update(['current_balance' => $balanceAfter]);
 
