@@ -952,6 +952,9 @@ class PettyCashController extends Controller
         ]);
 
         $transaction = PettyCashTransaction::findOrFail($id);
+        if ($transaction->is_historical) {
+            return redirect()->back()->with('error', 'Historical expense entries cannot be edited.');
+        }
         $pettyCashBox = PettyCashBox::findOrFail($transaction->petty_cash_box_id);
 
         $catInput = $request->input('category_id') ?: $request->input('category');

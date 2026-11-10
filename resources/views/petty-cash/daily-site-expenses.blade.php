@@ -165,6 +165,12 @@
                 font-size: 11px !important;
                 box-sizing: border-box !important;
             }
+            .dse-btn-disabled {
+                opacity: 0.45 !important;
+                cursor: not-allowed !important;
+                background-color: #e2e8f0 !important;
+                color: #94a3b8 !important;
+            }
         </style>
         <div class="dse-filter-bar bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 transition-all">
             <div class="dse-filter-grid grid grid-cols-1 sm:grid-cols-2 items-center gap-2 flex-1 min-w-0 w-full">
@@ -479,7 +485,12 @@
                                         <button type="button" @click="openViewModal(expense)" class="w-8 h-8 rounded-xl bg-[#f0e8d5] hover:bg-[#e4dac0] text-[#917d23] transition-all inline-flex items-center justify-center cursor-pointer shadow-2xs active:scale-95" title="View Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                        <button type="button" @click="openEditModal(expense)" class="w-8 h-8 rounded-xl bg-[#dce6d5] hover:bg-[#cfdcc3] text-[#0d7a54] transition-all inline-flex items-center justify-center cursor-pointer shadow-2xs active:scale-95" title="Edit">
+                                        <button type="button"
+                                                :disabled="Boolean(expense.is_historical)"
+                                                @click="!expense.is_historical && openEditModal(expense)"
+                                                class="w-8 h-8 rounded-xl transition-all inline-flex items-center justify-center shadow-2xs"
+                                                :class="expense.is_historical ? 'dse-btn-disabled' : 'bg-[#dce6d5] hover:bg-[#cfdcc3] text-[#0d7a54] cursor-pointer active:scale-95'"
+                                                :title="expense.is_historical ? 'Historical entry (Edit disabled)' : 'Edit'">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
                                     </div>
@@ -1563,6 +1574,7 @@ function dailySiteExpenses() {
         },
 
         openEditModal(exp) {
+            if (exp && exp.is_historical) return;
             this.selectedExp = Object.assign({ is_historical: false }, exp, { is_historical: Boolean(exp.is_historical) });
             this.originalEditAmount = parseFloat(exp.amount) || 0;
             this.originalEditIsHistorical = Boolean(exp.is_historical);
@@ -1626,6 +1638,7 @@ function dailySiteExpenses() {
         },
 
         openDeleteModal(exp) {
+            if (exp && exp.is_historical) return;
             this.selectedExp = exp;
             this.deleteUrl = '{{ url('petty-cash/daily-site-expenses') }}/' + exp.id;
             this.showDeleteModal = true;
