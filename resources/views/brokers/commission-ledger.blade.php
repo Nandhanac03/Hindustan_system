@@ -271,7 +271,7 @@
             <div class="text-right text-[9.5px] text-slate-600 space-y-1">
                 <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ now()->format('d M Y, H:i') }}</span></div>
                 <div><span class="font-bold text-slate-400 uppercase">Broker Scope:</span> <span class="font-bold text-[#a38c29]" x-text="getSelectedBrokerName()"></span></div>
-                <div><span class="font-bold text-slate-400 uppercase">Period Filter:</span> <span class="font-mono font-bold text-slate-800">Beginning &rarr; Today</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Period Filter:</span> <span class="font-mono font-bold text-slate-800" x-text="getPeriodFilterLabel()">Beginning &rarr; Today</span></div>
                 <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]" x-text="filteredLedgerEntries().length + ' Entries'"></span></div>
             </div>
         </div>
@@ -415,219 +415,311 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors">{{ count($brokers) }} Payees</div>
+                    <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors" x-text="getFilteredBrokersCount() + ' Payees'">{{ count($brokers) }} Payees</div>
                     <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 ">Master Accounts Linked</div>
                 </div>
             </div>
         </div>
 
-        <!-- ── SEARCH & FILTER PANEL (Theme Color Popovers for all dropdowns, No Blue Browser Dropdowns) ── -->
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
+        <!-- ── SEARCH & FILTER PANEL (Single Row Compact Alignment with Financial Year Selector) ── -->
+        <style>
+            @media (min-width: 1024px) {
+                .bcl-filter-bar {
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    align-items: center !important;
+                    gap: 0.45rem !important;
+                }
+                .bcl-filter-grid {
+                    display: grid !important;
+                    grid-template-columns: minmax(120px, 1.1fr) minmax(120px, 1.05fr) minmax(105px, 0.95fr) minmax(105px, 0.92fr) minmax(105px, 0.92fr) minmax(130px, 1.15fr) !important;
+                    gap: 0.45rem !important;
+                    flex: 1 1 0% !important;
+                    min-width: 0 !important;
+                    align-items: center !important;
+                }
+            }
+            .bcl-filter-bar .erp-dropdown-trigger,
+            .bcl-filter-bar input[type="date"],
+            .bcl-filter-bar .bcl-reset-btn {
+                height: 38px !important;
+                min-height: 38px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                font-size: 11px !important;
+                box-sizing: border-box !important;
+            }
+        </style>
+        <div class="bcl-filter-bar bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 transition-all">
+            <div class="bcl-filter-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 items-center gap-2 flex-1 min-w-0 w-full">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-1">
-                    
-                    {{-- 1. Searchable Broker Filter --}}
-                    <div class="relative w-full" @click.outside="brokerFilterOpen = false">
-                        <button type="button"
-                                @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; statusFilterOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
-                                class="erp-dropdown-trigger"
-                                :class="brokerFilterOpen ? 'active' : ''">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                                <span class="truncate text-xs font-bold"
-                                      :class="selectedLedgerBrokerId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="getSelectedBrokerName()">All Brokers</span>
-                            </div>
+                {{-- 1. Searchable Broker Filter --}}
+                <div class="relative w-full min-w-0" @click.outside="brokerFilterOpen = false">
+                    <button type="button"
+                            @click="brokerFilterOpen = !brokerFilterOpen; if(brokerFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; statusFilterOpen = false; brokerFilterSearch = ''; $nextTick(() => $refs.brokerFilterSearchInput?.focus()); }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="brokerFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="selectedLedgerBrokerId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedBrokerName()">All Brokers</span>
+                        </div>
 
-                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedLedgerBrokerId">
-                                    <span @click.stop="selectedLedgerBrokerId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedLedgerBrokerId">
+                                <span @click.stop="selectedLedgerBrokerId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="brokerFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Broker Popover Menu --}}
+                    <div x-show="brokerFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text"
+                                       x-model="brokerFilterSearch"
+                                       x-ref="brokerFilterSearchInput"
+                                       placeholder="Search broker name..."
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="brokerFilterOpen = false">
+                                <template x-if="brokerFilterSearch">
+                                    <button type="button" @click="brokerFilterSearch = ''; $refs.brokerFilterSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
                                 </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="brokerFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
-                        </button>
-
-                        {{-- Broker Popover Menu --}}
-                        <div x-show="brokerFilterOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover"
-                             style="display: none;">
-                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                                <div class="relative">
-                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                    <input type="text"
-                                           x-model="brokerFilterSearch"
-                                           x-ref="brokerFilterSearchInput"
-                                           placeholder="Search broker name..."
-                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
-                                           @keydown.escape="brokerFilterOpen = false">
-                                    <template x-if="brokerFilterSearch">
-                                        <button type="button" @click="brokerFilterSearch = ''; $refs.brokerFilterSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
-                                    </template>
-                                </div>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedLedgerBrokerId = ''; brokerFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="!selectedLedgerBrokerId ? 'selected-all' : ''">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    <span>All Brokers</span>
+                                </span>
+                                <span class="text-[9.5px] font-medium" :class="!selectedLedgerBrokerId ? 'text-white/80' : 'text-slate-400'">({{ count($brokers) }} registered)</span>
                             </div>
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="selectedLedgerBrokerId = ''; brokerFilterOpen = false"
+                            <template x-for="b in getFilteredBrokersList(brokerFilterSearch)" :key="b.id">
+                                <div @click="selectedLedgerBrokerId = String(b.id); brokerFilterOpen = false"
                                      class="erp-dropdown-option"
-                                     :class="!selectedLedgerBrokerId ? 'selected-all' : ''">
-                                    <span class="flex items-center gap-2">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                        <span>All Brokers</span>
+                                     :class="String(selectedLedgerBrokerId) === String(b.id) ? 'selected' : ''">
+                                    <span x-text="b.name"></span>
+                                    <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-black shrink-0 ml-2"
+                                          :class="String(selectedLedgerBrokerId) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
+                                          x-text="b.default_commission_pct ? b.default_commission_pct + '%' : ''">
                                     </span>
-                                    <span class="text-[9.5px] font-medium" :class="!selectedLedgerBrokerId ? 'text-white/80' : 'text-slate-400'">({{ count($brokers) }} registered)</span>
                                 </div>
-                                <template x-for="b in getFilteredBrokersList(brokerFilterSearch)" :key="b.id">
-                                    <div @click="selectedLedgerBrokerId = String(b.id); brokerFilterOpen = false"
-                                         class="erp-dropdown-option"
-                                         :class="String(selectedLedgerBrokerId) === String(b.id) ? 'selected' : ''">
-                                        <span x-text="b.name"></span>
-                                        <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-black shrink-0 ml-2"
-                                              :class="String(selectedLedgerBrokerId) === String(b.id) ? 'bg-[#a38c29] text-white' : 'bg-[#a38c29]/10 text-[#8a7522]'"
-                                              x-text="b.default_commission_pct ? b.default_commission_pct + '%' : ''">
-                                        </span>
-                                    </div>
-                                </template>
-                                <div x-show="getFilteredBrokersList(brokerFilterSearch).length === 0" class="px-3.5 py-4 text-center text-slate-400 text-xs italic">
-                                    No brokers found matching query
-                                </div>
+                            </template>
+                            <div x-show="getFilteredBrokersList(brokerFilterSearch).length === 0" class="px-3.5 py-4 text-center text-slate-400 text-xs italic">
+                                No brokers found matching query
                             </div>
                         </div>
                     </div>
-
-                    {{-- 2. Project Filter --}}
-                    <div class="relative w-full" @click.outside="projectFilterOpen = false">
-                        <button type="button"
-                                @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; statusFilterOpen = false; }"
-                                class="erp-dropdown-trigger"
-                                :class="projectFilterOpen ? 'active' : ''">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                                <span class="truncate text-xs font-bold"
-                                      :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="getSelectedProjectName()">All Projects</span>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedProjectId">
-                                    <span @click.stop="selectedProjectId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
-                                </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                        </button>
-
-                        {{-- Project Popover Menu --}}
-                        <div x-show="projectFilterOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover"
-                             style="display: none;">
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="selectedProjectId = ''; projectFilterOpen = false"
-                                     class="erp-dropdown-option"
-                                     :class="!selectedProjectId ? 'selected-all' : ''">
-                                    <span>All Projects</span>
-                                </div>
-                                @foreach($projects as $proj)
-                                    <div @click="selectedProjectId = '{{ $proj->id }}'; projectFilterOpen = false"
-                                         class="erp-dropdown-option"
-                                         :class="String(selectedProjectId) === '{{ $proj->id }}' ? 'selected' : ''">
-                                        <span>{{ $proj->name }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 3. Status Filter --}}
-                    <div class="relative w-full" @click.outside="statusFilterOpen = false">
-                        <button type="button"
-                                @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; }"
-                                class="erp-dropdown-trigger"
-                                :class="statusFilterOpen ? 'active' : ''">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span class="truncate text-xs font-bold"
-                                      :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="getSelectedStatusName()">All Statuses</span>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedStatus">
-                                    <span @click.stop="selectedStatus = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
-                                </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                        </button>
-
-                        {{-- Status Popover Menu --}}
-                        <div x-show="statusFilterOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover"
-                             style="display: none;">
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="selectedStatus = ''; statusFilterOpen = false"
-                                     class="erp-dropdown-option"
-                                     :class="!selectedStatus ? 'selected-all' : ''">
-                                    <span>All Statuses (Pending, Partial, Fully Paid)</span>
-                                </div>
-                                <div @click="selectedStatus = 'pending'; statusFilterOpen = false"
-                                     class="erp-dropdown-option"
-                                     :class="selectedStatus === 'pending' ? 'selected' : ''">
-                                    <span>Pending (Unpaid / Payable Share)</span>
-                                </div>
-                                <div @click="selectedStatus = 'partial'; statusFilterOpen = false"
-                                     class="erp-dropdown-option"
-                                     :class="selectedStatus === 'partial' ? 'selected' : ''">
-                                    <span>Partially Paid</span>
-                                </div>
-                                <div @click="selectedStatus = 'paid'; statusFilterOpen = false"
-                                     class="erp-dropdown-option"
-                                     :class="selectedStatus === 'paid' ? 'selected' : ''">
-                                    <span>Fully Paid / Disbursed</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
-                {{-- Reset Filters Button --}}
-                <div class="shrink-0 flex items-center">
-                    <button type="button" @click="resetFilters()"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
-                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>RESET FILTERS</span>
+                {{-- 2. Project Filter --}}
+                <div class="relative w-full min-w-0" @click.outside="projectFilterOpen = false">
+                    <button type="button"
+                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { brokerFilterOpen = false; fyFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="projectFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedProjectName()">All Projects</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedProjectId">
+                                <span @click.stop="selectedProjectId = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </button>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="projectFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedProjectId = ''; projectFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="!selectedProjectId ? 'selected-all' : ''">
+                                <span>All Projects</span>
+                            </div>
+                            @foreach($projects as $proj)
+                                <div @click="selectedProjectId = '{{ $proj->id }}'; projectFilterOpen = false"
+                                     class="erp-dropdown-option"
+                                     :class="String(selectedProjectId) === '{{ $proj->id }}' ? 'selected' : ''">
+                                    <span>{{ $proj->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. Financial Year (FY) Filter Dropdown --}}
+                <div class="relative w-full min-w-0" @click.outside="fyFilterOpen = false">
+                    <button type="button"
+                            @click="fyFilterOpen = !fyFilterOpen; if(fyFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="fyFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="(selectedFinancialYear && selectedFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedFyName()">All FY</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedFinancialYear && selectedFinancialYear !== 'All'">
+                                <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="fyFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Financial Year Popover Menu --}}
+                    <div x-show="fyFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[200px]"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All')"
+                                 class="erp-dropdown-option"
+                                 :class="(!selectedFinancialYear || selectedFinancialYear === 'All') ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
+                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value)"
+                                     class="erp-dropdown-option flex items-center justify-between"
+                                     :class="selectedFinancialYear === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                            <div @click="selectFinancialYear('Custom')"
+                                 class="erp-dropdown-option"
+                                 :class="selectedFinancialYear === 'Custom' ? 'selected' : ''">
+                                <span>Custom Date Range</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. From Date --}}
+                <div class="relative min-w-0">
+                    <input type="date" id="bclFromDateInput" x-model="fromDate" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[38px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                </div>
+
+                {{-- 5. To Date --}}
+                <div class="relative min-w-0">
+                    <input type="date" id="bclToDateInput" x-model="toDate" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[38px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                </div>
+
+                {{-- 6. Status Filter --}}
+                <div class="relative w-full min-w-0" @click.outside="statusFilterOpen = false">
+                    <button type="button"
+                            @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { brokerFilterOpen = false; projectFilterOpen = false; fyFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="statusFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedStatusName()">All Statuses</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedStatus">
+                                <span @click.stop="selectedStatus = ''" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="statusFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectedStatus = ''; statusFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="!selectedStatus ? 'selected-all' : ''">
+                                <span>All Statuses (Pending, Partial, Fully Paid)</span>
+                            </div>
+                            <div @click="selectedStatus = 'pending'; statusFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="selectedStatus === 'pending' ? 'selected' : ''">
+                                <span>Pending (Unpaid / Payable Share)</span>
+                            </div>
+                            <div @click="selectedStatus = 'partial'; statusFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="selectedStatus === 'partial' ? 'selected' : ''">
+                                <span>Partially Paid</span>
+                            </div>
+                            <div @click="selectedStatus = 'paid'; statusFilterOpen = false"
+                                 class="erp-dropdown-option"
+                                 :class="selectedStatus === 'paid' ? 'selected' : ''">
+                                <span>Fully Paid / Disbursed</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
+
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="resetFilters()"
+                    class="bcl-reset-btn inline-flex items-center justify-center gap-1.5 rounded-xl theme-btn px-4 py-2 h-[38px] text-[11px] font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>RESET FILTERS</span>
+            </button>
         </div>
 
     </div>
@@ -1129,6 +1221,25 @@ function brokerCommissionLedger() {
         selectedLedgerBrokerId: '',
         projectFilterOpen: false,
         selectedProjectId: defaultProjectId,
+        fyFilterOpen: false,
+        selectedFinancialYear: 'All',
+        fromDate: '',
+        toDate: '',
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', range: 'Apr 2026 - Mar 2027', from: '2026-04-01', to: '2027-03-31' },
+            { value: '2025-26', label: 'FY 2025-26', range: 'Apr 2025 - Mar 2026', from: '2025-04-01', to: '2026-03-31' },
+            { value: '2024-25', label: 'FY 2024-25', range: 'Apr 2024 - Mar 2025', from: '2024-04-01', to: '2025-03-31' },
+            { value: '2023-24', label: 'FY 2023-24', range: 'Apr 2023 - Mar 2024', from: '2023-04-01', to: '2024-03-31' },
+            { value: '2022-23', label: 'FY 2022-23', range: 'Apr 2022 - Mar 2023', from: '2022-04-01', to: '2023-03-31' },
+            { value: '2021-22', label: 'FY 2021-22', range: 'Apr 2021 - Mar 2022', from: '2021-04-01', to: '2022-03-31' },
+            { value: '2020-21', label: 'FY 2020-21', range: 'Apr 2020 - Mar 2021', from: '2020-04-01', to: '2021-03-31' },
+            { value: '2019-20', label: 'FY 2019-20', range: 'Apr 2019 - Mar 2020', from: '2019-04-01', to: '2020-03-31' },
+            { value: '2018-19', label: 'FY 2018-19', range: 'Apr 2018 - Mar 2019', from: '2018-04-01', to: '2019-03-31' },
+            { value: '2017-18', label: 'FY 2017-18', range: 'Apr 2017 - Mar 2018', from: '2017-04-01', to: '2018-03-31' },
+            { value: '2016-17', label: 'FY 2016-17', range: 'Apr 2016 - Mar 2017', from: '2016-04-01', to: '2017-03-31' },
+            { value: '2015-16', label: 'FY 2015-16', range: 'Apr 2015 - Mar 2016', from: '2015-04-01', to: '2016-03-31' },
+            { value: '2014-15', label: 'FY 2014-15', range: 'Apr 2014 - Mar 2015', from: '2014-04-01', to: '2015-03-31' },
+        ],
         statusFilterOpen: false,
         selectedStatus: '',
         allDeals: @json($allDeals ?? []),
@@ -1151,6 +1262,10 @@ function brokerCommissionLedger() {
         resetFilters() {
             this.selectedLedgerBrokerId = '';
             this.selectedProjectId = defaultProjectId;
+            this.selectedFinancialYear = 'All';
+            this.fyFilterOpen = false;
+            this.fromDate = '';
+            this.toDate = '';
             this.selectedStatus = '';
             this.brokerFilterSearch = '';
             this.brokerFilterOpen = false;
@@ -1169,6 +1284,67 @@ function brokerCommissionLedger() {
             if (!this.selectedProjectId) return 'All Projects';
             const p = this.projectsList.find(x => String(x.id) === String(this.selectedProjectId));
             return p ? p.name : 'All Projects';
+        },
+
+        getSelectedFyName() {
+            if (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') return 'All FY';
+            if (this.selectedFinancialYear === 'Custom') return 'Custom Date';
+            const found = this.financialYearsList.find(x => x.value === this.selectedFinancialYear);
+            return found ? found.label : ('FY ' + this.selectedFinancialYear);
+        },
+
+        selectFinancialYear(fyVal) {
+            this.selectedFinancialYear = fyVal;
+            this.fyFilterOpen = false;
+            if (fyVal === 'All') {
+                this.fromDate = '';
+                this.toDate = '';
+            } else if (fyVal === 'Custom') {
+                const fromEl = document.getElementById('bclFromDateInput');
+                if (fromEl) fromEl.focus();
+            } else {
+                const found = this.financialYearsList.find(x => x.value === fyVal);
+                if (found) {
+                    this.fromDate = found.from;
+                    this.toDate = found.to;
+                }
+            }
+        },
+
+        onCustomDateChange() {
+            if (this.fromDate || this.toDate) {
+                const matchedFy = this.financialYearsList.find(
+                    x => x.from === this.fromDate && x.to === this.toDate
+                );
+                this.selectedFinancialYear = matchedFy ? matchedFy.value : 'Custom';
+            } else {
+                this.selectedFinancialYear = 'All';
+            }
+        },
+
+        getPeriodFilterLabel() {
+            if (this.selectedFinancialYear && this.selectedFinancialYear !== 'All' && this.selectedFinancialYear !== 'Custom') {
+                return 'FY ' + this.selectedFinancialYear;
+            }
+            if (this.fromDate && this.toDate) {
+                return this.fromDate + ' → ' + this.toDate;
+            }
+            if (this.fromDate) {
+                return 'From ' + this.fromDate;
+            }
+            if (this.toDate) {
+                return 'Up to ' + this.toDate;
+            }
+            return 'Beginning → Today';
+        },
+
+        getFilteredBrokersCount() {
+            if (!this.selectedLedgerBrokerId && (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') && !this.fromDate && !this.toDate && !this.selectedStatus) {
+                return this.brokersList.length;
+            }
+            const deals = this.filteredDeals();
+            const uniqueBrokerIds = new Set(deals.map(d => String(d.broker_id)).filter(Boolean));
+            return uniqueBrokerIds.size;
         },
 
         getSelectedStatusName() {
@@ -1193,6 +1369,12 @@ function brokerCommissionLedger() {
             if (this.selectedProjectId) {
                 deals = deals.filter(d => String(d.project_id) === String(this.selectedProjectId));
             }
+            if (this.fromDate) {
+                deals = deals.filter(d => d.sale_date && d.sale_date >= this.fromDate);
+            }
+            if (this.toDate) {
+                deals = deals.filter(d => d.sale_date && d.sale_date <= this.toDate);
+            }
             if (this.selectedStatus) {
                 deals = deals.filter(d => {
                     if (this.selectedStatus === 'pending') {
@@ -1215,6 +1397,12 @@ function brokerCommissionLedger() {
             }
             if (this.selectedProjectId) {
                 entries = entries.filter(e => String(e.project_id) === String(this.selectedProjectId));
+            }
+            if (this.fromDate) {
+                entries = entries.filter(e => e.date && e.date >= this.fromDate);
+            }
+            if (this.toDate) {
+                entries = entries.filter(e => e.date && e.date <= this.toDate);
             }
             if (this.selectedStatus) {
                 entries = entries.filter(e => {
