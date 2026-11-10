@@ -5740,5 +5740,20 @@ class ReportController extends Controller
             'activeTab' => 'liquidity_forecast',
         ]));
     }
+
+    /**
+     * Partner Capital & Shareholding Ledger Statement Report
+     */
+    public function capitalStatements(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+
+        $service = new \App\Services\CapitalStatementService();
+        $reportData = $service->getStatementData($request->all());
+
+        return view('reports.capital-statements', array_merge($lookups, $reportData, [
+            'activeTab' => 'capital_statements',
+        ]));
+    }
 }
 
