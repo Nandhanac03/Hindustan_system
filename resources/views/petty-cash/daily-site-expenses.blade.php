@@ -136,51 +136,80 @@
             </div>
         </div>
 
-        {{-- Ultra-Clean Modern Light Search & Filter Panel (Matching Units Design) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 flex-1">
+        {{-- Ultra-Clean Modern Light Search & Filter Panel (Single Row Compact Alignment) --}}
+        <style>
+            @media (min-width: 1024px) {
+                .dse-filter-bar {
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    align-items: center !important;
+                    gap: 0.45rem !important;
+                }
+                .dse-filter-grid {
+                    display: grid !important;
+                    grid-template-columns: minmax(115px, 1.15fr) minmax(110px, 1fr) minmax(95px, 0.9fr) minmax(105px, 0.92fr) minmax(105px, 0.92fr) minmax(105px, 0.95fr) minmax(90px, 0.82fr) !important;
+                    gap: 0.45rem !important;
+                    flex: 1 1 0% !important;
+                    min-width: 0 !important;
+                    align-items: center !important;
+                }
+            }
+            .dse-filter-bar .erp-search-input,
+            .dse-filter-bar .erp-dropdown-trigger,
+            .dse-filter-bar input[type="date"],
+            .dse-filter-bar .dse-reset-btn {
+                height: 38px !important;
+                min-height: 38px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                font-size: 11px !important;
+                box-sizing: border-box !important;
+            }
+        </style>
+        <div class="dse-filter-bar bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 transition-all">
+            <div class="dse-filter-grid grid grid-cols-1 sm:grid-cols-2 items-center gap-2 flex-1 min-w-0 w-full">
                 {{-- Pro Search Input --}}
-                <div class="relative group col-span-1 sm:col-span-2 xl:col-span-1">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="relative group lg:flex-[1.15] min-w-0">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" placeholder="Search Voucher, Particulars..." 
+                    <input type="text" placeholder="Search Voucher..." 
                            x-model="filters.search" @input.debounce.300ms="fetchExpenses(1)"
-                           class="w-full pl-10 pr-10 erp-search-input">
+                           class="w-full pl-8 pr-7 erp-search-input !text-[11px] !h-[36px]">
                     
                     {{-- Clear Button --}}
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
                         <button type="button" x-show="filters.search" @click="filters.search = ''; fetchExpenses(1)"
-                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                class="p-0.5 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
 
                 {{-- Site / Project Filter (Custom Gold Popover) --}}
-                <div class="relative w-full" @click.outside="projectFilterOpen = false">
+                <div class="relative lg:flex-1 min-w-0" @click.outside="projectFilterOpen = false">
                     <button type="button"
-                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { categoryFilterOpen = false; paymentModeFilterOpen = false; }"
-                            class="erp-dropdown-trigger"
+                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { fyFilterOpen = false; categoryFilterOpen = false; paymentModeFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[36px]"
                             :class="projectFilterOpen ? 'active' : ''">
-                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
-                            <span class="truncate text-xs font-bold"
+                            <span class="truncate text-[11px] font-bold"
                                   :class="(filters.project_id && filters.project_id !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
                                   x-text="getSelectedProjectName()">All Projects</span>
                         </div>
 
-                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
                             <template x-if="filters.project_id && filters.project_id !== 'All'">
                                 <span @click.stop="selectProject('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
-                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="projectFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
 
@@ -211,40 +240,98 @@
                     </div>
                 </div>
 
+                {{-- Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+                <div class="relative lg:flex-[0.95] min-w-0" @click.outside="fyFilterOpen = false">
+                    <button type="button"
+                            @click="fyFilterOpen = !fyFilterOpen; if(fyFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; paymentModeFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[36px]"
+                            :class="fyFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="(filters.financial_year && filters.financial_year !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedFyName()">All FY</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="filters.financial_year && filters.financial_year !== 'All'">
+                                <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="fyFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Financial Year Popover Menu --}}
+                    <div x-show="fyFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[200px]"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All')"
+                                 class="erp-dropdown-option"
+                                 :class="(!filters.financial_year || filters.financial_year === 'All') ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
+                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value)"
+                                     class="erp-dropdown-option flex items-center justify-between"
+                                     :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                            <div @click="selectFinancialYear('Custom')"
+                                 class="erp-dropdown-option"
+                                 :class="filters.financial_year === 'Custom' ? 'selected' : ''">
+                                <span>Custom Date Range</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- From Date --}}
-                <div class="relative">
-                    <input type="date" x-model="filters.from_date" @change="fetchExpenses(1)"
-                           class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                <div class="relative lg:flex-[0.9] min-w-0">
+                    <input type="date" id="expenseFromDateInput" x-model="filters.from_date" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[36px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 </div>
 
                 {{-- To Date --}}
-                <div class="relative">
-                    <input type="date" x-model="filters.to_date" @change="fetchExpenses(1)"
-                           class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                <div class="relative lg:flex-[0.9] min-w-0">
+                    <input type="date" id="expenseToDateInput" x-model="filters.to_date" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[36px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 </div>
 
                 {{-- Category Filter (Custom Gold Popover) --}}
-                <div class="relative w-full" @click.outside="categoryFilterOpen = false">
+                <div class="relative lg:flex-1 min-w-0" @click.outside="categoryFilterOpen = false">
                     <button type="button"
-                            @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { projectFilterOpen = false; paymentModeFilterOpen = false; }"
-                            class="erp-dropdown-trigger"
+                            @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; paymentModeFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[36px]"
                             :class="categoryFilterOpen ? 'active' : ''">
-                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                             </svg>
-                            <span class="truncate text-xs font-bold"
+                            <span class="truncate text-[11px] font-bold"
                                   :class="(filters.category && filters.category !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
                                   x-text="getSelectedCategoryName()">All Categories</span>
                         </div>
 
-                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
                             <template x-if="filters.category && filters.category !== 'All'">
                                 <span @click.stop="selectCategory('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
-                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="categoryFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
 
@@ -286,27 +373,27 @@
                 </div>
 
                 {{-- Payment Mode Filter (Custom Gold Popover) --}}
-                <div class="relative w-full" @click.outside="paymentModeFilterOpen = false">
+                <div class="relative lg:flex-[0.85] min-w-0" @click.outside="paymentModeFilterOpen = false">
                     <button type="button"
-                            @click="paymentModeFilterOpen = !paymentModeFilterOpen; if(paymentModeFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; }"
-                            class="erp-dropdown-trigger"
+                            @click="paymentModeFilterOpen = !paymentModeFilterOpen; if(paymentModeFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[36px]"
                             :class="paymentModeFilterOpen ? 'active' : ''">
-                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                            <span class="truncate text-xs font-bold"
+                            <span class="truncate text-[11px] font-bold"
                                   :class="(filters.payment_mode && filters.payment_mode !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
                                   x-text="getSelectedPaymentModeName()">All Modes</span>
                         </div>
 
-                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
                             <template x-if="filters.payment_mode && filters.payment_mode !== 'All'">
                                 <span @click.stop="selectPaymentMode('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
-                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="paymentModeFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="paymentModeFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
 
@@ -353,7 +440,7 @@
 
             {{-- Reset Filters Button --}}
             <button @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl theme-btn px-5 h-[38px] text-xs font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                    class="dse-reset-btn inline-flex items-center justify-center gap-1.5 rounded-xl theme-btn px-4 py-2 h-[38px] text-[11px] font-extrabold flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset Filters</span>
             </button>
@@ -1206,21 +1293,44 @@ function dailySiteExpenses() {
         filters: {
             search: '',
             project_id: '{{ $selectedProject }}',
+            financial_year: '{{ $financialYear ?? 'All' }}',
             from_date: '{{ $fromDate }}',
             to_date: '{{ $toDate }}',
             category: '{{ $category }}',
             payment_mode: '{{ $paymentMode }}'
         },
         projectFilterOpen: false,
+        fyFilterOpen: false,
         categoryFilterOpen: false,
         paymentModeFilterOpen: false,
         projectsList: @json($projects),
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
         masterCategoriesList: @json($masterCategories ?? []),
         paymentModesList: ['All', 'Cash', 'UPI', 'Cheque', 'Bank Transfer'],
         getSelectedProjectName() {
             if (!this.filters.project_id || this.filters.project_id === 'All') return 'All Projects';
             const p = this.projectsList.find(x => String(x.id) === String(this.filters.project_id));
             return p ? p.name : 'All Projects';
+        },
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'All') return 'All FY';
+            if (this.filters.financial_year === 'Custom') return 'Custom Date';
+            const found = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+            return found ? found.label : ('FY ' + this.filters.financial_year);
         },
         getSelectedCategoryName() {
             if (!this.filters.category || this.filters.category === 'All') return 'All Categories';
@@ -1233,6 +1343,39 @@ function dailySiteExpenses() {
         selectProject(id) {
             this.filters.project_id = id;
             this.projectFilterOpen = false;
+            this.fetchExpenses(1);
+        },
+        selectFinancialYear(fyVal) {
+            this.filters.financial_year = fyVal;
+            this.fyFilterOpen = false;
+            if (fyVal === 'All') {
+                this.filters.from_date = '';
+                this.filters.to_date = '';
+                this.fetchExpenses(1);
+            } else if (fyVal === 'Custom') {
+                const fromEl = document.getElementById('expenseFromDateInput');
+                if (fromEl) fromEl.focus();
+                if (this.filters.from_date || this.filters.to_date) {
+                    this.fetchExpenses(1);
+                }
+            } else {
+                const found = this.financialYearsList.find(x => x.value === fyVal);
+                if (found) {
+                    this.filters.from_date = found.from;
+                    this.filters.to_date = found.to;
+                }
+                this.fetchExpenses(1);
+            }
+        },
+        onCustomDateChange() {
+            if (this.filters.from_date || this.filters.to_date) {
+                const matchedFy = this.financialYearsList.find(
+                    x => x.from === this.filters.from_date && x.to === this.filters.to_date
+                );
+                this.filters.financial_year = matchedFy ? matchedFy.value : 'Custom';
+            } else {
+                this.filters.financial_year = 'All';
+            }
             this.fetchExpenses(1);
         },
         selectCategory(cat) {
@@ -1355,6 +1498,7 @@ function dailySiteExpenses() {
             let params = new URLSearchParams();
             params.append('page', page);
             if (this.filters.project_id) params.append('project_id', this.filters.project_id);
+            if (this.filters.financial_year) params.append('financial_year', this.filters.financial_year);
             if (this.filters.from_date) params.append('from_date', this.filters.from_date);
             if (this.filters.to_date) params.append('to_date', this.filters.to_date);
             if (this.filters.category) params.append('category', this.filters.category);
@@ -1384,6 +1528,7 @@ function dailySiteExpenses() {
         resetFilters() {
             this.filters.search = '';
             this.filters.project_id = '{{ $projects->first()->id ?? '' }}';
+            this.filters.financial_year = 'All';
             this.filters.from_date = '';
             this.filters.to_date = '';
             this.filters.category = 'All';
@@ -1500,6 +1645,7 @@ function dailySiteExpenses() {
                 // 1. Fetch all expenses matching current filters
                 let params = new URLSearchParams();
                 if (this.filters.project_id) params.append('project_id', this.filters.project_id);
+                if (this.filters.financial_year) params.append('financial_year', this.filters.financial_year);
                 if (this.filters.from_date) params.append('from_date', this.filters.from_date);
                 if (this.filters.to_date) params.append('to_date', this.filters.to_date);
                 if (this.filters.category) params.append('category', this.filters.category);

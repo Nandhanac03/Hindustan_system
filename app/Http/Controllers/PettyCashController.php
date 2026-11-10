@@ -550,17 +550,26 @@ class PettyCashController extends Controller
         $projects = Project::where('is_active', true)->get();
         
         $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
+        $financialYear = $request->input('financial_year', 'All');
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');
+
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom' && preg_match('/^(\d{4})-(\d{2,4})$/', (string) $financialYear, $matches)) {
+            $fyStartYear = (int) $matches[1];
+            $fyEndYear = $fyStartYear + 1;
+            $fromDate = $fromDate ?: "{$fyStartYear}-04-01";
+            $toDate = $toDate ?: "{$fyEndYear}-03-31";
+        }
+
         $category = $request->input('category', 'All');
         $paymentMode = $request->input('payment_mode', 'All');
         $search = $request->input('search');
 
-        $project = Project::find($selectedProject);
+        $project = ($selectedProject && $selectedProject !== 'All') ? Project::find($selectedProject) : $projects->first();
         $siteName = $project ? $project->name : 'Green City Site';
         
         $pettyCashBox = PettyCashBox::firstOrCreate(
-            ['project_id' => $selectedProject],
+            ['project_id' => $project ? $project->id : $selectedProject],
             [
                 'box_code' => 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001',
                 'incharge_id' => auth()->id(),
@@ -569,8 +578,11 @@ class PettyCashController extends Controller
         );
 
         $query = PettyCashTransaction::with(['category', 'pettyCashBox.project', 'creator'])
-            ->where('petty_cash_box_id', $pettyCashBox->id)
             ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment']);
+
+        if ($selectedProject && $selectedProject !== 'All') {
+            $query->where('petty_cash_box_id', $pettyCashBox->id);
+        }
             
         if ($fromDate) {
             $query->whereDate('transaction_date', '>=', $fromDate);
@@ -605,19 +617,88 @@ class PettyCashController extends Controller
             });
         }
 
-        $totalAmount = (clone $query)->sum('cash_out');
-        $availableBalance = $pettyCashBox->current_balance ?? 0;
-        
-        $startOfMonth = now()->startOfMonth();
-        $thisMonthTotal = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
-            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
-            ->whereDate('transaction_date', '>=', $startOfMonth)
-            ->sum('cash_out');
+        $totalAmount = (float) (clone $query)->sum('cash_out');
+        $filteredCount = (clone $query)->count();
 
-        $categorySummary = PettyCashTransaction::with('category')
-            ->where('petty_cash_box_id', $pettyCashBox->id)
-            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
-            ->whereDate('transaction_date', '>=', $startOfMonth)
+        // Dynamic KPI Cards (Petty Cash Balance & Monthly Outflow) responsive to Financial Year / Search / Filters
+        $now = now();
+        $isDateFiltered = !empty($fromDate) || !empty($toDate);
+        $isCurrentPeriodSelected = !$isDateFiltered || (
+            (!$fromDate || $now->toDateString() >= $fromDate) &&
+            (!$toDate || $now->toDateString() <= $toDate)
+        );
+
+        if (!$isDateFiltered && (!$search && ($category === 'All' || !$category) && ($paymentMode === 'All' || !$paymentMode))) {
+            $availableBalance = (float) ($pettyCashBox->current_balance ?? 0);
+        } elseif ($filteredCount === 0) {
+            $availableBalance = 0.0;
+        } elseif ($isCurrentPeriodSelected) {
+            $availableBalance = (float) ($pettyCashBox->current_balance ?? 0);
+        } else {
+            // Historical / past FY balance calculation from Cash Book / Petty Cash Box
+            $cashBoxTxQuery = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id);
+            if ($fromDate) {
+                $cashBoxTxQuery->whereDate('transaction_date', '>=', $fromDate);
+            }
+            if ($toDate) {
+                $cashBoxTxQuery->whereDate('transaction_date', '<=', $toDate);
+            }
+            $periodCashIn = (float) (clone $cashBoxTxQuery)->sum('cash_in');
+            $periodCashOut = (float) (clone $cashBoxTxQuery)->sum('cash_out');
+
+            if ($periodCashIn > 0) {
+                $availableBalance = max(0.0, $periodCashIn - $periodCashOut);
+            } else {
+                // Check Cash-in-Hand / Petty Cash Box ledger entries in this period if seeded via Voucher
+                $cashAccountIds = \App\Models\Account::withoutGlobalScopes()
+                    ->whereIn('name', ['Cash-in-Hand', 'Petty Cash Box', 'Cash'])
+                    ->orWhere('code', 'CASH-HAND')
+                    ->pluck('id');
+                if ($cashAccountIds->isNotEmpty()) {
+                    $vLineQuery = \App\Models\VoucherLine::whereIn('account_id', $cashAccountIds)
+                        ->whereHas('voucher', function ($vq) use ($fromDate, $toDate) {
+                            if ($fromDate) {
+                                $vq->whereDate('date', '>=', $fromDate);
+                            }
+                            if ($toDate) {
+                                $vq->whereDate('date', '<=', $toDate);
+                            }
+                        });
+                    $vDebit = (float) (clone $vLineQuery)->sum('debit');
+                    $vCredit = (float) (clone $vLineQuery)->sum('credit');
+                    $availableBalance = max(0.0, $vDebit - $vCredit);
+                } else {
+                    $availableBalance = 0.0;
+                }
+            }
+        }
+
+        // Dynamic Monthly Outflow based on active FY / filters
+        if ($filteredCount === 0) {
+            $thisMonthTotal = 0.0;
+        } elseif ($isCurrentPeriodSelected) {
+            $startOfMonth = $now->copy()->startOfMonth()->toDateString();
+            $endOfMonth = $now->copy()->endOfMonth()->toDateString();
+            $thisMonthTotal = (float) (clone $query)
+                ->whereDate('transaction_date', '>=', $startOfMonth)
+                ->whereDate('transaction_date', '<=', $endOfMonth)
+                ->sum('cash_out');
+        } else {
+            // For a past/selected FY or custom range, use the latest active month within the filtered results
+            $latestTxDate = (clone $query)->max('transaction_date');
+            if ($latestTxDate) {
+                $latestMonthStart = Carbon::parse($latestTxDate)->startOfMonth()->toDateString();
+                $latestMonthEnd = Carbon::parse($latestTxDate)->endOfMonth()->toDateString();
+                $thisMonthTotal = (float) (clone $query)
+                    ->whereDate('transaction_date', '>=', $latestMonthStart)
+                    ->whereDate('transaction_date', '<=', $latestMonthEnd)
+                    ->sum('cash_out');
+            } else {
+                $thisMonthTotal = 0.0;
+            }
+        }
+
+        $categorySummary = (clone $query)
             ->get()
             ->groupBy(function($item) {
                 if ($item->category) {
@@ -712,6 +793,7 @@ class PettyCashController extends Controller
             'expenses', 
             'projects', 
             'selectedProject', 
+            'financialYear',
             'fromDate', 
             'toDate', 
             'category', 
