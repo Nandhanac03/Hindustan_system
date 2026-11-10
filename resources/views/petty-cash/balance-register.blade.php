@@ -224,7 +224,19 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 font-semibold text-slate-600">Register Audit Date</td>
-                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">{{ $selectedDate ? \Carbon\Carbon::parse($selectedDate)->format('d-M-Y') : date('d-M-Y') }}</td>
+                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">
+                                        @if(!empty($financialYear) && $financialYear !== 'All' && $financialYear !== 'Custom')
+                                            FY {{ $financialYear }}
+                                        @elseif(!empty($fromDate) && !empty($toDate))
+                                            {{ \Carbon\Carbon::parse($fromDate)->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($toDate)->format('d-M-Y') }}
+                                        @elseif(!empty($fromDate))
+                                            From {{ \Carbon\Carbon::parse($fromDate)->format('d-M-Y') }}
+                                        @elseif(!empty($toDate))
+                                            Up to {{ \Carbon\Carbon::parse($toDate)->format('d-M-Y') }}
+                                        @else
+                                            {{ date('d-M-Y') }}
+                                        @endif
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -243,167 +255,252 @@
 
         </div>
 
-        <!-- Filter Area (ERP Standard Design System) -->
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 mb-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0">
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
-                    {{-- Search Input --}}
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <input type="text" x-model="searchQuery" @input.debounce.350ms="updateFilters()" placeholder="Search Voucher..." 
-                               class="w-full erp-search-input pl-10 pr-9">
-                        <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
-                            <button type="button" @click="searchQuery = ''; updateFilters()"
-                                    class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
+        <!-- Filter Area (Single Row Compact Alignment with Financial Year Selector) -->
+        <style>
+            @media (min-width: 1024px) {
+                .br-filter-bar {
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    align-items: center !important;
+                    gap: 0.45rem !important;
+                }
+                .br-filter-grid {
+                    display: grid !important;
+                    grid-template-columns: minmax(120px, 1.15fr) minmax(115px, 1.05fr) minmax(100px, 0.95fr) minmax(105px, 0.92fr) minmax(105px, 0.92fr) minmax(100px, 0.9fr) !important;
+                    gap: 0.45rem !important;
+                    flex: 1 1 0% !important;
+                    min-width: 0 !important;
+                    align-items: center !important;
+                }
+            }
+            .br-filter-bar .erp-search-input,
+            .br-filter-bar .erp-dropdown-trigger,
+            .br-filter-bar input[type="date"],
+            .br-filter-bar .br-reset-btn {
+                height: 38px !important;
+                min-height: 38px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                font-size: 11px !important;
+                box-sizing: border-box !important;
+            }
+        </style>
+        <div class="br-filter-bar bg-white rounded-2xl border border-slate-200/90 p-3 mb-6 shadow-sm flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 transition-all">
+            <div class="br-filter-grid grid grid-cols-1 sm:grid-cols-2 items-center gap-2 flex-1 min-w-0 w-full">
+                {{-- Search Input --}}
+                <div class="relative group min-w-0">
+                    <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
                     </div>
-
-                    {{-- Site Dropdown (Custom Gold Popover) --}}
-                    <div class="relative w-full" @click.outside="projectDropdownOpen = false">
-                        <input type="hidden" name="project_id" :value="selectedProjectId">
-                        <button type="button"
-                                @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { $nextTick(() => $refs.projSearchInput?.focus()); }"
-                                class="erp-dropdown-trigger"
-                                :class="projectDropdownOpen ? 'active' : ''">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                <span class="truncate text-xs font-bold"
-                                      :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="selectedProjectName"></span>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedProjectId">
-                                    <span @click.stop="selectProject('', 'All Sites')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
-                                </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
+                    <input type="text" x-model="searchQuery" @input.debounce.350ms="updateFilters()" placeholder="Search Voucher..." 
+                           class="w-full erp-search-input pl-8 pr-7 !text-[11px] !h-[38px]">
+                    <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2 flex items-center" style="display: none;">
+                        <button type="button" @click="searchQuery = ''; updateFilters()"
+                                class="p-0.5 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
-
-                        {{-- Project Popover Menu --}}
-                        <div x-show="projectDropdownOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover min-w-[240px]"
-                             style="display: none;">
-                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                                <div class="relative">
-                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                    <input type="text" x-model="projectSearch" x-ref="projSearchInput" placeholder="Search site..."
-                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
-                                           @keydown.escape="projectDropdownOpen = false">
-                                    <template x-if="projectSearch">
-                                        <button type="button" @click="projectSearch = ''; $refs.projSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
-                                    </template>
-                                </div>
-                            </div>
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="selectProject('', 'All Sites')"
-                                     x-show="!projectSearch || 'All Sites'.toLowerCase().includes(projectSearch.toLowerCase())"
-                                     class="erp-dropdown-option"
-                                     :class="!selectedProjectId ? 'selected-all' : ''">
-                                    <span>All Sites</span>
-                                </div>
-                                @foreach($projects as $p)
-                                    <div @click="selectProject('{{ $p->id }}', '{{ addslashes($p->name) }}')"
-                                         x-show="!projectSearch || '{{ strtolower(addslashes($p->name)) }}'.includes(projectSearch.toLowerCase())"
-                                         class="erp-dropdown-option"
-                                         :class="String(selectedProjectId) === '{{ (string)$p->id }}' ? 'selected' : ''">
-                                        <span class="truncate">{{ $p->name }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Status Dropdown (Custom Gold Popover) --}}
-                    <div class="relative w-full" @click.outside="statusDropdownOpen = false">
-                        <input type="hidden" name="status" :value="selectedStatus">
-                        <button type="button"
-                                @click="statusDropdownOpen = !statusDropdownOpen"
-                                class="erp-dropdown-trigger"
-                                :class="statusDropdownOpen ? 'active' : ''">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                                <span class="truncate text-xs font-bold"
-                                      :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                                      x-text="getStatusLabel()">All Statuses</span>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                <template x-if="selectedStatus">
-                                    <span @click.stop="selectStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
-                                </template>
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                        </button>
-
-                        {{-- Status Popover Menu --}}
-                        <div x-show="statusDropdownOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="erp-dropdown-popover w-full"
-                             style="display: none;">
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="selectStatus('')"
-                                     class="erp-dropdown-option"
-                                     :class="!selectedStatus ? 'selected-all' : ''">
-                                    <span>All Statuses</span>
-                                </div>
-                                <div @click="selectStatus('active')"
-                                     class="erp-dropdown-option"
-                                     :class="selectedStatus === 'active' ? 'selected' : ''">
-                                    <span>Active</span>
-                                </div>
-                                <div @click="selectStatus('pending')"
-                                     class="erp-dropdown-option"
-                                     :class="selectedStatus === 'pending' ? 'selected' : ''">
-                                    <span>Pending</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Date Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                        <input type="date" x-model="selectedDate" @change="updateFilters()"
-                               class="erp-input erp-date-input w-full pl-10 pr-3 py-2 text-xs font-bold text-slate-800 cursor-pointer">
                     </div>
                 </div>
 
-                {{-- Reset Filters Button --}}
-                <div class="shrink-0 flex items-center">
-                    <button type="button" @click="resetFilters()"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8C7A2E] hover:bg-[#786826] px-5 h-[38px] text-xs font-black text-white shadow-xs transition duration-200 flex-shrink-0 uppercase tracking-wider group cursor-pointer active:scale-95 whitespace-nowrap">
-                        <svg class="w-4 h-4 text-white transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>RESET FILTERS</span>
+                {{-- Site Dropdown (Custom Gold Popover) --}}
+                <div class="relative w-full min-w-0" @click.outside="projectDropdownOpen = false">
+                    <input type="hidden" name="project_id" :value="selectedProjectId">
+                    <button type="button"
+                            @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { fyDropdownOpen = false; statusDropdownOpen = false; $nextTick(() => $refs.projSearchInput?.focus()); }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="projectDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="selectedProjectId ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="selectedProjectName"></span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedProjectId">
+                                <span @click.stop="selectProject('', 'All Sites')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="projectDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </button>
+
+                    {{-- Project Popover Menu --}}
+                    <div x-show="projectDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[240px]"
+                         style="display: none;">
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="projectSearch" x-ref="projSearchInput" placeholder="Search site..."
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="projectDropdownOpen = false">
+                                <template x-if="projectSearch">
+                                    <button type="button" @click="projectSearch = ''; $refs.projSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectProject('', 'All Sites')"
+                                 x-show="!projectSearch || 'All Sites'.toLowerCase().includes(projectSearch.toLowerCase())"
+                                 class="erp-dropdown-option"
+                                 :class="!selectedProjectId ? 'selected-all' : ''">
+                                <span>All Sites</span>
+                            </div>
+                            @foreach($projects as $p)
+                                <div @click="selectProject('{{ $p->id }}', '{{ addslashes($p->name) }}')"
+                                     x-show="!projectSearch || '{{ strtolower(addslashes($p->name)) }}'.includes(projectSearch.toLowerCase())"
+                                     class="erp-dropdown-option"
+                                     :class="String(selectedProjectId) === '{{ (string)$p->id }}' ? 'selected' : ''">
+                                    <span class="truncate">{{ $p->name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+                <div class="relative w-full min-w-0" @click.outside="fyDropdownOpen = false">
+                    <button type="button"
+                            @click="fyDropdownOpen = !fyDropdownOpen; if(fyDropdownOpen) { projectDropdownOpen = false; statusDropdownOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="fyDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="(selectedFinancialYear && selectedFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedFyName()">All FY</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedFinancialYear && selectedFinancialYear !== 'All'">
+                                <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="fyDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Financial Year Popover Menu --}}
+                    <div x-show="fyDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[200px]"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All')"
+                                 class="erp-dropdown-option"
+                                 :class="(!selectedFinancialYear || selectedFinancialYear === 'All') ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
+                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value)"
+                                     class="erp-dropdown-option flex items-center justify-between"
+                                     :class="selectedFinancialYear === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                            <div @click="selectFinancialYear('Custom')"
+                                 class="erp-dropdown-option"
+                                 :class="selectedFinancialYear === 'Custom' ? 'selected' : ''">
+                                <span>Custom Date Range</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- From Date --}}
+                <div class="relative min-w-0">
+                    <input type="date" id="brFromDateInput" x-model="fromDate" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[38px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                </div>
+
+                {{-- To Date --}}
+                <div class="relative min-w-0">
+                    <input type="date" id="brToDateInput" x-model="toDate" @change="onCustomDateChange()"
+                           class="w-full px-2.5 h-[38px] bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-[11px] font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                </div>
+
+                {{-- Status Dropdown (Custom Gold Popover) --}}
+                <div class="relative w-full min-w-0" @click.outside="statusDropdownOpen = false">
+                    <input type="hidden" name="status" :value="selectedStatus">
+                    <button type="button"
+                            @click="statusDropdownOpen = !statusDropdownOpen; if(statusDropdownOpen) { projectDropdownOpen = false; fyDropdownOpen = false; }"
+                            class="erp-dropdown-trigger !px-2.5 !h-[38px]"
+                            :class="statusDropdownOpen ? 'active' : ''">
+                        <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                            <span class="truncate text-[11px] font-bold"
+                                  :class="selectedStatus ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getStatusLabel()">All Statuses</span>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <template x-if="selectedStatus">
+                                <span @click.stop="selectStatus('')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3 h-3 text-[#a38c29] transition-transform duration-200" :class="statusDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Status Popover Menu --}}
+                    <div x-show="statusDropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover w-full"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
+                            <div @click="selectStatus('')"
+                                 class="erp-dropdown-option"
+                                 :class="!selectedStatus ? 'selected-all' : ''">
+                                <span>All Statuses</span>
+                            </div>
+                            <div @click="selectStatus('active')"
+                                 class="erp-dropdown-option"
+                                 :class="selectedStatus === 'active' ? 'selected' : ''">
+                                <span>Active</span>
+                            </div>
+                            <div @click="selectStatus('pending')"
+                                 class="erp-dropdown-option"
+                                 :class="selectedStatus === 'pending' ? 'selected' : ''">
+                                <span>Pending</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="resetFilters()"
+                    class="br-reset-btn inline-flex items-center justify-center gap-1.5 rounded-xl theme-btn px-4 py-2 h-[38px] text-[11px] font-extrabold text-white shadow-xs transition duration-200 flex-shrink-0 uppercase tracking-wider group cursor-pointer active:scale-95 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 text-white transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>RESET FILTERS</span>
+            </button>
         </div>
 
         <!-- Recent Transactions Table Container (Designed identical to Sales Return / Cancellation module) -->
@@ -500,6 +597,25 @@
                 selectedProjectName: '{{ addslashes($selectedSiteName) }}',
                 projectDropdownOpen: false,
                 projectSearch: '',
+                selectedFinancialYear: '{{ $financialYear ?? request('financial_year', 'All') }}',
+                fyDropdownOpen: false,
+                fromDate: '{{ $fromDate ?? request('from_date', '') }}',
+                toDate: '{{ $toDate ?? request('to_date', '') }}',
+                financialYearsList: [
+                    { value: '2026-27', label: 'FY 2026-27', range: 'Apr 2026 - Mar 2027', from: '2026-04-01', to: '2027-03-31' },
+                    { value: '2025-26', label: 'FY 2025-26', range: 'Apr 2025 - Mar 2026', from: '2025-04-01', to: '2026-03-31' },
+                    { value: '2024-25', label: 'FY 2024-25', range: 'Apr 2024 - Mar 2025', from: '2024-04-01', to: '2025-03-31' },
+                    { value: '2023-24', label: 'FY 2023-24', range: 'Apr 2023 - Mar 2024', from: '2023-04-01', to: '2024-03-31' },
+                    { value: '2022-23', label: 'FY 2022-23', range: 'Apr 2022 - Mar 2023', from: '2022-04-01', to: '2023-03-31' },
+                    { value: '2021-22', label: 'FY 2021-22', range: 'Apr 2021 - Mar 2022', from: '2021-04-01', to: '2022-03-31' },
+                    { value: '2020-21', label: 'FY 2020-21', range: 'Apr 2020 - Mar 2021', from: '2020-04-01', to: '2021-03-31' },
+                    { value: '2019-20', label: 'FY 2019-20', range: 'Apr 2019 - Mar 2020', from: '2019-04-01', to: '2020-03-31' },
+                    { value: '2018-19', label: 'FY 2018-19', range: 'Apr 2018 - Mar 2019', from: '2018-04-01', to: '2019-03-31' },
+                    { value: '2017-18', label: 'FY 2017-18', range: 'Apr 2017 - Mar 2018', from: '2017-04-01', to: '2018-03-31' },
+                    { value: '2016-17', label: 'FY 2016-17', range: 'Apr 2016 - Mar 2017', from: '2016-04-01', to: '2017-03-31' },
+                    { value: '2015-16', label: 'FY 2015-16', range: 'Apr 2015 - Mar 2016', from: '2015-04-01', to: '2016-03-31' },
+                    { value: '2014-15', label: 'FY 2014-15', range: 'Apr 2014 - Mar 2015', from: '2014-04-01', to: '2015-03-31' },
+                ],
                 selectedStatus: '{{ request('status', '') }}',
                 statusDropdownOpen: false,
                 selectedDate: '{{ $selectedDate }}',
@@ -584,6 +700,50 @@
                     });
                 },
 
+                getSelectedFyName() {
+                    if (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') return 'All FY';
+                    if (this.selectedFinancialYear === 'Custom') return 'Custom Date';
+                    const found = this.financialYearsList.find(x => x.value === this.selectedFinancialYear);
+                    return found ? found.label : ('FY ' + this.selectedFinancialYear);
+                },
+
+                selectFinancialYear(fyVal) {
+                    this.selectedFinancialYear = fyVal;
+                    this.fyDropdownOpen = false;
+                    this.selectedDate = '';
+                    if (fyVal === 'All') {
+                        this.fromDate = '';
+                        this.toDate = '';
+                        this.$nextTick(() => this.updateFilters());
+                    } else if (fyVal === 'Custom') {
+                        const fromEl = document.getElementById('brFromDateInput');
+                        if (fromEl) fromEl.focus();
+                        if (this.fromDate || this.toDate) {
+                            this.$nextTick(() => this.updateFilters());
+                        }
+                    } else {
+                        const found = this.financialYearsList.find(x => x.value === fyVal);
+                        if (found) {
+                            this.fromDate = found.from;
+                            this.toDate = found.to;
+                        }
+                        this.$nextTick(() => this.updateFilters());
+                    }
+                },
+
+                onCustomDateChange() {
+                    this.selectedDate = '';
+                    if (this.fromDate || this.toDate) {
+                        const matchedFy = this.financialYearsList.find(
+                            x => x.from === this.fromDate && x.to === this.toDate
+                        );
+                        this.selectedFinancialYear = matchedFy ? matchedFy.value : 'Custom';
+                    } else {
+                        this.selectedFinancialYear = 'All';
+                    }
+                    this.$nextTick(() => this.updateFilters());
+                },
+
                 selectStatus(s) {
                     this.selectedStatus = s;
                     this.statusDropdownOpen = false;
@@ -602,6 +762,9 @@
                     const params = new URLSearchParams();
                     if (this.searchQuery) params.append('search', this.searchQuery);
                     if (this.selectedProjectId) params.append('project_id', this.selectedProjectId);
+                    if (this.selectedFinancialYear) params.append('financial_year', this.selectedFinancialYear);
+                    if (this.fromDate) params.append('from_date', this.fromDate);
+                    if (this.toDate) params.append('to_date', this.toDate);
                     if (this.selectedStatus) params.append('status', this.selectedStatus);
                     if (this.selectedDate) params.append('date', this.selectedDate);
 
@@ -654,6 +817,10 @@
                     this.selectedProjectName = 'All Sites';
                     this.projectSearch = '';
                     this.projectDropdownOpen = false;
+                    this.selectedFinancialYear = 'All';
+                    this.fyDropdownOpen = false;
+                    this.fromDate = '';
+                    this.toDate = '';
                     this.selectedStatus = '';
                     this.statusDropdownOpen = false;
                     this.selectedDate = '';
