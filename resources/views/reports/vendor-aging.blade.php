@@ -815,6 +815,53 @@
                 </div>
             </div>
 
+            {{-- 4b. Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+            <div class="relative min-w-[130px] flex-[0.9]" style="flex: 0.9 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''" @click.outside="open = false">
+                <button type="button" @click="open = !open"
+                        class="erp-dropdown-trigger px-2.5"
+                        :class="open ? 'active' : ''">
+                    <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span class="truncate text-xs font-bold"
+                              :class="(filters.financial_year && filters.financial_year !== 'all') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSelectedFyName()">All FY</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0 ml-1">
+                        <template x-if="filters.financial_year && filters.financial_year !== 'all'">
+                            <span @click.stop="selectFinancialYear('all'); open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover min-w-[205px] w-max"
+                     style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                        <div @click="selectFinancialYear('all'); open = false"
+                             class="erp-dropdown-option"
+                             :class="(!filters.financial_year || filters.financial_year === 'all') ? '!bg-[#a38c29] !text-white font-extrabold' : ''">
+                            <span>All Financial Years</span>
+                        </div>
+                        <template x-for="fy in financialYearsList" :key="fy.value">
+                            <div @click="selectFinancialYear(fy.value); open = false"
+                                 class="erp-dropdown-option flex items-center justify-between"
+                                 :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                <span x-text="fy.label"></span>
+                                <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
             {{-- 5. Action Buttons: Overdue (90+) Toggle & Reset Filters --}}
             <div class="flex items-center gap-2 shrink-0">
                 
@@ -1284,7 +1331,35 @@ function vendorAgingApp() {
             vendor: 'all',
             project: @json($selectedProject ?? ($allProjects[0] ?? 'all')),
             aging_bucket: 'all',
+            financial_year: 'all',
             overdue_only: false,
+        },
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
+
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'all') return 'All FY';
+            const found = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+            return found ? found.label : ('FY ' + this.filters.financial_year);
+        },
+
+        selectFinancialYear(fyVal) {
+            this.filters.financial_year = fyVal;
+            this.currentPage = 1;
+            this.updateCharts();
         },
 
         // Pagination
@@ -1345,6 +1420,39 @@ function vendorAgingApp() {
             if (this.filters.project && this.filters.project !== 'all' && this.filters.project !== 'All Projects') {
                 const pTarget = this.filters.project.toLowerCase().trim();
                 res = res.filter(r => r.project && r.project.toLowerCase().includes(pTarget));
+            }
+
+            // 3.5 Financial Year Filter (filter invoices & recompute vendor buckets dynamically)
+            if (this.filters.financial_year && this.filters.financial_year !== 'all') {
+                const fy = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+                if (fy) {
+                    res = res.map(r => {
+                        const invs = (r.invoices || []).filter(inv => {
+                            const d = inv.invoice_date_raw || '';
+                            return d >= fy.from && d <= fy.to;
+                        });
+                        if (invs.length === 0) return null;
+                        let b0 = 0, b31 = 0, b61 = 0, b90 = 0, totOut = 0;
+                        invs.forEach(inv => {
+                            const outAmt = Number(inv.outstanding_amount || 0);
+                            totOut += outAmt;
+                            if (inv.bucket_code === '0_30') b0 += outAmt;
+                            else if (inv.bucket_code === '31_60') b31 += outAmt;
+                            else if (inv.bucket_code === '61_90') b61 += outAmt;
+                            else if (inv.bucket_code === '90_plus') b90 += outAmt;
+                        });
+                        return {
+                            ...r,
+                            invoices: invs,
+                            invoices_count: invs.length,
+                            total_outstanding: totOut,
+                            bucket_0_30: b0,
+                            bucket_31_60: b31,
+                            bucket_61_90: b61,
+                            bucket_90_plus: b90
+                        };
+                    }).filter(Boolean);
+                }
             }
 
             // 4. Aging Bucket Filter
@@ -1423,6 +1531,7 @@ function vendorAgingApp() {
             this.filters.vendor = 'all';
             this.filters.project = this.allProjectsList.length > 0 ? this.allProjectsList[0] : 'all';
             this.filters.aging_bucket = 'all';
+            this.filters.financial_year = 'all';
             this.filters.overdue_only = false;
             this.currentPage = 1;
             this.expandedVendorId = null;

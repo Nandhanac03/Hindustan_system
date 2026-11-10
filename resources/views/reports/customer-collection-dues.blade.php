@@ -682,49 +682,49 @@
                 </div>
             </div>
 
-            {{-- 6. Financial Year Filter --}}
-            <div class="relative min-w-[155px] flex-[1.15]" style="flex: 1.15 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''">
-                <button type="button" @click="open = !open" @click.outside="open = false"
+            {{-- 6. Financial Year Filter (Custom Gold Popover) --}}
+            <div class="relative min-w-[140px] flex-[1]" style="flex: 1 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''" @click.outside="open = false">
+                <button type="button" @click="open = !open"
                         class="erp-dropdown-trigger px-2.5"
                         :class="open ? 'active' : ''">
-                    <div class="flex items-center gap-1.5 truncate">
+                    <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
                         <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span class="truncate" x-text="filters.financial_year === 'all' ? 'All Financial Years' : filters.financial_year">All Financial Years</span>
+                        <span class="truncate text-xs font-bold"
+                              :class="(filters.financial_year && filters.financial_year !== 'all') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSelectedFyName()">All FY</span>
                     </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <div class="flex items-center gap-1 shrink-0 ml-1">
+                        <template x-if="filters.financial_year && filters.financial_year !== 'all'">
+                            <span @click.stop="selectFinancialYear('all'); open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
                 </button>
-                <div x-show="open" x-cloak class="erp-dropdown-popover min-w-[190px] w-max right-0">
-                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                        <div @click="filters.financial_year = 'all'; currentPage = 1; updateCharts(); open = false"
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover min-w-[205px] w-max right-0"
+                     style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                        <div @click="selectFinancialYear('all'); open = false"
                              class="erp-dropdown-option"
-                             :class="filters.financial_year === 'all' ? 'selected-all' : ''">
+                             :class="(!filters.financial_year || filters.financial_year === 'all') ? 'selected-all' : ''">
                             <span>All Financial Years</span>
                         </div>
-                        @if(isset($allFinancialYears))
-                            @foreach($allFinancialYears as $fy)
-                                <div @click="filters.financial_year = '{{ $fy }}'; currentPage = 1; updateCharts(); open = false"
-                                     class="erp-dropdown-option"
-                                     :class="filters.financial_year === '{{ $fy }}' ? 'selected' : ''">
-                                    <span>{{ $fy }}</span>
-                                </div>
-                            @endforeach
-                        @else
-                            <div @click="filters.financial_year = 'FY 2026-27'; currentPage = 1; updateCharts(); open = false"
-                                 class="erp-dropdown-option"
-                                 :class="filters.financial_year === 'FY 2026-27' ? 'selected' : ''">
-                                <span>FY 2026-27</span>
+                        <template x-for="fy in financialYearsList" :key="fy.value">
+                            <div @click="selectFinancialYear(fy.value); open = false"
+                                 class="erp-dropdown-option flex items-center justify-between"
+                                 :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                <span x-text="fy.label"></span>
+                                <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
                             </div>
-                            <div @click="filters.financial_year = 'FY 2025-26'; currentPage = 1; updateCharts(); open = false"
-                                 class="erp-dropdown-option"
-                                 :class="filters.financial_year === 'FY 2025-26' ? 'selected' : ''">
-                                <span>FY 2025-26</span>
-                            </div>
-                            <div @click="filters.financial_year = 'FY 2024-25'; currentPage = 1; updateCharts(); open = false"
-                                 class="erp-dropdown-option"
-                                 :class="filters.financial_year === 'FY 2024-25' ? 'selected' : ''">
-                                <span>FY 2024-25</span>
-                            </div>
-                        @endif
+                        </template>
                     </div>
                 </div>
             </div>
@@ -1948,10 +1948,36 @@ function customerCollectionDuesApp() {
             financial_year: 'all',
             overdue_only: false,
         },
+        financialYearsList: [
+            { value: 'FY 2026-27', label: 'FY 2026-27', range: 'Apr 26 - Mar 27' },
+            { value: 'FY 2025-26', label: 'FY 2025-26', range: 'Apr 25 - Mar 26' },
+            { value: 'FY 2024-25', label: 'FY 2024-25', range: 'Apr 24 - Mar 25' },
+            { value: 'FY 2023-24', label: 'FY 2023-24', range: 'Apr 23 - Mar 24' },
+            { value: 'FY 2022-23', label: 'FY 2022-23', range: 'Apr 22 - Mar 23' },
+            { value: 'FY 2021-22', label: 'FY 2021-22', range: 'Apr 21 - Mar 22' },
+            { value: 'FY 2020-21', label: 'FY 2020-21', range: 'Apr 20 - Mar 21' },
+            { value: 'FY 2019-20', label: 'FY 2019-20', range: 'Apr 19 - Mar 20' },
+            { value: 'FY 2018-19', label: 'FY 2018-19', range: 'Apr 18 - Mar 19' },
+            { value: 'FY 2017-18', label: 'FY 2017-18', range: 'Apr 17 - Mar 18' },
+            { value: 'FY 2016-17', label: 'FY 2016-17', range: 'Apr 16 - Mar 17' },
+            { value: 'FY 2015-16', label: 'FY 2015-16', range: 'Apr 15 - Mar 16' },
+            { value: 'FY 2014-15', label: 'FY 2014-15', range: 'Apr 14 - Mar 15' }
+        ],
 
         expandedRows: [],
         charts: {},
         isPrinting: false,
+
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'all') return 'All FY';
+            return this.filters.financial_year;
+        },
+
+        selectFinancialYear(fyVal) {
+            this.filters.financial_year = fyVal;
+            this.currentPage = 1;
+            this.updateCharts();
+        },
 
         init() {
             this.$nextTick(() => {

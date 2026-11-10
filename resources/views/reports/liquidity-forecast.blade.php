@@ -104,17 +104,31 @@
 .global-table-header th {
     background-color: var(--erp-table-header-bg, #534E47) !important;
     color: #ffffff !important;
-    font-size: 0.68rem !important;
+    font-size: 0.7rem !important;
     font-weight: 800 !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
+}
+
+@media print {
+    @page {
+        size: landscape;
+        margin: 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        font-size: 8pt !important;
+    }
+    .print\:hidden, header, nav, aside, footer, button, .no-print {
+        display: none !important;
+    }
 }
 </style>
 
 <div class="max-w-[1850px] mx-auto space-y-5" 
      x-data="liquidityForecastApp()">
 
-    {{-- ── 1. EXECUTIVE TOP HEADER BANNER ── --}}
+    {{-- ── 1. EXECUTIVE TOP HEADER BANNER (GOLDEN & WHITE THEME - EXACT MATCH TO IMAGE) ── --}}
     <div class="bg-gradient-to-r from-[#fdfaf3] via-[#f8f3e6] to-white rounded-2xl border border-[#a38c29]/30 p-5 sm:p-6 shadow-sm relative overflow-hidden text-slate-900">
         <div class="absolute -top-12 -right-12 w-56 h-56 bg-[#a38c29]/12 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-[#a38c29]/10 to-transparent pointer-events-none"></div>
@@ -127,7 +141,7 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2.5 flex-wrap">
+                    <div class="flex items-center gap-2.5">
                         <h1 class="text-lg sm:text-xl font-black tracking-tight uppercase text-slate-900">CASH FLOW & LIQUIDITY FORECAST</h1>
                         <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">ACCOUNTS & TREASURY</span>
                     </div>
@@ -141,7 +155,7 @@
                 </div>
             </div>
 
-            {{-- Quick Metadata Badges --}}
+            {{-- Quick Metadata Badges (Live updating without page reload) --}}
             <div class="flex items-center gap-3 text-right">
                 <div class="px-3.5 py-2 rounded-xl bg-white/90 border border-[#a38c29]/25 backdrop-blur-xs text-left shadow-2xs">
                     <span class="text-[9px] font-extrabold text-[#8a7522] uppercase tracking-widest block">As On Date</span>
@@ -149,16 +163,16 @@
                 </div>
                 <div class="px-3.5 py-2 rounded-xl bg-white/90 border border-[#a38c29]/25 backdrop-blur-xs text-left shadow-2xs">
                     <span class="text-[9px] font-extrabold text-[#8a7522] uppercase tracking-widest block">Forecast Horizon</span>
-                    <span class="text-xs font-mono font-black text-[#8a7522]" x-text="'Next ' + filters.period + ' Days (' + effectiveKpis.status + ')'">Next 90 Days</span>
+                    <span class="text-xs font-mono font-black text-[#8a7522]" x-text="filters.period + ' Days (' + kpis.status + ')'">Next 90 Days</span>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- ── 2. EXECUTIVE 6 FINANCIAL KPI METRIC CARDS ── --}}
+    {{-- ── 2. EXECUTIVE 6 FINANCIAL KPI METRIC CARDS (EXACT CARD UI & COLORS FROM IMAGE) ── --}}
     <div id="dashboard-stats" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         
-        {{-- Card 1: TOTAL LIQUID CASH (Split Free Cash vs RERA/Escrow - Requirement #5) --}}
+        {{-- Card 1: TOTAL LIQUID CASH (Blue Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL LIQUID CASH</span>
@@ -170,20 +184,18 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-slate-900 tracking-tight truncate"
-                     :title="currency + ' ' + formatMoney(effectiveKpis.current_liquid_cash)"
-                     x-text="currency + ' ' + formatMoney(effectiveKpis.current_liquid_cash)"></div>
-                <div class="text-[10px] text-blue-700 font-bold mt-1 truncate"
-                     :title="'Free Cash: ' + currency + ' ' + formatMoney(effectiveKpis.free_cash) + ' | RERA/Escrow: ' + currency + ' ' + formatMoney(effectiveKpis.restricted_escrow_cash)"
-                     x-text="'Free: ' + currency + ' ' + formatCompact(effectiveKpis.free_cash) + ' | RERA: ' + currency + ' ' + formatCompact(effectiveKpis.restricted_escrow_cash)"></div>
+                     :title="currency + ' ' + formatMoney(kpis.current_liquid_cash)"
+                     x-text="currency + ' ' + formatMoney(kpis.current_liquid_cash)">
+                    {{ $currency }} {{ number_format($kpis['current_liquid_cash'] ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1">Bank + Petty Cash Balances</div>
             </div>
         </div>
 
-        {{-- Card 2: TOTAL INFLOWS (Forward Forecast + Past Due Trigger - Requirement #1) --}}
-        <div @click="openDrillDown('all', 'overdue', 'Overdue / Past Due Backlog')"
-             class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-             title="Click to inspect Overdue / Past Due backlog">
+        {{-- Card 2: TOTAL INFLOWS (Gold Accent) --}}
+        <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider" x-text="'INFLOWS (' + filters.period + 'D)'"></span>
+                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL INFLOWS</span>
                 <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -192,21 +204,18 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight truncate"
-                     :title="currency + ' ' + formatMoney(effectiveKpis.total_projected_inflows)"
-                     x-text="currency + ' ' + formatMoney(effectiveKpis.total_projected_inflows)"></div>
-                <div class="text-[10px] text-[#8a7522] font-bold mt-1 flex items-center justify-between">
-                    <span x-text="'Past Due: ' + currency + ' ' + formatCompact(effectiveKpis.overdue_inflows)"></span>
-                    <span class="underline text-[9px]">View</span>
+                     :title="currency + ' ' + formatMoney(kpis.total_projected_inflows)"
+                     x-text="currency + ' ' + formatMoney(kpis.total_projected_inflows)">
+                    {{ $currency }} {{ number_format($kpis['total_projected_inflows'] ?? 0, 2) }}
                 </div>
+                <div class="text-[10px] text-[#8a7522] font-bold mt-1">Total Collections Due</div>
             </div>
         </div>
 
-        {{-- Card 3: 0 - 30 DAYS NET (Clickable to Future Next 30d Drill-Down) --}}
-        <div @click="openDrillDown('all', 'p1', 'Next 30 Days (Future Scheduled)')"
-             class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-             title="Click to inspect Next 30 Days transactions">
+        {{-- Card 3: 0 - 30 DAYS (Emerald Accent) --}}
+        <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">0 - 30 DAYS NET</span>
+                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider" x-text="filters.financial_year !== 'All' ? 'APR - JUL (T1)' : '0 - 30 DAYS'">0 - 30 DAYS</span>
                 <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -214,20 +223,19 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black tracking-tight truncate"
-                     :class="effectiveSummary.net_cash_flow.p1 >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-                     :title="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p1)"
-                     x-text="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p1)"></div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">Strict Future Net (W1–W4)</div>
+                <div class="text-xl font-mono font-black text-emerald-700 tracking-tight truncate"
+                     :title="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p1)"
+                     x-text="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p1)">
+                    {{ $currency }} {{ number_format($summaryTable['net_cash_flow']['p1'] ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">Net Projected Cash Flow</div>
             </div>
         </div>
 
-        {{-- Card 4: 31 - 60 DAYS NET --}}
-        <div @click="openDrillDown('all', 'p2', '31 - 60 Days (Future Scheduled)')"
-             class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-             title="Click to inspect 31-60 Days transactions">
+        {{-- Card 4: 31 - 60 DAYS (Amber Accent) --}}
+        <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">31 - 60 DAYS NET</span>
+                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider" x-text="filters.financial_year !== 'All' ? 'AUG - NOV (T2)' : '31 - 60 DAYS'">31 - 60 DAYS</span>
                 <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -235,20 +243,19 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black tracking-tight truncate"
-                     :class="effectiveSummary.net_cash_flow.p2 >= 0 ? 'text-amber-800' : 'text-rose-700'"
-                     :title="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p2)"
-                     x-text="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p2)"></div>
-                <div class="text-[10px] text-amber-600 font-bold mt-1">Days 31–60 Net Run-rate</div>
+                <div class="text-xl font-mono font-black text-amber-800 tracking-tight truncate"
+                     :title="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p2)"
+                     x-text="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p2)">
+                    {{ $currency }} {{ number_format($summaryTable['net_cash_flow']['p2'] ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1">Net Projected Cash Flow</div>
             </div>
         </div>
 
-        {{-- Card 5: 61 - 90 DAYS NET --}}
-        <div @click="openDrillDown('all', 'p3', '61 - 90 Days (Future Scheduled)')"
-             class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-orange-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-             title="Click to inspect 61-90 Days transactions">
+        {{-- Card 5: 61 - 90 DAYS (Orange Accent) --}}
+        <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-orange-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">61 - 90 DAYS NET</span>
+                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider" x-text="filters.financial_year !== 'All' ? 'DEC - MAR (T3)' : '61 - 90 DAYS'">61 - 90 DAYS</span>
                 <div class="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -256,20 +263,19 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black tracking-tight truncate"
-                     :class="effectiveSummary.net_cash_flow.p3 >= 0 ? 'text-orange-800' : 'text-rose-700'"
-                     :title="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p3)"
-                     x-text="currency + ' ' + formatMoney(effectiveSummary.net_cash_flow.p3)"></div>
-                <div class="text-[10px] text-orange-600 font-bold mt-1">Days 61–90 Net Run-rate</div>
+                <div class="text-xl font-mono font-black text-orange-800 tracking-tight truncate"
+                     :title="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p3)"
+                     x-text="currency + ' ' + formatMoney(summaryTable.net_cash_flow?.p3)">
+                    {{ $currency }} {{ number_format($summaryTable['net_cash_flow']['p3'] ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] text-orange-600 font-bold mt-1">Net Projected Cash Flow</div>
             </div>
         </div>
 
-        {{-- Card 6: TOTAL OUTFLOWS (Sub-label shows Top Outflow Category & Share - Requirement #2) --}}
-        <div @click="openDrillDown('all', 'overdue', 'Overdue / Past Due Backlog')"
-             class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-             title="Click to inspect Overdue Payables & Outflows">
+        {{-- Card 6: TOTAL OUTFLOWS (Rose Accent) --}}
+        <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider" x-text="'OUTFLOWS (' + filters.period + 'D)'"></span>
+                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL OUTFLOWS</span>
                 <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
@@ -278,42 +284,42 @@
             </div>
             <div>
                 <div class="text-xl font-mono font-black text-rose-700 tracking-tight truncate"
-                     :title="currency + ' ' + formatMoney(effectiveKpis.total_projected_outflows)"
-                     x-text="currency + ' ' + formatMoney(effectiveKpis.total_projected_outflows)"></div>
-                <div class="text-[10px] text-rose-600 font-bold mt-1 truncate"
-                     :title="'Top: ' + effectiveKpis.top_outflow_name + ' (' + effectiveKpis.top_outflow_pct + '%) | Past Due Outflows: ' + currency + ' ' + formatMoney(effectiveKpis.overdue_outflows)"
-                     x-text="'Top: ' + effectiveKpis.top_outflow_name + ' (' + effectiveKpis.top_outflow_pct + '%)'"></div>
+                     :title="currency + ' ' + formatMoney(kpis.total_projected_outflows)"
+                     x-text="currency + ' ' + formatMoney(kpis.total_projected_outflows)">
+                    {{ $currency }} {{ number_format($kpis['total_projected_outflows'] ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] text-rose-600 font-bold mt-1"
+                     x-text="'Net: ' + currency + ' ' + formatCompact(kpis.net_liquidity) + ' (' + kpis.status + ')'">
+                    Net: {{ $currency }} {{ number_format($kpis['net_liquidity'] ?? 0, 2) }} ({{ $kpis['status'] ?? 'Surplus' }})
+                </div>
             </div>
         </div>
 
     </div>
 
-    {{-- ── LOW CASH BUFFER ALERT BANNER (Requirement #7) ── --}}
-    <div x-show="lowBalanceAlerts.length > 0"
-         x-cloak
-         class="bg-rose-50 border border-rose-300/80 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-start sm:items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-            </div>
-            <div>
-                <div class="text-xs font-black text-rose-900 uppercase tracking-wider">Low Cash Buffer Threshold Alert</div>
-                <div class="text-xs text-rose-800 font-medium mt-0.5" x-text="lowBalanceAlerts.join(' • ')"></div>
-            </div>
-        </div>
-        <span class="text-[10px] font-mono font-black bg-rose-600 text-white px-2.5 py-1 rounded-lg uppercase tracking-wider shrink-0">
-            Min Buffer: <span x-text="currency + ' ' + formatCompact(minBuffer)"></span>
-        </span>
-    </div>
-
-    {{-- ── 3. ZERO-RELOAD FILTER & TREASURY CONTROLS BAR ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm transition-all print:hidden">
+    {{-- ── 3. ZERO-RELOAD FILTER BAR (INSTANT CLIENT-SIDE FILTERING - NO LOADING) ── --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-3 shadow-sm transition-all mb-4 print:hidden">
         <div class="flex items-center gap-2.5 w-full flex-wrap xl:flex-nowrap">
             
-            {{-- 1. Project Filter Dropdown (Zero Reload) --}}
-            <div class="relative min-w-[175px] flex-[1.2]" x-data="{ open: false }" :class="open ? 'z-30' : ''">
+            {{-- 1. Search Transactions --}}
+            <div class="relative min-w-[180px] flex-[1.4]" style="flex: 1.4 1 0%;">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <input type="text"
+                       x-model="txSearch"
+                       @input="currentPage = 1"
+                       placeholder="Search transaction party name, reference or description..."
+                       class="w-full erp-search-input pl-8 pr-6 text-xs h-[38px]">
+                <template x-if="txSearch">
+                    <button type="button" @click="txSearch = ''; currentPage = 1" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </template>
+            </div>
+
+            {{-- 2. Project Filter Dropdown (Zero Reload) --}}
+            <div class="relative min-w-[160px] flex-1" style="flex: 1 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''">
                 <button type="button" @click="open = !open" @click.outside="open = false"
                         class="erp-dropdown-trigger px-2.5"
                         :class="open ? 'active' : ''">
@@ -321,11 +327,13 @@
                         <svg class="w-3.5 h-3.5 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        <span class="truncate text-xs font-bold text-slate-900" x-text="getProjectLabel()">All Projects</span>
+                        <span class="truncate text-xs font-bold"
+                              :class="filters.project_id !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getProjectLabel()">All Projects</span>
                     </div>
                     <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
-                <div x-show="open" x-cloak class="erp-dropdown-popover min-w-[230px] w-max">
+                <div x-show="open" x-cloak class="erp-dropdown-popover min-w-[220px] w-max">
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
                         <div @click="selectProject('all'); open = false"
                              class="erp-dropdown-option"
@@ -343,8 +351,58 @@
                 </div>
             </div>
 
-            {{-- 2. Forecast Period Dropdown (Zero Reload) --}}
-            <div class="relative min-w-[130px] flex-[0.8]" x-data="{ open: false }" :class="open ? 'z-30' : ''">
+            {{-- 2b. Financial Year (FY) Filter Dropdown (Custom Gold Popover - Zero Reload) --}}
+            <div class="relative min-w-[130px] flex-[0.85]" style="flex: 0.85 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''" @click.outside="open = false">
+                <button type="button"
+                        @click="open = !open"
+                        class="erp-dropdown-trigger px-2.5"
+                        :class="open ? 'active' : ''">
+                    <div class="flex items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="truncate text-xs font-bold"
+                              :class="(filters.financial_year && filters.financial_year !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                              x-text="getSelectedFyName()">All FY</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0 ml-1">
+                        <template x-if="filters.financial_year && filters.financial_year !== 'All'">
+                            <span @click.stop="selectFinancialYear('All'); open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+                <div x-show="open" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="erp-dropdown-popover min-w-[205px] w-max"
+                     style="display: none;">
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                        <div @click="selectFinancialYear('All'); open = false"
+                             class="erp-dropdown-option"
+                             :class="(!filters.financial_year || filters.financial_year === 'All') ? '!bg-[#a38c29] !text-white font-extrabold' : ''">
+                            <span>All Financial Years</span>
+                        </div>
+                        <template x-for="fy in financialYearsList" :key="fy.value">
+                            <div @click="selectFinancialYear(fy.value); open = false"
+                                 class="erp-dropdown-option flex items-center justify-between"
+                                 :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                <span x-text="fy.label"></span>
+                                <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 3. Forecast Period Dropdown (Zero Reload) --}}
+            <div class="relative min-w-[140px] flex-[0.9]" style="flex: 0.9 1 0%;" x-data="{ open: false }" :class="open ? 'z-30' : ''">
                 <button type="button" @click="open = !open" @click.outside="open = false"
                         class="erp-dropdown-trigger px-2.5"
                         :class="open ? 'active' : ''">
@@ -356,66 +414,42 @@
                     </div>
                     <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
-                <div x-show="open" x-cloak class="erp-dropdown-popover min-w-[155px]">
+                <div x-show="open" x-cloak class="erp-dropdown-popover min-w-[160px]">
                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                        <div @click="selectPeriod('90'); open = false" class="erp-dropdown-option" :class="filters.period === '90' ? 'selected' : ''"><span>Next 90 Days</span></div>
-                        <div @click="selectPeriod('60'); open = false" class="erp-dropdown-option" :class="filters.period === '60' ? 'selected' : ''"><span>Next 60 Days</span></div>
-                        <div @click="selectPeriod('30'); open = false" class="erp-dropdown-option" :class="filters.period === '30' ? 'selected' : ''"><span>Next 30 Days</span></div>
+                        <div @click="selectPeriod('90'); open = false"
+                             class="erp-dropdown-option"
+                             :class="filters.period === '90' ? 'selected' : ''">
+                            <span>Next 90 Days</span>
+                        </div>
+                        <div @click="selectPeriod('60'); open = false"
+                             class="erp-dropdown-option"
+                             :class="filters.period === '60' ? 'selected' : ''">
+                            <span>Next 60 Days</span>
+                        </div>
+                        <div @click="selectPeriod('30'); open = false"
+                             class="erp-dropdown-option"
+                             :class="filters.period === '30' ? 'selected' : ''">
+                            <span>Next 30 Days</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- 3. As On Date (AJAX fetch without reload) --}}
-            <div class="relative min-w-[125px] flex-[0.75]" title="As On Date (DD/MM/YYYY) - press Enter or blur to recalculate">
+            {{-- 4. As On Date Input --}}
+            <div class="relative min-w-[130px] flex-[0.8]" style="flex: 0.8 1 0%;">
                 <input type="text"
                        x-model="filters.as_on_date"
-                       @change="fetchByDate()"
-                       @keydown.enter.prevent="fetchByDate()"
                        placeholder="DD/MM/YYYY"
                        class="w-full erp-search-input px-3 text-xs font-bold text-slate-800">
             </div>
 
-            {{-- 4. Min Cash Buffer Setting (Requirement #7) --}}
-            <div class="relative min-w-[165px] flex-[0.95]" title="Minimum Free Cash Buffer Threshold (₹)">
-                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                    <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider">Buffer:</span>
-                </div>
-                <input type="number"
-                       step="50000"
-                       min="0"
-                       x-model.number="minBuffer"
-                       @input.debounce.200ms="updateCharts()"
-                       class="w-full erp-search-input pl-14 pr-2.5 text-xs font-mono font-bold text-slate-900">
-            </div>
-
-            {{-- 5. Pending Cheque Collection Confidence Toggle (Requirement #8) --}}
-            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0" title="Pending Cheque Collection Confidence">
-                <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider px-2 hidden 2xl:inline">Cheque Conf:</span>
-                <button type="button"
-                        @click="setChequeConfidence('100')"
-                        :class="chequeConfidence === '100' ? 'bg-[#a38c29] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-                        class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer">
-                    100%
-                </button>
-                <button type="button"
-                        @click="setChequeConfidence('80')"
-                        :class="chequeConfidence === '80' ? 'bg-[#a38c29] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-                        class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer">
-                    80%
-                </button>
-                <button type="button"
-                        @click="setChequeConfidence('delayed')"
-                        :class="chequeConfidence === 'delayed' ? 'bg-[#a38c29] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-                        class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer">
-                    Delayed
-                </button>
-            </div>
-
-            {{-- 6. Action Buttons (RESET FILTERS + EXPORT EXCEL) --}}
+            {{-- 5. Action Buttons (RESET FILTERS + EXPORT EXCEL ONLY) --}}
             <div class="flex items-center gap-2 shrink-0">
+                
+                {{-- Reset Filters Button (Single Theme Button - Zero Reload) --}}
                 <button type="button" 
                         @click="resetFilters()"
-                        class="theme-btn h-[38px] px-3.5 py-2 text-xs font-extrabold flex items-center justify-center gap-1.5 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap"
+                        class="theme-btn h-[38px] px-4 py-2 text-xs font-extrabold flex items-center justify-center gap-1.5 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap"
                         title="Reset All Filters">
                     <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -423,6 +457,7 @@
                     <span>RESET FILTERS</span>
                 </button>
 
+                {{-- Export Excel Button --}}
                 <button type="button" 
                         @click="exportToExcel()" 
                         class="px-3.5 py-2 h-[38px] bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 uppercase tracking-wider">
@@ -431,6 +466,7 @@
                     </svg>
                     <span>Export Excel</span>
                 </button>
+
             </div>
 
         </div>
@@ -439,35 +475,28 @@
     {{-- ── 4. VISUAL CHARTS ROW (PROJECTED CASH FLOW + OUTFLOW BREAKDOWN) ── --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        {{-- Left 2/3 (8 cols): Projected Cash Flow Combo Chart with Weekly / 90-Day Toggle & Buffer Threshold Line --}}
+        {{-- Left 2/3 (8 cols): Projected Cash Flow Combo Chart --}}
         <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider"
-                        x-text="chartGranularity === 'weekly' ? 'First 30 Days Weekly Cash Flow (W1–W4)' : 'Projected Cash Flow (Next ' + filters.period + ' Days)'"></h3>
-                    <p class="text-xs text-slate-400 font-medium">Forward cash movements from As On Date with closing trajectory &amp; Min Buffer line</p>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Projected Cash Flow (Next ' + filters.period + ' Days)'">
+                        Projected Cash Flow (Next 90 Days)
+                    </h3>
+                    <p class="text-xs text-slate-400 font-medium">Monthly Inflows & Outflows with Closing Liquidity Run-Rate</p>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    {{-- View Mode Toggle (Requirement #9) --}}
-                    <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                        <button type="button"
-                                @click="chartGranularity = 'buckets'; updateCharts()"
-                                :class="chartGranularity === 'buckets' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 font-bold'"
-                                class="px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer">
-                            90-Day Buckets
-                        </button>
-                        <button type="button"
-                                @click="chartGranularity = 'weekly'; updateCharts()"
-                                :class="chartGranularity === 'weekly' ? 'bg-[#a38c29] text-white shadow-2xs font-black' : 'text-slate-500 font-bold'"
-                                class="px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer">
-                            Next 30d Weekly
-                        </button>
+                {{-- Custom Interactive Legend Badges --}}
+                <div class="flex items-center gap-3 text-xs font-bold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-xs bg-[#10b981]"></span>
+                        <span class="text-slate-600">Inflows</span>
                     </div>
-
-                    <div class="flex items-center gap-2.5 text-[11px] font-bold">
-                        <span class="flex items-center gap-1 text-slate-600"><span class="w-2.5 h-2.5 rounded-xs bg-[#10b981]"></span>Inflows</span>
-                        <span class="flex items-center gap-1 text-slate-600"><span class="w-2.5 h-2.5 rounded-xs bg-[#f43f5e]"></span>Outflows</span>
-                        <span class="flex items-center gap-1 text-slate-600"><span class="w-2.5 h-1 bg-[#2563eb] rounded-full"></span>Closing</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-xs bg-[#f43f5e]"></span>
+                        <span class="text-slate-600">Outflows</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-1 bg-[#2563eb] rounded-full"></span>
+                        <span class="text-slate-600">Closing Balance</span>
                     </div>
                 </div>
             </div>
@@ -477,32 +506,31 @@
             </div>
         </div>
 
-        {{-- Right 1/3 (4 cols): Outflows by Category Donut Chart --}}
+        {{-- Right 1/3 (4 cols): Projected Outflows by Category Donut Chart --}}
         <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
-            <div class="border-b border-slate-100 pb-3 flex items-center justify-between gap-2">
-                <div>
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Outflows by Category</h3>
-                    <p class="text-xs text-slate-400 font-medium">Scheduled 90d commitment share</p>
-                </div>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">Click to Drill</span>
+            <div class="border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Projected Outflows by Category (Next ' + filters.period + ' Days)'">
+                    Projected Outflows by Category (Next 90 Days)
+                </h3>
+                <p class="text-xs text-slate-400 font-medium">Expenditure allocation and commitment share</p>
             </div>
 
+            {{-- Donut Chart --}}
             <div class="w-full my-2 flex items-center justify-center">
-                <div id="outflowDonutChart" class="w-full max-w-[260px] min-h-[205px]"></div>
+                <div id="outflowDonutChart" class="w-full max-w-[280px] min-h-[220px]"></div>
             </div>
 
-            {{-- Category Legend List (Clickable to drill into category) --}}
-            <div class="space-y-1 pt-2 border-t border-slate-100 max-h-48 overflow-y-auto">
+            {{-- Category Legend List with Amounts & Percentages --}}
+            <div class="space-y-2 pt-2 border-t border-slate-100">
                 <template x-for="(cat, idx) in categoryOutflows" :key="idx">
-                    <div @click="openDrillDown(cat.key, 'all_combined', cat.name)"
-                         class="flex items-center justify-between text-xs py-1 px-2 rounded-lg hover:bg-amber-50/70 transition-colors cursor-pointer">
+                    <div class="flex items-center justify-between text-xs py-1 px-1.5 rounded-lg hover:bg-slate-50 transition-colors">
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="w-2.5 h-2.5 rounded-xs shrink-0" :style="'background-color: ' + cat.color"></span>
                             <span class="text-slate-700 font-bold truncate" x-text="cat.name"></span>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <span class="font-mono font-bold text-slate-900" x-text="currency + ' ' + formatCompact(cat.display_amt)"></span>
-                            <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-slate-100 text-slate-600 w-11 text-right" x-text="cat.percentage + '%'"></span>
+                            <span class="font-mono font-bold text-slate-900" x-text="currency + ' ' + formatCompact(cat.amount)"></span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-slate-100 text-slate-600" x-text="cat.percentage + '%'"></span>
                         </div>
                     </div>
                 </template>
@@ -511,325 +539,133 @@
 
     </div>
 
-    {{-- ── 5. DETAILED BREAKDOWN ROW (CASH FLOW SUMMARY WITH OVERDUE & WEEKLY TOGGLE + BEST/EXPECTED/WORST SCENARIOS & INSIGHTS) ── --}}
+    {{-- ── 5. DETAILED BREAKDOWN ROW (CASH FLOW SUMMARY TABLE + CLOSING BALANCE & INSIGHTS) ── --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        {{-- Left 2/3 (8 cols): Cash Flow Summary (₹) Interactive Drill-Down Statement --}}
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs flex flex-col justify-between">
-            <div>
-                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Cash Flow Summary (' + currency + ')'"></h3>
-                        <p class="text-xs text-slate-400 font-medium">Strict future periods separated from Overdue / Past Due backlog • Click any value to drill down</p>
-                    </div>
-                    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
-                        <button type="button"
-                                @click="tableGranularity = 'buckets'"
-                                :class="tableGranularity === 'buckets' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 font-bold'"
-                                class="px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer">
-                            Standard (Overdue + 90d)
-                        </button>
-                        <button type="button"
-                                @click="tableGranularity = 'weekly'"
-                                :class="tableGranularity === 'weekly' ? 'bg-[#a38c29] text-white shadow-2xs font-black' : 'text-slate-500 font-bold'"
-                                class="px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer">
-                            Next 30d Weekly (W1–W4)
-                        </button>
-                    </div>
+        {{-- Left 2/3 (8 cols): Cash Flow Summary (₹) Detailed Statement --}}
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Cash Flow Summary (' + currency + ')'">
+                        Cash Flow Summary (₹)
+                    </h3>
+                    <p class="text-xs text-slate-400 font-medium">Categorized periodic inflow vs outflow distribution</p>
                 </div>
-
-                {{-- Standard Table (Overdue / Next 30 / 31-60 / 61-90 / Forecast Total) --}}
-                <div class="overflow-x-auto" x-show="tableGranularity === 'buckets'">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead class="global-table-header">
-                            <tr>
-                                <th class="py-3 px-2.5 text-center w-8">#</th>
-                                <th class="py-3 px-3">Description</th>
-                                <th @click="openDrillDown('all', 'overdue', 'Overdue / Past Due Items')"
-                                    class="py-3 px-3 text-right cursor-pointer hover:underline"
-                                    title="Click to inspect all Overdue / Past Due items">
-                                    Overdue / Past Due ↗
-                                </th>
-                                <th @click="openDrillDown('all', 'p1', 'Next 30 Days (Future)')"
-                                    class="py-3 px-3 text-right cursor-pointer hover:underline"
-                                    x-text="'Next 30d ↗'"></th>
-                                <th @click="openDrillDown('all', 'p2', '31 - 60 Days (Future)')"
-                                    class="py-3 px-3 text-right cursor-pointer hover:underline"
-                                    x-text="'31 - 60d ↗'"></th>
-                                <th @click="openDrillDown('all', 'p3', '61 - 90 Days (Future)')"
-                                    class="py-3 px-3 text-right cursor-pointer hover:underline"
-                                    x-text="'61 - 90d ↗'"></th>
-                                <th @click="openDrillDown('all', 'future', 'Total Next 90 Days (Future)')"
-                                    class="py-3 px-3.5 text-right cursor-pointer hover:underline">
-                                    Forecast (90d) ↗
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                            {{-- PROJECTED INFLOWS --}}
-                            <tr class="bg-emerald-50/70 border-t border-b border-emerald-200/60 font-black text-emerald-900">
-                                <td class="py-2 px-2.5 text-center text-emerald-600 font-mono">-</td>
-                                <td colspan="6" class="py-2 px-3 uppercase tracking-wider text-[11px] text-emerald-800">Projected Inflows</td>
-                            </tr>
-                            <template x-for="(inflow, idx) in (effectiveSummary.inflows || [])" :key="'in-' + idx">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-2.5 px-2.5 text-center font-mono text-slate-400" x-text="idx + 1"></td>
-                                    <td class="py-2.5 px-3 font-bold text-slate-800" x-text="inflow.name"></td>
-                                    <td @click="inflow.overdue > 0 && openDrillDown(inflow.key, 'overdue', inflow.name + ' (Overdue)')"
-                                        :class="inflow.overdue > 0 ? 'cursor-pointer hover:bg-amber-100/70 underline decoration-dotted text-amber-800 font-bold' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono bg-amber-50/30"
-                                        x-text="formatMoney(inflow.overdue)"></td>
-                                    <td @click="inflow.p1 > 0 && openDrillDown(inflow.key, 'p1', inflow.name + ' (Next 30d)')"
-                                        :class="inflow.p1 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(inflow.p1)"></td>
-                                    <td @click="inflow.p2 > 0 && openDrillDown(inflow.key, 'p2', inflow.name + ' (31-60d)')"
-                                        :class="inflow.p2 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(inflow.p2)"></td>
-                                    <td @click="inflow.p3 > 0 && openDrillDown(inflow.key, 'p3', inflow.name + ' (61-90d)')"
-                                        :class="inflow.p3 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(inflow.p3)"></td>
-                                    <td @click="inflow.total > 0 && openDrillDown(inflow.key, 'future', inflow.name + ' (90d Forecast)')"
-                                        :class="inflow.total > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted text-slate-900 font-black' : 'text-slate-400 font-bold'"
-                                        class="py-2.5 px-3.5 text-right font-mono bg-slate-50/60"
-                                        x-text="formatMoney(inflow.total)"></td>
-                                </tr>
-                            </template>
-                            <tr class="bg-emerald-100/60 font-black text-emerald-950 border-t border-b border-emerald-200">
-                                <td class="py-2.5 px-2.5"></td>
-                                <td class="py-2.5 px-3 uppercase tracking-wider text-xs font-black text-emerald-900">Total Projected Inflows</td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-amber-800 bg-amber-100/40" x-text="formatMoney(effectiveSummary.total_inflows?.overdue)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.p1)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.p2)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.p3)"></td>
-                                <td class="py-2.5 px-3.5 text-right font-mono font-black text-emerald-900 bg-emerald-200/40" x-text="formatMoney(effectiveSummary.total_inflows?.total)"></td>
-                            </tr>
-
-                            {{-- PROJECTED OUTFLOWS --}}
-                            <tr class="bg-rose-50/70 border-t border-b border-rose-200/60 font-black text-rose-900">
-                                <td class="py-2 px-2.5 text-center text-rose-600 font-mono">-</td>
-                                <td colspan="6" class="py-2 px-3 uppercase tracking-wider text-[11px] text-rose-800">Projected Outflows</td>
-                            </tr>
-                            <template x-for="(outflow, idx) in (effectiveSummary.outflows || [])" :key="'out-' + idx">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-2.5 px-2.5 text-center font-mono text-slate-400" x-text="idx + 3"></td>
-                                    <td class="py-2.5 px-3 font-bold text-slate-800" x-text="outflow.name"></td>
-                                    <td @click="outflow.overdue > 0 && openDrillDown(outflow.key, 'overdue', outflow.name + ' (Overdue)')"
-                                        :class="outflow.overdue > 0 ? 'cursor-pointer hover:bg-amber-100/70 underline decoration-dotted text-rose-700 font-bold' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono bg-amber-50/30"
-                                        x-text="formatMoney(outflow.overdue)"></td>
-                                    <td @click="outflow.p1 > 0 && openDrillDown(outflow.key, 'p1', outflow.name + ' (Next 30d)')"
-                                        :class="outflow.p1 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(outflow.p1)"></td>
-                                    <td @click="outflow.p2 > 0 && openDrillDown(outflow.key, 'p2', outflow.name + ' (31-60d)')"
-                                        :class="outflow.p2 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(outflow.p2)"></td>
-                                    <td @click="outflow.p3 > 0 && openDrillDown(outflow.key, 'p3', outflow.name + ' (61-90d)')"
-                                        :class="outflow.p3 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold text-slate-800' : 'text-slate-400'"
-                                        class="py-2.5 px-3 text-right font-mono"
-                                        x-text="formatMoney(outflow.p3)"></td>
-                                    <td @click="outflow.total > 0 && openDrillDown(outflow.key, 'future', outflow.name + ' (90d Forecast)')"
-                                        :class="outflow.total > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted text-slate-900 font-black' : 'text-slate-400 font-bold'"
-                                        class="py-2.5 px-3.5 text-right font-mono bg-slate-50/60"
-                                        x-text="formatMoney(outflow.total)"></td>
-                                </tr>
-                            </template>
-                            <tr class="bg-rose-100/60 font-black text-rose-950 border-t border-b border-rose-200">
-                                <td class="py-2.5 px-2.5"></td>
-                                <td class="py-2.5 px-3 uppercase tracking-wider text-xs font-black text-rose-900">Total Projected Outflows</td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800 bg-amber-100/40" x-text="formatMoney(effectiveSummary.total_outflows?.overdue)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.p1)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.p2)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.p3)"></td>
-                                <td class="py-2.5 px-3.5 text-right font-mono font-black text-rose-900 bg-rose-200/40" x-text="formatMoney(effectiveSummary.total_outflows?.total)"></td>
-                            </tr>
-
-                            {{-- GRAND NET CASH FLOW --}}
-                            <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-slate-300">
-                                <td class="py-3 px-2.5 text-center font-mono">★</td>
-                                <td class="py-3 px-3 uppercase tracking-wider text-xs font-black text-slate-900">Net Projected Cash Flow</td>
-                                <td class="py-3 px-3 text-right font-mono font-black bg-amber-100/40"
-                                    :class="(effectiveSummary.net_cash_flow?.overdue || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-                                    x-text="formatMoney(effectiveSummary.net_cash_flow?.overdue)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black"
-                                    :class="(effectiveSummary.net_cash_flow?.p1 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-                                    x-text="formatMoney(effectiveSummary.net_cash_flow?.p1)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black"
-                                    :class="(effectiveSummary.net_cash_flow?.p2 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-                                    x-text="formatMoney(effectiveSummary.net_cash_flow?.p2)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black"
-                                    :class="(effectiveSummary.net_cash_flow?.p3 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
-                                    x-text="formatMoney(effectiveSummary.net_cash_flow?.p3)"></td>
-                                <td class="py-3 px-3.5 text-right font-mono font-black text-sm bg-slate-200/70"
-                                    :class="(effectiveSummary.net_cash_flow?.total || 0) >= 0 ? 'text-emerald-800' : 'text-rose-800'"
-                                    x-text="formatMoney(effectiveSummary.net_cash_flow?.total)"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Weekly Breakdown Table (First 30 Days: Week 1 - Week 4) (Requirement #9) --}}
-                <div class="overflow-x-auto" x-show="tableGranularity === 'weekly'" x-cloak>
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead class="global-table-header">
-                            <tr>
-                                <th class="py-3 px-2.5 text-center w-8">#</th>
-                                <th class="py-3 px-3">Description</th>
-                                <th @click="openDrillDown('all', 'w1', 'Week 1 (Days 0-6)')" class="py-3 px-3 text-right cursor-pointer hover:underline" x-text="periods.w1Label + ' ↗'"></th>
-                                <th @click="openDrillDown('all', 'w2', 'Week 2 (Days 7-13)')" class="py-3 px-3 text-right cursor-pointer hover:underline" x-text="periods.w2Label + ' ↗'"></th>
-                                <th @click="openDrillDown('all', 'w3', 'Week 3 (Days 14-20)')" class="py-3 px-3 text-right cursor-pointer hover:underline" x-text="periods.w3Label + ' ↗'"></th>
-                                <th @click="openDrillDown('all', 'w4', 'Week 4 (Days 21-30)')" class="py-3 px-3 text-right cursor-pointer hover:underline" x-text="periods.w4Label + ' ↗'"></th>
-                                <th @click="openDrillDown('all', 'p1', 'Total Next 30 Days')" class="py-3 px-3.5 text-right cursor-pointer hover:underline">Total (30d) ↗</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr class="bg-emerald-50/70 border-t border-b border-emerald-200/60 font-black text-emerald-900">
-                                <td class="py-2 px-2.5 text-center font-mono">-</td>
-                                <td colspan="6" class="py-2 px-3 uppercase tracking-wider text-[11px] text-emerald-800">Weekly Projected Inflows (Next 30 Days)</td>
-                            </tr>
-                            <template x-for="(inflow, idx) in (effectiveSummary.inflows || [])" :key="'win-' + idx">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-2.5 px-2.5 text-center font-mono text-slate-400" x-text="idx + 1"></td>
-                                    <td class="py-2.5 px-3 font-bold text-slate-800" x-text="inflow.name"></td>
-                                    <td @click="inflow.w1 > 0 && openDrillDown(inflow.key, 'w1', inflow.name + ' (Week 1)')" :class="inflow.w1 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(inflow.w1)"></td>
-                                    <td @click="inflow.w2 > 0 && openDrillDown(inflow.key, 'w2', inflow.name + ' (Week 2)')" :class="inflow.w2 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(inflow.w2)"></td>
-                                    <td @click="inflow.w3 > 0 && openDrillDown(inflow.key, 'w3', inflow.name + ' (Week 3)')" :class="inflow.w3 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(inflow.w3)"></td>
-                                    <td @click="inflow.w4 > 0 && openDrillDown(inflow.key, 'w4', inflow.name + ' (Week 4)')" :class="inflow.w4 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(inflow.w4)"></td>
-                                    <td @click="inflow.p1 > 0 && openDrillDown(inflow.key, 'p1', inflow.name + ' (Next 30d)')" :class="inflow.p1 > 0 ? 'cursor-pointer hover:bg-emerald-50 underline decoration-dotted font-black text-slate-900' : 'text-slate-400'" class="py-2.5 px-3.5 text-right font-mono bg-slate-50/60" x-text="formatMoney(inflow.p1)"></td>
-                                </tr>
-                            </template>
-                            <tr class="bg-emerald-100/60 font-black text-emerald-950 border-t border-b border-emerald-200">
-                                <td class="py-2.5 px-2.5"></td>
-                                <td class="py-2.5 px-3 uppercase tracking-wider text-xs font-black text-emerald-900">Total Weekly Inflows</td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.w1)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.w2)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.w3)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(effectiveSummary.total_inflows?.w4)"></td>
-                                <td class="py-2.5 px-3.5 text-right font-mono font-black text-emerald-900 bg-emerald-200/40" x-text="formatMoney(effectiveSummary.total_inflows?.p1)"></td>
-                            </tr>
-
-                            <tr class="bg-rose-50/70 border-t border-b border-rose-200/60 font-black text-rose-900">
-                                <td class="py-2 px-2.5 text-center font-mono">-</td>
-                                <td colspan="6" class="py-2 px-3 uppercase tracking-wider text-[11px] text-rose-800">Weekly Projected Outflows (Next 30 Days)</td>
-                            </tr>
-                            <template x-for="(outflow, idx) in (effectiveSummary.outflows || [])" :key="'wout-' + idx">
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-2.5 px-2.5 text-center font-mono text-slate-400" x-text="idx + 3"></td>
-                                    <td class="py-2.5 px-3 font-bold text-slate-800" x-text="outflow.name"></td>
-                                    <td @click="outflow.w1 > 0 && openDrillDown(outflow.key, 'w1', outflow.name + ' (Week 1)')" :class="outflow.w1 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(outflow.w1)"></td>
-                                    <td @click="outflow.w2 > 0 && openDrillDown(outflow.key, 'w2', outflow.name + ' (Week 2)')" :class="outflow.w2 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(outflow.w2)"></td>
-                                    <td @click="outflow.w3 > 0 && openDrillDown(outflow.key, 'w3', outflow.name + ' (Week 3)')" :class="outflow.w3 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(outflow.w3)"></td>
-                                    <td @click="outflow.w4 > 0 && openDrillDown(outflow.key, 'w4', outflow.name + ' (Week 4)')" :class="outflow.w4 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-semibold' : 'text-slate-400'" class="py-2.5 px-3 text-right font-mono" x-text="formatMoney(outflow.w4)"></td>
-                                    <td @click="outflow.p1 > 0 && openDrillDown(outflow.key, 'p1', outflow.name + ' (Next 30d)')" :class="outflow.p1 > 0 ? 'cursor-pointer hover:bg-rose-50 underline decoration-dotted font-black text-slate-900' : 'text-slate-400'" class="py-2.5 px-3.5 text-right font-mono bg-slate-50/60" x-text="formatMoney(outflow.p1)"></td>
-                                </tr>
-                            </template>
-                            <tr class="bg-rose-100/60 font-black text-rose-950 border-t border-b border-rose-200">
-                                <td class="py-2.5 px-2.5"></td>
-                                <td class="py-2.5 px-3 uppercase tracking-wider text-xs font-black text-rose-900">Total Weekly Outflows</td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.w1)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.w2)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.w3)"></td>
-                                <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(effectiveSummary.total_outflows?.w4)"></td>
-                                <td class="py-2.5 px-3.5 text-right font-mono font-black text-rose-900 bg-rose-200/40" x-text="formatMoney(effectiveSummary.total_outflows?.p1)"></td>
-                            </tr>
-
-                            <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-slate-300">
-                                <td class="py-3 px-2.5 text-center font-mono">★</td>
-                                <td class="py-3 px-3 uppercase tracking-wider text-xs font-black text-slate-900">Weekly Net Cash Flow</td>
-                                <td class="py-3 px-3 text-right font-mono font-black" :class="(effectiveSummary.net_cash_flow?.w1 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="formatMoney(effectiveSummary.net_cash_flow?.w1)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black" :class="(effectiveSummary.net_cash_flow?.w2 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="formatMoney(effectiveSummary.net_cash_flow?.w2)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black" :class="(effectiveSummary.net_cash_flow?.w3 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="formatMoney(effectiveSummary.net_cash_flow?.w3)"></td>
-                                <td class="py-3 px-3 text-right font-mono font-black" :class="(effectiveSummary.net_cash_flow?.w4 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="formatMoney(effectiveSummary.net_cash_flow?.w4)"></td>
-                                <td class="py-3 px-3.5 text-right font-mono font-black text-sm bg-slate-200/70" :class="(effectiveSummary.net_cash_flow?.p1 || 0) >= 0 ? 'text-emerald-800' : 'text-rose-800'" x-text="formatMoney(effectiveSummary.net_cash_flow?.p1)"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="text-right">
+                    <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-widest block">Forecast Horizon</span>
+                    <span class="text-xs font-mono font-bold text-slate-700" x-text="filters.period + ' Calendar Days'">90 Calendar Days</span>
                 </div>
             </div>
 
-            {{-- Quick Bucket Drill-Down Bar (Replaces Permanent Bottom Table - Requirement #12) --}}
-            <div class="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Quick Bucket Drill-Down:</span>
-                <div class="flex items-center gap-1.5 flex-wrap">
-                    <button type="button" @click="openDrillDown('all', 'overdue', 'Overdue / Past Due Backlog')"
-                            class="px-2.5 py-1 rounded-lg bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300/70 text-[10px] font-extrabold uppercase tracking-wider cursor-pointer transition">
-                        Overdue (<span x-text="overdueTransactions.length"></span>)
-                    </button>
-                    <button type="button" @click="openDrillDown('all', 'future', 'All Upcoming Future Transactions (Next 90d)')"
-                            class="px-2.5 py-1 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-extrabold uppercase tracking-wider cursor-pointer transition">
-                        All Future (<span x-text="upcomingTransactions.length"></span>)
-                    </button>
-                    <button type="button" @click="openDrillDown('all', 'w1', 'Week 1 (Days 0-6)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">W1</button>
-                    <button type="button" @click="openDrillDown('all', 'w2', 'Week 2 (Days 7-13)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">W2</button>
-                    <button type="button" @click="openDrillDown('all', 'w3', 'Week 3 (Days 14-20)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">W3</button>
-                    <button type="button" @click="openDrillDown('all', 'w4', 'Week 4 (Days 21-30)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">W4</button>
-                    <button type="button" @click="openDrillDown('all', 'p2', '31 - 60 Days (Future)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">31–60d</button>
-                    <button type="button" @click="openDrillDown('all', 'p3', '61 - 90 Days (Future)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold cursor-pointer">61–90d</button>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="global-table-header">
+                        <tr>
+                            <th class="py-3 px-3 text-center w-10">#</th>
+                            <th class="py-3 px-4">Description</th>
+                            <th class="py-3 px-3 text-right" x-text="periods.p1Label"></th>
+                            <th class="py-3 px-3 text-right" x-text="periods.p2Label"></th>
+                            <th class="py-3 px-3 text-right" x-text="periods.p3Label"></th>
+                            <th class="py-3 px-4 text-right" x-text="'Total (' + filters.period + ' Days)'"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                        
+                        {{-- ── PROJECTED INFLOWS SECTION ── --}}
+                        <tr class="bg-emerald-50/70 border-t border-b border-emerald-200/60 font-black text-emerald-900">
+                            <td class="py-2 px-3 text-center text-emerald-600 font-mono">-</td>
+                            <td colspan="5" class="py-2 px-4 uppercase tracking-wider text-[11px] text-emerald-800">
+                                Projected Inflows
+                            </td>
+                        </tr>
+                        <template x-for="(inflow, idx) in (summaryTable.inflows || [])" :key="'in-' + idx">
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-2.5 px-3 text-center font-mono text-slate-400" x-text="idx + 1"></td>
+                                <td class="py-2.5 px-4 font-bold text-slate-800" x-text="inflow.name"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(inflow.p1)"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(inflow.p2)"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(inflow.p3)"></td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-slate-900 bg-slate-50/50" x-text="formatMoney(inflow.total)"></td>
+                            </tr>
+                        </template>
+
+                        {{-- Total Projected Inflows --}}
+                        <tr class="bg-emerald-100/60 font-black text-emerald-950 border-t border-b border-emerald-200">
+                            <td class="py-2.5 px-3 text-center font-mono"></td>
+                            <td class="py-2.5 px-4 uppercase tracking-wider text-xs font-black text-emerald-900">Total Projected Inflows</td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(summaryTable.total_inflows?.p1)"></td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(summaryTable.total_inflows?.p2)"></td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800" x-text="formatMoney(summaryTable.total_inflows?.p3)"></td>
+                            <td class="py-2.5 px-4 text-right font-mono font-black text-emerald-900 bg-emerald-200/40 text-sm" x-text="formatMoney(summaryTable.total_inflows?.total)"></td>
+                        </tr>
+
+                        {{-- ── PROJECTED OUTFLOWS SECTION ── --}}
+                        <tr class="bg-rose-50/70 border-t border-b border-rose-200/60 font-black text-rose-900">
+                            <td class="py-2 px-3 text-center text-rose-600 font-mono">-</td>
+                            <td colspan="5" class="py-2 px-4 uppercase tracking-wider text-[11px] text-rose-800">
+                                Projected Outflows
+                            </td>
+                        </tr>
+                        <template x-for="(outflow, idx) in (summaryTable.outflows || [])" :key="'out-' + idx">
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-2.5 px-3 text-center font-mono text-slate-400" x-text="idx + 3"></td>
+                                <td class="py-2.5 px-4 font-bold text-slate-800" x-text="outflow.name"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(outflow.p1)"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(outflow.p2)"></td>
+                                <td class="py-2.5 px-3 text-right font-mono font-semibold" x-text="formatMoney(outflow.p3)"></td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-slate-900 bg-slate-50/50" x-text="formatMoney(outflow.total)"></td>
+                            </tr>
+                        </template>
+
+                        {{-- Total Projected Outflows --}}
+                        <tr class="bg-rose-100/60 font-black text-rose-950 border-t border-b border-rose-200">
+                            <td class="py-2.5 px-3 text-center font-mono"></td>
+                            <td class="py-2.5 px-4 uppercase tracking-wider text-xs font-black text-rose-900">Total Projected Outflows</td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(summaryTable.total_outflows?.p1)"></td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(summaryTable.total_outflows?.p2)"></td>
+                            <td class="py-2.5 px-3 text-right font-mono font-black text-rose-800" x-text="formatMoney(summaryTable.total_outflows?.p3)"></td>
+                            <td class="py-2.5 px-4 text-right font-mono font-black text-rose-900 bg-rose-200/40 text-sm" x-text="formatMoney(summaryTable.total_outflows?.total)"></td>
+                        </tr>
+
+                        {{-- ── GRAND NET PROJECTED CASH FLOW (SURPLUS / DEFICIT) ── --}}
+                        <tr class="bg-slate-100/90 font-black text-slate-900 border-t-2 border-slate-300">
+                            <td class="py-3 px-3 text-center font-mono">★</td>
+                            <td class="py-3 px-4 uppercase tracking-wider text-xs font-black text-slate-900">
+                                Net Projected Cash Flow (Surplus / Deficit)
+                            </td>
+                            <td class="py-3 px-3 text-right font-mono font-black"
+                                :class="(summaryTable.net_cash_flow?.p1 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
+                                x-text="formatMoney(summaryTable.net_cash_flow?.p1)">
+                            </td>
+                            <td class="py-3 px-3 text-right font-mono font-black"
+                                :class="(summaryTable.net_cash_flow?.p2 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
+                                x-text="formatMoney(summaryTable.net_cash_flow?.p2)">
+                            </td>
+                            <td class="py-3 px-3 text-right font-mono font-black"
+                                :class="(summaryTable.net_cash_flow?.p3 || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'"
+                                x-text="formatMoney(summaryTable.net_cash_flow?.p3)">
+                            </td>
+                            <td class="py-3 px-4 text-right font-mono font-black text-sm bg-slate-200/70"
+                                :class="(summaryTable.net_cash_flow?.total || 0) >= 0 ? 'text-emerald-800' : 'text-rose-800'"
+                                x-text="formatMoney(summaryTable.net_cash_flow?.total)">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        {{-- Right 1/3 (4 cols): Best/Expected/Worst Scenarios + Key Insights (Requirement #10) --}}
+        {{-- Right 1/3 (4 cols): Projected Closing Cash Balance Chart + Key Insights --}}
         <div class="lg:col-span-4 space-y-5">
             
-            {{-- Best / Expected / Worst Scenarios Card (Replaced Duplicate Closing Cash Bar Chart) --}}
-            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3.5">
-                <div class="border-b border-slate-100 pb-2.5 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">90-Day Stress Scenarios</h3>
-                        <p class="text-[10px] text-slate-400 font-medium">Best, Expected &amp; Worst case ending liquidity</p>
-                    </div>
-                    <span class="px-2 py-0.5 rounded bg-slate-100 text-[9px] font-extrabold text-slate-600 uppercase">Sensitivity</span>
+            {{-- Mini Bar Chart: Projected Closing Cash Balance --}}
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
+                <div class="border-b border-slate-100 pb-2.5">
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Projected Closing Cash Balance</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">Trajectory of liquid reserves by milestone end-date</p>
                 </div>
-
-                <div class="space-y-2.5">
-                    {{-- Best Case --}}
-                    <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/70">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-extrabold text-emerald-900 uppercase tracking-wider" x-text="scenarios.best?.label"></span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
-                                  :class="(scenarios.best?.ending_cash || 0) >= minBuffer ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'"
-                                  x-text="(scenarios.best?.ending_cash || 0) >= minBuffer ? 'Above Buffer' : 'Below Buffer'"></span>
-                        </div>
-                        <div class="flex items-baseline justify-between mt-1.5">
-                            <span class="text-sm font-mono font-black text-emerald-800" x-text="currency + ' ' + formatMoney(scenarios.best?.ending_cash)"></span>
-                            <span class="text-[10px] font-mono font-bold text-emerald-700" x-text="'Net: +' + formatCompact(scenarios.best?.net_flow)"></span>
-                        </div>
-                    </div>
-
-                    {{-- Expected Case --}}
-                    <div class="p-3 rounded-xl bg-amber-50/60 border border-[#a38c29]/30">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider" x-text="scenarios.expected?.label"></span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
-                                  :class="(scenarios.expected?.ending_cash || 0) >= minBuffer ? 'bg-[#a38c29] text-white' : 'bg-rose-600 text-white'"
-                                  x-text="(scenarios.expected?.ending_cash || 0) >= minBuffer ? 'Above Buffer' : 'Below Buffer'"></span>
-                        </div>
-                        <div class="flex items-baseline justify-between mt-1.5">
-                            <span class="text-sm font-mono font-black text-slate-900" x-text="currency + ' ' + formatMoney(scenarios.expected?.ending_cash)"></span>
-                            <span class="text-[10px] font-mono font-bold text-[#8a7522]" x-text="'Net: ' + ((scenarios.expected?.net_flow || 0) >= 0 ? '+' : '') + formatCompact(scenarios.expected?.net_flow)"></span>
-                        </div>
-                    </div>
-
-                    {{-- Worst Case --}}
-                    <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200/80">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-extrabold text-rose-900 uppercase tracking-wider" x-text="scenarios.worst?.label"></span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
-                                  :class="(scenarios.worst?.ending_cash || 0) >= minBuffer ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'"
-                                  x-text="(scenarios.worst?.ending_cash || 0) >= minBuffer ? 'Above Buffer' : 'Below Buffer'"></span>
-                        </div>
-                        <div class="flex items-baseline justify-between mt-1.5">
-                            <span class="text-sm font-mono font-black"
-                                  :class="(scenarios.worst?.ending_cash || 0) >= 0 ? 'text-slate-900' : 'text-rose-700'"
-                                  x-text="currency + ' ' + formatMoney(scenarios.worst?.ending_cash)"></span>
-                            <span class="text-[10px] font-mono font-bold text-rose-700" x-text="'Net: ' + ((scenarios.worst?.net_flow || 0) >= 0 ? '+' : '') + formatCompact(scenarios.worst?.net_flow)"></span>
-                        </div>
-                    </div>
+                <div class="w-full mt-2">
+                    <div id="closingBalanceMiniChart" class="w-full min-h-[160px]"></div>
                 </div>
             </div>
 
@@ -853,124 +689,115 @@
 
     </div>
 
-    {{-- ── 6. TRANSACTION DRILL-DOWN MODAL (Requirements #11 & #12) ── --}}
-    <div x-show="drillModalOpen"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 text-left"
-         style="display: none;"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-        <div class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" @click.away="drillModalOpen = false">
-            
-            {{-- Dark Executive Modal Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4 border-b border-[#a38c29]/20 shrink-0">
-                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div>
-                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">Bucket Drill-Down</span>
-                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5" x-text="drillTitle"></h2>
-                    </div>
-                    <button type="button" @click="drillModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">✕</button>
-                </div>
+    {{-- ── 6. BOTTOM SECTION: UPCOMING KEY TRANSACTIONS (NEXT 90 DAYS) ── --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+        
+        {{-- Card Header & Filter Tabs --}}
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Upcoming Key Transactions (Next ' + filters.period + ' Days)'">
+                    Upcoming Key Transactions (Next 90 Days)
+                </h3>
+                <p class="text-xs text-slate-400 font-medium">Detailed schedule of milestone receivables, RA settlements, vendor bills & bank EMIs</p>
             </div>
 
-            {{-- Modal Search & Bucket Switcher Bar --}}
-            <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-                <div class="relative flex-1 max-w-md">
-                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input type="text"
-                           x-model="txSearch"
-                           @input="currentPage = 1"
-                           placeholder="Search party name, reference no. or description..."
-                           class="w-full erp-search-input pl-8 pr-6 text-xs h-[36px] bg-white">
-                </div>
-                <div class="flex items-center gap-3 text-xs font-bold">
-                    <span class="text-emerald-700" x-text="'Inflows: ' + currency + ' ' + formatMoney(drillSummary.inflows)"></span>
-                    <span class="text-rose-700" x-text="'Outflows: ' + currency + ' ' + formatMoney(drillSummary.outflows)"></span>
-                </div>
+            {{-- Filter Tabs --}}
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <template x-for="tab in transactionTabs" :key="tab.id">
+                    <button type="button"
+                            @click="activeTxTab = tab.id; currentPage = 1"
+                            :class="activeTxTab === tab.id ? 'bg-[#a38c29] text-white font-black shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold'"
+                            class="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer"
+                            x-text="tab.label">
+                    </button>
+                </template>
             </div>
+        </div>
 
-            {{-- Drill-Down Table (Merged Type / Flow Column - Requirement #11) --}}
-            <div class="overflow-y-auto flex-1">
-                <table class="w-full text-left text-xs border-collapse">
-                    <thead class="global-table-header sticky top-0 z-10">
-                        <tr>
-                            <th class="py-3 px-3 text-center w-10">#</th>
-                            <th class="py-3 px-3.5">Date</th>
-                            <th class="py-3 px-3.5">Type / Flow</th>
-                            <th class="py-3 px-3.5">Reference No.</th>
-                            <th class="py-3 px-4">Party Name</th>
-                            <th class="py-3 px-4">Description</th>
-                            <th class="py-3 px-4 text-right" x-text="'Amount (' + currency + ')'"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                        <template x-for="(tx, index) in paginatedTransactions" :key="index">
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="py-2.5 px-3 text-center font-mono text-slate-400" x-text="(currentPage - 1) * perPage + index + 1"></td>
-                                <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800 whitespace-nowrap" x-text="tx.date"></td>
-                                <td class="py-2.5 px-3.5 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider inline-block"
-                                          :class="getTxTypeBadgeClass(tx.type, tx.flow_type)"
-                                          x-text="tx.flow_label || (tx.type + ' (' + (tx.flow_type === 'inflow' ? 'Inflow' : 'Outflow') + ')')">
-                                    </span>
-                                </td>
-                                <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800 whitespace-nowrap" x-text="tx.ref_no"></td>
-                                <td class="py-2.5 px-4 font-bold text-slate-900" x-text="tx.party_name"></td>
-                                <td class="py-2.5 px-4 text-slate-600 text-xs" x-text="tx.description"></td>
-                                <td class="py-2.5 px-4 text-right font-mono font-black whitespace-nowrap"
-                                    :class="tx.flow_type === 'inflow' ? 'text-emerald-700' : 'text-rose-700'"
-                                    x-text="(tx.flow_type === 'inflow' ? '+' : '-') + ' ' + formatMoney(tx.amount)">
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="filteredDrillTransactions.length === 0">
-                            <td colspan="7" class="py-10 text-center text-slate-400 italic text-xs">
-                                No transactions match the selected bucket or search filter.
+        {{-- Transactions Table --}}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="global-table-header">
+                    <tr>
+                        <th class="py-3 px-3 text-center w-10">#</th>
+                        <th class="py-3 px-3.5">Date</th>
+                        <th class="py-3 px-3.5">Type</th>
+                        <th class="py-3 px-3.5">Reference No.</th>
+                        <th class="py-3 px-4">Party Name</th>
+                        <th class="py-3 px-4">Description</th>
+                        <th class="py-3 px-4 text-right" x-text="'Amount (' + currency + ')'">Amount (₹)</th>
+                        <th class="py-3 px-3.5 text-center">Category</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                    <template x-for="(tx, index) in paginatedTransactions" :key="index">
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-2.5 px-3 text-center font-mono text-slate-400" x-text="(currentPage - 1) * perPage + index + 1"></td>
+                            <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800" x-text="tx.date"></td>
+                            <td class="py-2.5 px-3.5">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider inline-block"
+                                      :class="getTxTypeBadgeClass(tx.type)"
+                                      x-text="tx.type">
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800" x-text="tx.ref_no"></td>
+                            <td class="py-2.5 px-4 font-bold text-slate-900" x-text="tx.party_name"></td>
+                            <td class="py-2.5 px-4 text-slate-600 text-xs" x-text="tx.description"></td>
+                            <td class="py-2.5 px-4 text-right font-mono font-black"
+                                :class="tx.flow_type === 'inflow' ? 'text-emerald-700' : 'text-slate-900'"
+                                x-text="formatMoney(tx.amount)">
+                            </td>
+                            <td class="py-2.5 px-3.5 text-center">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wider inline-block"
+                                      :class="getCategoryBadgeClass(tx.category)"
+                                      x-text="tx.category">
+                                </span>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- Modal Footer: 50-per-page Pagination + Close --}}
-            <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    SHOWING <span class="text-slate-900" x-text="filteredDrillTransactions.length ? ((currentPage - 1) * perPage + 1) : 0"></span> TO 
-                    <span class="text-slate-900" x-text="Math.min(currentPage * perPage, filteredDrillTransactions.length)"></span> OF 
-                    <span class="text-slate-900" x-text="filteredDrillTransactions.length"></span> TRANSACTIONS
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1.5" x-show="filteredDrillTransactions.length > 0">
-                        <button type="button" @click="if(currentPage > 1) currentPage--"
-                                :disabled="currentPage <= 1"
-                                class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
-                            PREV
-                        </button>
-                        <template x-for="(p, pIdx) in getPageNumbers()" :key="pIdx">
-                            <span class="inline-flex items-center gap-1">
-                                <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
-                                <button type="button" x-show="p !== '...'"
-                                        @click="currentPage = p"
-                                        x-text="p"
-                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs cursor-pointer"
-                                        :class="currentPage === p ? 'bg-[#a38c29] text-white border border-[#a38c29]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"></button>
-                            </span>
-                        </template>
-                        <button type="button" @click="if(currentPage < totalPages) currentPage++"
-                                :disabled="currentPage >= totalPages"
-                                class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
-                            NEXT
-                        </button>
-                    </div>
-                    <button type="button" @click="drillModalOpen = false" class="px-4 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-extrabold text-slate-700 uppercase tracking-wider cursor-pointer">Close</button>
-                </div>
-            </div>
-
+                    </template>
+                    <tr x-show="filteredTransactions.length === 0">
+                        <td colspan="8" class="py-8 text-center text-slate-400 italic text-xs">
+                            No upcoming transactions match the selected filter.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
+        {{-- Table Footer Summary & Pagination Controls --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-b-2xl" x-show="filteredTransactions.length > 0">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                SHOWING <span class="text-slate-900" x-text="(currentPage - 1) * perPage + 1"></span> TO 
+                <span class="text-slate-900" x-text="Math.min(currentPage * perPage, filteredTransactions.length)"></span> OF 
+                <span class="text-slate-900" x-text="filteredTransactions.length"></span> TRANSACTIONS
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button type="button" @click="if(currentPage > 1) currentPage--" 
+                        :disabled="currentPage <= 1"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
+                    PREV
+                </button>
+                
+                {{-- Page Numbers --}}
+                <template x-for="(p, pIdx) in getPageNumbers()" :key="pIdx">
+                    <span class="inline-flex items-center gap-1">
+                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                        <button type="button" x-show="p !== '...'"
+                                @click="currentPage = p"
+                                x-text="p"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs cursor-pointer"
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white border border-[#a38c29]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"></button>
+                    </span>
+                </template>
+                
+                <button type="button" @click="if(currentPage < totalPages) currentPage++" 
+                        :disabled="currentPage >= totalPages"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
+                    NEXT
+                </button>
+            </div>
+        </div>
+
     </div>
 
 </div>
@@ -984,149 +811,56 @@ function liquidityForecastApp() {
         filters: {
             as_on_date: @json($asOnDate ?? now()->format('d/m/Y')),
             period: '90',
-            project_id: @json((string)$selectedProjectId ?? 'all')
+            project_id: @json((string)$selectedProjectId ?? 'all'),
+            financial_year: 'All'
         },
-        minBuffer: 1000000,
-        chequeConfidence: '100', // '100' | '80' | 'delayed'
-        chartGranularity: 'buckets', // 'buckets' | 'weekly'
-        tableGranularity: 'buckets', // 'buckets' | 'weekly'
-
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
         allProjects: @json($allProjects ?? []),
         projectDatasets: @json($projectDatasets ?? []),
-        periods: @json($periods ?? []),
         kpis: @json($kpis ?? []),
+        periods: @json($periods ?? []),
         summaryTable: @json($summaryTable ?? []),
         chartData: @json($chartData ?? []),
         categoryOutflows: @json($categoryOutflowBreakdown ?? []),
-        scenarios: @json($scenarios ?? []),
+        allTransactions: @json($upcomingTransactions ?? []),
         keyInsights: @json($keyInsights ?? []),
-        upcomingTransactions: @json($upcomingTransactions ?? []),
-        overdueTransactions: @json($overdueTransactions ?? []),
-
-        // Drill-down Modal State
-        drillModalOpen: false,
-        drillRowKey: 'all',
-        drillBucket: 'future',
-        drillTitle: 'Upcoming Transactions',
+        activeTxTab: 'all',
         txSearch: '',
         currentPage: 1,
         perPage: 50,
-
+        transactionTabs: [
+            { id: 'all', label: 'All' },
+            { id: 'Customer Receipt', label: 'Customer Receipts' },
+            { id: 'Contractor Payment', label: 'Contractor Payments' },
+            { id: 'Vendor Payment', label: 'Vendor Payments' },
+            { id: 'Bank Loan EMI', label: 'Bank Loan EMIs' },
+            { id: 'Brokerage Payout', label: 'Brokerage Payouts' },
+            { id: 'Site Expense', label: 'Site Expenses' }
+        ],
         comboChartInstance: null,
         donutChartInstance: null,
+        closingBarChartInstance: null,
 
         init() {
             this.$nextTick(() => {
                 this.renderComboChart();
                 this.renderDonutChart();
+                this.renderClosingBarChart();
             });
-        },
-
-        // Reactive Pending Cheque Confidence transformation (Requirement #8)
-        get effectiveSummary() {
-            const st = JSON.parse(JSON.stringify(this.summaryTable || {}));
-            if (!st.inflows || !st.total_inflows) return st;
-
-            const chqRow = st.inflows.find(r => r.key === 'inflow_cheques');
-            const mRow = st.inflows.find(r => r.key === 'inflow_milestones');
-            if (!chqRow || !mRow) return st;
-
-            const origChqOverdue = chqRow.overdue || 0;
-            const origChqP1 = chqRow.p1 || 0;
-            const origChqP2 = chqRow.p2 || 0;
-            const origChqP3 = chqRow.p3 || 0;
-
-            if (this.chequeConfidence === '80') {
-                chqRow.overdue = origChqOverdue * 0.80;
-                chqRow.p1 = origChqP1 * 0.80;
-                chqRow.p2 = origChqP2 * 0.80;
-                chqRow.p3 = origChqP3 * 0.80;
-                chqRow.w1 *= 0.80; chqRow.w2 *= 0.80; chqRow.w3 *= 0.80; chqRow.w4 *= 0.80;
-                chqRow.total = chqRow.p1 + chqRow.p2 + chqRow.p3;
-            } else if (this.chequeConfidence === 'delayed') {
-                // Delayed: shift overdue & P1 uncleared cheques into 31-60 Days (p2)
-                chqRow.overdue = 0;
-                chqRow.p1 = 0;
-                chqRow.w1 = 0; chqRow.w2 = 0; chqRow.w3 = 0; chqRow.w4 = 0;
-                chqRow.p2 = origChqP2 + origChqP1 + origChqOverdue;
-                chqRow.total = chqRow.p1 + chqRow.p2 + chqRow.p3;
-            }
-
-            const keys = ['overdue', 'p1', 'p2', 'p3', 'w1', 'w2', 'w3', 'w4', 'total'];
-            keys.forEach(k => {
-                st.total_inflows[k] = (mRow[k] || 0) + (chqRow[k] || 0);
-                st.net_cash_flow[k] = (st.total_inflows[k] || 0) - (st.total_outflows[k] || 0);
-            });
-
-            return st;
-        },
-
-        get effectiveKpis() {
-            const st = this.effectiveSummary;
-            const days = parseInt(this.filters.period, 10) || 90;
-            const ti = st.total_inflows || {};
-            const to = st.total_outflows || {};
-            const nc = st.net_cash_flow || {};
-
-            let inflowSum = ti.total || 0;
-            let outflowSum = to.total || 0;
-            let netSum = nc.total || 0;
-
-            if (days === 30) {
-                inflowSum = ti.p1 || 0;
-                outflowSum = to.p1 || 0;
-                netSum = nc.p1 || 0;
-            } else if (days === 60) {
-                inflowSum = (ti.p1 || 0) + (ti.p2 || 0);
-                outflowSum = (to.p1 || 0) + (to.p2 || 0);
-                netSum = (nc.p1 || 0) + (nc.p2 || 0);
-            }
-
-            const endCash = (this.kpis.current_liquid_cash || 0) + netSum;
-
-            return {
-                current_liquid_cash: this.kpis.current_liquid_cash || 0,
-                free_cash: this.kpis.free_cash || 0,
-                restricted_escrow_cash: this.kpis.restricted_escrow_cash || 0,
-                total_projected_inflows: inflowSum,
-                total_projected_outflows: outflowSum,
-                overdue_inflows: ti.overdue || 0,
-                overdue_outflows: to.overdue || 0,
-                net_liquidity: endCash,
-                total_net_cash_flow: netSum,
-                top_outflow_name: this.kpis.top_outflow_name || 'None',
-                top_outflow_pct: this.kpis.top_outflow_pct || 0,
-                status: endCash >= 0 ? 'Surplus' : 'Deficit'
-            };
-        },
-
-        // Low Cash Buffer Alert Checks (Requirement #7)
-        get lowBalanceAlerts() {
-            const buf = parseFloat(this.minBuffer) || 0;
-            if (buf <= 0) return [];
-            const alerts = [];
-            const ek = this.effectiveKpis;
-            if ((ek.free_cash || 0) < buf) {
-                alerts.push('Current Free Cash (' + this.currency + ' ' + this.formatMoney(ek.free_cash) + ') is below Min Buffer');
-            }
-            const st = this.effectiveSummary;
-            const curr = ek.current_liquid_cash || 0;
-            const cW1 = curr + (st.net_cash_flow?.w1 || 0);
-            const cW2 = cW1 + (st.net_cash_flow?.w2 || 0);
-            const cW3 = cW2 + (st.net_cash_flow?.w3 || 0);
-            const cP1 = curr + (st.net_cash_flow?.p1 || 0);
-            const cP2 = cP1 + (st.net_cash_flow?.p2 || 0);
-            const cP3 = cP2 + (st.net_cash_flow?.p3 || 0);
-
-            if (cW1 < buf) alerts.push('Week 1 projected closing drops to ' + this.currency + ' ' + this.formatMoney(cW1));
-            if (cP1 < buf) alerts.push('Next 30d closing drops to ' + this.currency + ' ' + this.formatMoney(cP1));
-            if (cP2 < buf) alerts.push('31-60d closing drops to ' + this.currency + ' ' + this.formatMoney(cP2));
-            if (cP3 < buf) alerts.push('61-90d closing drops to ' + this.currency + ' ' + this.formatMoney(cP3));
-
-            if ((this.scenarios.worst?.ending_cash || 0) < buf) {
-                alerts.push('Worst-Case scenario drops to ' + this.currency + ' ' + this.formatMoney(this.scenarios.worst?.ending_cash));
-            }
-            return alerts;
         },
 
         getProjectLabel() {
@@ -1135,114 +869,278 @@ function liquidityForecastApp() {
             return p ? p.name : 'All Projects';
         },
 
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'All') return 'All FY';
+            const found = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+            return found ? found.label : ('FY ' + this.filters.financial_year);
+        },
+
         selectProject(id) {
             this.filters.project_id = String(id);
+            if (this.filters.financial_year && this.filters.financial_year !== 'All') {
+                this.applyFinancialYearFilter();
+            } else {
+                this.applyDataset();
+            }
+        },
+
+        selectFinancialYear(fyVal) {
+            this.filters.financial_year = fyVal;
+            this.currentPage = 1;
+            if (!fyVal || fyVal === 'All') {
+                this.applyDataset();
+                if (this.filters.period !== '90') {
+                    this.applyPeriodFilter();
+                }
+            } else {
+                this.applyFinancialYearFilter();
+            }
+        },
+
+        selectPeriod(period) {
+            this.filters.period = String(period);
+            if (this.filters.financial_year && this.filters.financial_year !== 'All') {
+                this.applyFinancialYearFilter();
+            } else {
+                this.applyPeriodFilter();
+            }
+        },
+
+        applyFinancialYearFilter() {
+            const ds = this.projectDatasets[this.filters.project_id] || this.projectDatasets['all'] || {};
+            const fy = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+            if (!fy || !ds.kpis) {
+                this.applyDataset();
+                return;
+            }
+
+            const rawItems = ds.allTimeTransactions || ds.upcomingTransactions || [];
+            const fyItems = rawItems.filter(tx => tx.date_raw && tx.date_raw >= fy.from && tx.date_raw <= fy.to);
+
+            const startYear = parseInt(fy.from.slice(0, 4), 10);
+            const t1End = `${startYear}-07-31`;
+            const t2End = `${startYear}-11-30`;
+
+            const p1Label = `Apr - Jul ${startYear}`;
+            const p2Label = `Aug - Nov ${startYear}`;
+            const p3Label = `Dec ${startYear} - Mar ${startYear + 1}`;
+
+            const sums = {
+                milestones: [0, 0, 0],
+                receipts: [0, 0, 0],
+                ra_bills: [0, 0, 0],
+                vendor_bills: [0, 0, 0],
+                loan_emis: [0, 0, 0],
+                brokerage: [0, 0, 0],
+                petty_cash: [0, 0, 0]
+            };
+
+            fyItems.forEach(tx => {
+                const key = tx.source_key;
+                if (!sums[key]) return;
+                const amt = parseFloat(tx.amount) || 0;
+                if (tx.date_raw <= t1End) sums[key][0] += amt;
+                else if (tx.date_raw <= t2End) sums[key][1] += amt;
+                else sums[key][2] += amt;
+            });
+
+            const tot = (arr) => arr[0] + arr[1] + arr[2];
+
+            const inP1 = sums.milestones[0] + sums.receipts[0];
+            const inP2 = sums.milestones[1] + sums.receipts[1];
+            const inP3 = sums.milestones[2] + sums.receipts[2];
+            const totalIn = inP1 + inP2 + inP3;
+
+            const outP1 = sums.ra_bills[0] + sums.vendor_bills[0] + sums.loan_emis[0] + sums.brokerage[0] + sums.petty_cash[0];
+            const outP2 = sums.ra_bills[1] + sums.vendor_bills[1] + sums.loan_emis[1] + sums.brokerage[1] + sums.petty_cash[1];
+            const outP3 = sums.ra_bills[2] + sums.vendor_bills[2] + sums.loan_emis[2] + sums.brokerage[2] + sums.petty_cash[2];
+            const totalOut = outP1 + outP2 + outP3;
+
+            const netP1 = inP1 - outP1;
+            const netP2 = inP2 - outP2;
+            const netP3 = inP3 - outP3;
+            const totalNet = totalIn - totalOut;
+
+            const currCash = ds.kpis.current_liquid_cash || 0;
+            const closeP1 = currCash + netP1;
+            const closeP2 = closeP1 + netP2;
+            const closeP3 = closeP2 + netP3;
+
+            this.periods = { p1Label, p2Label, p3Label };
+
+            this.kpis = {
+                current_liquid_cash: currCash,
+                total_projected_inflows: totalIn,
+                total_projected_outflows: totalOut,
+                net_liquidity: closeP3,
+                total_net_cash_flow: totalNet,
+                status: closeP3 >= 0 ? 'Surplus' : 'Deficit'
+            };
+
+            this.summaryTable = {
+                inflows: [
+                    { name: 'Customer Milestone Payments (Installments)', p1: sums.milestones[0], p2: sums.milestones[1], p3: sums.milestones[2], total: tot(sums.milestones) },
+                    { name: 'Pending Cheque / Receipt Realizations', p1: sums.receipts[0], p2: sums.receipts[1], p3: sums.receipts[2], total: tot(sums.receipts) }
+                ],
+                total_inflows: { p1: inP1, p2: inP2, p3: inP3, total: totalIn },
+                outflows: [
+                    { name: 'Contractor RA Bills Payables', p1: sums.ra_bills[0], p2: sums.ra_bills[1], p3: sums.ra_bills[2], total: tot(sums.ra_bills) },
+                    { name: 'Vendor & Site Expense Payables', p1: sums.vendor_bills[0], p2: sums.vendor_bills[1], p3: sums.vendor_bills[2], total: tot(sums.vendor_bills) },
+                    { name: 'Bank Loan EMIs & Interest Schedules', p1: sums.loan_emis[0], p2: sums.loan_emis[1], p3: sums.loan_emis[2], total: tot(sums.loan_emis) },
+                    { name: 'Brokerage & Commission Payables', p1: sums.brokerage[0], p2: sums.brokerage[1], p3: sums.brokerage[2], total: tot(sums.brokerage) },
+                    { name: 'Pending Petty Cash Expenses', p1: sums.petty_cash[0], p2: sums.petty_cash[1], p3: sums.petty_cash[2], total: tot(sums.petty_cash) }
+                ],
+                total_outflows: { p1: outP1, p2: outP2, p3: outP3, total: totalOut },
+                net_cash_flow: { p1: netP1, p2: netP2, p3: netP3, total: totalNet }
+            };
+
+            const totalRa = tot(sums.ra_bills);
+            const totalLoans = tot(sums.loan_emis);
+            const totalBrokerage = tot(sums.brokerage);
+            const totalVendor = tot(sums.vendor_bills);
+            const totalPetty = tot(sums.petty_cash);
+
+            this.categoryOutflows = [
+                { name: 'Contractor RA Bills', amount: totalRa, percentage: totalOut > 0 ? Math.round((totalRa / totalOut) * 1000) / 10 : 0, color: '#F97316' },
+                { name: 'Bank Loan EMIs', amount: totalLoans, percentage: totalOut > 0 ? Math.round((totalLoans / totalOut) * 1000) / 10 : 0, color: '#10B981' },
+                { name: 'Brokerage Commissions', amount: totalBrokerage, percentage: totalOut > 0 ? Math.round((totalBrokerage / totalOut) * 1000) / 10 : 0, color: '#8B5CF6' },
+                { name: 'Vendor Material Bills', amount: totalVendor, percentage: totalOut > 0 ? Math.round((totalVendor / totalOut) * 1000) / 10 : 0, color: '#3B82F6' },
+                { name: 'Pending Petty Cash Expenses', amount: totalPetty, percentage: totalOut > 0 ? Math.round((totalPetty / totalOut) * 1000) / 10 : 0, color: '#EC4899' }
+            ];
+
+            this.chartData = {
+                categories: ['Current Balance', 'Apr - Jul', 'Aug - Nov', 'Dec - Mar'],
+                inflows: [0, Math.round(inP1 * 100) / 100, Math.round(inP2 * 100) / 100, Math.round(inP3 * 100) / 100],
+                outflows: [0, Math.round(outP1 * 100) / 100, Math.round(outP2 * 100) / 100, Math.round(outP3 * 100) / 100],
+                closing_balances: [Math.round(currCash * 100) / 100, Math.round(closeP1 * 100) / 100, Math.round(closeP2 * 100) / 100, Math.round(closeP3 * 100) / 100],
+                closing_bars: [Math.round(currCash * 100) / 100, Math.round(closeP1 * 100) / 100, Math.round(closeP2 * 100) / 100, Math.round(closeP3 * 100) / 100]
+            };
+
+            let peakLabel = 'Apr - Jul';
+            if (outP2 > outP1 && outP2 >= outP3) peakLabel = 'Aug - Nov';
+            else if (outP3 > outP1 && outP3 > outP2) peakLabel = 'Dec - Mar';
+
+            this.keyInsights = [
+                `${fy.label} (${fy.range}): Scheduled inflows total ${this.currency} ${this.formatMoney(totalIn)} against outflows of ${this.currency} ${this.formatMoney(totalOut)}.`,
+                `Projected ${fy.label} ending cash reserve stands at ${this.currency} ${this.formatMoney(closeP3)} (${totalNet >= 0 ? 'Net Surplus' : 'Net Deficit'}).`,
+                `Highest scheduled outflow concentration in ${fy.label} falls in ${peakLabel} (${this.currency} ${this.formatMoney(Math.max(outP1, outP2, outP3))}).`,
+                `Matching transaction schedule contains ${fyItems.length} real entries within ${fy.label}.`
+            ];
+
+            this.allTransactions = fyItems;
+            this.currentPage = 1;
+            this.updateCharts();
+        },
+
+        applyDataset() {
             const ds = this.projectDatasets[this.filters.project_id] || this.projectDatasets['all'] || {};
             if (ds.kpis) {
                 this.kpis = JSON.parse(JSON.stringify(ds.kpis));
                 this.summaryTable = JSON.parse(JSON.stringify(ds.summaryTable));
                 this.chartData = JSON.parse(JSON.stringify(ds.chartData));
                 this.categoryOutflows = JSON.parse(JSON.stringify(ds.categoryOutflowBreakdown));
-                this.scenarios = JSON.parse(JSON.stringify(ds.scenarios));
+                this.allTransactions = JSON.parse(JSON.stringify(ds.upcomingTransactions));
                 this.keyInsights = JSON.parse(JSON.stringify(ds.keyInsights));
                 this.periods = JSON.parse(JSON.stringify(ds.periods));
-                this.upcomingTransactions = JSON.parse(JSON.stringify(ds.upcomingTransactions));
-                this.overdueTransactions = JSON.parse(JSON.stringify(ds.overdueTransactions));
+                this.currentPage = 1;
                 this.updateCharts();
             }
         },
 
-        selectPeriod(period) {
-            this.filters.period = String(period);
-            this.updateCharts();
-        },
+        applyPeriodFilter() {
+            const days = parseInt(this.filters.period, 10) || 90;
+            const ds = this.projectDatasets[this.filters.project_id] || this.projectDatasets['all'] || {};
+            if (!ds.kpis || !ds.summaryTable) return;
 
-        setChequeConfidence(mode) {
-            this.chequeConfidence = mode;
-            this.updateCharts();
-        },
+            const ti = ds.summaryTable.total_inflows || {};
+            const to = ds.summaryTable.total_outflows || {};
+            const nc = ds.summaryTable.net_cash_flow || {};
 
-        async fetchByDate() {
-            try {
-                const url = `{{ route('reports.liquidity_forecast') }}?ajax=1&as_on_date=${encodeURIComponent(this.filters.as_on_date)}&project_id=${encodeURIComponent(this.filters.project_id)}`;
-                const res = await fetch(url);
-                if (!res.ok) return;
-                const data = await res.json();
-                this.projectDatasets = data.projectDatasets || {};
-                this.selectProject(this.filters.project_id);
-            } catch (e) {
-                console.error(e);
+            let inflowSum = 0;
+            let outflowSum = 0;
+            let netSum = 0;
+            let sliceCount = 4;
+
+            if (days === 30) {
+                inflowSum = ti.p1 || 0;
+                outflowSum = to.p1 || 0;
+                netSum = nc.p1 || 0;
+                sliceCount = 2; // Current + P1
+            } else if (days === 60) {
+                inflowSum = (ti.p1 || 0) + (ti.p2 || 0);
+                outflowSum = (to.p1 || 0) + (to.p2 || 0);
+                netSum = (nc.p1 || 0) + (nc.p2 || 0);
+                sliceCount = 3; // Current + P1 + P2
+            } else {
+                inflowSum = ti.total || 0;
+                outflowSum = to.total || 0;
+                netSum = nc.total || 0;
+                sliceCount = 4; // Current + P1 + P2 + P3
             }
+
+            const endLiquidCash = (ds.kpis.current_liquid_cash || 0) + netSum;
+
+            this.kpis = {
+                current_liquid_cash: ds.kpis.current_liquid_cash,
+                total_projected_inflows: inflowSum,
+                total_projected_outflows: outflowSum,
+                net_liquidity: endLiquidCash,
+                total_net_cash_flow: netSum,
+                status: endLiquidCash >= 0 ? 'Surplus' : 'Deficit'
+            };
+
+            this.chartData = {
+                categories: (ds.chartData.categories || []).slice(0, sliceCount),
+                inflows: (ds.chartData.inflows || []).slice(0, sliceCount),
+                outflows: (ds.chartData.outflows || []).slice(0, sliceCount),
+                closing_balances: (ds.chartData.closing_balances || []).slice(0, sliceCount),
+                closing_bars: (ds.chartData.closing_bars || []).slice(0, sliceCount)
+            };
+
+            this.updateCharts();
         },
 
         resetFilters() {
             this.filters.project_id = String(this.defaultProjectId);
+            this.filters.financial_year = 'All';
             this.filters.period = '90';
             this.filters.as_on_date = this.defaultAsOnDate;
-            this.minBuffer = 1000000;
-            this.chequeConfidence = '100';
-            this.chartGranularity = 'buckets';
-            this.tableGranularity = 'buckets';
-            this.selectProject(this.defaultProjectId);
-        },
-
-        // Drill-down modal methods (Requirement #12)
-        openDrillDown(rowKey, bucket, title) {
-            this.drillRowKey = rowKey || 'all';
-            this.drillBucket = bucket || 'future';
-            this.drillTitle = title || 'Transaction Details';
             this.txSearch = '';
+            this.activeTxTab = 'all';
             this.currentPage = 1;
-            this.drillModalOpen = true;
+            this.applyDataset();
         },
 
-        get filteredDrillTransactions() {
-            let list = [];
-            if (this.drillBucket === 'overdue') {
-                list = this.overdueTransactions || [];
-            } else if (this.drillBucket === 'all_combined') {
-                list = [...(this.overdueTransactions || []), ...(this.upcomingTransactions || [])];
-            } else if (this.drillBucket === 'future') {
-                list = this.upcomingTransactions || [];
-            } else if (['w1', 'w2', 'w3', 'w4'].includes(this.drillBucket)) {
-                list = (this.upcomingTransactions || []).filter(t => t.week === this.drillBucket);
-            } else {
-                list = (this.upcomingTransactions || []).filter(t => t.bucket === this.drillBucket);
+        get filteredTransactions() {
+            let list = this.allTransactions;
+            if (this.filters.financial_year && this.filters.financial_year !== 'All') {
+                const fy = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+                if (fy) {
+                    list = list.filter(tx => tx.date_raw && tx.date_raw >= fy.from && tx.date_raw <= fy.to);
+                }
             }
-
-            if (this.drillRowKey && this.drillRowKey !== 'all') {
-                list = list.filter(t => t.row_key === this.drillRowKey);
+            if (this.activeTxTab !== 'all') {
+                list = list.filter(tx => tx.type === this.activeTxTab);
             }
-
             if (this.txSearch.trim()) {
                 const q = this.txSearch.toLowerCase().trim();
-                list = list.filter(tx =>
+                list = list.filter(tx => 
                     (tx.party_name && tx.party_name.toLowerCase().includes(q)) ||
                     (tx.ref_no && tx.ref_no.toLowerCase().includes(q)) ||
                     (tx.description && tx.description.toLowerCase().includes(q)) ||
-                    (tx.flow_label && tx.flow_label.toLowerCase().includes(q))
+                    (tx.category && tx.category.toLowerCase().includes(q))
                 );
             }
             return list;
         },
 
-        get drillSummary() {
-            let inflows = 0;
-            let outflows = 0;
-            this.filteredDrillTransactions.forEach(t => {
-                if (t.flow_type === 'inflow') inflows += (parseFloat(t.amount) || 0);
-                else outflows += (parseFloat(t.amount) || 0);
-            });
-            return { inflows, outflows };
-        },
-
         get totalPages() {
-            return Math.ceil(this.filteredDrillTransactions.length / this.perPage) || 1;
+            return Math.ceil(this.filteredTransactions.length / this.perPage) || 1;
         },
 
         get paginatedTransactions() {
             const start = (this.currentPage - 1) * this.perPage;
-            return this.filteredDrillTransactions.slice(start, start + this.perPage);
+            return this.filteredTransactions.slice(start, start + this.perPage);
         },
 
         getPageNumbers() {
@@ -1281,97 +1179,83 @@ function liquidityForecastApp() {
 
         formatCompact(num) {
             const n = parseFloat(num) || 0;
-            const abs = Math.abs(n);
-            const sign = n < 0 ? '-' : '';
-            if (abs >= 10000000) return sign + (abs / 10000000).toFixed(2) + ' Cr';
-            if (abs >= 100000) return sign + (abs / 100000).toFixed(2) + ' L';
-            if (abs >= 1000) return sign + (abs / 1000).toFixed(1) + ' K';
-            return n.toFixed(0);
+            if (n >= 10000000) return (n / 10000000).toFixed(2) + ' Cr';
+            if (n >= 100000) return (n / 100000).toFixed(2) + ' L';
+            if (n >= 1000) return (n / 1000).toFixed(1) + ' K';
+            return n.toFixed(2);
         },
 
-        getTxTypeBadgeClass(type, flowType) {
-            if (flowType === 'inflow') {
-                return 'bg-emerald-100 text-emerald-800 border border-emerald-300/60';
-            }
-            switch (type) {
-                case 'Contractor Payment': return 'bg-orange-100 text-orange-800 border border-orange-300/60';
-                case 'Vendor Payment': return 'bg-blue-100 text-blue-800 border border-blue-300/60';
-                case 'Bank Loan EMI': return 'bg-purple-100 text-purple-800 border border-purple-300/60';
-                case 'Brokerage Payout': return 'bg-indigo-100 text-indigo-800 border border-indigo-300/60';
-                case 'Customer Refund': return 'bg-rose-100 text-rose-800 border border-rose-300/60';
-                case 'Payroll': return 'bg-sky-100 text-sky-800 border border-sky-300/60';
-                case 'GST / Statutory': return 'bg-red-100 text-red-800 border border-red-300/60';
-                default: return 'bg-slate-100 text-slate-700 border border-slate-300/60';
+        getTxTypeBadgeClass(type) {
+            switch(type) {
+                case 'Customer Receipt':
+                    return 'bg-emerald-100 text-emerald-800 border border-emerald-300/60';
+                case 'Contractor Payment':
+                    return 'bg-orange-100 text-orange-800 border border-orange-300/60';
+                case 'Vendor Payment':
+                    return 'bg-blue-100 text-blue-800 border border-blue-300/60';
+                case 'Bank Loan EMI':
+                    return 'bg-purple-100 text-purple-800 border border-purple-300/60';
+                case 'Brokerage Payout':
+                    return 'bg-indigo-100 text-indigo-800 border border-indigo-300/60';
+                case 'Site Expense':
+                    return 'bg-pink-100 text-pink-800 border border-pink-300/60';
+                default:
+                    return 'bg-slate-100 text-slate-700 border border-slate-300/60';
             }
         },
 
-        getComboSeriesAndLabels() {
-            const st = this.effectiveSummary;
-            const curr = this.kpis.current_liquid_cash || 0;
-            const ti = st.total_inflows || {};
-            const to = st.total_outflows || {};
-            const nc = st.net_cash_flow || {};
-
-            if (this.chartGranularity === 'weekly') {
-                const cW1 = curr + (nc.w1 || 0);
-                const cW2 = cW1 + (nc.w2 || 0);
-                const cW3 = cW2 + (nc.w3 || 0);
-                const cW4 = cW3 + (nc.w4 || 0);
-                return {
-                    labels: ['Current', 'Week 1 (0-6d)', 'Week 2 (7-13d)', 'Week 3 (14-20d)', 'Week 4 (21-30d)'],
-                    inflows: [0, Math.round(ti.w1 || 0), Math.round(ti.w2 || 0), Math.round(ti.w3 || 0), Math.round(ti.w4 || 0)],
-                    outflows: [0, Math.round(to.w1 || 0), Math.round(to.w2 || 0), Math.round(to.w3 || 0), Math.round(to.w4 || 0)],
-                    closing: [Math.round(curr), Math.round(cW1), Math.round(cW2), Math.round(cW3), Math.round(cW4)]
-                };
+        getCategoryBadgeClass(category) {
+            if (category && category.includes('Inflow')) {
+                return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
             }
-
-            const days = parseInt(this.filters.period, 10) || 90;
-            const sliceCount = days === 30 ? 2 : (days === 60 ? 3 : 4);
-            const cP1 = curr + (nc.p1 || 0);
-            const cP2 = cP1 + (nc.p2 || 0);
-            const cP3 = cP2 + (nc.p3 || 0);
-
-            return {
-                labels: ['Current Balance', 'Next 30 Days', '31 - 60 Days', '61 - 90 Days'].slice(0, sliceCount),
-                inflows: [0, Math.round(ti.p1 || 0), Math.round(ti.p2 || 0), Math.round(ti.p3 || 0)].slice(0, sliceCount),
-                outflows: [0, Math.round(to.p1 || 0), Math.round(to.p2 || 0), Math.round(to.p3 || 0)].slice(0, sliceCount),
-                closing: [Math.round(curr), Math.round(cP1), Math.round(cP2), Math.round(cP3)].slice(0, sliceCount)
-            };
+            if (category && category.includes('Contractor')) {
+                return 'bg-orange-50 text-orange-700 border border-orange-200';
+            }
+            if (category && category.includes('Vendor')) {
+                return 'bg-blue-50 text-blue-700 border border-blue-200';
+            }
+            if (category && category.includes('Loan')) {
+                return 'bg-purple-50 text-purple-700 border border-purple-200';
+            }
+            if (category && category.includes('Brokerage')) {
+                return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+            }
+            return 'bg-rose-50 text-rose-700 border border-rose-200';
         },
 
         updateCharts() {
-            const combo = this.getComboSeriesAndLabels();
-            const buf = parseFloat(this.minBuffer) || 0;
-
             if (this.comboChartInstance) {
                 this.comboChartInstance.updateOptions({
                     series: [
-                        { name: 'Inflows', type: 'column', data: combo.inflows },
-                        { name: 'Outflows', type: 'column', data: combo.outflows },
-                        { name: 'Closing Balance', type: 'line', data: combo.closing }
+                        { name: 'Inflows', type: 'column', data: this.chartData.inflows || [] },
+                        { name: 'Outflows', type: 'column', data: this.chartData.outflows || [] },
+                        { name: 'Closing Balance', type: 'line', data: this.chartData.closing_balances || [] }
                     ],
-                    labels: combo.labels,
-                    annotations: {
-                        yaxis: buf > 0 ? [{
-                            y: buf,
-                            borderColor: '#e11d48',
-                            strokeDashArray: 5,
-                            borderWidth: 2,
-                            label: {
-                                borderColor: '#e11d48',
-                                style: { color: '#fff', background: '#e11d48', fontSize: '10px', fontWeight: 700 },
-                                text: 'Min Buffer: ' + this.currency + ' ' + this.formatCompact(buf)
-                            }
-                        }] : []
-                    }
+                    labels: this.chartData.categories || []
                 });
             }
 
             if (this.donutChartInstance) {
                 this.donutChartInstance.updateOptions({
-                    series: this.categoryOutflows.map(c => c.display_amt),
+                    series: this.categoryOutflows.map(c => c.amount),
                     labels: this.categoryOutflows.map(c => c.name),
                     colors: this.categoryOutflows.map(c => c.color)
+                });
+            }
+
+            if (this.closingBarChartInstance) {
+                const defaultLabels = (this.filters.financial_year && this.filters.financial_year !== 'All')
+                    ? ['Current', 'Apr - Jul', 'Aug - Nov', 'Dec - Mar']
+                    : ['Current', '30 Days', '60 Days', '90 Days'];
+                const miniLabels = defaultLabels.slice(0, (this.chartData.closing_bars || []).length);
+                this.closingBarChartInstance.updateOptions({
+                    series: [{
+                        name: 'Projected Liquidity',
+                        data: this.chartData.closing_bars || []
+                    }],
+                    xaxis: {
+                        categories: miniLabels
+                    }
                 });
             }
         },
@@ -1381,14 +1265,23 @@ function liquidityForecastApp() {
             if (!chartEl) return;
             if (this.comboChartInstance) this.comboChartInstance.destroy();
 
-            const combo = this.getComboSeriesAndLabels();
-            const buf = parseFloat(this.minBuffer) || 0;
-
             const options = {
                 series: [
-                    { name: 'Inflows', type: 'column', data: combo.inflows },
-                    { name: 'Outflows', type: 'column', data: combo.outflows },
-                    { name: 'Closing Balance', type: 'line', data: combo.closing }
+                    {
+                        name: 'Inflows',
+                        type: 'column',
+                        data: this.chartData.inflows || []
+                    },
+                    {
+                        name: 'Outflows',
+                        type: 'column',
+                        data: this.chartData.outflows || []
+                    },
+                    {
+                        name: 'Closing Balance',
+                        type: 'line',
+                        data: this.chartData.closing_balances || []
+                    }
                 ],
                 chart: {
                     height: 330,
@@ -1396,46 +1289,66 @@ function liquidityForecastApp() {
                     toolbar: { show: false },
                     fontFamily: 'inherit'
                 },
-                stroke: { width: [0, 0, 3], curve: 'smooth' },
-                plotOptions: { bar: { columnWidth: '40%', borderRadius: 4 } },
-                colors: ['#10b981', '#f43f5e', '#2563eb'],
-                annotations: {
-                    yaxis: buf > 0 ? [{
-                        y: buf,
-                        borderColor: '#e11d48',
-                        strokeDashArray: 5,
-                        borderWidth: 2,
-                        label: {
-                            borderColor: '#e11d48',
-                            style: { color: '#fff', background: '#e11d48', fontSize: '10px', fontWeight: 700 },
-                            text: 'Min Buffer: ' + this.currency + ' ' + this.formatCompact(buf)
-                        }
-                    }] : []
+                stroke: {
+                    width: [0, 0, 3],
+                    curve: 'smooth'
                 },
+                plotOptions: {
+                    bar: {
+                        columnWidth: '40%',
+                        borderRadius: 4
+                    }
+                },
+                colors: ['#10b981', '#f43f5e', '#2563eb'],
                 dataLabels: {
                     enabled: true,
                     enabledOnSeries: [2],
                     formatter: (val) => this.formatCompact(val),
-                    style: { fontSize: '11px', fontWeight: '700', colors: ['#1e293b'] },
-                    background: { enabled: true, borderRadius: 4, padding: 4, opacity: 0.9, borderColor: '#93c5fd' }
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        colors: ['#1e293b']
+                    },
+                    background: {
+                        enabled: true,
+                        borderRadius: 4,
+                        padding: 4,
+                        opacity: 0.9,
+                        borderColor: '#93c5fd'
+                    }
                 },
-                labels: combo.labels,
+                labels: this.chartData.categories || [],
                 xaxis: {
-                    labels: { style: { fontSize: '11px', fontWeight: 600, colors: '#64748b' } }
+                    labels: {
+                        style: {
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            colors: '#64748b'
+                        }
+                    }
                 },
                 yaxis: {
                     labels: {
                         formatter: (val) => this.formatCompact(val),
-                        style: { fontSize: '10px', fontWeight: 600, colors: '#64748b' }
+                        style: {
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            colors: '#64748b'
+                        }
                     }
                 },
                 legend: { show: false },
                 tooltip: {
                     shared: true,
                     intersect: false,
-                    y: { formatter: (val) => this.currency + ' ' + this.formatMoney(val) }
+                    y: {
+                        formatter: (val) => this.currency + ' ' + this.formatMoney(val)
+                    }
                 },
-                grid: { borderColor: '#f1f5f9', strokeDashArray: 4 }
+                grid: {
+                    borderColor: '#f1f5f9',
+                    strokeDashArray: 4
+                }
             };
 
             this.comboChartInstance = new ApexCharts(chartEl, options);
@@ -1447,26 +1360,49 @@ function liquidityForecastApp() {
             if (!chartEl) return;
             if (this.donutChartInstance) this.donutChartInstance.destroy();
 
+            const seriesData = this.categoryOutflows.map(c => c.amount);
+            const labelsData = this.categoryOutflows.map(c => c.name);
+            const colorsData = this.categoryOutflows.map(c => c.color);
+
             const options = {
-                series: this.categoryOutflows.map(c => c.display_amt),
-                labels: this.categoryOutflows.map(c => c.name),
-                colors: this.categoryOutflows.map(c => c.color),
-                chart: { type: 'donut', height: 220, fontFamily: 'inherit' },
+                series: seriesData,
+                labels: labelsData,
+                colors: colorsData,
+                chart: {
+                    type: 'donut',
+                    height: 240,
+                    fontFamily: 'inherit'
+                },
                 plotOptions: {
                     pie: {
                         donut: {
                             size: '68%',
                             labels: {
                                 show: true,
-                                name: { show: true, fontSize: '11px', fontWeight: 700, color: '#64748b' },
+                                name: {
+                                    show: true,
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: '#64748b'
+                                },
                                 value: {
-                                    show: true, fontSize: '13px', fontWeight: 900, color: '#0f172a',
+                                    show: true,
+                                    fontSize: '13px',
+                                    fontWeight: 900,
+                                    color: '#0f172a',
                                     formatter: (val) => this.formatCompact(val)
                                 },
                                 total: {
-                                    show: true, showAlways: true, label: 'Total Outflows',
-                                    fontSize: '10px', fontWeight: 700, color: '#64748b',
-                                    formatter: (w) => this.formatCompact(w.globals.seriesTotals.reduce((a, b) => a + b, 0))
+                                    show: true,
+                                    showAlways: true,
+                                    label: 'Total Outflows',
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    color: '#64748b',
+                                    formatter: (w) => {
+                                        const sum = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                        return this.formatCompact(sum);
+                                    }
                                 }
                             }
                         }
@@ -1475,11 +1411,78 @@ function liquidityForecastApp() {
                 dataLabels: { enabled: false },
                 legend: { show: false },
                 stroke: { width: 2, colors: ['#ffffff'] },
-                tooltip: { y: { formatter: (val) => this.currency + ' ' + this.formatMoney(val) } }
+                tooltip: {
+                    y: {
+                        formatter: (val) => this.currency + ' ' + this.formatMoney(val)
+                    }
+                }
             };
 
             this.donutChartInstance = new ApexCharts(chartEl, options);
             this.donutChartInstance.render();
+        },
+
+        renderClosingBarChart() {
+            const chartEl = document.querySelector('#closingBalanceMiniChart');
+            if (!chartEl) return;
+            if (this.closingBarChartInstance) this.closingBarChartInstance.destroy();
+
+            const options = {
+                series: [{
+                    name: 'Projected Liquidity',
+                    data: this.chartData.closing_bars || []
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 160,
+                    toolbar: { show: false },
+                    fontFamily: 'inherit'
+                },
+                plotOptions: {
+                    bar: {
+                        columnWidth: '45%',
+                        borderRadius: 4,
+                        distributed: true,
+                        dataLabels: {
+                            position: 'top'
+                        }
+                    }
+                },
+                colors: ['#3b82f6', '#0ea5e9', '#06b6d4', '#10b981'],
+                dataLabels: {
+                    enabled: true,
+                    formatter: (val) => this.formatCompact(val),
+                    offsetY: -20,
+                    style: {
+                        fontSize: '9.5px',
+                        fontWeight: 700,
+                        colors: ['#334155']
+                    }
+                },
+                xaxis: {
+                    categories: ['Current', '30 Days', '60 Days', '90 Days'],
+                    labels: {
+                        style: {
+                            fontSize: '9.5px',
+                            fontWeight: 600,
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                yaxis: {
+                    show: false
+                },
+                legend: { show: false },
+                grid: { show: false },
+                tooltip: {
+                    y: {
+                        formatter: (val) => this.currency + ' ' + this.formatMoney(val)
+                    }
+                }
+            };
+
+            this.closingBarChartInstance = new ApexCharts(chartEl, options);
+            this.closingBarChartInstance.render();
         },
 
         async exportToExcel() {
@@ -1492,8 +1495,22 @@ function liquidityForecastApp() {
             workbook.creator = 'Tabasco ERP';
             workbook.created = new Date();
 
-            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF534E47' } };
-            const headerFont = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            // ── SHEET 1: CASH FLOW SUMMARY ──
+            const summarySheet = workbook.addWorksheet('Cash Flow Forecast');
+            summarySheet.views = [{ showGridLines: true }];
+
+            // Global Header Style
+            const headerFill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF534E47' }
+            };
+            const headerFont = {
+                name: 'Segoe UI',
+                size: 9.5,
+                bold: true,
+                color: { argb: 'FFFFFFFF' }
+            };
             const borderThin = {
                 top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
                 bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -1501,97 +1518,193 @@ function liquidityForecastApp() {
                 right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
             };
 
-            const st = this.effectiveSummary;
-            const ek = this.effectiveKpis;
-
-            // ── SHEET 1: CASH FLOW SUMMARY ──
-            const summarySheet = workbook.addWorksheet('Cash Flow Forecast');
-            summarySheet.mergeCells('A1:G1');
+            // Title Banner
+            summarySheet.mergeCells('A1:F1');
             const titleRow = summarySheet.getCell('A1');
             titleRow.value = 'TABASCO REAL ESTATE ERP - CASH FLOW & LIQUIDITY FORECAST';
             titleRow.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF1E293B' } };
             titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
             summarySheet.getRow(1).height = 28;
 
-            summarySheet.mergeCells('A2:G2');
+            summarySheet.mergeCells('A2:F2');
             const metaRow = summarySheet.getCell('A2');
-            metaRow.value = `As On Date: ${this.filters.as_on_date} | Free Cash: ${this.currency} ${this.formatMoney(ek.free_cash)} | RERA/Escrow: ${this.currency} ${this.formatMoney(ek.restricted_escrow_cash)} | Cheque Confidence: ${this.chequeConfidence}`;
+            metaRow.value = `As On Date: ${this.filters.as_on_date} | Forecast Horizon: Next ${this.filters.period} Days | Currency: ${this.currency}`;
             metaRow.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
             metaRow.alignment = { horizontal: 'center', vertical: 'middle' };
             summarySheet.getRow(2).height = 18;
 
+            // Blank Row
             summarySheet.addRow([]);
-            const tableHeaders = ['#', 'Description', 'Overdue / Past Due', this.periods.p1Label, this.periods.p2Label, this.periods.p3Label, 'Total Forecast (90d)'];
-            const hRow = summarySheet.addRow(tableHeaders);
-            hRow.height = 24;
-            hRow.eachCell(cell => {
+
+            // KPI Header Summary
+            summarySheet.mergeCells('A4:C4');
+            summarySheet.getCell('A4').value = `Current Liquid Cash: ${this.currency} ${this.formatMoney(this.kpis.current_liquid_cash)}`;
+            summarySheet.getCell('A4').font = { bold: true, color: { argb: 'FF065F46' } };
+
+            summarySheet.mergeCells('D4:F4');
+            summarySheet.getCell('D4').value = `Net Liquidity (${this.filters.period} Days): ${this.currency} ${this.formatMoney(this.kpis.net_liquidity)} (${this.kpis.status})`;
+            summarySheet.getCell('D4').font = { bold: true, color: { argb: 'FF8A7522' } };
+            summarySheet.getCell('D4').alignment = { horizontal: 'right' };
+
+            // Summary Table Header
+            const tableHeaders = ['#', 'Description', this.periods.p1Label, this.periods.p2Label, this.periods.p3Label, `Total (${this.filters.period} Days)`];
+            const headerRow = summarySheet.addRow(tableHeaders);
+            headerRow.height = 24;
+            headerRow.eachCell((cell) => {
                 cell.fill = headerFill;
                 cell.font = headerFont;
                 cell.alignment = { horizontal: 'center', vertical: 'middle' };
             });
 
-            const addSummaryRows = (items, offsetIdx) => {
-                items.forEach((item, idx) => {
-                    const r = summarySheet.addRow([idx + offsetIdx, item.name, item.overdue, item.p1, item.p2, item.p3, item.total]);
-                    r.getCell(1).alignment = { horizontal: 'center' };
-                    r.getCell(2).alignment = { horizontal: 'left' };
-                    for (let c = 3; c <= 7; c++) {
-                        r.getCell(c).alignment = { horizontal: 'right' };
-                        r.getCell(c).numFmt = '#,##0.00';
-                    }
-                    r.eachCell(cell => cell.border = borderThin);
-                });
-            };
+            // Inflows
+            const inHeader = summarySheet.addRow(['-', 'PROJECTED INFLOWS', '', '', '', '']);
+            inHeader.font = { bold: true, color: { argb: 'FF065F46' } };
+            inHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
 
-            const inH = summarySheet.addRow(['-', 'PROJECTED INFLOWS', '', '', '', '', '']);
-            inH.font = { bold: true, color: { argb: 'FF065F46' } };
-            inH.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
-            addSummaryRows(st.inflows || [], 1);
+            (this.summaryTable.inflows || []).forEach((item, idx) => {
+                const r = summarySheet.addRow([
+                    idx + 1,
+                    item.name,
+                    item.p1,
+                    item.p2,
+                    item.p3,
+                    item.total
+                ]);
+                r.getCell(1).alignment = { horizontal: 'center' };
+                r.getCell(2).alignment = { horizontal: 'left' };
+                for (let c = 3; c <= 6; c++) {
+                    r.getCell(c).alignment = { horizontal: 'right' };
+                    r.getCell(c).numFmt = '#,##0.00';
+                }
+            });
 
-            const inTot = summarySheet.addRow(['', 'Total Projected Inflows', st.total_inflows?.overdue || 0, st.total_inflows?.p1 || 0, st.total_inflows?.p2 || 0, st.total_inflows?.p3 || 0, st.total_inflows?.total || 0]);
-            inTot.font = { bold: true, color: { argb: 'FF065F46' } };
-            for (let c = 3; c <= 7; c++) { inTot.getCell(c).numFmt = '#,##0.00'; inTot.getCell(c).alignment = { horizontal: 'right' }; }
+            const inTotal = summarySheet.addRow([
+                '',
+                'Total Projected Inflows',
+                this.summaryTable.total_inflows?.p1 || 0,
+                this.summaryTable.total_inflows?.p2 || 0,
+                this.summaryTable.total_inflows?.p3 || 0,
+                this.summaryTable.total_inflows?.total || 0
+            ]);
+            inTotal.font = { bold: true, color: { argb: 'FF065F46' } };
+            inTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
+            for (let c = 3; c <= 6; c++) {
+                inTotal.getCell(c).numFmt = '#,##0.00';
+                inTotal.getCell(c).alignment = { horizontal: 'right' };
+            }
 
-            const outH = summarySheet.addRow(['-', 'PROJECTED OUTFLOWS', '', '', '', '', '']);
-            outH.font = { bold: true, color: { argb: 'FF9F1239' } };
-            outH.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
-            addSummaryRows(st.outflows || [], 3);
+            // Outflows
+            const outHeader = summarySheet.addRow(['-', 'PROJECTED OUTFLOWS', '', '', '', '']);
+            outHeader.font = { bold: true, color: { argb: 'FF9F1239' } };
+            outHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
 
-            const outTot = summarySheet.addRow(['', 'Total Projected Outflows', st.total_outflows?.overdue || 0, st.total_outflows?.p1 || 0, st.total_outflows?.p2 || 0, st.total_outflows?.p3 || 0, st.total_outflows?.total || 0]);
-            outTot.font = { bold: true, color: { argb: 'FF9F1239' } };
-            for (let c = 3; c <= 7; c++) { outTot.getCell(c).numFmt = '#,##0.00'; outTot.getCell(c).alignment = { horizontal: 'right' }; }
+            (this.summaryTable.outflows || []).forEach((item, idx) => {
+                const r = summarySheet.addRow([
+                    idx + 3,
+                    item.name,
+                    item.p1,
+                    item.p2,
+                    item.p3,
+                    item.total
+                ]);
+                r.getCell(1).alignment = { horizontal: 'center' };
+                r.getCell(2).alignment = { horizontal: 'left' };
+                for (let c = 3; c <= 6; c++) {
+                    r.getCell(c).alignment = { horizontal: 'right' };
+                    r.getCell(c).numFmt = '#,##0.00';
+                }
+            });
 
-            const netR = summarySheet.addRow(['★', 'Net Projected Cash Flow', st.net_cash_flow?.overdue || 0, st.net_cash_flow?.p1 || 0, st.net_cash_flow?.p2 || 0, st.net_cash_flow?.p3 || 0, st.net_cash_flow?.total || 0]);
-            netR.font = { bold: true };
-            for (let c = 3; c <= 7; c++) { netR.getCell(c).numFmt = '#,##0.00'; netR.getCell(c).alignment = { horizontal: 'right' }; }
+            const outTotal = summarySheet.addRow([
+                '',
+                'Total Projected Outflows',
+                this.summaryTable.total_outflows?.p1 || 0,
+                this.summaryTable.total_outflows?.p2 || 0,
+                this.summaryTable.total_outflows?.p3 || 0,
+                this.summaryTable.total_outflows?.total || 0
+            ]);
+            outTotal.font = { bold: true, color: { argb: 'FF9F1239' } };
+            outTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } };
+            for (let c = 3; c <= 6; c++) {
+                outTotal.getCell(c).numFmt = '#,##0.00';
+                outTotal.getCell(c).alignment = { horizontal: 'right' };
+            }
 
-            summarySheet.columns = [{ width: 6 }, { width: 38 }, { width: 20 }, { width: 22 }, { width: 22 }, { width: 22 }, { width: 22 }];
+            // Net Cash Flow
+            const netRow = summarySheet.addRow([
+                '★',
+                'Net Projected Cash Flow (Surplus / Deficit)',
+                this.summaryTable.net_cash_flow?.p1 || 0,
+                this.summaryTable.net_cash_flow?.p2 || 0,
+                this.summaryTable.net_cash_flow?.p3 || 0,
+                this.summaryTable.net_cash_flow?.total || 0
+            ]);
+            netRow.font = { bold: true, size: 10, color: { argb: 'FF1E293B' } };
+            netRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            for (let c = 3; c <= 6; c++) {
+                netRow.getCell(c).numFmt = '#,##0.00';
+                netRow.getCell(c).alignment = { horizontal: 'right' };
+            }
 
-            // ── SHEET 2: UPCOMING TRANSACTIONS (FUTURE ONLY) ──
-            const writeTxSheet = (sheetName, txList) => {
-                const sh = workbook.addWorksheet(sheetName);
-                const th = ['#', 'Date', 'Type / Flow', 'Reference No.', 'Party Name', 'Description', `Amount (${this.currency})`];
-                const hr = sh.addRow(th);
-                hr.height = 24;
-                hr.eachCell(cell => { cell.fill = headerFill; cell.font = headerFont; cell.alignment = { horizontal: 'center', vertical: 'middle' }; });
-                txList.forEach((tx, idx) => {
-                    const r = sh.addRow([idx + 1, tx.date, tx.flow_label || tx.type, tx.ref_no, tx.party_name, tx.description, parseFloat(tx.amount) || 0]);
-                    r.getCell(1).alignment = { horizontal: 'center' };
-                    r.getCell(2).alignment = { horizontal: 'center' };
-                    r.getCell(3).alignment = { horizontal: 'center' };
-                    r.getCell(4).alignment = { horizontal: 'center' };
-                    r.getCell(5).alignment = { horizontal: 'left' };
-                    r.getCell(6).alignment = { horizontal: 'left' };
-                    r.getCell(7).alignment = { horizontal: 'right' };
-                    r.getCell(7).numFmt = '#,##0.00';
-                    r.eachCell(cell => cell.border = borderThin);
-                });
-                sh.columns = [{ width: 6 }, { width: 14 }, { width: 26 }, { width: 18 }, { width: 28 }, { width: 40 }, { width: 18 }];
-            };
+            // Borders & Column Widths
+            summarySheet.columns = [
+                { width: 6 },
+                { width: 38 },
+                { width: 22 },
+                { width: 22 },
+                { width: 22 },
+                { width: 24 }
+            ];
 
-            writeTxSheet('Upcoming Transactions', this.upcomingTransactions || []);
-            writeTxSheet('Overdue & Past Due', this.overdueTransactions || []);
+            // ── SHEET 2: UPCOMING TRANSACTIONS ──
+            const txSheet = workbook.addWorksheet('Upcoming Transactions');
+            txSheet.views = [{ showGridLines: true }];
 
+            const txHeaders = ['#', 'Date', 'Type', 'Reference No.', 'Party Name', 'Description', `Amount (${this.currency})`, 'Category'];
+            const txHeaderRow = txSheet.addRow(txHeaders);
+            txHeaderRow.height = 24;
+            txHeaderRow.eachCell((cell) => {
+                cell.fill = headerFill;
+                cell.font = headerFont;
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            });
+
+            this.allTransactions.forEach((tx, idx) => {
+                const r = txSheet.addRow([
+                    idx + 1,
+                    tx.date,
+                    tx.type,
+                    tx.ref_no,
+                    tx.party_name,
+                    tx.description,
+                    parseFloat(tx.amount) || 0,
+                    tx.category
+                ]);
+                r.getCell(1).alignment = { horizontal: 'center' };
+                r.getCell(2).alignment = { horizontal: 'center' };
+                r.getCell(3).alignment = { horizontal: 'center' };
+                r.getCell(4).alignment = { horizontal: 'center' };
+                r.getCell(5).alignment = { horizontal: 'left' };
+                r.getCell(6).alignment = { horizontal: 'left' };
+                r.getCell(7).alignment = { horizontal: 'right' };
+                r.getCell(7).numFmt = '#,##0.00';
+                r.getCell(8).alignment = { horizontal: 'center' };
+
+                r.eachCell(cell => cell.border = borderThin);
+            });
+
+            txSheet.columns = [
+                { width: 6 },
+                { width: 14 },
+                { width: 20 },
+                { width: 18 },
+                { width: 28 },
+                { width: 38 },
+                { width: 18 },
+                { width: 18 }
+            ];
+
+            // Download file
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const link = document.createElement('a');

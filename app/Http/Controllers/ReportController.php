@@ -5729,16 +5729,12 @@ class ReportController extends Controller
     /**
      * Cash Flow & Liquidity Forecast Report
      */
-    public function liquidityForecast(Request $request): View|\Illuminate\Http\JsonResponse
+    public function liquidityForecast(Request $request): View
     {
+        $lookups = $this->getCommonLookups($request);
+
         $service = new \App\Services\LiquidityForecastService();
         $reportData = $service->getForecastData($request->all());
-
-        if ($request->boolean('ajax')) {
-            return response()->json($reportData);
-        }
-
-        $lookups = $this->getCommonLookups($request);
 
         return view('reports.liquidity-forecast', array_merge($lookups, $reportData, [
             'activeTab' => 'liquidity_forecast',
