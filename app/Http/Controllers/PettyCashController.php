@@ -152,17 +152,39 @@ class PettyCashController extends Controller
     public function balanceRegister(Request $request)
     {
         $this->ensureHistoricalColumn();
+        $this->backfillMissingExpenseVouchers();
         // 1. Fetch available projects for the dropdown
         $projects = Project::where('is_active', true)->get();
         
-        // 2. Handle filters (Project and Date)
+        // 2. Handle filters (Project, Financial Year, and Date Range)
         if ($request->has('project_id')) {
             $selectedProject = $request->filled('project_id') ? $request->input('project_id') : null;
         } else {
             $selectedProject = $projects->first()->id ?? null;
         }
         
+        $financialYear = $request->input('financial_year', 'All');
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         $selectedDate = $request->input('date');
+
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom') {
+            if (preg_match('/^(\d{4})-(\d{2,4})$/', $financialYear, $matches)) {
+                $startYr = (int) $matches[1];
+                $endYr = strlen($matches[2]) === 2
+                    ? (int) (substr((string) $startYr, 0, 2) . $matches[2])
+                    : (int) $matches[2];
+                if (!$fromDate) {
+                    $fromDate = sprintf('%04d-04-01', $startYr);
+                }
+                if (!$toDate) {
+                    $toDate = sprintf('%04d-03-31', $endYr);
+                }
+            }
+        } elseif ($selectedDate && !$fromDate && !$toDate) {
+            $fromDate = $selectedDate;
+            $toDate = $selectedDate;
+        }
         
         if ($selectedProject) {
             $project = Project::find($selectedProject);
@@ -189,19 +211,20 @@ class PettyCashController extends Controller
             $transactionsQuery = PettyCashTransaction::query();
         }
         
-        // Opening Balance calculation
+        // Opening Balance calculation & Date Range Filter
         $openingBalance = 0;
-        if ($selectedDate) {
-            $previousTransactions = (clone $transactionsQuery)->whereDate('transaction_date', '<', $selectedDate)->get();
+        if ($fromDate) {
+            $previousTransactions = (clone $transactionsQuery)->whereDate('transaction_date', '<', $fromDate)->get();
             foreach ($previousTransactions as $t) {
                 if (!$t->is_historical) {
                     $openingBalance += $t->cash_in;
                     $openingBalance -= $t->cash_out;
                 }
             }
-            $transactionsQuery->whereDate('transaction_date', $selectedDate);
-        } else {
-            $openingBalance = 0;
+            $transactionsQuery->whereDate('transaction_date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $transactionsQuery->whereDate('transaction_date', '<=', $toDate);
         }
             
         if ($request->filled('search')) {
@@ -226,6 +249,10 @@ class PettyCashController extends Controller
         }
 
         $dbTransactions = $transactionsQuery->orderBy('transaction_date')->orderBy('id')->get();
+
+        if ($dbTransactions->isEmpty() && ($fromDate || $toDate || $request->filled('search') || $request->filled('status'))) {
+            $openingBalance = 0;
+        }
 
         $transactions = collect([]);
         $runningBalance = $openingBalance;
@@ -270,6 +297,9 @@ class PettyCashController extends Controller
         return view('petty-cash.balance-register', compact(
             'projects',
             'selectedProject',
+            'financialYear',
+            'fromDate',
+            'toDate',
             'selectedDate',
             'siteName',
             'openingBalance',
