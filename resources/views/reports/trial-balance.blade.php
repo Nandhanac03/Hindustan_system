@@ -314,10 +314,11 @@
                         </svg>
                     </div>
                     <input type="text" placeholder="Search Code, Account..." x-model="searchQuery" autocomplete="off"
+                           @input="triggerLoadingEffect()"
                            @keydown.enter.prevent
                            class="w-full erp-search-input pl-10 pr-9">
                     <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
-                        <button type="button" @click="searchQuery = ''"
+                        <button type="button" @click="searchQuery = ''; triggerLoadingEffect()"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -533,7 +534,7 @@
             <div class="flex items-center gap-3 shrink-0">
                 {{-- 7. Hide Zero Balance Checkbox (Instant In-Memory Toggle) --}}
                 <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-[#a38c29] h-[38px] transition cursor-pointer select-none">
-                    <input type="checkbox" x-model="hideZero" class="w-4 h-4 rounded text-[#a38c29] border-slate-300 focus:ring-[#a38c29] cursor-pointer">
+                    <input type="checkbox" x-model="hideZero" @change="triggerLoadingEffect()" class="w-4 h-4 rounded text-[#a38c29] border-slate-300 focus:ring-[#a38c29] cursor-pointer">
                     <span class="text-xs font-bold text-slate-700 whitespace-nowrap">Hide Zero</span>
                 </label>
 
@@ -808,6 +809,7 @@ function trialBalanceApp() {
         viewMode: '{{ $viewMode }}',
         hideZero: {{ $hideZero ? 'true' : 'false' }},
         isLoading: false,
+        _loadingTimer: null,
         selectedProjectId: '{{ (string)$selectedProjectId }}',
         selectedProjectName: '{{ (string)$selectedProjectId === 'all' ? 'All Projects' : addslashes($allProjects->firstWhere('id', $selectedProjectId)?->name ?? 'Select Project') }}',
         projectDropdownOpen: false,
@@ -1027,9 +1029,20 @@ function trialBalanceApp() {
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         },
+        triggerLoadingEffect(cb = null) {
+            if (this._loadingTimer) clearTimeout(this._loadingTimer);
+            this.isLoading = true;
+            this._loadingTimer = setTimeout(() => {
+                if (typeof cb === 'function') cb();
+                this.isLoading = false;
+                this._loadingTimer = null;
+            }, 220);
+        },
         selectViewMode(mode) {
-            this.viewMode = mode;
             this.viewModeDropdownOpen = false;
+            this.triggerLoadingEffect(() => {
+                this.viewMode = mode;
+            });
         },
         isAccountVisible(isZero, code, name) {
             if (this.hideZero && isZero) return false;
@@ -1064,7 +1077,8 @@ function trialBalanceApp() {
             this.viewModeDropdownOpen = false;
             this.projectSearch = '';
             this.fySearch = '';
-            this.selectedProjectId = 'all';
+            this.selectedProjectId = '{{ (string)($allProjects->first()?->id ?? 'all') }}';
+            this.selectedProjectName = '{{ addslashes($allProjects->first()?->name ?? 'All Projects') }}';
             this.selectedFinancialYear = 'All';
             const today = new Date();
             const fyStart = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;

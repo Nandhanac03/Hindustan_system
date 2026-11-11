@@ -355,12 +355,12 @@
             {{-- Professional Filter Controls Bar (Instant - No Page Reload) --}}
             <form @submit.prevent="applyExpenseFilters()" class="p-4 bg-white border-b border-slate-200/80">
                 {{-- Filter Select Dropdowns Grid with Gold Theme Icons Inside Boxes --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     
                     {{-- 1. Project Filter (Custom Gold Popover) --}}
                     <div class="relative w-full" @click.outside="projectFilterOpen = false">
                         <button type="button"
-                                @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { categoryFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
+                                @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { fyFilterOpen = false; categoryFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
                                 class="erp-dropdown-trigger"
                                 :class="projectFilterOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -409,10 +409,63 @@
                         </div>
                     </div>
 
-                    {{-- 2. Category Filter (Custom Gold Popover) --}}
+                    {{-- 2. Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="fyFilterOpen = false">
+                        <button type="button"
+                                @click="fyFilterOpen = !fyFilterOpen; if(fyFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="fyFilterOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="(filterFinancialYear && filterFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                      x-text="getSelectedFyName()">All FY</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filterFinancialYear && filterFinancialYear !== 'All'">
+                                    <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="fyFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Financial Year Popover Menu --}}
+                        <div x-show="fyFilterOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover min-w-[200px]"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                                <div @click="selectFinancialYear('All')"
+                                     class="erp-dropdown-option"
+                                     :class="(!filterFinancialYear || filterFinancialYear === 'All') ? 'selected-all' : ''">
+                                    <span>All Financial Years</span>
+                                </div>
+                                <template x-for="fy in financialYearsList" :key="fy.value">
+                                    <div @click="selectFinancialYear(fy.value)"
+                                         class="erp-dropdown-option flex items-center justify-between"
+                                         :class="filterFinancialYear === fy.value ? 'selected' : ''">
+                                        <span x-text="fy.label"></span>
+                                        <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Category Filter (Custom Gold Popover) --}}
                     <div class="relative w-full" @click.outside="categoryFilterOpen = false">
                         <button type="button"
-                                @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { projectFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
+                                @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; sourceFilterOpen = false; modeFilterOpen = false; }"
                                 class="erp-dropdown-trigger"
                                 :class="categoryFilterOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -464,7 +517,7 @@
                     {{-- 3. Payment Source Filter (Custom Gold Popover) --}}
                     <div class="relative w-full" @click.outside="sourceFilterOpen = false">
                         <button type="button"
-                                @click="sourceFilterOpen = !sourceFilterOpen; if(sourceFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; modeFilterOpen = false; }"
+                                @click="sourceFilterOpen = !sourceFilterOpen; if(sourceFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; modeFilterOpen = false; }"
                                 class="erp-dropdown-trigger"
                                 :class="sourceFilterOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -516,7 +569,7 @@
                     {{-- 4. Payment Mode Filter (Custom Gold Popover) --}}
                     <div class="relative w-full" @click.outside="modeFilterOpen = false">
                         <button type="button"
-                                @click="modeFilterOpen = !modeFilterOpen; if(modeFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; sourceFilterOpen = false; }"
+                                @click="modeFilterOpen = !modeFilterOpen; if(modeFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; sourceFilterOpen = false; }"
                                 class="erp-dropdown-trigger"
                                 :class="modeFilterOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -592,7 +645,20 @@
             </form>
 
             {{-- Table View --}}
-            <div class="overflow-x-auto min-h-[360px] pb-10">
+            <div class="relative overflow-x-auto min-h-[360px] pb-10">
+                {{-- Loading Spinner Overlay (Matching Trial Balance & Balance Sheet) --}}
+                <div x-show="isLoading" x-cloak
+                     class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity print:hidden"
+                     style="display: none;">
+                    <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                        <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Updating Site Expenses Data...</span>
+                    </div>
+                </div>
+
                 <table class="w-full text-left text-slate-800 border-collapse">
                     <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                         <tr class="erp-table-header border-b border-slate-700 text-left">
@@ -612,6 +678,7 @@
                         @forelse($siteExpenses as $expense)
                             <tr class="expense-table-row hover:bg-amber-50/20 transition"
                                 data-status="{{ strtolower($expense->status) }}"
+                                data-voucher-date="{{ $expense->voucher_date ? \Carbon\Carbon::parse($expense->voucher_date)->format('Y-m-d') : '' }}"
                                 data-project-id="{{ $expense->project_id }}"
                                 data-category-code="{{ $expense->expense_category_code }}"
                                 data-category-name="{{ strtolower($expense->expense_category_name) }}"
@@ -1883,14 +1950,33 @@ function siteExpensesDashboard() {
     return {
         filterSearch: '{{ request('search', '') }}',
         filterProjectId: '{{ request('project_id', $projects->first()?->id ?? '') }}',
+        filterFinancialYear: '{{ request('financial_year', 'All') }}',
         filterCategoryCode: '{{ request('category_code', '') }}',
         filterPaymentSource: '{{ request('payment_source', '') }}',
         filterPaymentMode: '{{ request('payment_mode', '') }}',
         filterStatusTab: '{{ request('status', 'all') }}',
         projectFilterOpen: false,
+        fyFilterOpen: false,
         categoryFilterOpen: false,
         sourceFilterOpen: false,
         modeFilterOpen: false,
+        isLoading: false,
+        _loadingTimer: null,
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
         projectNames: @json($projects->pluck('name', 'id')),
         categoryNames: @json($expenseCategories),
         bankSourceNames: @json($bankAccounts->mapWithKeys(fn($b) => [$b->id => $b->bank_name . ($b->account_name ? ' ('.$b->account_name.')' : '')])),
@@ -1949,6 +2035,17 @@ function siteExpensesDashboard() {
             return (this.projectNames && this.projectNames[this.filterProjectId]) ? this.projectNames[this.filterProjectId] : 'Project';
         },
 
+        selectFinancialYear(fyVal) {
+            this.filterFinancialYear = fyVal;
+            this.fyFilterOpen = false;
+            this.applyExpenseFilters();
+        },
+        getSelectedFyName() {
+            if (!this.filterFinancialYear || this.filterFinancialYear === 'All') return 'All FY';
+            const found = this.financialYearsList.find(x => x.value === this.filterFinancialYear);
+            return found ? found.label : ('FY ' + this.filterFinancialYear);
+        },
+
         selectCategoryFilter(code) {
             this.filterCategoryCode = code;
             this.categoryFilterOpen = false;
@@ -1990,83 +2087,93 @@ function siteExpensesDashboard() {
                 }
             });
             this.$nextTick(() => {
-                this.applyExpenseFilters();
+                this.applyExpenseFilters(false);
             });
         },
 
-        applyExpenseFilters() {
-            const search = (this.filterSearch || '').trim().toLowerCase();
-            const projId = (this.filterProjectId || '').toString().trim();
-            const catCode = (this.filterCategoryCode || '').toString().trim();
-            const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
-                ? this.categoryNames[catCode].toLowerCase().trim() 
-                : '';
-            const sourceId = (this.filterPaymentSource || '').toString().trim();
-            const mode = (this.filterPaymentMode || '').trim().toLowerCase();
-            const statusTab = (this.filterStatusTab || 'all').toLowerCase();
+        applyExpenseFilters(showLoading = true) {
+            const runFilter = () => {
+                const search = (this.filterSearch || '').trim().toLowerCase();
+                const projId = (this.filterProjectId || '').toString().trim();
+                const fyVal = (this.filterFinancialYear || 'All').toString().trim();
+                const fyObj = (fyVal && fyVal !== 'All') ? this.financialYearsList.find(x => x.value === fyVal) : null;
+                const catCode = (this.filterCategoryCode || '').toString().trim();
+                const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
+                    ? this.categoryNames[catCode].toLowerCase().trim() 
+                    : '';
+                const sourceId = (this.filterPaymentSource || '').toString().trim();
+                const mode = (this.filterPaymentMode || '').trim().toLowerCase();
+                const statusTab = (this.filterStatusTab || 'all').toLowerCase();
 
-            const rows = document.querySelectorAll('.expense-table-row');
-            let visibleCount = 0;
+                const rows = document.querySelectorAll('.expense-table-row');
+                let visibleCount = 0;
 
-            rows.forEach(row => {
-                const rowStatus = (row.dataset.status || '').toLowerCase();
-                const rowProj = (row.dataset.projectId || '').toString();
-                const rowCat = (row.dataset.categoryCode || '').toString();
-                const rowCatName = (row.dataset.categoryName || '').toLowerCase().trim();
-                const rowSource = (row.dataset.paymentSource || '').toString();
-                const rowMode = (row.dataset.paymentMode || '').toLowerCase();
-                const rowSearch = (row.dataset.search || '').toLowerCase();
+                rows.forEach(row => {
+                    const rowStatus = (row.dataset.status || '').toLowerCase();
+                    const rowDate = (row.dataset.voucherDate || '').trim();
+                    const rowProj = (row.dataset.projectId || '').toString();
+                    const rowCat = (row.dataset.categoryCode || '').toString();
+                    const rowCatName = (row.dataset.categoryName || '').toLowerCase().trim();
+                    const rowSource = (row.dataset.paymentSource || '').toString();
+                    const rowMode = (row.dataset.paymentMode || '').toLowerCase();
+                    const rowSearch = (row.dataset.search || '').toLowerCase();
 
-                let matchesStatus = true;
-                if (statusTab === 'draft') matchesStatus = (rowStatus === 'draft');
-                else if (statusTab === 'pending') matchesStatus = (rowStatus === 'pending');
-                else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (rowStatus === 'approved' || rowStatus === 'posted');
-                else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
+                    let matchesStatus = true;
+                    if (statusTab === 'draft') matchesStatus = (rowStatus === 'draft');
+                    else if (statusTab === 'pending') matchesStatus = (rowStatus === 'pending');
+                    else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (rowStatus === 'approved' || rowStatus === 'posted');
+                    else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
 
-                const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
-                const matchesCat = !catCode || (rowCat === catCode && (!expectedCatName || rowCatName === expectedCatName || rowCatName.includes(expectedCatName) || expectedCatName.includes(rowCatName)));
-                const matchesSource = !sourceId || rowSource === sourceId;
-                const matchesMode = !mode || rowMode === mode;
-                const matchesSearch = !search || rowSearch.includes(search);
+                    const matchesFy = !fyObj || (rowDate && rowDate >= fyObj.from && rowDate <= fyObj.to);
+                    const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
+                    const matchesCat = !catCode || (rowCat === catCode && (!expectedCatName || rowCatName === expectedCatName || rowCatName.includes(expectedCatName) || expectedCatName.includes(rowCatName)));
+                    const matchesSource = !sourceId || rowSource === sourceId;
+                    const matchesMode = !mode || rowMode === mode;
+                    const matchesSearch = !search || rowSearch.includes(search);
 
-                if (matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
+                    if (matchesStatus && matchesFy && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                const noRows = document.getElementById('no-expenses-row');
+                if (noRows) {
+                    noRows.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
                 }
-            });
 
-            const noRows = document.getElementById('no-expenses-row');
-            if (noRows) {
-                noRows.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+                const showingText = document.getElementById('showing-entries-text');
+                if (showingText) {
+                    showingText.textContent = `Showing ${visibleCount} of ${rows.length} entries`;
+                }
+            };
+
+            if (!showLoading) {
+                runFilter();
+                return;
             }
 
-            const showingText = document.getElementById('showing-entries-text');
-            if (showingText) {
-                showingText.textContent = `Showing ${visibleCount} of ${rows.length} entries`;
-            }
-
-            try {
-                const url = new URL(window.location.href);
-                if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
-                url.searchParams.delete('project_id');
-                if (catCode) url.searchParams.set('category_code', catCode); else url.searchParams.delete('category_code');
-                if (sourceId) url.searchParams.set('payment_source', sourceId); else url.searchParams.delete('payment_source');
-                if (mode) url.searchParams.set('payment_mode', mode); else url.searchParams.delete('payment_mode');
-                if (statusTab && statusTab !== 'all') url.searchParams.set('status', statusTab); else url.searchParams.delete('status');
-                window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
-            } catch(e) {}
+            if (this._loadingTimer) clearTimeout(this._loadingTimer);
+            this.isLoading = true;
+            this._loadingTimer = setTimeout(() => {
+                runFilter();
+                this.isLoading = false;
+                this._loadingTimer = null;
+            }, 220);
         },
 
         resetExpenseFilters() {
             this.filterSearch = '';
             this.filterProjectId = '{{ $projects->first()?->id ?? "" }}';
+            this.filterFinancialYear = 'All';
             this.filterCategoryCode = '';
             this.filterPaymentSource = '';
             this.filterPaymentMode = '';
             this.filterStatusTab = 'all';
             this.projectFilterOpen = false;
+            this.fyFilterOpen = false;
             this.categoryFilterOpen = false;
             this.sourceFilterOpen = false;
             this.modeFilterOpen = false;
@@ -2426,6 +2533,8 @@ function siteExpensesDashboard() {
         getFilteredExpensesList() {
             const search = (this.filterSearch || '').trim().toLowerCase();
             const projId = (this.filterProjectId || '').toString().trim();
+            const fyVal = (this.filterFinancialYear || 'All').toString().trim();
+            const fyObj = (fyVal && fyVal !== 'All') ? this.financialYearsList.find(x => x.value === fyVal) : null;
             const catCode = (this.filterCategoryCode || '').toString().trim();
             const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
                 ? this.categoryNames[catCode].toLowerCase().trim() 
@@ -2442,13 +2551,14 @@ function siteExpensesDashboard() {
                 else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (s === 'approved' || s === 'posted');
                 else if (statusTab === 'rejected') matchesStatus = (s === 'rejected');
 
+                const matchesFy = !fyObj || (e.raw_date && e.raw_date >= fyObj.from && e.raw_date <= fyObj.to);
                 const matchesProj = !projId || String(e.project_id) === projId;
                 const matchesCat = !catCode || String(e.category_code) === catCode || (expectedCatName && (e.category_name || '').toLowerCase().includes(expectedCatName));
                 const matchesSource = !sourceId || String(e.payment_source_id) === sourceId;
                 const matchesMode = !mode || (e.payment_mode || '').toLowerCase() === mode;
                 const matchesSearch = !search || (e.search || '').includes(search);
 
-                return matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch;
+                return matchesStatus && matchesFy && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch;
             });
         },
 

@@ -3123,7 +3123,7 @@ class ReportController extends Controller
 
         // Filters
         $firstProjectId = $allProjects->first()?->id ?? 'all';
-        $selectedProjectId = $request->input('project_id', 'all');
+        $selectedProjectId = $request->input('project_id', $firstProjectId);
         $periodType = $request->input('period_type', 'fy');
         $financialYear = $request->input('financial_year', '');
         $viewMode = $request->input('view_mode', 'detailed'); // 'detailed' | 'summary'

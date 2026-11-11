@@ -43,7 +43,7 @@
         <form id="balanceSheetForm" method="GET" action="{{ route('reports.balance_sheet') }}" @submit.prevent="updateFilters()" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 flex-1 items-center">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 flex-1 items-center">
                     
                     {{-- 1. Search Particulars / Accounts --}}
                     <div class="relative group col-span-1">
@@ -53,9 +53,10 @@
                             </svg>
                         </div>
                         <input type="text" placeholder="Search accounts..." x-model="searchQuery" autocomplete="off"
+                               @input="triggerLoadingEffect()"
                                class="w-full erp-search-input pl-10 pr-9">
                         <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
-                            <button type="button" @click="searchQuery = ''"
+                            <button type="button" @click="searchQuery = ''; triggerLoadingEffect()"
                                     class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -193,23 +194,10 @@
                                class="erp-input erp-date-input w-full pl-10 pr-3 py-2 text-xs font-bold text-slate-800 cursor-pointer">
                     </div>
 
-                    {{-- 5. View Type Radio Options --}}
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex items-center justify-around h-[42px]">
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">View:</span>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
-                            <input type="radio" name="view_type" value="vertical" x-model="viewType" class="text-[#a38c29] focus:ring-[#a38c29] h-3.5 w-3.5 border-slate-300 cursor-pointer">
-                            <span>Vertical</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
-                            <input type="radio" name="view_type" value="t_format" x-model="viewType" class="text-[#a38c29] focus:ring-[#a38c29] h-3.5 w-3.5 border-slate-300 cursor-pointer">
-                            <span>T-Format</span>
-                        </label>
-                    </div>
-
-                    {{-- 6. Zero-Balance Accounts --}}
+                    {{-- 5. Zero-Balance Accounts --}}
                     <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-1.5 flex items-center h-[42px]">
                         <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none w-full">
-                            <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" class="rounded text-[#a38c29] focus:ring-[#a38c29] h-4 w-4 border-slate-300 cursor-pointer">
+                            <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" @change="triggerLoadingEffect()" class="rounded text-[#a38c29] focus:ring-[#a38c29] h-4 w-4 border-slate-300 cursor-pointer">
                             <span>Hide Zero Balances</span>
                         </label>
                     </div>
@@ -227,7 +215,21 @@
         </form>
 
         {{-- STATEMENT OF FINANCIAL POSITION WRAPPER (AJAX Dynamic Swap Target) --}}
-        <div id="balanceSheetContainer" class="space-y-6">
+        <div class="relative">
+            {{-- Loading Spinner Overlay (Matching Trial Balance) --}}
+            <div x-show="isLoading" x-cloak
+                 class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+                 style="display: none;">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                    <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Updating Balance Sheet Data...</span>
+                </div>
+            </div>
+
+            <div id="balanceSheetContainer" class="space-y-6">
             
             {{-- STATEMENT OF FINANCIAL POSITION (ASSETS Left vs LIABILITIES & EQUITY Right) --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -494,6 +496,7 @@
             </div>
 
         </div>
+        </div>
 
         {{-- ── HIDDEN EXCEL EXPORT TABLE ── --}}
         <div class="hidden" style="display: none;">
@@ -597,6 +600,8 @@
 function balanceSheetApp() {
     return {
         searchQuery: '',
+        isLoading: false,
+        _loadingTimer: null,
         selectedProjectId: '{{ $defaultBsProjectId }}',
         selectedBsProjName: '{{ addslashes($selectedBsProjName) }}',
         projectSearch: '',
@@ -604,7 +609,6 @@ function balanceSheetApp() {
         fyDropdownOpen: false,
         selectedFinancialYear: '{{ $defaultFinancialYear }}',
         dateAsOn: '{{ $defaultDateAsOn }}',
-        viewType: 'vertical',
         hideZero: {{ request('hide_zero') ? 'true' : 'false' }},
 
         financialYearsList: [
@@ -684,6 +688,16 @@ function balanceSheetApp() {
             });
         },
 
+        triggerLoadingEffect(cb = null) {
+            if (this._loadingTimer) clearTimeout(this._loadingTimer);
+            this.isLoading = true;
+            this._loadingTimer = setTimeout(() => {
+                if (typeof cb === 'function') cb();
+                this.isLoading = false;
+                this._loadingTimer = null;
+            }, 220);
+        },
+
         matchesSearch(text) {
             if (!this.searchQuery) return true;
             return (text || '').toLowerCase().includes(this.searchQuery.toLowerCase().trim());
@@ -705,6 +719,7 @@ function balanceSheetApp() {
             const baseUrl = '{{ route('reports.balance_sheet') }}';
             const fetchUrl = baseUrl + (queryString ? '?' + queryString : '');
 
+            this.isLoading = true;
             fetch(fetchUrl, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -731,7 +746,10 @@ function balanceSheetApp() {
                     window.Alpine.initTree(currentContainer);
                 }
             })
-            .catch(err => console.error('Error updating balance sheet:', err));
+            .catch(err => console.error('Error updating balance sheet:', err))
+            .finally(() => {
+                this.isLoading = false;
+            });
         },
 
         resetFilters() {
@@ -743,7 +761,6 @@ function balanceSheetApp() {
             this.fyDropdownOpen = false;
             this.selectedFinancialYear = 'All';
             this.dateAsOn = '';
-            this.viewType = 'vertical';
             this.hideZero = false;
             this.$nextTick(() => {
                 this.updateFilters();
