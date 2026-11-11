@@ -141,10 +141,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
-                        <input type="text" x-model="filters.search" @input="currentPage = 1" placeholder="Search ref, partner, memo..." autocomplete="off"
+                        <input type="text" x-model="filters.search" @input="currentPage = 1; triggerLoadingEffect()" placeholder="Search ref, partner, memo..." autocomplete="off"
                                class="w-full erp-search-input pl-10 pr-9">
                         <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filters.search && filters.search.length > 0" style="display: none;">
-                            <button type="button" @click="filters.search = ''; currentPage = 1" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                            <button type="button" @click="filters.search = ''; currentPage = 1; triggerLoadingEffect()" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -170,12 +170,14 @@
                                 currentPage = 1;
                                 this.open = false;
                                 this.search = '';
+                                triggerLoadingEffect();
                             },
                             clear() {
                                 filters.partner_id = '';
                                 currentPage = 1;
                                 this.open = false;
                                 this.search = '';
+                                triggerLoadingEffect();
                             }
                          }" 
                          @click.outside="open = false">
@@ -265,12 +267,14 @@
                                 currentPage = 1;
                                 this.open = false;
                                 this.search = '';
+                                triggerLoadingEffect();
                             },
                             clear() {
                                 filters.project_id = '';
                                 currentPage = 1;
                                 this.open = false;
                                 this.search = '';
+                                triggerLoadingEffect();
                             }
                          }" 
                          @click.outside="open = false">
@@ -340,16 +344,17 @@
                         </div>
                     </div>
 
-                    {{-- 4. Date Range Filter (Custom Popover) --}}
+                    {{-- 4. Financial Year / Period Filter (Custom Popover) --}}
                     <div class="relative w-full" 
                          x-data="{ 
                             open: false, 
                             getRangeLabel() {
                                 if (filters.date_range === 'this_month') return 'This Month';
                                 if (filters.date_range === 'this_quarter') return 'This Quarter';
-                                if (filters.date_range === 'this_fy') return 'This Financial Year';
                                 if (filters.date_range === 'custom') return 'Custom Date Range';
-                                return 'Project Inception to Date';
+                                if (filters.date_range === 'inception' || !filters.date_range || filters.date_range === 'All') return 'All Financial Years';
+                                const matched = financialYearsList.find(f => f.value === filters.date_range || f.label === filters.date_range);
+                                return matched ? matched.label : filters.date_range;
                             },
                             select(val) {
                                 filters.date_range = val;
@@ -365,24 +370,34 @@
                                 <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                <span class="truncate text-xs font-bold text-slate-800" x-text="getRangeLabel()">Project Inception to Date</span>
+                                <span class="truncate text-xs font-bold text-slate-800" x-text="getRangeLabel()">All Financial Years</span>
                             </div>
-                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="filters.date_range && filters.date_range !== 'inception' && filters.date_range !== 'All'">
+                                    <span @click.stop="select('inception')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year / Period">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
                         </button>
 
                         <div x-show="open" x-cloak class="erp-dropdown-popover">
-                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                <div @click="select('inception')" class="erp-dropdown-option" :class="filters.date_range === 'inception' || !filters.date_range ? 'selected-all' : ''">
-                                    <span>Project Inception to Date</span>
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                                <div @click="select('inception')" class="erp-dropdown-option" :class="filters.date_range === 'inception' || !filters.date_range || filters.date_range === 'All' ? 'selected-all' : ''">
+                                    <span>All Financial Years (Inception)</span>
                                 </div>
+                                <template x-for="fy in financialYearsList" :key="fy.value">
+                                    <div @click="select(fy.value)" class="erp-dropdown-option" :class="filters.date_range === fy.value ? 'selected' : ''">
+                                        <span x-text="fy.label"></span>
+                                        <span class="text-[10px] text-slate-400 font-mono" x-text="fy.range"></span>
+                                    </div>
+                                </template>
                                 <div @click="select('this_month')" class="erp-dropdown-option" :class="filters.date_range === 'this_month' ? 'selected' : ''">
                                     <span>This Month</span>
                                 </div>
                                 <div @click="select('this_quarter')" class="erp-dropdown-option" :class="filters.date_range === 'this_quarter' ? 'selected' : ''">
                                     <span>This Quarter</span>
-                                </div>
-                                <div @click="select('this_fy')" class="erp-dropdown-option" :class="filters.date_range === 'this_fy' ? 'selected' : ''">
-                                    <span>This Financial Year</span>
                                 </div>
                                 <div @click="select('custom')" class="erp-dropdown-option" :class="filters.date_range === 'custom' ? 'selected' : ''">
                                     <span>Custom Date Range</span>
@@ -396,7 +411,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <input type="date" x-model="filters.from_date" @change="filters.date_range = 'custom'; currentPage = 1"
+                        <input type="date" x-model="filters.from_date" @change="onManualDateChange()"
                                title="From Date"
                                class="w-full erp-input erp-date-input">
                     </div>
@@ -406,7 +421,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <input type="date" x-model="filters.to_date" @change="filters.date_range = 'custom'; currentPage = 1"
+                        <input type="date" x-model="filters.to_date" @change="onManualDateChange()"
                                title="To Date"
                                class="w-full erp-input erp-date-input">
                     </div>
@@ -426,7 +441,19 @@
         </div>
 
         {{-- Section A: Partner Payouts & Drawings Statement (Running Ledger) --}}
-        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
+        <div class="relative border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
+            {{-- Loading Spinner Overlay --}}
+            <div x-show="isLoading" x-cloak
+                 class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+                 style="display: none;">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                    <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Updating Partner Statements...</span>
+                </div>
+            </div>
             <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
@@ -1181,9 +1208,37 @@
 <script>
 function partnerStatementApp() {
     return {
+        isLoading: false,
+        _loadingTimer: null,
         showPayoutModal: false,
         showViewModal: false,
         viewEntry: null,
+
+        financialYearsList: (() => {
+            const list = [];
+            for (let y = 2026; y >= 2014; y--) {
+                const startShort = String(y).slice(-2);
+                const endShort = String(y + 1).slice(-2);
+                list.push({
+                    value: `${y}-${endShort}`,
+                    label: `FY ${y}-${endShort}`,
+                    from: `${y}-04-01`,
+                    to: `${y + 1}-03-31`,
+                    range: `Apr ${startShort} - Mar ${endShort}`
+                });
+            }
+            return list;
+        })(),
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
 
         openViewModal(entry) {
             this.viewEntry = entry;
@@ -1549,11 +1604,32 @@ function partnerStatementApp() {
                 const fyStartYear = m >= 3 ? y : y - 1;
                 this.filters.from_date = `${fyStartYear}-04-01`;
                 this.filters.to_date = `${fyStartYear + 1}-03-31`;
-            } else if (this.filters.date_range === 'inception') {
+            } else if (this.filters.date_range === 'inception' || this.filters.date_range === 'All') {
                 this.filters.from_date = '';
                 this.filters.to_date = '';
+            } else {
+                const found = this.financialYearsList.find(f => f.value === this.filters.date_range || f.label === this.filters.date_range);
+                if (found) {
+                    this.filters.date_range = found.value;
+                    this.filters.from_date = found.from;
+                    this.filters.to_date = found.to;
+                }
             }
             this.currentPage = 1;
+            this.triggerLoadingEffect();
+        },
+
+        onManualDateChange() {
+            const matched = this.financialYearsList.find(f => f.from === this.filters.from_date && f.to === this.filters.to_date);
+            if (matched) {
+                this.filters.date_range = matched.value;
+            } else if (!this.filters.from_date && !this.filters.to_date) {
+                this.filters.date_range = 'inception';
+            } else {
+                this.filters.date_range = 'custom';
+            }
+            this.currentPage = 1;
+            this.triggerLoadingEffect();
         },
 
         resetFilters() {
@@ -1564,6 +1640,7 @@ function partnerStatementApp() {
             this.filters.to_date = '';
             this.filters.search = '';
             this.currentPage = 1;
+            this.triggerLoadingEffect();
         },
 
         formatCurrency(num) {

@@ -38,7 +38,7 @@
                     <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     <span>Record Partner Payout</span>
                 </a>
-                <div class="relative z-10 bg-[#faf9f5]/90 border border-[#a38c29]/40 rounded-2xl px-5 py-2.5 text-right shadow-2xs min-w-[190px]">
+                <div id="outflowBannerStat" class="relative z-10 bg-[#faf9f5]/90 border border-[#a38c29]/40 rounded-2xl px-5 py-2.5 text-right shadow-2xs min-w-[190px]">
                     <div class="text-[9.5px] font-black uppercase tracking-wider text-[#a38c29]">TOTAL ALLOCATED OUTFLOW</div>
                     <div class="text-lg sm:text-xl font-black text-slate-900 font-mono mt-0.5">
                         ₹{{ number_format($totalAllocatedOutflow, 2) }}
@@ -49,7 +49,7 @@
     </div>
 
     {{-- ── 3. EXECUTIVE KPI METRICS CARDS ── --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div id="outflowKpisContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {{-- KPI 1: Total Allocated Outflow --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default h-full">
@@ -159,7 +159,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase tracking-wider">
+                    <span id="outflowTrendPeriodBadge" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase tracking-wider">
                         Period: {{ $monthlyTrendData->keys()->first() ?? 'Current' }} - {{ $monthlyTrendData->keys()->last() ?? 'Current' }}
                     </span>
                 </div>
@@ -184,7 +184,7 @@
                         <p class="text-[10px] text-slate-400 font-semibold">Proportional capital allocation distribution</p>
                     </div>
                 </div>
-                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider">
+                <span id="outflowShareCountBadge" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider">
                     {{ $partnerShareData->count() }} Entities
                 </span>
             </div>
@@ -194,7 +194,7 @@
             </div>
 
             {{-- Custom Partner Distribution Progress Bars List --}}
-            <div class="pt-3 border-t border-slate-100 mt-2 space-y-2">
+            <div id="outflowShareLegend" class="pt-3 border-t border-slate-100 mt-2 space-y-2">
                 @php
                     $palette = ['#a38c29', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4'];
                     $colorIdx = 0;
@@ -223,9 +223,9 @@
     </div>
 
     {{-- ── 2. STANDARDIZED ERP FILTER BAR (CUSTOM POPOVERS & LIVE SEARCH) ── --}}
-    <div class="erp-filter-card">
+    <div class="erp-filter-card print:hidden">
         <div class="erp-filter-container">
-            <div class="erp-filter-grid-5">
+            <div class="erp-filter-grid-6">
                 
                 {{-- 1. Live Instant Search Input --}}
                 <div class="relative group">
@@ -234,10 +234,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" x-model="filters.search" placeholder="Search partner, memo..." autocomplete="off"
+                    <input type="text" x-model="filters.search" @input="triggerLoadingEffect()" placeholder="Search partner, memo..." autocomplete="off"
                            class="w-full erp-search-input pl-10 pr-9">
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filters.search && filters.search.length > 0" style="display: none;">
-                        <button type="button" @click="filters.search = ''" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                        <button type="button" @click="filters.search = ''; triggerLoadingEffect()" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -252,11 +252,13 @@
                             filters.project_id = id;
                             this.open = false;
                             this.search = '';
+                            fetchUpdatedData();
                         },
                         clear() {
                             filters.project_id = defaultProjectId;
                             this.open = false;
                             this.search = '';
+                            fetchUpdatedData();
                         }
                      }" 
                      @click.outside="open = false">
@@ -332,11 +334,13 @@
                             filters.partner_id = (id === 'all' ? '' : id);
                             this.open = false;
                             this.search = '';
+                            fetchUpdatedData();
                         },
                         clear() {
                             filters.partner_id = '';
                             this.open = false;
                             this.search = '';
+                            fetchUpdatedData();
                         }
                      }" 
                      @click.outside="open = false">
@@ -403,22 +407,63 @@
                     </div>
                 </div>
 
-                {{-- 4. From Date Filter --}}
+                {{-- 4. Financial Year Filter --}}
+                <div class="relative w-full" x-data="{ open: false }" @click.outside="open = false">
+                    <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span x-text="getSelectedFyLabel()"
+                                  :class="filters.financial_year && filters.financial_year !== 'All' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  class="truncate text-xs"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filters.financial_year && filters.financial_year !== 'All'">
+                                <span @click.stop="selectFinancialYear('All'); open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover w-full" style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All'); open = false" class="erp-dropdown-option" :class="filters.financial_year === 'All' || !filters.financial_year ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
+                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value); open = false" class="erp-dropdown-option" :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span class="text-[10px] text-slate-400 font-mono" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 5. From Date Filter --}}
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="date" x-model="filters.from_date" id="filter_from_date"
+                    <input type="date" x-model="filters.from_date" @change="onManualDateChange()" id="filter_from_date"
                            title="From Date"
                            class="w-full erp-input erp-date-input">
                 </div>
 
-                {{-- 5. To Date Filter --}}
+                {{-- 6. To Date Filter --}}
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="date" x-model="filters.to_date" id="filter_to_date"
+                    <input type="date" x-model="filters.to_date" @change="onManualDateChange()" id="filter_to_date"
                            title="To Date"
                            class="w-full erp-input erp-date-input">
                 </div>
@@ -437,7 +482,21 @@
     </div>
 
     {{-- ── 5. DATA TABLE CARD (MATCHING REQUESTED DESIGN) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <div class="relative bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+        {{-- Loading Spinner Overlay --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Partner Outflow Ledger...</span>
+            </div>
+        </div>
+        <div id="outflowTableContainer">
+            <script type="application/json" id="outflowPayloadJson">{!! json_encode(['outflowList' => $outflowList->values(), 'trendCategories' => array_keys($monthlyTrendData->toArray()), 'trendValues' => array_values($monthlyTrendData->toArray()), 'shareLabels' => array_keys($partnerShareData->toArray()), 'shareValues' => array_values($partnerShareData->toArray())]) !!}</script>
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-xs text-left border-collapse table-auto">
                 <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider sticky top-0 z-10">
@@ -503,6 +562,7 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
 
@@ -888,6 +948,7 @@
 
         const monthlyChart = new ApexCharts(document.querySelector("#monthlyOutflowChart"), monthlyOptions);
         monthlyChart.render();
+        window._monthlyOutflowChart = monthlyChart;
 
         // 2. Partner Outflow Share Donut Chart
         const shareLabels = @json(array_keys($partnerShareData->toArray()));
@@ -983,6 +1044,7 @@
 
         const shareChart = new ApexCharts(document.querySelector("#partnerShareChart"), shareOptions);
         shareChart.render();
+        window._partnerShareChart = shareChart;
     });
 
     function partnerOutflowLedgerApp() {
@@ -993,6 +1055,8 @@
 
         return {
             activeTab: 'summary',
+            isLoading: false,
+            _loadingTimer: null,
             projectsList: projectsList,
             partnersList: partnersList,
             outflowList: outflowList,
@@ -1003,8 +1067,130 @@
                 search: '',
                 project_id: firstProjId,
                 partner_id: '',
+                financial_year: 'All',
                 from_date: '{{ $fromDate ?? '' }}',
                 to_date: '{{ $toDate ?? '' }}'
+            },
+            financialYearsList: (() => {
+                const list = [];
+                for (let y = 2026; y >= 2014; y--) {
+                    const startShort = String(y).slice(-2);
+                    const endShort = String(y + 1).slice(-2);
+                    list.push({
+                        value: `${y}-${endShort}`,
+                        label: `FY ${y}-${endShort}`,
+                        from: `${y}-04-01`,
+                        to: `${y + 1}-03-31`,
+                        range: `Apr ${startShort} - Mar ${endShort}`
+                    });
+                }
+                return list;
+            })(),
+
+            triggerLoadingEffect() {
+                this.isLoading = true;
+                if (this._loadingTimer) {
+                    clearTimeout(this._loadingTimer);
+                }
+                this._loadingTimer = setTimeout(() => {
+                    this.isLoading = false;
+                }, 220);
+            },
+
+            getSelectedFyLabel() {
+                if (!this.filters.financial_year || this.filters.financial_year === 'All') return '— All FY —';
+                if (this.filters.financial_year === 'Custom') return 'Custom Date';
+                const found = this.financialYearsList.find(f => f.value === this.filters.financial_year);
+                return found ? found.label : this.filters.financial_year;
+            },
+
+            selectFinancialYear(val) {
+                this.filters.financial_year = val || 'All';
+                if (!val || val === 'All') {
+                    this.filters.from_date = '';
+                    this.filters.to_date = '';
+                } else {
+                    const found = this.financialYearsList.find(f => f.value === val);
+                    if (found) {
+                        this.filters.from_date = found.from;
+                        this.filters.to_date = found.to;
+                    }
+                }
+                this.fetchUpdatedData();
+            },
+
+            onManualDateChange() {
+                const matched = this.financialYearsList.find(f => f.from === this.filters.from_date && f.to === this.filters.to_date);
+                if (matched) {
+                    this.filters.financial_year = matched.value;
+                } else if (!this.filters.from_date && !this.filters.to_date) {
+                    this.filters.financial_year = 'All';
+                } else {
+                    this.filters.financial_year = 'Custom';
+                }
+                this.fetchUpdatedData();
+            },
+
+            fetchUpdatedData() {
+                const params = new URLSearchParams();
+                if (this.filters.project_id) params.append('project_id', this.filters.project_id);
+                if (this.filters.partner_id) params.append('partner_id', this.filters.partner_id);
+                if (this.filters.from_date) params.append('from_date', this.filters.from_date);
+                if (this.filters.to_date) params.append('to_date', this.filters.to_date);
+
+                const baseUrl = '{{ route('reports.partner_outflow_ledger') }}';
+                const fetchUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+
+                this.isLoading = true;
+
+                fetch(fetchUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    ['outflowBannerStat', 'outflowKpisContainer', 'outflowTrendPeriodBadge', 'outflowShareCountBadge', 'outflowShareLegend', 'outflowTableContainer'].forEach(id => {
+                        const freshEl = doc.getElementById(id);
+                        const currEl = document.getElementById(id);
+                        if (freshEl && currEl) {
+                            currEl.innerHTML = freshEl.innerHTML;
+                            if (window.Alpine && id === 'outflowTableContainer') {
+                                window.Alpine.initTree(currEl);
+                            }
+                        }
+                    });
+
+                    const payloadEl = document.getElementById('outflowPayloadJson');
+                    if (payloadEl) {
+                        try {
+                            const payload = JSON.parse(payloadEl.textContent || '{}');
+                            if (Array.isArray(payload.outflowList)) {
+                                this.outflowList = payload.outflowList;
+                            }
+                            if (window._monthlyOutflowChart && Array.isArray(payload.trendValues)) {
+                                window._monthlyOutflowChart.updateOptions({
+                                    xaxis: { categories: payload.trendCategories || [] }
+                                });
+                                window._monthlyOutflowChart.updateSeries([{ name: 'Capital Outflow', data: payload.trendValues }]);
+                            }
+                            if (window._partnerShareChart && Array.isArray(payload.shareValues)) {
+                                window._partnerShareChart.updateOptions({
+                                    labels: payload.shareLabels || []
+                                });
+                                window._partnerShareChart.updateSeries(payload.shareValues);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing updated partner outflow payload:', e);
+                        }
+                    }
+                })
+                .catch(err => console.error('Error fetching partner outflow ledger data:', err))
+                .finally(() => {
+                    this.isLoading = false;
+                });
             },
 
             openViewModalByIndex(index) {
@@ -1059,8 +1245,10 @@
                 this.filters.search = '';
                 this.filters.project_id = this.defaultProjectId;
                 this.filters.partner_id = '';
+                this.filters.financial_year = 'All';
                 this.filters.from_date = '';
                 this.filters.to_date = '';
+                this.fetchUpdatedData();
             },
 
             setDatePreset(preset) {
