@@ -52,11 +52,30 @@ class SalesController extends Controller
         } else {
             $query->where('status', '!=', 'inactive');
         }
-        if ($request->filled('date_from')) {
-            $query->whereDate('sale_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('sale_date', '<=', $request->date_to);
+
+        // Financial Year date calculation
+        $financialYear = $request->input('financial_year');
+        $dateFrom = $request->input('date_from') ?: $request->input('from_date');
+        $dateTo = $request->input('date_to') ?: $request->input('to_date');
+
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $startYear = (int)$parts[0];
+                $endYear = (int)$parts[1];
+                if ($startYear < 100) $startYear += 2000;
+                if ($endYear < 100) $endYear += 2000;
+                $query->whereDate('sale_date', '>=', sprintf('%04d-04-01', $startYear))
+                      ->whereDate('sale_date', '<=', sprintf('%04d-03-31', $endYear));
+            }
+        } elseif ($dateFrom || $dateTo) {
+            if ($dateFrom) {
+                $query->whereDate('sale_date', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('sale_date', '<=', $dateTo);
+            }
         }
         $postedVouchers = DB::table('vouchers')
             ->whereIn('type', ['Receipt', 'Payment'])
@@ -129,6 +148,22 @@ class SalesController extends Controller
             $salesListQuery->where('project_id', $selectedProject->id);
         }
 
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $startYear = (int)$parts[0];
+                $endYear = (int)$parts[1];
+                if ($startYear < 100) $startYear += 2000;
+                if ($endYear < 100) $endYear += 2000;
+                $salesListQuery->whereDate('sale_date', '>=', sprintf('%04d-04-01', $startYear))
+                               ->whereDate('sale_date', '<=', sprintf('%04d-03-31', $endYear));
+            }
+        } elseif ($dateFrom || $dateTo) {
+            if ($dateFrom) $salesListQuery->whereDate('sale_date', '>=', $dateFrom);
+            if ($dateTo) $salesListQuery->whereDate('sale_date', '<=', $dateTo);
+        }
+
         $salesList = $salesListQuery->orderByDesc('sale_date')->get();
 
         return view('sales.index', [
@@ -163,6 +198,26 @@ class SalesController extends Controller
 
         if ($project) {
             $query->where('project_id', $project->id);
+        }
+
+        $financialYear = $request->input('financial_year');
+        $dateFrom = $request->input('date_from') ?: $request->input('from_date');
+        $dateTo = $request->input('date_to') ?: $request->input('to_date');
+
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $startYear = (int)$parts[0];
+                $endYear = (int)$parts[1];
+                if ($startYear < 100) $startYear += 2000;
+                if ($endYear < 100) $endYear += 2000;
+                $query->whereDate('sale_date', '>=', sprintf('%04d-04-01', $startYear))
+                      ->whereDate('sale_date', '<=', sprintf('%04d-03-31', $endYear));
+            }
+        } elseif ($dateFrom || $dateTo) {
+            if ($dateFrom) $query->whereDate('sale_date', '>=', $dateFrom);
+            if ($dateTo) $query->whereDate('sale_date', '<=', $dateTo);
         }
 
         $salesList = $query->orderByDesc('sale_date')->get();
