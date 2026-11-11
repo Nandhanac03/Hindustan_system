@@ -2581,7 +2581,7 @@ function customerCollectionDuesApp() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Customer_Collection_Dues_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                a.download = 'Customer_Collection_Dues_Report.xlsx';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

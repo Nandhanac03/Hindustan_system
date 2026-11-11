@@ -113,15 +113,94 @@
 
 @media print {
     @page {
-        size: landscape;
+        size: A4 landscape;
         margin: 8mm;
     }
     html, body {
         background: #ffffff !important;
-        font-size: 8pt !important;
+        font-size: 13.5px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .lg\:pl-44 {
+        padding-left: 0 !important;
+    }
+    main {
+        padding: 0 !important;
     }
     .print\:hidden, header, nav, aside, footer, button, .no-print {
         display: none !important;
+    }
+    .shadow-sm, .shadow-xs, .shadow-md {
+        box-shadow: none !important;
+    }
+    .overflow-x-auto {
+        overflow: visible !important;
+    }
+    .print-banner-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+    }
+    #dashboard-stats {
+        display: grid !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    #dashboard-stats > div {
+        padding: 8px 10px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    #dashboard-stats .print-kpi-val {
+        font-size: 10.5pt !important;
+        line-height: 1.25 !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: nowrap !important;
+    }
+    #dashboard-stats .print-kpi-label,
+    #dashboard-stats .print-kpi-sub {
+        font-size: 6.8pt !important;
+        line-height: 1.2 !important;
+    }
+    .print-3-col-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    .print-3-col-grid > div {
+        grid-column: span 1 / span 1 !important;
+        padding: 12px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    table {
+        page-break-inside: auto;
+        width: 100% !important;
+    }
+    table th {
+        font-size: 8.5pt !important;
+        padding: 8px 8px !important;
+    }
+    table tbody td {
+        font-size: 9.5pt !important;
+        padding: 8px 8px !important;
+        line-height: 1.35 !important;
+    }
+    table tfoot td {
+        font-size: 10pt !important;
+        padding: 9px 8px !important;
+    }
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
     }
 }
 </style>
@@ -134,7 +213,7 @@
         <div class="absolute -top-12 -right-12 w-56 h-56 bg-[#a38c29]/12 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-[#a38c29]/10 to-transparent pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 print-banner-row">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white flex items-center justify-center shadow-md shadow-[#a38c29]/20 shrink-0 border border-amber-300/30">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +223,7 @@
                 <div>
                     <div class="flex items-center gap-2.5 flex-wrap">
                         <h1 class="text-lg sm:text-xl font-black tracking-tight uppercase text-slate-900">PARTNER CAPITAL &amp; SHAREHOLDING LEDGER STATEMENT</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">EQUITY &amp; CAPITAL</span>
+                        <!-- <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">EQUITY &amp; CAPITAL</span> -->
                     </div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mt-1">
                         <span>Accounting</span>
@@ -176,7 +255,7 @@
         {{-- Card 1: TOTAL PARTNERS (Blue Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL PARTNERS</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL PARTNERS</span>
                 <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -184,15 +263,15 @@
                 </div>
             </div>
             <div>
-                <div class="text-2xl font-mono font-black text-slate-900 tracking-tight truncate" x-text="summaryKPIs.total_partners">0</div>
-                <div class="text-[10px] text-blue-600 font-bold mt-1">Active Equity Partners</div>
+                <div class="print-kpi-val text-2xl font-mono font-black text-slate-900 tracking-tight truncate" x-text="summaryKPIs.total_partners">0</div>
+                <div class="print-kpi-sub text-[10px] text-blue-600 font-bold mt-1">Active Equity Partners</div>
             </div>
         </div>
 
         {{-- Card 2: TOTAL OPENING CAPITAL (Gold Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL OPENING CAPITAL</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL OPENING CAPITAL</span>
                 <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -200,18 +279,18 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight truncate"
+                <div class="print-kpi-val text-xl font-mono font-black text-[#a38c29] tracking-tight truncate"
                      :title="currency + ' ' + formatMoney(summaryKPIs.total_opening)"
                      x-text="currency + ' ' + formatMoney(summaryKPIs.total_opening)">
                 </div>
-                <div class="text-[10px] text-[#8a7522] font-bold mt-1">Brought Forward Reserves</div>
+                <div class="print-kpi-sub text-[10px] text-[#8a7522] font-bold mt-1">Brought Forward Reserves</div>
             </div>
         </div>
 
         {{-- Card 3: TOTAL CAPITAL INFUSIONS (Emerald Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL CAPITAL INFUSIONS</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL CAPITAL INFUSIONS</span>
                 <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -219,18 +298,18 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-emerald-700 tracking-tight truncate"
+                <div class="print-kpi-val text-xl font-mono font-black text-emerald-700 tracking-tight truncate"
                      :title="currency + ' ' + formatMoney(summaryKPIs.total_infusions)"
                      x-text="currency + ' ' + formatMoney(summaryKPIs.total_infusions)">
                 </div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">Capital Contributed</div>
+                <div class="print-kpi-sub text-[10px] text-emerald-600 font-bold mt-1">Capital Contributed</div>
             </div>
         </div>
 
         {{-- Card 4: TOTAL DRAWINGS (Amber/Coral Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL DRAWINGS</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL DRAWINGS</span>
                 <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
@@ -238,18 +317,18 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-amber-800 tracking-tight truncate"
+                <div class="print-kpi-val text-xl font-mono font-black text-amber-800 tracking-tight truncate"
                      :title="currency + ' ' + formatMoney(summaryKPIs.total_drawings)"
                      x-text="currency + ' ' + formatMoney(summaryKPIs.total_drawings)">
                 </div>
-                <div class="text-[10px] text-amber-600 font-bold mt-1">Payouts &amp; Withdrawals</div>
+                <div class="print-kpi-sub text-[10px] text-amber-600 font-bold mt-1">Payouts &amp; Withdrawals</div>
             </div>
         </div>
 
         {{-- Card 5: TOTAL PROFIT ALLOCATION (Orange Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-orange-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL PROFIT ALLOCATION</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL PROFIT ALLOCATION</span>
                 <div class="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -257,18 +336,18 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-orange-800 tracking-tight truncate"
+                <div class="print-kpi-val text-xl font-mono font-black text-orange-800 tracking-tight truncate"
                      :title="currency + ' ' + formatMoney(summaryKPIs.total_profit)"
                      x-text="currency + ' ' + formatMoney(summaryKPIs.total_profit)">
                 </div>
-                <div class="text-[10px] text-orange-600 font-bold mt-1">Agreed Share Allocation</div>
+                <div class="print-kpi-sub text-[10px] text-orange-600 font-bold mt-1">Agreed Share Allocation</div>
             </div>
         </div>
 
         {{-- Card 6: TOTAL CLOSING CAPITAL (Rose Accent) --}}
         <div class="bg-white p-4 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL CLOSING CAPITAL</span>
+                <span class="print-kpi-label text-[10px] font-extrabold text-slate-600 uppercase tracking-wider">TOTAL CLOSING CAPITAL</span>
                 <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
@@ -277,11 +356,11 @@
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-rose-700 tracking-tight truncate"
+                <div class="print-kpi-val text-xl font-mono font-black text-rose-700 tracking-tight truncate"
                      :title="currency + ' ' + formatMoney(summaryKPIs.total_closing)"
                      x-text="currency + ' ' + formatMoney(summaryKPIs.total_closing)">
                 </div>
-                <div class="text-[10px] text-rose-600 font-bold mt-1">Net Partners Equity</div>
+                <div class="print-kpi-sub text-[10px] text-rose-600 font-bold mt-1">Net Partners Equity</div>
             </div>
         </div>
 
@@ -412,27 +491,16 @@
                        class="w-full erp-search-input px-2.5 text-xs font-bold text-slate-800">
             </div>
 
-            {{-- 6. Action Buttons (RESET FILTERS + EXPORT EXCEL) --}}
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" 
-                        @click="resetFilters()"
-                        class="theme-btn h-[38px] px-4 py-2 text-xs font-extrabold flex items-center justify-center gap-1.5 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap"
-                        title="Reset All Filters">
-                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <span>RESET FILTERS</span>
-                </button>
-
-                <button type="button" 
-                        @click="exportToExcel()" 
-                        class="px-3.5 py-2 h-[38px] bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 uppercase tracking-wider">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span>Export Excel</span>
-                </button>
-            </div>
+            {{-- 6. Reset Filters Action --}}
+            <button type="button" 
+                    @click="resetFilters()"
+                    class="theme-btn h-[38px] px-4 py-2 text-xs font-extrabold flex items-center justify-center gap-1.5 rounded-xl transition-all shadow-sm shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer whitespace-nowrap"
+                    title="Reset All Filters">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>RESET FILTERS</span>
+            </button>
 
         </div>
     </div>
@@ -443,14 +511,26 @@
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                     <div class="w-1 h-4 bg-[#a38c29] rounded-full"></div>
-                    Partner Capital &amp; Shareholding Summary
+                    <span>Partner Capital &amp; Shareholding Summary</span>
+                    <span class="text-[10px] font-black text-[#a38c29] bg-[#a38c29]/10 px-2 py-0.5 rounded-full uppercase tracking-wider" x-text="summaryRows.length + ' Active Partners'"></span>
                 </h3>
                 <p class="text-[11px] text-slate-400 font-medium mt-0.5 pl-3">
                     Partner-wise capital contributions, drawings, profit share allocations &amp; net closing equity
                 </p>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] font-black text-[#a38c29] uppercase tracking-wider" x-text="summaryRows.length + ' Active Partners'"></span>
+
+            {{-- Export Buttons (Export Excel & Export PDF) --}}
+            <div class="flex items-center gap-2.5 print:hidden">
+                <button type="button" @click="exportToExcel()" 
+                        class="h-[38px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
+                </button>
+                <button type="button" @click="window.print()" 
+                        class="h-[38px] px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
+                </button>
             </div>
         </div>
 
@@ -467,7 +547,7 @@
                         <th class="py-3 px-3.5 text-right" x-text="'Drawings (' + currency + ')'">Drawings (₹)</th>
                         <th class="py-3 px-3.5 text-right" x-text="'Profit / (Loss) Allocation (' + currency + ')'">Profit / (Loss) Allocation (₹)</th>
                         <th class="py-3 px-4 text-right" x-text="'Closing Capital (' + currency + ')'">Closing Capital (₹)</th>
-                        <th class="py-3 px-3 text-center">Actions</th>
+                        <th class="py-3 px-3 text-center print:hidden">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -493,7 +573,7 @@
                             <td class="py-3 px-4 text-right font-mono font-black text-slate-900"
                                 :class="row.closing_capital >= 0 ? 'text-[#8a7522]' : 'text-rose-700'"
                                 x-text="formatMoney(row.closing_capital)"></td>
-                            <td class="py-3 px-3 text-center" @click.stop>
+                            <td class="py-3 px-3 text-center print:hidden" @click.stop>
                                 <button type="button"
                                         @click="selectDetailPartner(row.id)"
                                         :class="String(activeDetailPartnerId) === String(row.id) ? 'bg-[#a38c29] text-white border-[#a38c29]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#a38c29] hover:text-[#a38c29]'"
@@ -522,7 +602,7 @@
                         <td class="py-3 px-3.5 text-right font-mono font-black text-rose-700" x-text="formatMoney(summaryKPIs.total_drawings)"></td>
                         <td class="py-3 px-3.5 text-right font-mono font-black text-emerald-700" x-text="formatMoney(summaryKPIs.total_profit)"></td>
                         <td class="py-3 px-4 text-right font-mono font-black text-[#8a7522] text-sm" x-text="formatMoney(summaryKPIs.total_closing)"></td>
-                        <td></td>
+                        <td class="print:hidden"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -554,7 +634,7 @@
         </div>
 
         {{-- 3-Card Breakdown: Partner Info | Capital Summary | Shareholding Distribution Donut --}}
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="print-3-col-grid grid grid-cols-1 lg:grid-cols-12 gap-5">
             
             {{-- Card 1: Partner Information (4 cols) --}}
             <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 border-l-[6px] border-l-blue-500 p-5 shadow-2xs flex flex-col justify-between">
@@ -723,7 +803,7 @@
             </div>
 
             {{-- Pagination Footer (Matching exact ERP pagination UI, 50 per page) --}}
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-b-2xl" x-show="filteredPartnerLedger.length > 0">
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-b-2xl print:hidden" x-show="filteredPartnerLedger.length > 0">
                 <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                     SHOWING <span class="text-slate-900" x-text="(currentPage - 1) * perPage + 1"></span> TO 
                     <span class="text-slate-900" x-text="Math.min(currentPage * perPage, filteredPartnerLedger.length)"></span> OF 
@@ -762,6 +842,7 @@
 function capitalStatementsApp() {
     return {
         currency: @json($currency ?? '₹'),
+        projectName: @json(strtoupper($projectName ?? 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD')),
         partnersData: @json($partnersData ?? []),
         rawLedgerEvents: @json($ledgerEvents ?? []),
         rawProfitEvents: @json($profitEvents ?? []),
@@ -1216,85 +1297,284 @@ function capitalStatementsApp() {
             }
 
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'Tabasco ERP';
+            workbook.creator = this.projectName;
             workbook.created = new Date();
 
-            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF534E47' } };
-            const headerFont = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
-            const borderThin = {
-                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            const whiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+            const titleFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+            const titleFont = { name: 'Calibri', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+            const subFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+            const subFont = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            const secFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+            const secFont = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+            const headerFont = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            const headerBorder = {
+                top: { style: 'thin', color: { argb: 'FF475569' } },
+                bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                left: { style: 'thin', color: { argb: 'FF475569' } },
+                right: { style: 'thin', color: { argb: 'FF475569' } }
+            };
+            const dataBorder = {
+                top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+            };
+            const zebraEvenFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F8FF' } };
+            const zebraOddFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+            const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+            const totalFont = { name: 'Calibri', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+            const totalBorder = {
+                top: { style: 'medium', color: { argb: 'FF1E293B' } },
+                bottom: { style: 'medium', color: { argb: 'FF1E293B' } },
+                left: { style: 'thin', color: { argb: 'FF475569' } },
+                right: { style: 'thin', color: { argb: 'FF475569' } }
+            };
+
+            const timestamp = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            const metaText = `Financial Year: ${this.getSelectedFyName()}   |   Period: ${this.getPeriodLabel()}   |   Currency: ${this.currency}   |   Generated: ${timestamp}`;
+
+            const addExecutiveBanner = (sheet, lastColLetter, totalCols, titleText, subtitleText, sectionText) => {
+                // Row 1: Top Empty Spacer
+                sheet.mergeCells(`A1:${lastColLetter}1`);
+                const sp1 = sheet.getCell('A1');
+                sp1.value = '';
+                sp1.fill = whiteFill;
+                sheet.getRow(1).height = 18;
+
+                // Row 2: Main Title Banner (#2C3E50 Dark Slate Navy)
+                sheet.mergeCells(`A2:${lastColLetter}2`);
+                const tCell = sheet.getCell('A2');
+                tCell.value = titleText;
+                tCell.font = titleFont;
+                tCell.fill = titleFill;
+                tCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(2).height = 32;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(2).getCell(c).border = headerBorder;
+
+                // Row 3: Subtitle Banner (#007398 Ocean Teal Blue)
+                sheet.mergeCells(`A3:${lastColLetter}3`);
+                const sCell = sheet.getCell('A3');
+                sCell.value = subtitleText;
+                sCell.font = subFont;
+                sCell.fill = subFill;
+                sCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(3).height = 24;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(3).getCell(c).border = headerBorder;
+
+                // Row 4: Section Banner (#006039 Deep Forest Green)
+                sheet.mergeCells(`A4:${lastColLetter}4`);
+                const secCell = sheet.getCell('A4');
+                secCell.value = sectionText;
+                secCell.font = secFont;
+                secCell.fill = secFill;
+                secCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(4).height = 24;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(4).getCell(c).border = headerBorder;
+
+                // Row 5: Middle Empty Spacer
+                sheet.mergeCells(`A5:${lastColLetter}5`);
+                const sp2 = sheet.getCell('A5');
+                sp2.value = '';
+                sp2.fill = whiteFill;
+                sheet.getRow(5).height = 14;
             };
 
             // ── SHEET 1: CAPITAL SUMMARY ──
-            const s1 = workbook.addWorksheet('Capital Summary');
-            s1.views = [{ showGridLines: true }];
-
-            s1.mergeCells('A1:I1');
-            s1.getCell('A1').value = 'TABASCO REAL ESTATE ERP - PARTNER CAPITAL & SHAREHOLDING SUMMARY';
-            s1.getCell('A1').font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF1E293B' } };
-            s1.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-            s1.getRow(1).height = 28;
-
-            s1.mergeCells('A2:I2');
-            s1.getCell('A2').value = `Financial Year: ${this.getSelectedFyName()} | Period: ${this.getPeriodLabel()} | Currency: ${this.currency}`;
-            s1.getCell('A2').font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
-            s1.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-            s1.getRow(2).height = 18;
-            s1.addRow([]);
-
-            const hRow = s1.addRow(['#', 'Partner ID', 'Partner Name', 'Shareholding (%)', `Opening Capital (${this.currency})`, `Capital Infusions (${this.currency})`, `Drawings (${this.currency})`, `Profit Allocation (${this.currency})`, `Closing Capital (${this.currency})`]);
-            hRow.height = 24;
-            hRow.eachCell(c => { c.fill = headerFill; c.font = headerFont; c.alignment = { horizontal: 'center', vertical: 'middle' }; });
-
-            this.summaryRows.forEach((r, idx) => {
-                const row = s1.addRow([idx + 1, r.partner_code, r.name, r.share_pct, r.opening_capital, r.capital_infusions, r.drawings, r.profit_allocation, r.closing_capital]);
-                for (let i = 1; i <= 9; i++) {
-                    row.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
-                    row.getCell(i).border = borderThin;
-                    if (i === 4) row.getCell(i).numFmt = '0.00';
-                    if (i >= 5) row.getCell(i).numFmt = '#,##0.00';
-                }
+            const s1 = workbook.addWorksheet('Capital Summary', {
+                views: [{ state: 'frozen', ySplit: 6, showGridLines: true }]
             });
 
-            const totRow = s1.addRow(['', 'Total', `${this.summaryKPIs.total_partners} Partners`, this.summaryKPIs.total_share_pct, this.summaryKPIs.total_opening, this.summaryKPIs.total_infusions, this.summaryKPIs.total_drawings, this.summaryKPIs.total_profit, this.summaryKPIs.total_closing]);
-            totRow.font = { bold: true };
-            totRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            addExecutiveBanner(
+                s1,
+                'I',
+                9,
+                `${this.projectName} - PARTNER CAPITAL & SHAREHOLDING SUMMARY`,
+                metaText,
+                'PARTNER CAPITAL & SHAREHOLDING DETAILS'
+            );
+
+            const hRow = s1.getRow(6);
+            hRow.values = [
+                '#', 'Partner ID', 'Partner Name', 'Shareholding (%)',
+                `Opening Capital (${this.currency})`, `Capital Infusions (${this.currency})`,
+                `Drawings (${this.currency})`, `Profit Allocation (${this.currency})`,
+                `Closing Capital (${this.currency})`
+            ];
+            hRow.height = 34;
+            hRow.eachCell({ includeEmpty: true }, (c) => {
+                c.fill = headerFill;
+                c.font = headerFont;
+                c.border = headerBorder;
+                c.alignment = {
+                    horizontal: 'center',
+                    vertical: 'middle',
+                    wrapText: true
+                };
+            });
+
+            let s1RowIdx = 7;
+            this.summaryRows.forEach((r, idx) => {
+                const row = s1.getRow(s1RowIdx);
+                row.values = [
+                    idx + 1, r.partner_code, r.name, Number(r.share_pct || 0),
+                    Number(r.opening_capital || 0), Number(r.capital_infusions || 0),
+                    Number(r.drawings || 0), Number(r.profit_allocation || 0),
+                    Number(r.closing_capital || 0)
+                ];
+                row.height = 28;
+                const rowFill = (idx % 2 === 0) ? zebraEvenFill : zebraOddFill;
+                for (let i = 1; i <= 9; i++) {
+                    const cell = row.getCell(i);
+                    cell.fill = rowFill;
+                    let textColor = 'FF1E293B';
+                    if (i === 6) textColor = 'FF008000';
+                    else if (i === 7) textColor = 'FFB91C1C';
+                    else if (i === 8) textColor = (Number(r.profit_allocation || 0) >= 0 ? 'FF008000' : 'FFB91C1C');
+                    else if (i === 9) textColor = 'FF1D4ED8';
+
+                    cell.font = {
+                        name: 'Calibri',
+                        size: 12,
+                        bold: (i === 3 || i === 6 || i === 8 || i === 9),
+                        color: { argb: textColor }
+                    };
+                    cell.border = dataBorder;
+                    cell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    if (i === 4) cell.numFmt = '0.00';
+                    if (i >= 5) cell.numFmt = '#,##0.00';
+                }
+                s1RowIdx++;
+            });
+
+            const totRow = s1.getRow(s1RowIdx);
+            totRow.values = [
+                `TOTAL (${this.summaryKPIs.total_partners} PARTNERS)`, '', '',
+                Number(this.summaryKPIs.total_share_pct || 0),
+                Number(this.summaryKPIs.total_opening || 0),
+                Number(this.summaryKPIs.total_infusions || 0),
+                Number(this.summaryKPIs.total_drawings || 0),
+                Number(this.summaryKPIs.total_profit || 0),
+                Number(this.summaryKPIs.total_closing || 0)
+            ];
+            s1.mergeCells(`A${s1RowIdx}:C${s1RowIdx}`);
+            totRow.height = 40;
             for (let i = 1; i <= 9; i++) {
-                totRow.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
-                totRow.getCell(i).border = borderThin;
-                if (i === 4) totRow.getCell(i).numFmt = '0.00';
-                if (i >= 5) totRow.getCell(i).numFmt = '#,##0.00';
+                const cell = totRow.getCell(i);
+                cell.fill = totalFill;
+                cell.font = totalFont;
+                cell.border = totalBorder;
+                cell.alignment = {
+                    horizontal: 'center',
+                    vertical: 'middle'
+                };
+                if (i === 4) cell.numFmt = '0.00';
+                if (i >= 5) cell.numFmt = '#,##0.00';
             }
 
             s1.columns = [
-                { width: 6 }, { width: 14 }, { width: 24 }, { width: 16 },
-                { width: 20 }, { width: 20 }, { width: 20 }, { width: 22 }, { width: 22 }
+                { width: 10 }, { width: 18 }, { width: 26 }, { width: 22 },
+                { width: 26 }, { width: 26 }, { width: 26 }, { width: 28 }, { width: 28 }
             ];
 
             // ── SHEET 2: PARTNER TRANSACTION LEDGER ──
             if (this.activePartnerDetail) {
-                const s2 = workbook.addWorksheet(`${this.activePartnerDetail.name} Ledger`.slice(0, 31));
-                s2.views = [{ showGridLines: true }];
-
-                const lh = s2.addRow(['#', 'Date', 'Voucher No.', 'Particulars', 'Reference', 'Type', `Credit (${this.currency})`, `Debit (${this.currency})`, `Balance (${this.currency})`]);
-                lh.height = 24;
-                lh.eachCell(c => { c.fill = headerFill; c.font = headerFont; c.alignment = { horizontal: 'center', vertical: 'middle' }; });
-
-                this.filteredPartnerLedger.forEach((tx, idx) => {
-                    const row = s2.addRow([idx + 1, tx.date, tx.voucher_no, tx.particulars, tx.reference, tx.entry_type, tx.credit, tx.debit, tx.running_balance]);
-                    for (let i = 1; i <= 9; i++) {
-                        row.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
-                        row.getCell(i).border = borderThin;
-                        if (i >= 7) row.getCell(i).numFmt = '#,##0.00';
-                    }
+                const s2 = workbook.addWorksheet(`${this.activePartnerDetail.name} Ledger`.slice(0, 31), {
+                    views: [{ state: 'frozen', ySplit: 6, showGridLines: true }]
                 });
 
+                addExecutiveBanner(
+                    s2,
+                    'I',
+                    9,
+                    `${this.projectName} - PARTNER CAPITAL LEDGER (${this.activePartnerDetail.name.toUpperCase()} - ${this.activePartnerDetail.partner_code})`,
+                    metaText,
+                    'TRANSACTION DETAILS'
+                );
+
+                const lh = s2.getRow(6);
+                lh.values = [
+                    '#', 'Date', 'Voucher No.', 'Particulars', 'Reference', 'Type',
+                    `Credit (+) (${this.currency})`, `Debit (-) (${this.currency})`, `Balance (${this.currency})`
+                ];
+                lh.height = 34;
+                lh.eachCell({ includeEmpty: true }, (c) => {
+                    c.fill = headerFill;
+                    c.font = headerFont;
+                    c.border = headerBorder;
+                    c.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle',
+                        wrapText: true
+                    };
+                });
+
+                let s2RowIdx = 7;
+                this.filteredPartnerLedger.forEach((tx, idx) => {
+                    const row = s2.getRow(s2RowIdx);
+                    row.values = [
+                        idx + 1, tx.date, tx.voucher_no, tx.particulars, tx.reference,
+                        (tx.entry_type || '').toUpperCase(), Number(tx.credit || 0), Number(tx.debit || 0),
+                        Number(tx.running_balance || 0)
+                    ];
+                    row.height = 28;
+                    const rowFill = (idx % 2 === 0) ? zebraEvenFill : zebraOddFill;
+                    for (let i = 1; i <= 9; i++) {
+                        const cell = row.getCell(i);
+                        cell.fill = rowFill;
+                        let textColor = 'FF1E293B';
+                        if (i === 6) textColor = 'FF1D4ED8';
+                        else if (i === 7 && Number(tx.credit || 0) > 0) textColor = 'FF008000';
+                        else if (i === 8 && Number(tx.debit || 0) > 0) textColor = 'FFB91C1C';
+
+                        cell.font = {
+                            name: 'Calibri',
+                            size: 12,
+                            bold: (i === 6 || i === 7 || i === 9),
+                            color: { argb: textColor }
+                        };
+                        cell.border = dataBorder;
+                        cell.alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle'
+                        };
+                        if (i >= 7) cell.numFmt = '#,##0.00';
+                    }
+                    s2RowIdx++;
+                });
+
+                const ledgerTotalCredit = this.filteredPartnerLedger.reduce((acc, tx) => acc + Number(tx.credit || 0), 0);
+                const ledgerTotalDebit = this.filteredPartnerLedger.reduce((acc, tx) => acc + Number(tx.debit || 0), 0);
+                const closingBal = this.filteredPartnerLedger.length
+                    ? Number(this.filteredPartnerLedger[this.filteredPartnerLedger.length - 1].running_balance || 0)
+                    : 0;
+
+                const lTotRow = s2.getRow(s2RowIdx);
+                lTotRow.values = [
+                    `TOTAL (${this.filteredPartnerLedger.length} LEDGER ENTRIES)`, '', '', '', '', '',
+                    ledgerTotalCredit, ledgerTotalDebit, closingBal
+                ];
+                s2.mergeCells(`A${s2RowIdx}:F${s2RowIdx}`);
+                lTotRow.height = 40;
+                for (let i = 1; i <= 9; i++) {
+                    const cell = lTotRow.getCell(i);
+                    cell.fill = totalFill;
+                    cell.font = totalFont;
+                    cell.border = totalBorder;
+                    cell.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    if (i >= 7) cell.numFmt = '#,##0.00';
+                }
+
                 s2.columns = [
-                    { width: 6 }, { width: 14 }, { width: 24 }, { width: 40 },
-                    { width: 24 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 20 }
+                    { width: 10 }, { width: 18 }, { width: 24 }, { width: 48 },
+                    { width: 28 }, { width: 18 }, { width: 24 }, { width: 24 }, { width: 26 }
                 ];
             }
 

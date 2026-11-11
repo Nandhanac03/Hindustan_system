@@ -292,10 +292,12 @@ class CapitalStatementService
         }
 
         $projects = Project::orderBy('name')->get(['id', 'name']);
+        $primaryProjectName = $projects->first()?->name ?: 'Tabasco Hindustan Infra Developers Pvt. Ltd';
 
         return [
             'currency'     => $currency,
             'currencyCode' => $currencyCode,
+            'projectName'  => $primaryProjectName,
             'partnersData' => $partnersData,
             'ledgerEvents' => $ledgerEvents,
             'profitEvents' => $profitEvents,
