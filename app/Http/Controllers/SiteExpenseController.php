@@ -646,9 +646,29 @@ class SiteExpenseController extends Controller
         $expenseCategories = $this->getExpenseCategories();
         $defaultProjectId = $projects->first()?->id ?? null;
         $selectedProjectId = $request->has('project_id') ? $request->project_id : $defaultProjectId;
+        $financialYear = $request->input('financial_year', 'All');
+        $fyFrom = null;
+        $fyTo = null;
+        if ($financialYear && $financialYear !== 'All') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $startYear = (int) $parts[0];
+                $endYear = (int) $parts[1];
+                if ($startYear < 100) $startYear += 2000;
+                if ($endYear < 100) $endYear += 2000;
+                $fyFrom = sprintf('%04d-04-01', $startYear);
+                $fyTo = sprintf('%04d-03-31', $endYear);
+            }
+        }
 
         if (!empty($selectedProjectId)) {
             $query->where('project_id', $selectedProjectId);
+        }
+
+        if ($fyFrom && $fyTo) {
+            $query->whereDate('voucher_date', '>=', $fyFrom)
+                  ->whereDate('voucher_date', '<=', $fyTo);
         }
 
         if ($request->filled('vendor_id')) {
@@ -737,6 +757,10 @@ class SiteExpenseController extends Controller
         if (!empty($selectedProjectId)) {
             $allApproved->where('project_id', $selectedProjectId);
         }
+        if ($fyFrom && $fyTo) {
+            $allApproved->whereDate('voucher_date', '>=', $fyFrom)
+                        ->whereDate('voucher_date', '<=', $fyTo);
+        }
         if ($request->filled('vendor_id')) {
             $allApproved->where('vendor_id', $request->vendor_id);
         }
@@ -788,7 +812,8 @@ class SiteExpenseController extends Controller
             'totalPaid',
             'totalBalance',
             'readyCount',
-            'payeeBalances'
+            'payeeBalances',
+            'financialYear'
         ));
     }
 

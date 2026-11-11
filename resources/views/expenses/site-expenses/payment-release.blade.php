@@ -278,15 +278,16 @@
         <form method="GET" action="{{ route('site-expenses.payment-release') }}" @submit.prevent="submitSearch" class="erp-filter-container">
             <input type="hidden" name="vendor_id" :value="filterVendorId">
             <input type="hidden" name="project_id" :value="filterProjectId">
+            <input type="hidden" name="financial_year" :value="filterFinancialYear">
             <input type="hidden" name="category_code" :value="filterCategoryCode">
             <input type="hidden" name="payment_status" :value="filterPaymentStatus">
 
-            <div class="erp-filter-grid-5">
+            <div class="erp-filter-grid-6">
                 
                 {{-- 1. Vendor / Payee Filter (Custom Gold Searchable Popover) --}}
                 <div class="relative w-full" @click.outside="vendorFilterOpen = false">
                     <button type="button"
-                            @click="vendorFilterOpen = !vendorFilterOpen; if(vendorFilterOpen) { projectFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
+                            @click="vendorFilterOpen = !vendorFilterOpen; if(vendorFilterOpen) { projectFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
                             class="erp-dropdown-trigger"
                             :class="vendorFilterOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -350,7 +351,7 @@
                 {{-- 2. Project Filter (Custom Gold Popover) --}}
                 <div class="relative w-full" @click.outside="projectFilterOpen = false">
                     <button type="button"
-                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { vendorFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
+                            @click="projectFilterOpen = !projectFilterOpen; if(projectFilterOpen) { vendorFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
                             class="erp-dropdown-trigger"
                             :class="projectFilterOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -399,10 +400,63 @@
                     </div>
                 </div>
 
-                {{-- 3. Category Filter (Custom Gold Popover) --}}
+                {{-- 3. Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+                <div class="relative w-full" @click.outside="fyFilterOpen = false">
+                    <button type="button"
+                            @click="fyFilterOpen = !fyFilterOpen; if(fyFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; categoryFilterOpen = false; statusFilterOpen = false; }"
+                            class="erp-dropdown-trigger"
+                            :class="fyFilterOpen ? 'active' : ''">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="(filterFinancialYear && filterFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
+                                  x-text="getSelectedFyName()">All FY</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="filterFinancialYear && filterFinancialYear !== 'All'">
+                                <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear Financial Year">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="fyFilterOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    {{-- Financial Year Popover Menu --}}
+                    <div x-show="fyFilterOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="erp-dropdown-popover min-w-[200px]"
+                         style="display: none;">
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All')"
+                                 class="erp-dropdown-option"
+                                 :class="(!filterFinancialYear || filterFinancialYear === 'All') ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
+                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value)"
+                                     class="erp-dropdown-option flex items-center justify-between"
+                                     :class="filterFinancialYear === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. Category Filter (Custom Gold Popover) --}}
                 <div class="relative w-full" @click.outside="categoryFilterOpen = false">
                     <button type="button"
-                            @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; statusFilterOpen = false; }"
+                            @click="categoryFilterOpen = !categoryFilterOpen; if(categoryFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; fyFilterOpen = false; statusFilterOpen = false; }"
                             class="erp-dropdown-trigger"
                             :class="categoryFilterOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -451,10 +505,10 @@
                     </div>
                 </div>
 
-                {{-- 4. Status Filter (Custom Gold Popover) --}}
+                {{-- 5. Status Filter (Custom Gold Popover) --}}
                 <div class="relative w-full" @click.outside="statusFilterOpen = false">
                     <button type="button"
-                            @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; categoryFilterOpen = false; }"
+                            @click="statusFilterOpen = !statusFilterOpen; if(statusFilterOpen) { vendorFilterOpen = false; projectFilterOpen = false; fyFilterOpen = false; categoryFilterOpen = false; }"
                             class="erp-dropdown-trigger"
                             :class="statusFilterOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -549,7 +603,21 @@
     </div>
 
     <!-- ── PAYMENT DISBURSAL DESK TABLE ── -->
-    <div id="table-container" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="relative">
+        {{-- Loading Spinner Overlay (Matching Trial Balance & Balance Sheet) --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Payment Release Data...</span>
+            </div>
+        </div>
+
+        <div id="table-container" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
             <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -853,6 +921,8 @@
                 {{ $siteExpenses->links() }}
             </div>
         @endif
+        <script type="application/json" id="payment-release-export-json">@json($exportExpenses ?? [])</script>
+    </div>
     </div>
 
     <!-- ── MODAL: VIEW SITE EXPENSE DETAILS (COMPACT & FULLY VISIBLE) ── -->
@@ -1350,6 +1420,7 @@ function siteExpensePaymentRelease() {
         
         filterVendorId: '{{ request('vendor_id', '') }}',
         filterProjectId: '{{ $selectedProjectId ?? "" }}',
+        filterFinancialYear: '{{ $financialYear ?? request('financial_year', 'All') }}',
         filterCategoryCode: '{{ request('category_code', '') }}',
         filterPaymentStatus: '{{ request('payment_status', '') }}',
         searchQuery: '{{ request('search', '') }}',
@@ -1357,8 +1428,24 @@ function siteExpensePaymentRelease() {
         vendorFilterOpen: false,
         vendorSearch: '',
         projectFilterOpen: false,
+        fyFilterOpen: false,
         categoryFilterOpen: false,
         statusFilterOpen: false,
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
 
         projectNames: projectNames,
         vendorNames: vendorNames,
@@ -1368,7 +1455,7 @@ function siteExpensePaymentRelease() {
         selectVendorFilter(id) {
             this.filterVendorId = id;
             this.vendorFilterOpen = false;
-            this.submitSearch();
+            this.$nextTick(() => this.submitSearch());
         },
         getVendorFilterLabel() {
             if (!this.filterVendorId) return 'All Vendors / Payees';
@@ -1378,17 +1465,28 @@ function siteExpensePaymentRelease() {
         selectProjectFilter(id) {
             this.filterProjectId = id;
             this.projectFilterOpen = false;
-            this.submitSearch();
+            this.$nextTick(() => this.submitSearch());
         },
         getProjectFilterLabel() {
             if (!this.filterProjectId) return 'All Projects';
             return this.projectNames[this.filterProjectId] || 'Project';
         },
 
+        selectFinancialYear(fyVal) {
+            this.filterFinancialYear = fyVal;
+            this.fyFilterOpen = false;
+            this.$nextTick(() => this.submitSearch());
+        },
+        getSelectedFyName() {
+            if (!this.filterFinancialYear || this.filterFinancialYear === 'All') return 'All FY';
+            const found = this.financialYearsList.find(x => x.value === this.filterFinancialYear);
+            return found ? found.label : ('FY ' + this.filterFinancialYear);
+        },
+
         selectCategoryFilter(code) {
             this.filterCategoryCode = code;
             this.categoryFilterOpen = false;
-            this.submitSearch();
+            this.$nextTick(() => this.submitSearch());
         },
         getCategoryFilterLabel() {
             if (!this.filterCategoryCode) return 'All Categories';
@@ -1398,7 +1496,7 @@ function siteExpensePaymentRelease() {
         selectStatusFilter(status) {
             this.filterPaymentStatus = status;
             this.statusFilterOpen = false;
-            this.submitSearch();
+            this.$nextTick(() => this.submitSearch());
         },
         getStatusFilterLabel() {
             if (this.filterPaymentStatus === 'pending_disbursement') return 'Pending Disbursement';
@@ -1411,15 +1509,23 @@ function siteExpensePaymentRelease() {
         resetFilters() {
             this.filterVendorId = '';
             this.filterProjectId = '{{ $defaultProjectId ?? "" }}';
+            this.filterFinancialYear = 'All';
             this.filterCategoryCode = '';
             this.filterPaymentStatus = '';
             this.searchQuery = '';
             this.vendorFilterOpen = false;
             this.vendorSearch = '';
             this.projectFilterOpen = false;
+            this.fyFilterOpen = false;
             this.categoryFilterOpen = false;
             this.statusFilterOpen = false;
-            this.submitSearch();
+            this.$nextTick(() => this.submitSearch());
+        },
+
+        init() {
+            if (window.location.search) {
+                window.history.replaceState({}, '', '{{ route('site-expenses.payment-release') }}');
+            }
         },
 
         isLoading: false,
@@ -1432,16 +1538,16 @@ function siteExpensePaymentRelease() {
             this.isLoading = true;
             const form = (event && event.target) ? (event.target.closest('form') || document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]')) : document.querySelector('form[action="{{ route('site-expenses.payment-release') }}"]');
             const url = new URL(form.action);
-            const formData = new FormData(form);
             const searchParams = new URLSearchParams();
-            
-            formData.forEach((value, key) => {
-                if (value) searchParams.append(key, value);
-            });
+
+            if (this.filterVendorId) searchParams.append('vendor_id', this.filterVendorId);
+            searchParams.append('project_id', this.filterProjectId || '');
+            if (this.filterFinancialYear && this.filterFinancialYear !== 'All') searchParams.append('financial_year', this.filterFinancialYear);
+            if (this.filterCategoryCode) searchParams.append('category_code', this.filterCategoryCode);
+            if (this.filterPaymentStatus) searchParams.append('payment_status', this.filterPaymentStatus);
+            if (this.searchQuery && this.searchQuery.trim()) searchParams.append('search', this.searchQuery.trim());
+
             url.search = searchParams.toString();
-            
-            // update URL silently without reloading
-            window.history.pushState({}, '', url);
 
             try {
                 const response = await fetch(url, {
@@ -1461,6 +1567,14 @@ function siteExpensePaymentRelease() {
                         Alpine.initTree(currentTable);
                     }
                 }
+
+                // Refresh export JSON dataset from new response
+                const newExportEl = doc.querySelector('#payment-release-export-json');
+                if (newExportEl) {
+                    try {
+                        this.exportExpenses = JSON.parse(newExportEl.textContent || '[]');
+                    } catch (e) {}
+                }
                 
                 // Replace dashboard stats
                 const newDashboard = doc.querySelector('#dashboard-stats');
@@ -1471,10 +1585,13 @@ function siteExpensePaymentRelease() {
                         Alpine.initTree(currentDashboard);
                     }
                 }
+
+                // Keep URL clean without filter query string
+                if (window.location.search) {
+                    window.history.replaceState({}, '', '{{ route('site-expenses.payment-release') }}');
+                }
             } catch (error) {
                 console.error('Filter error', error);
-                // Fallback to normal submit
-                window.location.href = url.toString();
             } finally {
                 this.isLoading = false;
             }
