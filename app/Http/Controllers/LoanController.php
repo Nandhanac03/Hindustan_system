@@ -983,14 +983,22 @@ class LoanController extends Controller
             });
         }
 
-        $emiPaymentHistory = $emiPaymentHistoryQuery
+        $emiPaymentHistory = (clone $emiPaymentHistoryQuery)
             ->orderByRaw('COALESCE(paid_date, due_date) DESC')
             ->orderByDesc('id')
             ->paginate(50)
             ->withQueryString();
 
+        $allEmiPaymentHistory = (clone $emiPaymentHistoryQuery)
+            ->orderByRaw('COALESCE(paid_date, due_date) DESC')
+            ->orderByDesc('id')
+            ->get();
+
+        $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
+
         return view('loans.reports', compact(
             'projects',
+            'banks',
             'selectedProjectId',
             'loans',
             'totalLoansAmount',
@@ -999,7 +1007,8 @@ class LoanController extends Controller
             'totalInterestPaid',
             'emiDueToday',
             'emiDueThisMonth',
-            'emiPaymentHistory'
+            'emiPaymentHistory',
+            'allEmiPaymentHistory'
         ));
     }
 

@@ -61,6 +61,7 @@
             'schedule_url' => route('loans.schedule', $loan->id),
             'tenure_months' => (int)$loan->tenure_months,
             'start_date' => $loan->start_date ? \Carbon\Carbon::parse($loan->start_date)->format('d M Y') : '—',
+            'start_date_raw' => $loan->start_date ? \Carbon\Carbon::parse($loan->start_date)->format('Y-m-d') : ($loan->created_at ? $loan->created_at->format('Y-m-d') : ''),
             'schedule_type' => $loan->schedule_type === 'reducing_balance' ? 'Reducing Balance' : 'Flat Rate',
             'paid_principal_to_date' => $paidPrincipal,
             'cumulative_interest_paid' => (float)($loan->cumulative_interest_paid ?? 0),
@@ -218,9 +219,9 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <input type="text" x-model="filters.search" placeholder="Search Account / Loan No / Project / Bank..." class="w-full erp-search-input pl-10 pr-8">
+                <input type="text" x-model="filters.search" @input="triggerLoadingEffect()" placeholder="Search Account / Loan No / Project / Bank..." class="w-full erp-search-input pl-10 pr-8">
                 <template x-if="filters.search">
-                    <button type="button" @click="filters.search = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+                    <button type="button" @click="filters.search = ''; triggerLoadingEffect()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
                 </template>
             </div>
 
@@ -387,6 +388,60 @@
                 </div>
             </div>
 
+            {{-- Financial Year Dropdown --}}
+            <div class="relative flex-grow min-w-[170px]" @click.outside="fyDropdownOpen = false">
+                {{-- Trigger Button --}}
+                <button type="button" @click="fyDropdownOpen = !fyDropdownOpen; bankDropdownOpen = false; projectDropdownOpen = false; statusDropdownOpen = false;"
+                     class="w-full erp-dropdown-trigger" :class="fyDropdownOpen ? 'active' : ''">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span class="truncate" :class="filters.financial_year && filters.financial_year !== 'All' ? 'text-slate-900 font-extrabold' : 'text-slate-600 font-bold'" x-text="getSelectedFyName()"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.financial_year && filters.financial_year !== 'All'">
+                            <span @click.stop="selectFinancialYear('All')" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear Financial Year">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="fyDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                {{-- Dropdown Menu --}}
+                <div x-show="fyDropdownOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                     class="erp-dropdown-popover min-w-[200px]"
+                     style="display: none;">
+
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-60 text-xs font-semibold">
+                        <div @click="selectFinancialYear('All')"
+                             class="erp-dropdown-option"
+                             :class="filters.financial_year === 'All' ? 'selected-all' : ''">
+                            <span>All Financial Years</span>
+                            <template x-if="filters.financial_year === 'All'">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+                        <template x-for="fy in financialYearsList" :key="fy.value">
+                            <div @click="selectFinancialYear(fy.value)"
+                                 class="erp-dropdown-option"
+                                 :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                <span x-text="fy.label"></span>
+                                <template x-if="filters.financial_year === fy.value">
+                                    <svg class="w-4 h-4 text-emerald-600 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
             {{-- Loan Status Dropdown --}}
             <div class="relative flex-grow min-w-[160px]" @click.outside="statusDropdownOpen = false">
                 {{-- Trigger Button --}}
@@ -471,7 +526,19 @@
     </div>
 
     {{-- Loans List Table Card --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+    <div class="relative bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        {{-- Loading Spinner Overlay --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Loan Accounts Data...</span>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table id="loans-table" class="w-full text-xs text-left border-collapse">
                 <thead>
@@ -1629,6 +1696,7 @@ function loanApp() {
             search: '',
             lender_name: '',
             project_id: @js($projects->first()?->id ?? ''),
+            financial_year: 'All',
             status: ''
         },
         
@@ -1639,7 +1707,34 @@ function loanApp() {
         projectDropdownOpen: false,
         projectSearch: '',
         
+        fyDropdownOpen: false,
         statusDropdownOpen: false,
+        isLoading: false,
+        _loadingTimer: null,
+
+        financialYearsList: (() => {
+            const list = [];
+            for (let y = 2026; y >= 2014; y--) {
+                const next = String(y + 1).slice(-2);
+                list.push({
+                    value: `${y}-${next}`,
+                    label: `FY ${y}-${next}`,
+                    from: `${y}-04-01`,
+                    to: `${y + 1}-03-31`
+                });
+            }
+            return list;
+        })(),
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
         
         get selectedBankLabel() {
             return this.filters.lender_name || 'All Lending Banks';
@@ -1651,6 +1746,13 @@ function loanApp() {
         },
         get selectedStatusLabel() {
             return this.filters.status || 'All Statuses';
+        },
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'All') {
+                return 'All FY';
+            }
+            const found = this.financialYearsList.find(f => f.value === this.filters.financial_year);
+            return found ? found.label : this.filters.financial_year;
         },
 
         get filteredBanks() {
@@ -1668,23 +1770,33 @@ function loanApp() {
             this.filters.lender_name = name;
             this.bankDropdownOpen = false;
             this.bankSearch = '';
+            this.triggerLoadingEffect();
         },
         selectProject(id) {
             this.filters.project_id = id;
             this.projectDropdownOpen = false;
             this.projectSearch = '';
+            this.triggerLoadingEffect();
+        },
+        selectFinancialYear(val) {
+            this.filters.financial_year = val || 'All';
+            this.fyDropdownOpen = false;
+            this.triggerLoadingEffect();
         },
         selectStatus(status) {
             this.filters.status = status;
             this.statusDropdownOpen = false;
+            this.triggerLoadingEffect();
         },
         resetFilters() {
             this.filters.search = '';
             this.filters.lender_name = '';
             this.filters.project_id = this.defaultProjectId;
+            this.filters.financial_year = 'All';
             this.filters.status = '';
             this.bankSearch = '';
             this.projectSearch = '';
+            this.triggerLoadingEffect();
         },
 
         get filteredLoans() {
@@ -1706,6 +1818,15 @@ function loanApp() {
                 if (this.filters.project_id) {
                     if (String(loan.project_id) !== String(this.filters.project_id)) {
                         return false;
+                    }
+                }
+
+                if (this.filters.financial_year && this.filters.financial_year !== 'All') {
+                    const fyObj = this.financialYearsList.find(f => f.value === this.filters.financial_year);
+                    if (fyObj) {
+                        if (!loan.start_date_raw || loan.start_date_raw < fyObj.from || loan.start_date_raw > fyObj.to) {
+                            return false;
+                        }
                     }
                 }
 

@@ -96,18 +96,12 @@
     <div>
 
     {{-- Bank Add Modal --}}
-    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
-        <div x-show="addModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="addModalOpen = false"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-
-        <div x-show="addModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-             class="relative w-full max-w-lg bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-             @click.stop>
+    <div x-show="addModalOpen" x-cloak
+         @keydown.escape.window="addModalOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+         style="display: none;" x-transition.opacity>
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-0 ring-0 outline-none"
+             @click.away="addModalOpen = false">
             
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
@@ -163,18 +157,12 @@
     </div>
 
     {{-- Bank Edit Modal --}}
-    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
-        <div x-show="editModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="editModalOpen = false"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-
-        <div x-show="editModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-             class="relative w-full max-w-lg bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-             @click.stop>
+    <div x-show="editModalOpen" x-cloak
+         @keydown.escape.window="editModalOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+         style="display: none;" x-transition.opacity>
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-0 ring-0 outline-none"
+             @click.away="editModalOpen = false">
             
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
@@ -231,18 +219,12 @@
     </div>
 
     {{-- View Modal --}}
-    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
-        <div x-show="viewModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="viewModalOpen = false"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-
-        <div x-show="viewModalOpen"
-             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-             class="relative w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-             @click.stop>
+    <div x-show="viewModalOpen" x-cloak
+         @keydown.escape.window="viewModalOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+         style="display: none;" x-transition.opacity>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none"
+             @click.away="viewModalOpen = false">
             
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
