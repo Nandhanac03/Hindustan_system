@@ -3125,6 +3125,7 @@ class ReportController extends Controller
         $firstProjectId = $allProjects->first()?->id ?? 'all';
         $selectedProjectId = $request->input('project_id', 'all');
         $periodType = $request->input('period_type', 'fy');
+        $financialYear = $request->input('financial_year', '');
         $viewMode = $request->input('view_mode', 'detailed'); // 'detailed' | 'summary'
         $hideZero = $request->boolean('hide_zero', false);
 
@@ -3135,18 +3136,42 @@ class ReportController extends Controller
         $defaultFrom = sprintf('%04d-04-01', $fyStartYear);
         $defaultTo = sprintf('%04d-03-31', $fyStartYear + 1);
 
-        if ($periodType === 'fy') {
-            $fromDate = $request->input('from_date', $defaultFrom);
-            $toDate   = $request->input('to_date', $defaultTo);
-        } elseif ($periodType === 'quarter') {
-            $fromDate = $request->input('from_date', $today->copy()->startOfQuarter()->format('Y-m-d'));
-            $toDate   = $request->input('to_date', $today->copy()->endOfQuarter()->format('Y-m-d'));
-        } elseif ($periodType === 'month') {
-            $fromDate = $request->input('from_date', $today->copy()->startOfMonth()->format('Y-m-d'));
-            $toDate   = $request->input('to_date', $today->copy()->endOfMonth()->format('Y-m-d'));
+        if ($financialYear && $financialYear !== 'All' && $financialYear !== 'Custom' && $financialYear !== 'quarter' && $financialYear !== 'month') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $startYear = (int)$parts[0];
+                $endYear = (int)$parts[1];
+                if ($startYear < 100) $startYear += 2000;
+                if ($endYear < 100) $endYear += 2000;
+                $fromDate = sprintf('%04d-04-01', $startYear);
+                $toDate   = sprintf('%04d-03-31', $endYear);
+            } else {
+                $fromDate = $defaultFrom;
+                $toDate   = $defaultTo;
+            }
+        } elseif ($financialYear === 'All') {
+            $fromDate = '2014-04-01';
+            $toDate   = sprintf('%04d-03-31', $fyStartYear + 1);
+        } elseif ($periodType === 'quarter' || $financialYear === 'quarter') {
+            $fromDate = $today->copy()->startOfQuarter()->format('Y-m-d');
+            $toDate   = $today->copy()->endOfQuarter()->format('Y-m-d');
+        } elseif ($periodType === 'month' || $financialYear === 'month') {
+            $fromDate = $today->copy()->startOfMonth()->format('Y-m-d');
+            $toDate   = $today->copy()->endOfMonth()->format('Y-m-d');
+        } elseif ($request->filled('from_date') && $request->filled('to_date')) {
+            $fromDate = $request->input('from_date');
+            $toDate   = $request->input('to_date');
         } else {
-            $fromDate = $request->input('from_date', $defaultFrom);
-            $toDate   = $request->input('to_date', $defaultTo);
+            $fromDate = $defaultFrom;
+            $toDate   = $defaultTo;
+        }
+
+        if (!$financialYear) {
+            $currentFyVal = sprintf('%04d-%02d', $fyStartYear, ($fyStartYear + 1) % 100);
+            if ($fromDate === $defaultFrom && $toDate === $defaultTo) {
+                $financialYear = $currentFyVal;
+            }
         }
 
         $formattedFrom = Carbon::parse($fromDate)->format('d-M-Y');
@@ -3518,6 +3543,7 @@ class ReportController extends Controller
             'allProjects',
             'selectedProjectId',
             'periodType',
+            'financialYear',
             'fromDate',
             'toDate',
             'viewMode',
@@ -3971,34 +3997,54 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'balance_sheet';
 
+        $financialYear = $request->get('financial_year', 'All');
+        $asOnDate = $request->get('date_as_on');
+        if (!$asOnDate && $financialYear && $financialYear !== 'All' && $financialYear !== 'Custom') {
+            $fyClean = str_replace('FY ', '', $financialYear);
+            $parts = explode('-', $fyClean);
+            if (count($parts) === 2) {
+                $endYear = (int)$parts[1];
+                if ($endYear < 100) $endYear += 2000;
+                $asOnDate = sprintf('%04d-03-31', $endYear);
+            }
+        }
+
         // 1. Bank Accounts (1001)
         $realizedBankReceipts = (float)Receipt::where('realization_status', 'realized')
             ->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque', 'Cash'])
+            ->when($asOnDate, fn($q) => $q->whereDate('receipt_date', '<=', $asOnDate))
             ->sum('amount');
         $companyBankTotal = (float)CompanyBankAccount::sum('current_balance');
         $jeBankNet = (float)JournalEntry::whereIn('account_id', ['1001', '1101'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $bankAssets = $companyBankTotal > 0 ? $companyBankTotal : max($realizedBankReceipts, (float)$jeBankNet, 0.0);
+        $bankAssets = ($companyBankTotal > 0 && !$asOnDate) ? $companyBankTotal : max($realizedBankReceipts, (float)$jeBankNet, 0.0);
 
         // 2. Petty Cash Box (1002)
         $realizedCashReceipts = (float)Receipt::where('realization_status', 'realized')
             ->where('payment_mode', 'Cash')
+            ->when($asOnDate, fn($q) => $q->whereDate('receipt_date', '<=', $asOnDate))
             ->sum('amount');
         $pettyCashTotal = (float)PettyCashBox::sum('current_balance');
         $jeCashNet = (float)JournalEntry::whereIn('account_id', ['1002', '1102'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $cashInHand = $jeCashNet > 0 ? $jeCashNet : ($pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, 0.0));
+        $cashInHand = $jeCashNet > 0 ? $jeCashNet : (($pettyCashTotal > 0 && !$asOnDate) ? $pettyCashTotal : max($realizedCashReceipts, 0.0));
 
         // 3. Customer Receivables (1010)
         $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110', '1003'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $activeSalesReceivables = (float)Sale::where('status', 'active')->sum('remaining_balance');
+        $activeSalesReceivables = (float)Sale::where('status', 'active')
+            ->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))
+            ->sum('remaining_balance');
         if ($activeSalesReceivables <= 0) {
             $activeSalesReceivables = (float)DB::table('customer_installments')
                 ->where('status', '!=', 'paid')
+                ->when($asOnDate, fn($q) => $q->whereDate('due_date', '<=', $asOnDate))
                 ->selectRaw('SUM(amount - paid_amount) as net')
                 ->value('net');
         }
@@ -4006,24 +4052,32 @@ class ReportController extends Controller
 
         // 4. Security Deposits (1120)
         $contractorDeposits = (float)JournalEntry::where('account_id', '1120')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $contractorDeposits = max($contractorDeposits, 0.0);
-        $raBillsTotal = (float)DB::table('ra_bills')->sum('net_approved_amount');
+        $raBillsTotal = (float)DB::table('ra_bills')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+            ->sum('net_approved_amount');
         $contractorRabillPayable = (float)JournalEntry::where('account_id', '2002')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $contractorRabills = max($raBillsTotal, (float)$contractorRabillPayable, 0.0);
 
         // 5. Construction Work in Progress (WIP) (1130)
-        $siteBillsTotal = (float)DB::table('bills')->sum('final_amount');
+        $siteBillsTotal = (float)DB::table('bills')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+            ->sum('final_amount');
         $jeWipNet = (float)JournalEntry::where('account_id', '1130')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $wipInventory = max($siteBillsTotal, (float)$jeWipNet, 0.0);
 
         // Non-Current / Fixed Assets (1200)
         $fixedAssets = (float)JournalEntry::whereIn('account_id', ['1200', '1201', '1210', '1220'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $fixedAssets = max($fixedAssets, 0.0);
@@ -4033,46 +4087,47 @@ class ReportController extends Controller
 
         // Liabilities & Equity
         $supplierPayables = (float)JournalEntry::whereIn('account_id', ['2101', '2100', '2001'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         if ($supplierPayables <= 0) {
-            $supplierPayables = (float)DB::table('bills')->sum('final_amount');
+            $supplierPayables = (float)DB::table('bills')
+                ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+                ->sum('final_amount');
         }
         $supplierPayables = max((float)$supplierPayables, 0.0);
 
         // Contractor RA Work Bills Payable (Account code 2002)
         $contractorPayables = (float)JournalEntry::where('account_id', '2002')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         if ($contractorPayables <= 0) {
             $contractorPayables = (float)DB::table('ra_bills')
+                ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
                 ->selectRaw('SUM(net_approved_amount - paid_amount) as net')
                 ->value('net');
         }
         $contractorPayables = max((float)$contractorPayables, 0.0);
 
         $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2021', '2022', '2110', '2120', '2002'])
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         $statutoryDues = max((float)$statutoryDues, 0.0);
 
         // Agent Commission Payables (Account code 2003)
-        // ChartOfAccount::firstOrCreate(
-        //     ['account_code' => '2003'],
-        //     [
-        //         'account_name' => 'Broker Commissions Payable',
-        //         'account_type' => 'LIABILITY',
-        //         'is_active'    => true,
-        //     ]
-        // );
-
         $jeAgentNet = (float)JournalEntry::where('account_id', '2003')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
 
         $brokerageQuery = Brokerage::query();
         if ($request->filled('project_id')) {
             $brokerageQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
+        }
+        if ($asOnDate) {
+            $brokerageQuery->whereDate('created_at', '<=', $asOnDate);
         }
         $dbBrokeragePending = (float)$brokerageQuery
             ->where('status', '!=', 'paid')
@@ -4083,18 +4138,20 @@ class ReportController extends Controller
 
         // Advances Received from Customers (Unbilled) (Account code 2130)
         $customerAdvances = (float)JournalEntry::where('account_id', '2130')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         if ($customerAdvances <= 0) {
-            $totalCollected = (float)Receipt::sum('amount');
-            $billedPaid = (float)CustomerInstallment::sum('paid_amount');
+            $totalCollected = (float)Receipt::when($asOnDate, fn($q) => $q->whereDate('receipt_date', '<=', $asOnDate))->sum('amount');
+            $billedPaid = (float)CustomerInstallment::when($asOnDate, fn($q) => $q->whereDate('due_date', '<=', $asOnDate))->sum('paid_amount');
             $customerAdvances = max($totalCollected - $billedPaid, 0.0);
         }
         $customerAdvances = max((float)$customerAdvances, 0.0);
 
         $totalCurrentLiabilities = $supplierPayables + $contractorPayables + $statutoryDues + $agentPayables + $customerAdvances;
 
-        $dbLoans = (float)Loan::sum('principal_amount') - (float)EmiSchedule::where('status', 'Paid')->sum('principal_component');
+        $dbLoans = (float)Loan::when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))->sum('principal_amount')
+            - (float)EmiSchedule::where('status', 'Paid')->when($asOnDate, fn($q) => $q->whereDate('due_date', '<=', $asOnDate))->sum('principal_component');
         $bankLoans = max($dbLoans, 0.0);
         $totalLongTermLiabilities = $bankLoans;
         $totalLiabilities = $totalCurrentLiabilities + $totalLongTermLiabilities;
@@ -4102,17 +4159,12 @@ class ReportController extends Controller
         $netEquity = max(0.0, $totalAssets - $totalLiabilities);
 
         // ── Share Capital (Account 3001) ────────────────────────────────────────
-        // Use ACTUAL JE net credit for account 3001 (i.e. what was credited as
-        // partner capital in double-entry).  If no JE exists for 3001, fall back
-        // to the sum of PartnerContribution records.
-        // NOTE: Customer receipts are REVENUE, NOT equity – they must NOT be used
-        // here (the previous incorrect approach inflated equity by the full receipt
-        // total, causing Assets ≠ Liabilities + Equity).
-        $allPartnerContribsBS      = \App\Models\PartnerContribution::all();
+        $allPartnerContribsBS      = \App\Models\PartnerContribution::when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))->get();
         $totalCapitalContribsBS    = (float)$allPartnerContribsBS->sum('amount');
 
         // Net JE credit for account 3001 (credit side = capital received)
         $je3001Net = (float)\App\Models\JournalEntry::where('account_id', '3001')
+            ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
 
@@ -4165,15 +4217,23 @@ class ReportController extends Controller
             $name = (string)$acc->account_name; // Directly from chart_of_accounts DB table
             $type = strtoupper((string)$acc->account_type);
 
-            $jeCount = JournalEntry::where('account_id', $code)->count();
+            $jeCount = JournalEntry::where('account_id', $code)
+                ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+                ->count();
 
             if (isset($calculatedAmounts[$code])) {
                 $amt = (float)$calculatedAmounts[$code];
             } elseif ($jeCount > 0) {
                 if ($type === 'LIABILITY' || $type === 'EQUITY' || str_starts_with($code, '2') || str_starts_with($code, '3') || $code === '5001') {
-                    $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(credit_amount - debit_amount) as net')->value('net');
+                    $net = (float)JournalEntry::where('account_id', $code)
+                        ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+                        ->selectRaw('SUM(credit_amount - debit_amount) as net')
+                        ->value('net');
                 } else {
-                    $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(debit_amount - credit_amount) as net')->value('net');
+                    $net = (float)JournalEntry::where('account_id', $code)
+                        ->when($asOnDate, fn($q) => $q->whereDate('created_at', '<=', $asOnDate))
+                        ->selectRaw('SUM(debit_amount - credit_amount) as net')
+                        ->value('net');
                 }
                 $amt = abs($net);
             } else {
@@ -4239,7 +4299,8 @@ class ReportController extends Controller
         $totalEquity = (float)array_sum(array_column($equityList, 'amount'));
 
         $balanceSheetData = [
-            'as_on_date'                  => $request->get('date_as_on', ''),
+            'as_on_date'                  => $asOnDate ?? $request->get('date_as_on', ''),
+            'financial_year'              => $financialYear,
             'current_assets'              => $currentAssetsList,
             'total_current_assets'        => $totalCurrentAssets,
             'fixed_assets'                => $fixedAssetsList,
@@ -4289,7 +4350,7 @@ class ReportController extends Controller
             'is_balanced'     => true,
         ];
 
-        return view('reports.balance-sheet', array_merge($lookups, compact('activeTab', 'balanceSheetData', 'balanceSheetEntries')));
+        return view('reports.balance-sheet', array_merge($lookups, compact('activeTab', 'balanceSheetData', 'balanceSheetEntries', 'financialYear', 'asOnDate')));
     }
 
     public function auditTrail(Request $request): View

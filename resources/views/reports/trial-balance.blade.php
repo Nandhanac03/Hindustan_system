@@ -302,7 +302,7 @@
     </div>
 
     <!-- ── 2. ULTRA-CLEAN MODERN SEARCH & FILTER PANEL (MATCHING COMMON ERP THEME) ── -->
-    <form id="trialBalanceForm" action="{{ route('reports.trial_balance') }}" method="GET" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all print:hidden">
+    <form id="trialBalanceForm" action="{{ route('reports.trial_balance') }}" method="GET" @submit.prevent="fetchData()" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all print:hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 flex-1">
                 
@@ -314,6 +314,7 @@
                         </svg>
                     </div>
                     <input type="text" placeholder="Search Code, Account..." x-model="searchQuery" autocomplete="off"
+                           @keydown.enter.prevent
                            class="w-full erp-search-input pl-10 pr-9">
                     <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
                         <button type="button" @click="searchQuery = ''"
@@ -385,38 +386,92 @@
                     </div>
                 </div>
 
-                {{-- 3. Period Type Dropdown --}}
-                <div class="relative w-full" @click.outside="periodDropdownOpen = false">
+                {{-- 3. Financial Year (FY) Filter Dropdown (Custom Gold Popover with Search) --}}
+                <div class="relative w-full" @click.outside="fyDropdownOpen = false">
+                    <input type="hidden" name="financial_year" :value="selectedFinancialYear">
                     <input type="hidden" name="period_type" :value="periodType">
-                    <button type="button" @click="periodDropdownOpen = !periodDropdownOpen" class="erp-dropdown-trigger" :class="periodDropdownOpen ? 'active' : ''">
+                    <button type="button"
+                            @click="fyDropdownOpen = !fyDropdownOpen; if(fyDropdownOpen) { projectDropdownOpen = false; viewModeDropdownOpen = false; $nextTick(() => $refs.fySearchInput?.focus()); }"
+                            class="erp-dropdown-trigger"
+                            :class="fyDropdownOpen ? 'active' : ''">
                         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="truncate text-xs font-bold text-slate-900" x-text="periodTypeLabel">Financial Year</span>
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="truncate text-xs font-bold"
+                                  :class="(selectedFinancialYear && selectedFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-900 font-bold'"
+                                  x-text="getSelectedFyName()">All FY</span>
                         </div>
+
                         <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="periodDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <template x-if="selectedFinancialYear && selectedFinancialYear !== 'All'">
+                                <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="fyDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
-                    <div x-show="periodDropdownOpen" x-cloak
+
+                    {{-- Financial Year Popover Menu with Sticky Search --}}
+                    <div x-show="fyDropdownOpen" x-cloak
                          x-transition:enter="transition ease-out duration-150"
                          x-transition:enter-start="opacity-0 translate-y-1"
                          x-transition:enter-end="opacity-100 translate-y-0"
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 translate-y-1"
-                         class="erp-dropdown-popover w-full" style="display: none;">
-                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                            <div @click="selectPeriodType('fy', 'Financial Year')" class="erp-dropdown-option" :class="periodType === 'fy' ? 'selected-all' : ''">
-                                <span>Financial Year</span>
+                         class="erp-dropdown-popover min-w-[240px]"
+                         style="display: none;">
+                        <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" x-model="fySearch" x-ref="fySearchInput" placeholder="Search financial year..."
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                       @keydown.escape="fyDropdownOpen = false">
+                                <template x-if="fySearch">
+                                    <button type="button" @click="fySearch = ''; $refs.fySearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
                             </div>
-                            <div @click="selectPeriodType('quarter', 'Quarter')" class="erp-dropdown-option" :class="periodType === 'quarter' ? 'selected' : ''">
-                                <span>Quarter</span>
+                        </div>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All')"
+                                 x-show="!fySearch || 'all financial years'.includes(fySearch.toLowerCase()) || 'all fy'.includes(fySearch.toLowerCase())"
+                                 class="erp-dropdown-option"
+                                 :class="(!selectedFinancialYear || selectedFinancialYear === 'All') ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
                             </div>
-                            <div @click="selectPeriodType('month', 'Month')" class="erp-dropdown-option" :class="periodType === 'month' ? 'selected' : ''">
-                                <span>Month</span>
+                            <template x-for="fy in filteredFinancialYears" :key="fy.value">
+                                <div @click="selectFinancialYear(fy.value)"
+                                     class="erp-dropdown-option flex items-center justify-between"
+                                     :class="selectedFinancialYear === fy.value ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                </div>
+                            </template>
+                            <div @click="selectFinancialYear('quarter')"
+                                 x-show="!fySearch || 'quarter'.includes(fySearch.toLowerCase())"
+                                 class="erp-dropdown-option"
+                                 :class="selectedFinancialYear === 'quarter' ? 'selected' : ''">
+                                <span>Quarter (Current Quarter)</span>
                             </div>
-                            <div @click="selectPeriodType('custom', 'Custom Date Range')" class="erp-dropdown-option" :class="periodType === 'custom' ? 'selected' : ''">
+                            <div @click="selectFinancialYear('month')"
+                                 x-show="!fySearch || 'month'.includes(fySearch.toLowerCase())"
+                                 class="erp-dropdown-option"
+                                 :class="selectedFinancialYear === 'month' ? 'selected' : ''">
+                                <span>Month (Current Month)</span>
+                            </div>
+                            <div @click="selectFinancialYear('Custom')"
+                                 x-show="!fySearch || 'custom date range'.includes(fySearch.toLowerCase()) || 'custom'.includes(fySearch.toLowerCase())"
+                                 class="erp-dropdown-option"
+                                 :class="selectedFinancialYear === 'Custom' ? 'selected' : ''">
                                 <span>Custom Date Range</span>
+                            </div>
+                            <div x-show="fySearch && filteredFinancialYears.length === 0 && !'all financial years'.includes(fySearch.toLowerCase()) && !'quarter'.includes(fySearch.toLowerCase()) && !'month'.includes(fySearch.toLowerCase()) && !'custom date range'.includes(fySearch.toLowerCase())"
+                                 class="p-3 text-center text-xs text-slate-400">
+                                No matching financial years
                             </div>
                         </div>
                     </div>
@@ -493,51 +548,68 @@
     </form>
 
     <!-- ── 3. AUDIT EQUALITY & BALANCE BANNER ── -->
-    @if($isBalanced)
-    <div id="audit-balance-banner" class="rounded-2xl bg-emerald-50/90 border-2 border-emerald-500/80 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 text-xl font-bold">
-                ✓
+    <div id="audit-balance-banner-container">
+        @if($isBalanced)
+        <div id="audit-balance-banner" class="rounded-2xl bg-emerald-50/90 border-2 border-emerald-500/80 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 text-xl font-bold">
+                    ✓
+                </div>
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-emerald-950 uppercase tracking-wide flex items-center gap-2">
+                        <span>TRIAL BALANCE EQUAL & BALANCED</span>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-200/80 text-emerald-900">Audited</span>
+                    </h3>
+                    <p class="text-xs text-emerald-800 font-medium mt-0.5">
+                        Total debits and credits are equal (<strong class="font-mono font-bold">₹ {{ number_format($grandTotalDebit, 2) }}</strong>) for the selected period.
+                    </p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-xs sm:text-sm font-black text-emerald-950 uppercase tracking-wide flex items-center gap-2">
-                    <span>TRIAL BALANCE EQUAL & BALANCED</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-200/80 text-emerald-900">Audited</span>
-                </h3>
-                <p class="text-xs text-emerald-800 font-medium mt-0.5">
-                    Total debits and credits are equal (<strong class="font-mono font-bold">₹ {{ number_format($grandTotalDebit, 2) }}</strong>) for the selected period.
-                </p>
+            <div class="text-right shrink-0 bg-white/90 px-4 py-2 rounded-xl border border-emerald-200 shadow-2xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Financial Period</span>
+                <span class="text-xs font-mono font-black text-slate-800">{{ $financialYearLabel }}</span>
             </div>
         </div>
-        <div class="text-right shrink-0 bg-white/90 px-4 py-2 rounded-xl border border-emerald-200 shadow-2xs">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Financial Period</span>
-            <span class="text-xs font-mono font-black text-slate-800">{{ $financialYearLabel }}</span>
+        @else
+        <div id="audit-balance-banner" class="rounded-2xl bg-rose-50 border-2 border-rose-500 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 text-xl font-bold">
+                    !
+                </div>
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-rose-950 uppercase tracking-wide">
+                        TRIAL BALANCE VARIANCE DETECTED
+                    </h3>
+                    <p class="text-xs text-rose-800 font-medium mt-0.5">
+                        Total debits (₹ {{ number_format($grandTotalDebit, 2) }}) and credits (₹ {{ number_format($grandTotalCredit, 2) }}) differ by ₹ {{ number_format($diff, 2) }}.
+                    </p>
+                </div>
+            </div>
+            <div class="text-right shrink-0 bg-white/90 px-4 py-2 rounded-xl border border-rose-200 shadow-2xs">
+                <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">Variance Amount</span>
+                <span class="text-sm font-mono font-black text-rose-700">₹ {{ number_format($diff, 2) }}</span>
+            </div>
         </div>
+        @endif
     </div>
-    @else
-    <div id="audit-balance-banner" class="rounded-2xl bg-rose-50 border-2 border-rose-500 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 text-xl font-bold">
-                !
-            </div>
-            <div>
-                <h3 class="text-xs sm:text-sm font-black text-rose-950 uppercase tracking-wide">
-                    TRIAL BALANCE VARIANCE DETECTED
-                </h3>
-                <p class="text-xs text-rose-800 font-medium mt-0.5">
-                    Total debits (₹ {{ number_format($grandTotalDebit, 2) }}) and credits (₹ {{ number_format($grandTotalCredit, 2) }}) differ by ₹ {{ number_format($diff, 2) }}.
-                </p>
-            </div>
-        </div>
-        <div class="text-right shrink-0 bg-white/90 px-4 py-2 rounded-xl border border-rose-200 shadow-2xs">
-            <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">Variance Amount</span>
-            <span class="text-sm font-mono font-black text-rose-700">₹ {{ number_format($diff, 2) }}</span>
-        </div>
-    </div>
-    @endif
 
     <!-- ── 4. TRIAL BALANCE DATA GRID (BRAND GOLD HEADER THEME) ── -->
-    <div id="trial-balance-table-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+    <div id="trial-balance-table-card" class="relative bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        
+        {{-- Loading Spinner Overlay --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Trial Balance Data...</span>
+            </div>
+        </div>
+
+        <div id="trial-balance-table-content">
         
         {{-- Table Card Header with Title, Verification & Export/Print Buttons (Matching Customer Collection Dues) --}}
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
@@ -704,7 +776,26 @@
                 </tfoot>
             </table>
         </div>
-    </div>
+        </div> {{-- End #trial-balance-table-content --}}
+    </div> {{-- End #trial-balance-table-card --}}
+
+    {{-- Hidden JSON Data Container for Dynamic In-Memory Refresh --}}
+    <script id="trial-balance-json-data" type="application/json">
+    {!! json_encode([
+        'groups' => array_values($groupsData),
+        'grandTotalOpening' => (float)$grandTotalOpening,
+        'grandTotalOpeningSide' => $grandTotalOpeningSide ?? '',
+        'grandTotalDebit' => (float)$grandTotalDebit,
+        'grandTotalCredit' => (float)$grandTotalCredit,
+        'isBalanced' => (bool)$isBalanced,
+        'diff' => (float)$diff,
+        'financialYearLabel' => $financialYearLabel,
+        'fromDate' => $fromDate,
+        'toDate' => $toDate,
+        'financialYear' => $financialYear,
+        'selectedProjectId' => (string)$selectedProjectId
+    ]) !!}
+    </script>
 
 </div>
 
@@ -716,13 +807,15 @@ function trialBalanceApp() {
         searchQuery: '',
         viewMode: '{{ $viewMode }}',
         hideZero: {{ $hideZero ? 'true' : 'false' }},
+        isLoading: false,
         selectedProjectId: '{{ (string)$selectedProjectId }}',
         selectedProjectName: '{{ (string)$selectedProjectId === 'all' ? 'All Projects' : addslashes($allProjects->firstWhere('id', $selectedProjectId)?->name ?? 'Select Project') }}',
         projectDropdownOpen: false,
         projectSearch: '',
+        fyDropdownOpen: false,
+        fySearch: '',
+        selectedFinancialYear: '{{ $financialYear ?? request('financial_year', '') }}',
         periodType: '{{ $periodType }}',
-        periodTypeLabel: '{{ $periodType === 'fy' ? 'Financial Year' : ($periodType === 'quarter' ? 'Quarter' : ($periodType === 'month' ? 'Month' : 'Custom Date Range')) }}',
-        periodDropdownOpen: false,
         viewModeDropdownOpen: false,
         fromDate: '{{ $fromDate }}',
         toDate: '{{ $toDate }}',
@@ -735,6 +828,187 @@ function trialBalanceApp() {
         varianceDiff: {{ (float)$diff }},
         financialYearLabel: '{{ addslashes($financialYearLabel) }}',
 
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
+
+        get filteredFinancialYears() {
+            if (!this.fySearch || !this.fySearch.trim()) return this.financialYearsList;
+            const q = this.fySearch.toLowerCase().trim();
+            return this.financialYearsList.filter(fy => 
+                fy.label.toLowerCase().includes(q) || 
+                fy.value.toLowerCase().includes(q) || 
+                (fy.range && fy.range.toLowerCase().includes(q))
+            );
+        },
+
+        init() {
+            // Keep the browser address bar clean without URL change or page reload
+            if (window.location.search) {
+                window.history.replaceState({}, '', '{{ route('reports.trial_balance') }}');
+            }
+
+            if (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') {
+                if (this.fromDate && this.toDate) {
+                    const matched = this.financialYearsList.find(x => x.from === this.fromDate && x.to === this.toDate);
+                    if (matched) {
+                        this.selectedFinancialYear = matched.value;
+                    }
+                }
+            }
+        },
+
+        getSelectedFyName() {
+            if (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') return 'All FY';
+            if (this.selectedFinancialYear === 'Custom') return 'Custom Date';
+            if (this.selectedFinancialYear === 'quarter') return 'Quarter';
+            if (this.selectedFinancialYear === 'month') return 'Month';
+            const found = this.financialYearsList.find(x => x.value === this.selectedFinancialYear);
+            return found ? found.label : ('FY ' + this.selectedFinancialYear);
+        },
+
+        async fetchData() {
+            this.isLoading = true;
+            try {
+                const params = new URLSearchParams();
+                if (this.selectedProjectId) params.append('project_id', this.selectedProjectId);
+                if (this.selectedFinancialYear) params.append('financial_year', this.selectedFinancialYear);
+                if (this.periodType) params.append('period_type', this.periodType);
+                if (this.fromDate) params.append('from_date', this.fromDate);
+                if (this.toDate) params.append('to_date', this.toDate);
+                if (this.viewMode) params.append('view_mode', this.viewMode);
+                if (this.hideZero) params.append('hide_zero', '1');
+
+                const url = '{{ route('reports.trial_balance') }}?' + params.toString();
+
+                const res = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'text/html'
+                    }
+                });
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                const html = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // 1. Update Audit Equality Banner Container
+                const newBanner = doc.getElementById('audit-balance-banner-container');
+                const curBanner = document.getElementById('audit-balance-banner-container');
+                if (newBanner && curBanner) {
+                    curBanner.innerHTML = newBanner.innerHTML;
+                    if (window.Alpine && typeof window.Alpine.initTree === 'function') {
+                        window.Alpine.initTree(curBanner);
+                    }
+                }
+
+                // 2. Update Table Content (Grid, rows, totals)
+                const newTableContent = doc.getElementById('trial-balance-table-content');
+                const curTableContent = document.getElementById('trial-balance-table-content');
+                if (newTableContent && curTableContent) {
+                    curTableContent.innerHTML = newTableContent.innerHTML;
+                    if (window.Alpine && typeof window.Alpine.initTree === 'function') {
+                        window.Alpine.initTree(curTableContent);
+                    }
+                }
+
+                // 3. Update Alpine State from JSON Data
+                const newJsonEl = doc.getElementById('trial-balance-json-data');
+                if (newJsonEl) {
+                    try {
+                        const freshData = JSON.parse(newJsonEl.textContent);
+                        this.groups = freshData.groups || [];
+                        this.grandTotalOpening = freshData.grandTotalOpening || 0;
+                        this.grandTotalOpeningSide = freshData.grandTotalOpeningSide || '';
+                        this.grandTotalDebit = freshData.grandTotalDebit || 0;
+                        this.grandTotalCredit = freshData.grandTotalCredit || 0;
+                        this.isBalanced = !!freshData.isBalanced;
+                        this.varianceDiff = freshData.diff || 0;
+                        this.financialYearLabel = freshData.financialYearLabel || '';
+                        if (freshData.fromDate) this.fromDate = freshData.fromDate;
+                        if (freshData.toDate) this.toDate = freshData.toDate;
+                        if (freshData.financialYear) this.selectedFinancialYear = freshData.financialYear;
+                    } catch (e) {
+                        console.error('Error parsing trial balance JSON data:', e);
+                    }
+                }
+
+                // Clean address bar completely without page reload or changing URL
+                if (window.location.search) {
+                    window.history.replaceState({}, '', '{{ route('reports.trial_balance') }}');
+                }
+            } catch (err) {
+                console.error('Error updating trial balance:', err);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        selectFinancialYear(fyVal) {
+            this.selectedFinancialYear = fyVal;
+            this.fyDropdownOpen = false;
+            const today = new Date();
+            if (fyVal === 'All') {
+                this.fromDate = '2014-04-01';
+                const fyStart = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+                this.toDate = (fyStart + 1) + '-03-31';
+                this.periodType = 'fy';
+                this.fetchData();
+            } else if (fyVal === 'quarter') {
+                const curMonth = today.getMonth();
+                const qStartMonth = Math.floor(curMonth / 3) * 3;
+                const qStart = new Date(today.getFullYear(), qStartMonth, 1);
+                const qEnd = new Date(today.getFullYear(), qStartMonth + 3, 0);
+                this.fromDate = this.formatDateYmd(qStart);
+                this.toDate = this.formatDateYmd(qEnd);
+                this.periodType = 'quarter';
+                this.fetchData();
+            } else if (fyVal === 'month') {
+                const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                const mEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                this.fromDate = this.formatDateYmd(mStart);
+                this.toDate = this.formatDateYmd(mEnd);
+                this.periodType = 'month';
+                this.fetchData();
+            } else if (fyVal === 'Custom') {
+                this.periodType = 'custom';
+                const fromEl = document.getElementById('fromDateInput');
+                if (fromEl) fromEl.focus();
+            } else {
+                const found = this.financialYearsList.find(x => x.value === fyVal);
+                if (found) {
+                    this.fromDate = found.from;
+                    this.toDate = found.to;
+                    this.periodType = 'fy';
+                    this.fetchData();
+                }
+            }
+        },
+
+        submitPeriodDates() {
+            if (this.fromDate && this.toDate) {
+                const matched = this.financialYearsList.find(x => x.from === this.fromDate && x.to === this.toDate);
+                this.selectedFinancialYear = matched ? matched.value : 'Custom';
+            } else {
+                this.selectedFinancialYear = 'Custom';
+            }
+            this.periodType = 'custom';
+            this.fetchData();
+        },
+
         toggleGroup(code) {
             this.collapsedGroups[code] = !this.collapsedGroups[code];
         },
@@ -745,36 +1019,7 @@ function trialBalanceApp() {
             this.selectedProjectId = id;
             this.selectedProjectName = name;
             this.projectDropdownOpen = false;
-            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
-        },
-        selectPeriodType(type, label) {
-            this.periodType = type;
-            this.periodTypeLabel = label;
-            this.periodDropdownOpen = false;
-            const today = new Date();
-            if (type === 'fy') {
-                const fyStart = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
-                this.fromDate = fyStart + '-04-01';
-                this.toDate = (fyStart + 1) + '-03-31';
-            } else if (type === 'quarter') {
-                const curMonth = today.getMonth();
-                const qStartMonth = Math.floor(curMonth / 3) * 3;
-                const qStart = new Date(today.getFullYear(), qStartMonth, 1);
-                const qEnd = new Date(today.getFullYear(), qStartMonth + 3, 0);
-                this.fromDate = this.formatDateYmd(qStart);
-                this.toDate = this.formatDateYmd(qEnd);
-            } else if (type === 'month') {
-                const mStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                const mEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                this.fromDate = this.formatDateYmd(mStart);
-                this.toDate = this.formatDateYmd(mEnd);
-            }
-            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
-        },
-        submitPeriodDates() {
-            this.periodType = 'custom';
-            this.periodTypeLabel = 'Custom Date Range';
-            $nextTick(() => { document.getElementById('trialBalanceForm').submit(); });
+            this.fetchData();
         },
         formatDateYmd(d) {
             const year = d.getFullYear();
@@ -815,9 +1060,18 @@ function trialBalanceApp() {
             this.viewMode = 'detailed';
             this.hideZero = false;
             this.projectDropdownOpen = false;
-            this.periodDropdownOpen = false;
+            this.fyDropdownOpen = false;
             this.viewModeDropdownOpen = false;
             this.projectSearch = '';
+            this.fySearch = '';
+            this.selectedProjectId = 'all';
+            this.selectedFinancialYear = 'All';
+            const today = new Date();
+            const fyStart = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+            this.fromDate = fyStart + '-04-01';
+            this.toDate = (fyStart + 1) + '-03-31';
+            this.periodType = 'fy';
+            this.fetchData();
         },
 
         // ── EXECUTIVE CLIENT-SIDE EXCEL EXPORT (EXCELJS) ──

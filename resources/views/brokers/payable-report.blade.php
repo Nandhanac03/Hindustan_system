@@ -453,9 +453,10 @@
                                 </div>
                                 <template x-for="fy in financialYearsList" :key="fy.value">
                                     <div @click="selectFinancialYear(fy.value)"
-                                         class="erp-dropdown-option"
+                                         class="erp-dropdown-option flex items-center justify-between"
                                          :class="filters.financial_year === fy.value ? 'selected' : ''">
                                         <span x-text="fy.label"></span>
+                                        <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
                                     </div>
                                 </template>
                                 <div @click="selectFinancialYear('custom')"
@@ -1558,19 +1559,19 @@ function brokerPayoutApp() {
         },
 
         financialYearsList: [
-            { value: '2026-27', label: 'FY 2026-27', start: '2026-04-01', end: '2027-03-31' },
-            { value: '2025-26', label: 'FY 2025-26', start: '2025-04-01', end: '2026-03-31' },
-            { value: '2024-25', label: 'FY 2024-25', start: '2024-04-01', end: '2025-03-31' },
-            { value: '2023-24', label: 'FY 2023-24', start: '2023-04-01', end: '2024-03-31' },
-            { value: '2022-23', label: 'FY 2022-23', start: '2022-04-01', end: '2023-03-31' },
-            { value: '2021-22', label: 'FY 2021-22', start: '2021-04-01', end: '2022-03-31' },
-            { value: '2020-21', label: 'FY 2020-21', start: '2020-04-01', end: '2021-03-31' },
-            { value: '2019-20', label: 'FY 2019-20', start: '2019-04-01', end: '2020-03-31' },
-            { value: '2018-19', label: 'FY 2018-19', start: '2018-04-01', end: '2019-03-31' },
-            { value: '2017-18', label: 'FY 2017-18', start: '2017-04-01', end: '2018-03-31' },
-            { value: '2016-17', label: 'FY 2016-17', start: '2016-04-01', end: '2017-03-31' },
-            { value: '2015-16', label: 'FY 2015-16', start: '2015-04-01', end: '2016-03-31' },
-            { value: '2014-15', label: 'FY 2014-15', start: '2014-04-01', end: '2015-03-31' }
+            { value: '2026-27', label: 'FY 2026-27', start: '2026-04-01', end: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', start: '2025-04-01', end: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', start: '2024-04-01', end: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', start: '2023-04-01', end: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', start: '2022-04-01', end: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', start: '2021-04-01', end: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', start: '2020-04-01', end: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', start: '2019-04-01', end: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', start: '2018-04-01', end: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', start: '2017-04-01', end: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', start: '2016-04-01', end: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', start: '2015-04-01', end: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', start: '2014-04-01', end: '2015-03-31', range: 'Apr 14 - Mar 15' }
         ],
 
         currentPage: 1,

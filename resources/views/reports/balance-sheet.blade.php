@@ -35,14 +35,15 @@
             $defaultBsProjectId = request('project_id', '');
             $selectedBsProj = $defaultBsProjectId ? $projects->firstWhere('id', $defaultBsProjectId) : null;
             $selectedBsProjName = $selectedBsProj ? $selectedBsProj->name : 'All Projects';
-            $defaultDateAsOn = request('date_as_on', '');
+            $defaultDateAsOn = $asOnDate ?? request('date_as_on', '');
+            $defaultFinancialYear = $financialYear ?? request('financial_year', 'All');
         @endphp
 
         {{-- Filter Bar Panel --}}
         <form id="balanceSheetForm" method="GET" action="{{ route('reports.balance_sheet') }}" @submit.prevent="updateFilters()" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 flex-1 items-center">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 flex-1 items-center">
                     
                     {{-- 1. Search Particulars / Accounts --}}
                     <div class="relative group col-span-1">
@@ -65,7 +66,7 @@
                     <div class="relative w-full" @click.outside="projectDropdownOpen = false">
                         <input type="hidden" name="project_id" :value="selectedProjectId">
                         <button type="button"
-                                @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { $nextTick(() => $refs.projSearchInput?.focus()); }"
+                                @click="projectDropdownOpen = !projectDropdownOpen; if(projectDropdownOpen) { fyDropdownOpen = false; $nextTick(() => $refs.projSearchInput?.focus()); }"
                                 class="erp-dropdown-trigger"
                                 :class="projectDropdownOpen ? 'active' : ''">
                             <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
@@ -123,17 +124,76 @@
                         </div>
                     </div>
 
-                    {{-- 3. As-On Date --}}
+                    {{-- 3. Financial Year (FY) Filter Dropdown (Custom Gold Popover) --}}
+                    <div class="relative w-full" @click.outside="fyDropdownOpen = false">
+                        <input type="hidden" name="financial_year" :value="selectedFinancialYear">
+                        <button type="button"
+                                @click="fyDropdownOpen = !fyDropdownOpen; if(fyDropdownOpen) { projectDropdownOpen = false; }"
+                                class="erp-dropdown-trigger"
+                                :class="fyDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="truncate text-xs font-bold"
+                                      :class="(selectedFinancialYear && selectedFinancialYear !== 'All') ? 'text-slate-900 font-extrabold' : 'text-slate-900 font-bold'"
+                                      x-text="getSelectedFyName()">All FY</span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <template x-if="selectedFinancialYear && selectedFinancialYear !== 'All'">
+                                    <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="fyDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </button>
+
+                        {{-- Financial Year Popover Menu --}}
+                        <div x-show="fyDropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             class="erp-dropdown-popover min-w-[220px]"
+                             style="display: none;">
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                                <div @click="selectFinancialYear('All')"
+                                     class="erp-dropdown-option"
+                                     :class="(!selectedFinancialYear || selectedFinancialYear === 'All') ? 'selected-all' : ''">
+                                    <span>All Financial Years</span>
+                                </div>
+                                <template x-for="fy in financialYearsList" :key="fy.value">
+                                    <div @click="selectFinancialYear(fy.value)"
+                                         class="erp-dropdown-option flex items-center justify-between"
+                                         :class="selectedFinancialYear === fy.value ? 'selected' : ''">
+                                        <span x-text="fy.label"></span>
+                                        <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                    </div>
+                                </template>
+                                <div @click="selectFinancialYear('Custom')"
+                                     class="erp-dropdown-option"
+                                     :class="selectedFinancialYear === 'Custom' ? 'selected' : ''">
+                                    <span>Custom Date Range</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. As-On Date --}}
                     <div class="relative w-full">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <input type="date" name="date_as_on" x-model="dateAsOn" 
-                               @change="updateFilters()" 
+                        <input type="date" id="balanceSheetDateInput" name="date_as_on" x-model="dateAsOn" 
+                               @change="onDateAsOnChange()" 
                                class="erp-input erp-date-input w-full pl-10 pr-3 py-2 text-xs font-bold text-slate-800 cursor-pointer">
                     </div>
 
-                    {{-- 4. View Type Radio Options --}}
+                    {{-- 5. View Type Radio Options --}}
                     <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex items-center justify-around h-[42px]">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">View:</span>
                         <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
@@ -146,7 +206,7 @@
                         </label>
                     </div>
 
-                    {{-- 5. Zero-Balance Accounts --}}
+                    {{-- 6. Zero-Balance Accounts --}}
                     <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-1.5 flex items-center h-[42px]">
                         <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none w-full">
                             <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" class="rounded text-[#a38c29] focus:ring-[#a38c29] h-4 w-4 border-slate-300 cursor-pointer">
@@ -541,9 +601,79 @@ function balanceSheetApp() {
         selectedBsProjName: '{{ addslashes($selectedBsProjName) }}',
         projectSearch: '',
         projectDropdownOpen: false,
+        fyDropdownOpen: false,
+        selectedFinancialYear: '{{ $defaultFinancialYear }}',
         dateAsOn: '{{ $defaultDateAsOn }}',
         viewType: 'vertical',
         hideZero: {{ request('hide_zero') ? 'true' : 'false' }},
+
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
+
+        init() {
+            if (this.dateAsOn && (!this.selectedFinancialYear || this.selectedFinancialYear === 'All')) {
+                const matchedFy = this.financialYearsList.find(x => x.to === this.dateAsOn);
+                if (matchedFy) {
+                    this.selectedFinancialYear = matchedFy.value;
+                } else {
+                    this.selectedFinancialYear = 'Custom';
+                }
+            } else if (this.selectedFinancialYear && this.selectedFinancialYear !== 'All' && this.selectedFinancialYear !== 'Custom' && !this.dateAsOn) {
+                const found = this.financialYearsList.find(x => x.value === this.selectedFinancialYear);
+                if (found) this.dateAsOn = found.to;
+            }
+        },
+
+        getSelectedFyName() {
+            if (!this.selectedFinancialYear || this.selectedFinancialYear === 'All') return 'All FY';
+            if (this.selectedFinancialYear === 'Custom') return 'Custom Date';
+            const found = this.financialYearsList.find(x => x.value === this.selectedFinancialYear);
+            return found ? found.label : ('FY ' + this.selectedFinancialYear);
+        },
+
+        selectFinancialYear(fyVal) {
+            this.selectedFinancialYear = fyVal;
+            this.fyDropdownOpen = false;
+            if (fyVal === 'All') {
+                this.dateAsOn = '';
+                this.$nextTick(() => { this.updateFilters(); });
+            } else if (fyVal === 'Custom') {
+                const dateEl = document.getElementById('balanceSheetDateInput');
+                if (dateEl) dateEl.focus();
+                if (this.dateAsOn) {
+                    this.$nextTick(() => { this.updateFilters(); });
+                }
+            } else {
+                const found = this.financialYearsList.find(x => x.value === fyVal);
+                if (found) {
+                    this.dateAsOn = found.to;
+                }
+                this.$nextTick(() => { this.updateFilters(); });
+            }
+        },
+
+        onDateAsOnChange() {
+            if (this.dateAsOn) {
+                const matchedFy = this.financialYearsList.find(x => x.to === this.dateAsOn);
+                this.selectedFinancialYear = matchedFy ? matchedFy.value : 'Custom';
+            } else {
+                this.selectedFinancialYear = 'All';
+            }
+            this.$nextTick(() => { this.updateFilters(); });
+        },
 
         selectProject(id, name) {
             this.selectedProjectId = id;
@@ -610,6 +740,8 @@ function balanceSheetApp() {
             this.selectedBsProjName = 'All Projects';
             this.projectSearch = '';
             this.projectDropdownOpen = false;
+            this.fyDropdownOpen = false;
+            this.selectedFinancialYear = 'All';
             this.dateAsOn = '';
             this.viewType = 'vertical';
             this.hideZero = false;

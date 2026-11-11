@@ -555,6 +555,15 @@ class TreasuryController extends Controller
         $flowType = $request->query('flow_type', 'all');
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
+        $financialYear = $request->query('financial_year', $request->query('fy', 'All'));
+        if ($financialYear && $financialYear !== 'All' && !$dateFrom && !$dateTo) {
+            if (preg_match('/(\d{4})-(\d{2,4})/', $financialYear, $m)) {
+                $startYear = (int)$m[1];
+                $dateFrom = "{$startYear}-04-01";
+                $endYear = $startYear + 1;
+                $dateTo = "{$endYear}-03-31";
+            }
+        }
         $search = trim((string)$request->query('search', ''));
 
         // All collected transactions
@@ -1037,6 +1046,7 @@ class TreasuryController extends Controller
             'allTransactions',
             'selectedBankId',
             'flowType',
+            'financialYear',
             'dateFrom',
             'dateTo',
             'search',
