@@ -69,10 +69,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" placeholder="Search particulars..." x-model="searchQuery" autocomplete="off"
+                    <input type="text" placeholder="Search particulars..." x-model="searchQuery" @input="triggerLoadingEffect()" autocomplete="off"
                            class="w-full erp-search-input pl-10 pr-9">
                     <div x-show="searchQuery" class="absolute inset-y-0 right-0 pr-2.5 flex items-center" style="display: none;">
-                        <button type="button" @click="searchQuery = ''"
+                        <button type="button" @click="searchQuery = ''; triggerLoadingEffect()"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -161,16 +161,16 @@
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 translate-y-1"
                          class="erp-dropdown-popover w-full" style="display: none;">
-                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                            <div @click="selectFinancialYear('FY 2026-27')" class="erp-dropdown-option" :class="financialYear === 'FY 2026-27' ? 'selected-all' : ''">
-                                <span>FY 2026-27</span>
+                        <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                            <div @click="selectFinancialYear('All Financial Years')" class="erp-dropdown-option" :class="financialYear === 'All Financial Years' ? 'selected-all' : ''">
+                                <span>All Financial Years</span>
                             </div>
-                            <div @click="selectFinancialYear('FY 2025-26')" class="erp-dropdown-option" :class="financialYear === 'FY 2025-26' ? 'selected' : ''">
-                                <span>FY 2025-26</span>
-                            </div>
-                            <div @click="selectFinancialYear('FY 2024-25')" class="erp-dropdown-option" :class="financialYear === 'FY 2024-25' ? 'selected' : ''">
-                                <span>FY 2024-25</span>
-                            </div>
+                            <template x-for="fy in financialYearsList" :key="fy.label">
+                                <div @click="selectFinancialYear(fy.label)" class="erp-dropdown-option" :class="financialYear === fy.label ? 'selected' : ''">
+                                    <span x-text="fy.label"></span>
+                                    <span class="text-[10px] text-slate-400 font-mono" x-text="fy.range"></span>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -180,7 +180,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="date" name="date_from" id="dateFromInput" x-model="dateFrom" @change="updateFilters()"
+                    <input type="date" name="date_from" id="dateFromInput" x-model="dateFrom" @change="onManualDateChange()"
                            title="From Date"
                            class="w-full erp-input erp-date-input">
                 </div>
@@ -190,7 +190,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <input type="date" name="date_to" id="dateToInput" x-model="dateTo" @change="updateFilters()"
+                    <input type="date" name="date_to" id="dateToInput" x-model="dateTo" @change="onManualDateChange()"
                            title="To Date"
                            class="w-full erp-input erp-date-input">
                 </div>
@@ -507,7 +507,20 @@
     </div>
 
     {{-- MAIN P&L STATEMENT TABLE CONTAINER (MATCHING SALES RETURN THEME & TABLE STRUCTURE) --}}
-    <div id="pnlTableContainer" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full">
+    <div class="relative w-full">
+        {{-- Loading Spinner Overlay --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Profit &amp; Loss Data...</span>
+            </div>
+        </div>
+        <div id="pnlTableContainer" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full">
         <div class="overflow-x-auto flex-1">
             <table id="pnlStatementTable" class="w-full text-left border-collapse">
                 {{-- TABLE HEADER (EXACT STANDARD ERP THEME WITH % OF REVENUE) --}}
@@ -785,6 +798,7 @@
                 </button>
             </div>
         </div>
+        </div>
     </div>
 
 </div>
@@ -809,19 +823,60 @@ function pnlReportApp() {
         showExpenses: true,
         perPage: '10',
         currentPage: 1,
+        isLoading: false,
+        _loadingTimer: null,
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
+
+        financialYearsList: (() => {
+            const list = [];
+            for (let y = 2026; y >= 2014; y--) {
+                const startShort = String(y).slice(-2);
+                const endShort = String(y + 1).slice(-2);
+                list.push({
+                    value: `${y}-${endShort}`,
+                    label: `FY ${y}-${endShort}`,
+                    from: `${y}-04-01`,
+                    to: `${y + 1}-03-31`,
+                    range: `Apr ${startShort} - Mar ${endShort}`
+                });
+            }
+            return list;
+        })(),
 
         selectFinancialYear(val) {
             this.financialYear = val;
             this.fyDropdownOpen = false;
-            if (val === 'FY 2026-27') {
-                this.dateFrom = '2026-04-01';
-                this.dateTo = '2027-03-31';
-            } else if (val === 'FY 2025-26') {
-                this.dateFrom = '2025-04-01';
-                this.dateTo = '2026-03-31';
-            } else if (val === 'FY 2024-25') {
-                this.dateFrom = '2024-04-01';
-                this.dateTo = '2025-03-31';
+            if (val === 'All Financial Years') {
+                this.dateFrom = '';
+                this.dateTo = '';
+            } else {
+                const found = this.financialYearsList.find(f => f.label === val || f.value === val);
+                if (found) {
+                    this.financialYear = found.label;
+                    this.dateFrom = found.from;
+                    this.dateTo = found.to;
+                }
+            }
+            this.$nextTick(() => { this.updateFilters(); });
+        },
+
+        onManualDateChange() {
+            const matched = this.financialYearsList.find(f => f.from === this.dateFrom && f.to === this.dateTo);
+            if (matched) {
+                this.financialYear = matched.label;
+            } else if (!this.dateFrom && !this.dateTo) {
+                this.financialYear = 'All Financial Years';
+            } else {
+                this.financialYear = 'Custom Date';
             }
             this.$nextTick(() => { this.updateFilters(); });
         },
@@ -866,6 +921,8 @@ function pnlReportApp() {
             const baseUrl = '{{ route('reports.profit_loss') }}';
             const fetchUrl = baseUrl + (queryString ? '?' + queryString : '');
 
+            this.isLoading = true;
+
             fetch(fetchUrl, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -903,7 +960,10 @@ function pnlReportApp() {
                     }
                 }
             })
-            .catch(err => console.error('Error fetching P&L data:', err));
+            .catch(err => console.error('Error fetching P&L data:', err))
+            .finally(() => {
+                this.isLoading = false;
+            });
         },
 
         resetFilters() {

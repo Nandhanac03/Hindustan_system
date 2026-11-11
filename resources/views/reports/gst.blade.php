@@ -4,13 +4,71 @@
 function gstReportApp() {
     return {
         tab: 'summary',
+        isLoading: false,
+        _loadingTimer: null,
         filters: {
             search: '',
-            fy: '{{ request('fy', '2026-2027') }}',
+            fy: '{{ request('fy', '2026-27') }}',
             date_from: '{{ request('date_from', date('Y-04-01')) }}',
             date_to: '{{ request('date_to', date('Y-m-d')) }}',
             filing_period: '{{ request('filing_period', 'August - 2026') }}',
             section: '{{ request('section', 'all') }}'
+        },
+        financialYearsList: (() => {
+            const list = [];
+            for (let y = 2026; y >= 2014; y--) {
+                const startShort = String(y).slice(-2);
+                const endShort = String(y + 1).slice(-2);
+                list.push({
+                    value: `${y}-${endShort}`,
+                    label: `FY ${y}-${endShort}`,
+                    from: `${y}-04-01`,
+                    to: `${y + 1}-03-31`,
+                    range: `Apr ${startShort} - Mar ${endShort}`
+                });
+            }
+            return list;
+        })(),
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
+        getSelectedFyLabel() {
+            if (!this.filters.fy || this.filters.fy === 'All') return 'All Financial Years';
+            if (this.filters.fy === 'Custom') return 'Custom Date Range';
+            const found = this.financialYearsList.find(f => f.value === this.filters.fy || f.label === this.filters.fy);
+            return found ? found.label : ('FY ' + this.filters.fy);
+        },
+        selectFinancialYear(val) {
+            this.filters.fy = val || 'All';
+            if (!val || val === 'All') {
+                this.filters.date_from = '';
+                this.filters.date_to = '';
+            } else {
+                const found = this.financialYearsList.find(f => f.value === val || f.label === val);
+                if (found) {
+                    this.filters.fy = found.value;
+                    this.filters.date_from = found.from;
+                    this.filters.date_to = found.to;
+                }
+            }
+            this.triggerLoadingEffect();
+        },
+        onManualDateChange() {
+            const matched = this.financialYearsList.find(f => f.from === this.filters.date_from && f.to === this.filters.date_to);
+            if (matched) {
+                this.filters.fy = matched.value;
+            } else if (!this.filters.date_from && !this.filters.date_to) {
+                this.filters.fy = 'All';
+            } else {
+                this.filters.fy = 'Custom';
+            }
+            this.triggerLoadingEffect();
         },
         allEntries: @json(($allGstReportEntries ?? $gstReportEntries)->values()),
         
@@ -82,11 +140,12 @@ function gstReportApp() {
         },
         resetFilters() {
             this.filters.search = '';
-            this.filters.fy = '2026-2027';
+            this.filters.fy = '2026-27';
             this.filters.date_from = '{{ date('Y-04-01') }}';
             this.filters.date_to = '{{ date('Y-m-d') }}';
             this.filters.filing_period = 'August - 2026';
             this.filters.section = 'all';
+            this.triggerLoadingEffect();
         },
         formatCurrency(val) {
             if (val === null || val === undefined || isNaN(val)) return '0.00';
@@ -236,12 +295,12 @@ function gstReportApp() {
                     </svg>
                 </div>
                 <input type="text" placeholder="Search Invoice, Customer, Entity..." autocomplete="off"
-                       x-model="filters.search"
+                       x-model="filters.search" @input="triggerLoadingEffect()"
                        class="w-full erp-search-input pl-10 pr-9">
                 
                 {{-- Clear Button --}}
                 <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                    <button type="button" x-show="filters.search" @click="filters.search = ''" style="display: none;"
+                    <button type="button" x-show="filters.search" @click="filters.search = ''; triggerLoadingEffect()" style="display: none;"
                             class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -249,19 +308,18 @@ function gstReportApp() {
             </div>
 
             {{-- Financial Year Filter --}}
-            <div class="relative w-full" x-data="{
-                open: false,
-                selectOption(val) {
-                    filters.fy = val;
-                    this.open = false;
-                }
-            }" @click.outside="open = false">
+            <div class="relative w-full" x-data="{ open: false }" @click.outside="open = false">
                 <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
                     <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
                         <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span x-text="filters.fy ? 'FY: ' + filters.fy : 'Select FY'" class="truncate text-xs font-bold text-slate-900"></span>
+                        <span x-text="getSelectedFyLabel()" class="truncate text-xs font-bold text-slate-900"></span>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="filters.fy && filters.fy !== 'All'">
+                            <span @click.stop="selectFinancialYear('All'); open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
                         <svg class="w-3.5 h-3.5 text-[#a38c29] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </div>
                 </button>
@@ -274,13 +332,16 @@ function gstReportApp() {
                      x-transition:leave-start="opacity-100 translate-y-0"
                      x-transition:leave-end="opacity-0 translate-y-1"
                      class="erp-dropdown-popover w-full" style="display: none;">
-                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                        <div @click="selectOption('2026-2027')" class="erp-dropdown-option" :class="filters.fy === '2026-2027' ? 'selected' : ''">
-                            <span>FY: 2026-2027</span>
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-60">
+                        <div @click="selectFinancialYear('All'); open = false" class="erp-dropdown-option" :class="filters.fy === 'All' || !filters.fy ? 'selected-all' : ''">
+                            <span>All Financial Years</span>
                         </div>
-                        <div @click="selectOption('2025-2026')" class="erp-dropdown-option" :class="filters.fy === '2025-2026' ? 'selected' : ''">
-                            <span>FY: 2025-2026</span>
-                        </div>
+                        <template x-for="fy in financialYearsList" :key="fy.value">
+                            <div @click="selectFinancialYear(fy.value); open = false" class="erp-dropdown-option" :class="filters.fy === fy.value ? 'selected' : ''">
+                                <span x-text="fy.label"></span>
+                                <span class="text-[10px] text-slate-400 font-mono" x-text="fy.range"></span>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -292,7 +353,7 @@ function gstReportApp() {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <input type="date" x-model="filters.date_from"
+                <input type="date" x-model="filters.date_from" @change="onManualDateChange()"
                        class="w-full erp-input erp-date-input">
             </div>
 
@@ -303,7 +364,7 @@ function gstReportApp() {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <input type="date" x-model="filters.date_to"
+                <input type="date" x-model="filters.date_to" @change="onManualDateChange()"
                        class="w-full erp-input erp-date-input">
             </div>
 
@@ -313,6 +374,7 @@ function gstReportApp() {
                 selectOption(val) {
                     filters.filing_period = val;
                     this.open = false;
+                    triggerLoadingEffect();
                 }
             }" @click.outside="open = false">
                 <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
@@ -322,7 +384,7 @@ function gstReportApp() {
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
                         <template x-if="filters.filing_period">
-                            <span @click.stop="filters.filing_period = ''; open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                            <span @click.stop="filters.filing_period = ''; open = false; triggerLoadingEffect()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </span>
                         </template>
@@ -367,6 +429,7 @@ function gstReportApp() {
                 selectOption(val) {
                     filters.section = val;
                     this.open = false;
+                    triggerLoadingEffect();
                 }
             }" @click.outside="open = false">
                 <button type="button" @click="open = !open" class="erp-dropdown-trigger w-full" :class="open ? 'active' : ''">
@@ -376,7 +439,7 @@ function gstReportApp() {
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
                         <template x-if="filters.section && filters.section !== 'all'">
-                            <span @click.stop="filters.section = 'all'; open = false" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
+                            <span @click.stop="filters.section = 'all'; open = false; triggerLoadingEffect()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear selection">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </span>
                         </template>
@@ -419,7 +482,19 @@ function gstReportApp() {
     </div>
 
     {{-- 4. GST Details Section (Interactive Sub-Tabs & Instant Data Display Table) --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-5">
+    <div class="relative bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6 space-y-5">
+        {{-- Loading Spinner Overlay --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating GST Report Data...</span>
+            </div>
+        </div>
         <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">GST Details</h3>
 
         {{-- Tab Navigation Header Bar --}}

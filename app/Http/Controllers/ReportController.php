@@ -3577,20 +3577,26 @@ class ReportController extends Controller
             $currLabel  = date('d/m/Y', strtotime($currFrom)) . ' – ' . date('d/m/Y', strtotime($currTo));
             $priorLabel = date('d/m/Y', strtotime($priorFrom)) . ' – ' . date('d/m/Y', strtotime($priorTo));
         } else {
-            if ($financialYear === 'FY 2025-26') {
-                $currFrom   = '2025-04-01';
-                $currTo     = '2026-03-31';
-                $priorFrom  = '2024-04-01';
-                $priorTo    = '2025-03-31';
-                $currLabel  = 'FY 2025-26 (01/04/2025 – 31/03/2026)';
-                $priorLabel = 'FY 2024-25 (01/04/2024 – 31/03/2025)';
-            } elseif ($financialYear === 'FY 2024-25') {
-                $currFrom   = '2024-04-01';
-                $currTo     = '2025-03-31';
-                $priorFrom  = '2023-04-01';
-                $priorTo    = '2024-03-31';
-                $currLabel  = 'FY 2024-25 (01/04/2024 – 31/03/2025)';
-                $priorLabel = 'FY 2023-24 (01/04/2023 – 31/03/2024)';
+            if (in_array(strtolower(trim((string) $financialYear)), ['all', 'all financial years'], true)) {
+                $currFrom   = '2000-01-01';
+                $currTo     = '2099-12-31';
+                $priorFrom  = '1999-01-01';
+                $priorTo    = '1999-12-31';
+                $currLabel  = 'All Financial Years';
+                $priorLabel = 'N/A';
+            } elseif (preg_match('/^(?:FY\s*)?(\d{4})-(\d{2,4})$/i', trim((string) $financialYear), $m)) {
+                $startYear  = (int) $m[1];
+                $endYear    = $startYear + 1;
+                $endShort   = substr((string) $endYear, -2);
+                $prevStart  = $startYear - 1;
+                $prevShort  = substr((string) $startYear, -2);
+
+                $currFrom   = "{$startYear}-04-01";
+                $currTo     = "{$endYear}-03-31";
+                $priorFrom  = "{$prevStart}-04-01";
+                $priorTo    = "{$startYear}-03-31";
+                $currLabel  = "FY {$startYear}-{$endShort} (01/04/{$startYear} – 31/03/{$endYear})";
+                $priorLabel = "FY {$prevStart}-{$prevShort} (01/04/{$prevStart} – 31/03/{$startYear})";
             } else {
                 $currFrom   = '2026-04-01';
                 $currTo     = '2027-03-31';
