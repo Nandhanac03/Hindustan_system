@@ -25,6 +25,8 @@ class ChequeRealizationController extends Controller
             ->whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited', 'in_clearing', 'bounced', 'cancelled'])
             ->latest('receipt_date');
 
+        $this->applyDateAndFyFilters($query, $request);
+
         $pendingReceipts = (clone $query)->paginate(25)->withQueryString();
 
         $companyBankAccounts = CompanyBankAccount::orderByDesc('is_default')
@@ -84,6 +86,8 @@ class ChequeRealizationController extends Controller
         $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank', 'realizedBy', 'realizationLogs.changedBy'])
             ->where('realization_status', 'realized')
             ->latest('receipt_date');
+
+        $this->applyDateAndFyFilters($query, $request);
 
         $pendingReceipts = (clone $query)->paginate(25)->withQueryString();
 
@@ -159,6 +163,27 @@ class ChequeRealizationController extends Controller
             }
         }
         return $totalRefundsPaid;
+    }
+
+    /**
+     * Apply Financial Year and custom date range filters to Receipt queries.
+     */
+    private function applyDateAndFyFilters($query, Request $request): void
+    {
+        if ($request->filled('date_from')) {
+            $query->whereDate('receipt_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('receipt_date', '<=', $request->date_to);
+        }
+        if (!$request->filled('date_from') && !$request->filled('date_to') && $request->filled('financial_year') && $request->financial_year !== 'All' && $request->financial_year !== 'Custom') {
+            $parts = explode('-', $request->financial_year);
+            if (count($parts) === 2) {
+                $startYear = (int)$parts[0];
+                $endYear = strlen($parts[1]) === 2 ? ((int)substr((string)$startYear, 0, 2) * 100 + (int)$parts[1]) : (int)$parts[1];
+                $query->whereBetween('receipt_date', ["{$startYear}-04-01", "{$endYear}-03-31"]);
+            }
+        }
     }
 
     /**

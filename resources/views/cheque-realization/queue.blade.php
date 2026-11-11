@@ -147,10 +147,86 @@
             company_bank_account_id: '{{ request('company_bank_account_id') }}',
             status: '{{ request('status') }}',
             payment_mode: '{{ request('payment_mode') }}',
-            date: '{{ request('date') }}',
+            financial_year: '{{ request('financial_year') }}',
+            date_from: '{{ request('date_from') }}',
+            date_to: '{{ request('date_to') }}',
         },
         currentPage: 1,
         perPage: 25,
+        isLoading: false,
+        _loadingTimer: null,
+        fyDropdownOpen: false,
+        fySearch: '',
+        financialYearsList: [
+            { value: '2026-27', label: 'FY 2026-27', from: '2026-04-01', to: '2027-03-31', range: 'Apr 26 - Mar 27' },
+            { value: '2025-26', label: 'FY 2025-26', from: '2025-04-01', to: '2026-03-31', range: 'Apr 25 - Mar 26' },
+            { value: '2024-25', label: 'FY 2024-25', from: '2024-04-01', to: '2025-03-31', range: 'Apr 24 - Mar 25' },
+            { value: '2023-24', label: 'FY 2023-24', from: '2023-04-01', to: '2024-03-31', range: 'Apr 23 - Mar 24' },
+            { value: '2022-23', label: 'FY 2022-23', from: '2022-04-01', to: '2023-03-31', range: 'Apr 22 - Mar 23' },
+            { value: '2021-22', label: 'FY 2021-22', from: '2021-04-01', to: '2022-03-31', range: 'Apr 21 - Mar 22' },
+            { value: '2020-21', label: 'FY 2020-21', from: '2020-04-01', to: '2021-03-31', range: 'Apr 20 - Mar 21' },
+            { value: '2019-20', label: 'FY 2019-20', from: '2019-04-01', to: '2020-03-31', range: 'Apr 19 - Mar 20' },
+            { value: '2018-19', label: 'FY 2018-19', from: '2018-04-01', to: '2019-03-31', range: 'Apr 18 - Mar 19' },
+            { value: '2017-18', label: 'FY 2017-18', from: '2017-04-01', to: '2018-03-31', range: 'Apr 17 - Mar 18' },
+            { value: '2016-17', label: 'FY 2016-17', from: '2016-04-01', to: '2017-03-31', range: 'Apr 16 - Mar 17' },
+            { value: '2015-16', label: 'FY 2015-16', from: '2015-04-01', to: '2016-03-31', range: 'Apr 15 - Mar 16' },
+            { value: '2014-15', label: 'FY 2014-15', from: '2014-04-01', to: '2015-03-31', range: 'Apr 14 - Mar 15' }
+        ],
+        get filteredFinancialYears() {
+            if (!this.fySearch || !this.fySearch.trim()) return this.financialYearsList;
+            const q = this.fySearch.toLowerCase().trim();
+            return this.financialYearsList.filter(fy => 
+                fy.label.toLowerCase().includes(q) || 
+                fy.value.toLowerCase().includes(q) || 
+                (fy.range && fy.range.toLowerCase().includes(q))
+            );
+        },
+        getSelectedFyName() {
+            if (!this.filters.financial_year || this.filters.financial_year === 'All') return 'All FY';
+            if (this.filters.financial_year === 'Custom') return 'Custom Date';
+            const found = this.financialYearsList.find(x => x.value === this.filters.financial_year);
+            return found ? found.label : ('FY ' + this.filters.financial_year);
+        },
+        selectFinancialYear(fyVal) {
+            this.filters.financial_year = fyVal;
+            this.fyDropdownOpen = false;
+            if (fyVal === 'All') {
+                this.filters.date_from = '';
+                this.filters.date_to = '';
+                this.currentPage = 1;
+                this.triggerLoading();
+            } else if (fyVal === 'Custom') {
+                const fromEl = document.getElementById('queueDateFromInput');
+                if (fromEl) fromEl.focus();
+            } else {
+                const found = this.financialYearsList.find(x => x.value === fyVal);
+                if (found) {
+                    this.filters.date_from = found.from;
+                    this.filters.date_to = found.to;
+                    this.currentPage = 1;
+                    this.triggerLoading();
+                }
+            }
+        },
+        submitCustomDates() {
+            if (this.filters.date_from && this.filters.date_to) {
+                const matched = this.financialYearsList.find(x => x.from === this.filters.date_from && x.to === this.filters.date_to);
+                this.filters.financial_year = matched ? matched.value : 'Custom';
+            } else {
+                this.filters.financial_year = 'Custom';
+            }
+            this.currentPage = 1;
+            this.triggerLoading();
+        },
+        triggerLoading(cb = null) {
+            if (this._loadingTimer) clearTimeout(this._loadingTimer);
+            this.isLoading = true;
+            this._loadingTimer = setTimeout(() => {
+                if (typeof cb === 'function') cb();
+                this.isLoading = false;
+                this._loadingTimer = null;
+            }, 250);
+        },
         
         get filteredReceipts() {
             return this.allReceipts.filter(r => {
@@ -158,7 +234,8 @@
                 if (this.filters.company_bank_account_id && String(r.company_bank_account_id) !== String(this.filters.company_bank_account_id)) return false;
                 if (this.filters.status && r.realization_status !== this.filters.status) return false;
                 if (this.filters.payment_mode && r.payment_mode !== this.filters.payment_mode) return false;
-                if (this.filters.date && r.date !== this.filters.date) return false;
+                if (this.filters.date_from && r.date && r.date < this.filters.date_from) return false;
+                if (this.filters.date_to && r.date && r.date > this.filters.date_to) return false;
                 return true;
             });
         },
@@ -188,9 +265,12 @@
                 company_bank_account_id: '',
                 status: '',
                 payment_mode: '',
-                date: '',
+                financial_year: '',
+                date_from: '',
+                date_to: '',
             };
             this.currentPage = 1;
+            this.triggerLoading();
         },
         
         openProcessModal(r) { 
@@ -691,7 +771,7 @@
         {{-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (ZERO-RELOAD REACTIVE) ── --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 flex-1">
                     
                     {{-- 1. Customer Filter (Search & Select) --}}
                     <div class="relative"
@@ -715,12 +795,14 @@
                                  currentPage = 1;
                                  this.open = false;
                                  this.search = '';
+                                 triggerLoading();
                              },
                              clear() {
                                  filters.customer_id = '';
                                  currentPage = 1;
                                  this.open = false;
                                  this.search = '';
+                                 triggerLoading();
                              }
                          }"
                          @click.outside="open = false">
@@ -834,12 +916,14 @@
                                  currentPage = 1;
                                  this.open = false;
                                  this.search = '';
+                                 triggerLoading();
                              },
                              clear() {
                                  filters.company_bank_account_id = '';
                                  currentPage = 1;
                                  this.open = false;
                                  this.search = '';
+                                 triggerLoading();
                              }
                          }"
                          @click.outside="open = false">
@@ -938,32 +1022,32 @@
                             <div x-show="open" x-cloak
                                  class="erp-dropdown-popover">
                                 <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                    <div @click="filters.status = ''; currentPage = 1; open = false"
+                                    <div @click="filters.status = ''; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="!filters.status ? 'selected-all' : ''">
                                         <span>All Realization Statuses</span>
                                     </div>
-                                    <div @click="filters.status = 'pending'; currentPage = 1; open = false"
+                                    <div @click="filters.status = 'pending'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.status === 'pending' ? 'selected' : ''">
                                         <span>Pending</span>
                                     </div>
-                                    <div @click="filters.status = 'cheque_in_hand'; currentPage = 1; open = false"
+                                    <div @click="filters.status = 'cheque_in_hand'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.status === 'cheque_in_hand' ? 'selected' : ''">
                                         <span>Cheque In Hand</span>
                                     </div>
-                                    <div @click="filters.status = 'deposited'; currentPage = 1; open = false"
+                                    <div @click="filters.status = 'deposited'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.status === 'deposited' ? 'selected' : ''">
                                         <span>Deposited</span>
                                     </div>
-                                    <div @click="filters.status = 'in_clearing'; currentPage = 1; open = false"
+                                    <div @click="filters.status = 'in_clearing'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.status === 'in_clearing' ? 'selected' : ''">
                                         <span>In Clearing</span>
                                     </div>
-                                    <div @click="filters.status = 'bounced'; currentPage = 1; open = false"
+                                    <div @click="filters.status = 'bounced'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.status === 'bounced' ? 'selected' : ''">
                                         <span>Bounced</span>
@@ -985,27 +1069,27 @@
                             <div x-show="open" x-cloak
                                  class="erp-dropdown-popover">
                                 <div class="overflow-y-auto divide-y divide-slate-100 max-h-52">
-                                    <div @click="filters.payment_mode = ''; currentPage = 1; open = false"
+                                    <div @click="filters.payment_mode = ''; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="!filters.payment_mode ? 'selected-all' : ''">
                                         <span>All Payment Modes</span>
                                     </div>
-                                    <div @click="filters.payment_mode = 'Cheque'; currentPage = 1; open = false"
+                                    <div @click="filters.payment_mode = 'Cheque'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.payment_mode === 'Cheque' ? 'selected' : ''">
                                         <span>Cheque</span>
                                     </div>
-                                    <div @click="filters.payment_mode = 'Bank Transfer'; currentPage = 1; open = false"
+                                    <div @click="filters.payment_mode = 'Bank Transfer'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.payment_mode === 'Bank Transfer' ? 'selected' : ''">
                                         <span>Bank Transfer</span>
                                     </div>
-                                    <div @click="filters.payment_mode = 'Online'; currentPage = 1; open = false"
+                                    <div @click="filters.payment_mode = 'Online'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.payment_mode === 'Online' ? 'selected' : ''">
                                         <span>Online</span>
                                     </div>
-                                    <div @click="filters.payment_mode = 'Cash'; currentPage = 1; open = false"
+                                    <div @click="filters.payment_mode = 'Cash'; currentPage = 1; open = false; triggerLoading()"
                                          class="erp-dropdown-option"
                                          :class="filters.payment_mode === 'Cash' ? 'selected' : ''">
                                         <span>Cash</span>
@@ -1015,14 +1099,84 @@
                         </div>
                     @endunless
 
-                    {{-- 4. Date Filter --}}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{-- 4. Financial Year (FY) Filter Dropdown (Custom Gold Popover with Search & Clear) --}}
+                    <div class="relative" @click.outside="fyDropdownOpen = false">
+                        <div @click="fyDropdownOpen = !fyDropdownOpen; if(fyDropdownOpen) { $nextTick(() => $refs.fySearchInput?.focus()); }"
+                             class="erp-dropdown-trigger"
+                             :class="fyDropdownOpen ? 'active' : ''">
+                            <div class="flex items-center gap-2 truncate flex-1 min-w-0">
+                                <svg class="w-4 h-4 shrink-0 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="truncate font-extrabold text-slate-800" x-text="getSelectedFyName()">All FY</span>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0 ml-1">
+                                <template x-if="filters.financial_year && filters.financial_year !== 'All'">
+                                    <span @click.stop="selectFinancialYear('All')" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition cursor-pointer" title="Clear Financial Year">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0 text-[#a38c29]" :class="fyDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
                         </div>
-                        <input type="date" x-model="filters.date" @change="currentPage = 1"
-                               class="w-full erp-search-input pl-10 pr-3.5">
+
+                        {{-- Financial Year Popover Menu with Sticky Search --}}
+                        <div x-show="fyDropdownOpen" x-transition
+                             class="erp-dropdown-popover min-w-[220px]"
+                             style="display: none;">
+                            <div class="p-2 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" x-model="fySearch" x-ref="fySearchInput" placeholder="Search financial year..."
+                                           class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                                           @keydown.escape="fyDropdownOpen = false">
+                                    <template x-if="fySearch">
+                                        <button type="button" @click="fySearch = ''; $refs.fySearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto divide-y divide-slate-100 max-h-56">
+                                <div @click="selectFinancialYear('All')"
+                                     x-show="!fySearch || 'all financial years'.includes(fySearch.toLowerCase()) || 'all fy'.includes(fySearch.toLowerCase())"
+                                     class="erp-dropdown-option"
+                                     :class="(!filters.financial_year || filters.financial_year === 'All') ? 'selected-all' : ''">
+                                    <span>All Financial Years</span>
+                                </div>
+                                <template x-for="fy in filteredFinancialYears" :key="fy.value">
+                                    <div @click="selectFinancialYear(fy.value)"
+                                         class="erp-dropdown-option flex items-center justify-between"
+                                         :class="filters.financial_year === fy.value ? 'selected' : ''">
+                                        <span x-text="fy.label"></span>
+                                        <span x-show="fy.range" class="text-[10px] text-slate-400 font-mono ml-2" x-text="fy.range"></span>
+                                    </div>
+                                </template>
+                                <div @click="selectFinancialYear('Custom')"
+                                     x-show="!fySearch || 'custom date range'.includes(fySearch.toLowerCase()) || 'custom'.includes(fySearch.toLowerCase())"
+                                     class="erp-dropdown-option"
+                                     :class="filters.financial_year === 'Custom' ? 'selected' : ''">
+                                    <span>Custom Date Range</span>
+                                </div>
+                                <div x-show="fySearch && filteredFinancialYears.length === 0 && !'all financial years'.includes(fySearch.toLowerCase()) && !'custom date range'.includes(fySearch.toLowerCase())"
+                                     class="p-3 text-center text-xs text-slate-400">
+                                    No matching financial years
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    {{-- 5. Date From --}}
+                    <input type="date" id="queueDateFromInput" x-model="filters.date_from" @change="submitCustomDates()"
+                           title="From Date"
+                           class="w-full erp-search-input">
+
+                    {{-- 6. Date To --}}
+                    <input type="date" id="queueDateToInput" x-model="filters.date_to" @change="submitCustomDates()"
+                           title="To Date"
+                           class="w-full erp-search-input">
 
                 </div>
 
@@ -1061,7 +1215,19 @@
         </div>
 
         {{-- Main Table matching Receipt Management Table Styling (Original Gold Header & Clean Rows) --}}
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            {{-- Table Loading State Overlay (Matching Trial Balance & Sales) --}}
+            <div x-show="isLoading" x-cloak
+                 class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity"
+                 style="display: none;">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                    <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Loading Instruments Queue...</span>
+                </div>
+            </div>
             <div class="px-6 py-4 bg-slate-50 text-slate-900 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">
@@ -1196,19 +1362,19 @@
                     Page <span class="font-black text-slate-800" x-text="currentPage"></span> of <span class="font-black text-slate-800" x-text="totalPages"></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" @click="currentPage--" :disabled="currentPage === 1"
+                    <button type="button" @click="currentPage--; triggerLoading()" :disabled="currentPage === 1"
                             class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
                         ‹ Prev
                     </button>
                     <template x-for="p in totalPages" :key="p">
-                        <button type="button" @click="currentPage = p"
+                        <button type="button" @click="currentPage = p; triggerLoading()"
                                 x-show="p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2"
                                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
                                 :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'"
                                 x-text="p">
                         </button>
                     </template>
-                    <button type="button" @click="currentPage++" :disabled="currentPage === totalPages"
+                    <button type="button" @click="currentPage++; triggerLoading()" :disabled="currentPage === totalPages"
                             class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
                         Next ›
                     </button>
