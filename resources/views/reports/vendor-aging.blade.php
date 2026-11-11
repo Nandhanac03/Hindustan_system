@@ -1753,12 +1753,17 @@ function vendorAgingApp() {
             }
 
             try {
+                const activeProjName = (this.filters.project && this.filters.project !== 'all'
+                    ? this.filters.project
+                    : (this.allProjectsList[0] || 'Tabasco Hindustan Infra Developers Pvt. Ltd')
+                ).toUpperCase();
+
                 const workbook = new ExcelJS.Workbook();
-                workbook.creator = 'TABASCO ERP';
+                workbook.creator = activeProjName;
                 workbook.created = new Date();
 
                 const sheet = workbook.addWorksheet('Vendor Aging Details', {
-                    views: [{ showGridLines: true }]
+                    views: [{ state: 'frozen', ySplit: 6, showGridLines: true }]
                 });
 
                 const slateBorder = {
@@ -1775,38 +1780,71 @@ function vendorAgingApp() {
                     right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                 };
 
+                const totalBorder = {
+                    top: { style: 'medium', color: { argb: 'FF1E293B' } },
+                    bottom: { style: 'medium', color: { argb: 'FF1E293B' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+
                 sheet.columns = [
-                    { key: 'idx', width: 8 },
-                    { key: 'vendor', width: 32 },
-                    { key: 'code', width: 16 },
-                    { key: 'total', width: 22 },
-                    { key: 'b0_30', width: 20 },
-                    { key: 'b31_60', width: 20 },
-                    { key: 'b61_90', width: 20 },
-                    { key: 'b90_plus', width: 20 },
-                    { key: 'last_date', width: 18 },
-                    { key: 'last_ref', width: 20 },
+                    { key: 'idx', width: 10 },
+                    { key: 'vendor', width: 34 },
+                    { key: 'code', width: 18 },
+                    { key: 'total', width: 26 },
+                    { key: 'b0_30', width: 24 },
+                    { key: 'b31_60', width: 24 },
+                    { key: 'b61_90', width: 24 },
+                    { key: 'b90_plus', width: 24 },
+                    { key: 'last_date', width: 22 },
+                    { key: 'last_ref', width: 24 },
                 ];
 
-                // Main Title Banner
+                // ── Row 1: Top Empty Spacer ──
+                sheet.mergeCells('A1:J1');
+                const spacer1 = sheet.getCell('A1');
+                spacer1.value = '';
+                spacer1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(1).height = 18;
+
+                // ── Row 2: Main Title Banner (#2C3E50 Dark Slate Navy) ──
                 sheet.mergeCells('A2:J2');
                 const titleCell = sheet.getCell('A2');
-                titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD - VENDOR & SUNDRY CREDITOR AGING REPORT';
-                titleCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                titleCell.value = `${activeProjName} - VENDOR & SUNDRY CREDITOR AGING REPORT`;
+                titleCell.font = { name: 'Calibri', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
                 titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
                 titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet.getRow(2).height = 28;
+                sheet.getRow(2).height = 32;
+                sheet.getRow(2).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
 
-                // Subtitle
+                // ── Row 3: Subtitle Banner (#007398 Ocean Teal Blue) ──
                 sheet.mergeCells('A3:J3');
                 const subCell = sheet.getCell('A3');
-                subCell.value = `As On Date: ${this.asOnDate} | Currency: ${this.currency} | Active Records: ${this.filteredRows.length}`;
-                subCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8A7522' } };
+                subCell.value = `Financial Year: ${this.getSelectedFyName()}   |   As On Date: ${this.asOnDate}   |   Currency: ${this.currency}   |   Active Records: ${this.filteredRows.length}`;
+                subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
                 subCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet.getRow(3).height = 22;
+                sheet.getRow(3).height = 24;
+                sheet.getRow(3).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
 
-                // Headers
+                // ── Row 4: Section Banner (#006039 Deep Forest Green) ──
+                sheet.mergeCells('A4:J4');
+                const secCell = sheet.getCell('A4');
+                secCell.value = 'VENDOR PAYABLES AGING DETAILS';
+                secCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                secCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                secCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(4).height = 24;
+                sheet.getRow(4).eachCell({ includeEmpty: true }, c => c.border = slateBorder);
+
+                // ── Row 5: Middle Empty Spacer ──
+                sheet.mergeCells('A5:J5');
+                const spacer2 = sheet.getCell('A5');
+                spacer2.value = '';
+                spacer2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                sheet.getRow(5).height = 14;
+
+                // ── Row 6: Table Headers (#34495E Navy Slate Blue) ──
                 const headers = [
                     '#',
                     'Vendor Name',
@@ -1820,17 +1858,17 @@ function vendorAgingApp() {
                     'Last Payment Ref.'
                 ];
 
-                const hRow = sheet.getRow(5);
+                const hRow = sheet.getRow(6);
                 hRow.values = headers;
-                hRow.height = 26;
+                hRow.height = 34;
                 hRow.eachCell({ includeEmpty: true }, (c) => {
                     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
-                    c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                    c.alignment = { vertical: 'middle', horizontal: 'left' };
+                    c.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                    c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                     c.border = slateBorder;
                 });
 
-                let rIdx = 6;
+                let rIdx = 7;
                 this.filteredRows.forEach((r, i) => {
                     const row = sheet.getRow(rIdx);
                     row.values = [
@@ -1846,18 +1884,22 @@ function vendorAgingApp() {
                         r.last_payment_ref || '—'
                     ];
 
-                    row.height = 22;
-                    const rowBg = (i % 2 === 0) ? 'FFF8FAFC' : 'FFFFFFFF';
+                    row.height = 28;
+                    const rowBg = (i % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
 
                     row.eachCell({ includeEmpty: true }, (c, col) => {
                         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
                         c.border = dataBorder;
-                        c.alignment = { vertical: 'middle', horizontal: 'left' };
-                        c.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        c.alignment = { vertical: 'middle', horizontal: 'center' };
+                        c.font = {
+                            name: 'Calibri',
+                            size: 12,
+                            bold: (col === 2 || col === 4),
+                            color: { argb: (col === 4 ? 'FF008000' : (col === 8 ? 'FFB91C1C' : 'FF1E293B')) }
+                        };
 
                         if (col >= 4 && col <= 8) {
                             c.numFmt = '#,##0.00';
-                            c.alignment = { vertical: 'middle', horizontal: 'right' };
                         }
                     });
 
@@ -1866,8 +1908,8 @@ function vendorAgingApp() {
 
                 // Grand Total Row
                 const totRow = sheet.getRow(rIdx);
-                totRow.height = 30;
-                sheet.getCell(`A${rIdx}`).value = 'TOTAL VENDOR PAYABLES';
+                totRow.height = 40;
+                sheet.getCell(`A${rIdx}`).value = `TOTAL VENDOR PAYABLES (${this.filteredRows.length} VENDORS)`;
                 sheet.getCell(`D${rIdx}`).value = Number(this.summaryKPIs.total_outstanding || 0);
                 sheet.getCell(`E${rIdx}`).value = Number(this.summaryKPIs.b0_30 || 0);
                 sheet.getCell(`F${rIdx}`).value = Number(this.summaryKPIs.b31_60 || 0);
@@ -1878,11 +1920,11 @@ function vendorAgingApp() {
                 for (let c = 1; c <= 10; c++) {
                     const cell = sheet.getRow(rIdx).getCell(c);
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
-                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-                    cell.border = slateBorder;
+                    cell.font = { name: 'Calibri', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.border = totalBorder;
                     if (c >= 4 && c <= 8) {
                         cell.numFmt = '#,##0.00';
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
                     }
                 }
 
@@ -1891,7 +1933,7 @@ function vendorAgingApp() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Vendor_Aging_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                a.download = 'Vendor_Aging_Report.xlsx';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

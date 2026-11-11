@@ -143,7 +143,7 @@
                 <div>
                     <div class="flex items-center gap-2.5">
                         <h1 class="text-lg sm:text-xl font-black tracking-tight uppercase text-slate-900">CASH FLOW & LIQUIDITY FORECAST</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">ACCOUNTS & TREASURY</span>
+                        <!-- <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/15 text-[#8a7522] text-[9px] font-black uppercase tracking-widest border border-[#a38c29]/30 shadow-2xs">ACCOUNTS & TREASURY</span> -->
                     </div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mt-1">
                         <span>Accounting</span>
@@ -1491,218 +1491,349 @@ function liquidityForecastApp() {
                 return;
             }
 
+            const activeProjName = (this.filters.project_id && this.filters.project_id !== 'all'
+                ? this.getProjectLabel()
+                : (this.allProjects[0]?.name || 'Tabasco Hindustan Infra Developers Pvt. Ltd')
+            ).toUpperCase();
+
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'Tabasco ERP';
+            workbook.creator = activeProjName;
             workbook.created = new Date();
 
-            // ── SHEET 1: CASH FLOW SUMMARY ──
-            const summarySheet = workbook.addWorksheet('Cash Flow Forecast');
-            summarySheet.views = [{ showGridLines: true }];
-
-            // Global Header Style
-            const headerFill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF534E47' }
+            const slateBorder = {
+                top: { style: 'thin', color: { argb: 'FF475569' } },
+                bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                left: { style: 'thin', color: { argb: 'FF475569' } },
+                right: { style: 'thin', color: { argb: 'FF475569' } }
             };
-            const headerFont = {
-                name: 'Segoe UI',
-                size: 9.5,
-                bold: true,
-                color: { argb: 'FFFFFFFF' }
+            const dataBorder = {
+                top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
             };
-            const borderThin = {
-                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            const totalBorder = {
+                top: { style: 'medium', color: { argb: 'FF1E293B' } },
+                bottom: { style: 'medium', color: { argb: 'FF1E293B' } },
+                left: { style: 'thin', color: { argb: 'FF475569' } },
+                right: { style: 'thin', color: { argb: 'FF475569' } }
+            };
+            const whiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+            const titleFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+            const subFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+            const secFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+            const colHdrFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+
+            const addExecutiveBanner = (sheet, lastColLetter, totalCols, titleText, subtitleText, sectionText) => {
+                // Row 1: Top Empty Spacer
+                sheet.mergeCells(`A1:${lastColLetter}1`);
+                const sp1 = sheet.getCell('A1');
+                sp1.value = '';
+                sp1.fill = whiteFill;
+                sheet.getRow(1).height = 18;
+
+                // Row 2: Main Title Banner (#2C3E50 Dark Slate Navy)
+                sheet.mergeCells(`A2:${lastColLetter}2`);
+                const tCell = sheet.getCell('A2');
+                tCell.value = titleText;
+                tCell.font = { name: 'Calibri', size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+                tCell.fill = titleFill;
+                tCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(2).height = 32;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(2).getCell(c).border = slateBorder;
+
+                // Row 3: Subtitle Banner (#007398 Ocean Teal Blue)
+                sheet.mergeCells(`A3:${lastColLetter}3`);
+                const sCell = sheet.getCell('A3');
+                sCell.value = subtitleText;
+                sCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                sCell.fill = subFill;
+                sCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(3).height = 24;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(3).getCell(c).border = slateBorder;
+
+                // Row 4: Section Banner (#006039 Deep Forest Green)
+                sheet.mergeCells(`A4:${lastColLetter}4`);
+                const secCell = sheet.getCell('A4');
+                secCell.value = sectionText;
+                secCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                secCell.fill = secFill;
+                secCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet.getRow(4).height = 24;
+                for (let c = 1; c <= totalCols; c++) sheet.getRow(4).getCell(c).border = slateBorder;
+
+                // Row 5: Middle Empty Spacer
+                sheet.mergeCells(`A5:${lastColLetter}5`);
+                const sp2 = sheet.getCell('A5');
+                sp2.value = '';
+                sp2.fill = whiteFill;
+                sheet.getRow(5).height = 14;
             };
 
-            // Title Banner
-            summarySheet.mergeCells('A1:F1');
-            const titleRow = summarySheet.getCell('A1');
-            titleRow.value = 'TABASCO REAL ESTATE ERP - CASH FLOW & LIQUIDITY FORECAST';
-            titleRow.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF1E293B' } };
-            titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
-            summarySheet.getRow(1).height = 28;
-
-            summarySheet.mergeCells('A2:F2');
-            const metaRow = summarySheet.getCell('A2');
-            metaRow.value = `As On Date: ${this.filters.as_on_date} | Forecast Horizon: Next ${this.filters.period} Days | Currency: ${this.currency}`;
-            metaRow.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
-            metaRow.alignment = { horizontal: 'center', vertical: 'middle' };
-            summarySheet.getRow(2).height = 18;
-
-            // Blank Row
-            summarySheet.addRow([]);
-
-            // KPI Header Summary
-            summarySheet.mergeCells('A4:C4');
-            summarySheet.getCell('A4').value = `Current Liquid Cash: ${this.currency} ${this.formatMoney(this.kpis.current_liquid_cash)}`;
-            summarySheet.getCell('A4').font = { bold: true, color: { argb: 'FF065F46' } };
-
-            summarySheet.mergeCells('D4:F4');
-            summarySheet.getCell('D4').value = `Net Liquidity (${this.filters.period} Days): ${this.currency} ${this.formatMoney(this.kpis.net_liquidity)} (${this.kpis.status})`;
-            summarySheet.getCell('D4').font = { bold: true, color: { argb: 'FF8A7522' } };
-            summarySheet.getCell('D4').alignment = { horizontal: 'right' };
-
-            // Summary Table Header
-            const tableHeaders = ['#', 'Description', this.periods.p1Label, this.periods.p2Label, this.periods.p3Label, `Total (${this.filters.period} Days)`];
-            const headerRow = summarySheet.addRow(tableHeaders);
-            headerRow.height = 24;
-            headerRow.eachCell((cell) => {
-                cell.fill = headerFill;
-                cell.font = headerFont;
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            // ── SHEET 1: CASH FLOW FORECAST ──
+            const summarySheet = workbook.addWorksheet('Cash Flow Forecast', {
+                views: [{ state: 'frozen', ySplit: 6, showGridLines: true }]
             });
 
-            // Inflows
-            const inHeader = summarySheet.addRow(['-', 'PROJECTED INFLOWS', '', '', '', '']);
-            inHeader.font = { bold: true, color: { argb: 'FF065F46' } };
-            inHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
-
-            (this.summaryTable.inflows || []).forEach((item, idx) => {
-                const r = summarySheet.addRow([
-                    idx + 1,
-                    item.name,
-                    item.p1,
-                    item.p2,
-                    item.p3,
-                    item.total
-                ]);
-                r.getCell(1).alignment = { horizontal: 'center' };
-                r.getCell(2).alignment = { horizontal: 'left' };
-                for (let c = 3; c <= 6; c++) {
-                    r.getCell(c).alignment = { horizontal: 'right' };
-                    r.getCell(c).numFmt = '#,##0.00';
-                }
-            });
-
-            const inTotal = summarySheet.addRow([
-                '',
-                'Total Projected Inflows',
-                this.summaryTable.total_inflows?.p1 || 0,
-                this.summaryTable.total_inflows?.p2 || 0,
-                this.summaryTable.total_inflows?.p3 || 0,
-                this.summaryTable.total_inflows?.total || 0
-            ]);
-            inTotal.font = { bold: true, color: { argb: 'FF065F46' } };
-            inTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
-            for (let c = 3; c <= 6; c++) {
-                inTotal.getCell(c).numFmt = '#,##0.00';
-                inTotal.getCell(c).alignment = { horizontal: 'right' };
-            }
-
-            // Outflows
-            const outHeader = summarySheet.addRow(['-', 'PROJECTED OUTFLOWS', '', '', '', '']);
-            outHeader.font = { bold: true, color: { argb: 'FF9F1239' } };
-            outHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
-
-            (this.summaryTable.outflows || []).forEach((item, idx) => {
-                const r = summarySheet.addRow([
-                    idx + 3,
-                    item.name,
-                    item.p1,
-                    item.p2,
-                    item.p3,
-                    item.total
-                ]);
-                r.getCell(1).alignment = { horizontal: 'center' };
-                r.getCell(2).alignment = { horizontal: 'left' };
-                for (let c = 3; c <= 6; c++) {
-                    r.getCell(c).alignment = { horizontal: 'right' };
-                    r.getCell(c).numFmt = '#,##0.00';
-                }
-            });
-
-            const outTotal = summarySheet.addRow([
-                '',
-                'Total Projected Outflows',
-                this.summaryTable.total_outflows?.p1 || 0,
-                this.summaryTable.total_outflows?.p2 || 0,
-                this.summaryTable.total_outflows?.p3 || 0,
-                this.summaryTable.total_outflows?.total || 0
-            ]);
-            outTotal.font = { bold: true, color: { argb: 'FF9F1239' } };
-            outTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } };
-            for (let c = 3; c <= 6; c++) {
-                outTotal.getCell(c).numFmt = '#,##0.00';
-                outTotal.getCell(c).alignment = { horizontal: 'right' };
-            }
-
-            // Net Cash Flow
-            const netRow = summarySheet.addRow([
-                '★',
-                'Net Projected Cash Flow (Surplus / Deficit)',
-                this.summaryTable.net_cash_flow?.p1 || 0,
-                this.summaryTable.net_cash_flow?.p2 || 0,
-                this.summaryTable.net_cash_flow?.p3 || 0,
-                this.summaryTable.net_cash_flow?.total || 0
-            ]);
-            netRow.font = { bold: true, size: 10, color: { argb: 'FF1E293B' } };
-            netRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-            for (let c = 3; c <= 6; c++) {
-                netRow.getCell(c).numFmt = '#,##0.00';
-                netRow.getCell(c).alignment = { horizontal: 'right' };
-            }
-
-            // Borders & Column Widths
             summarySheet.columns = [
-                { width: 6 },
-                { width: 38 },
-                { width: 22 },
-                { width: 22 },
-                { width: 22 },
-                { width: 24 }
+                { width: 8 },
+                { width: 42 },
+                { width: 26 },
+                { width: 26 },
+                { width: 26 },
+                { width: 28 }
             ];
 
-            // ── SHEET 2: UPCOMING TRANSACTIONS ──
-            const txSheet = workbook.addWorksheet('Upcoming Transactions');
-            txSheet.views = [{ showGridLines: true }];
+            addExecutiveBanner(
+                summarySheet,
+                'F',
+                6,
+                `${activeProjName} - CASH FLOW & LIQUIDITY FORECAST REPORT`,
+                `As On Date: ${this.filters.as_on_date}   |   Financial Year: ${this.getSelectedFyName()}   |   Horizon: Next ${this.filters.period} Days   |   Current Cash: ${this.currency} ${this.formatMoney(this.kpis.current_liquid_cash)}`,
+                `LIQUIDITY PROJECTION MATRIX (${this.currency})`
+            );
 
-            const txHeaders = ['#', 'Date', 'Type', 'Reference No.', 'Party Name', 'Description', `Amount (${this.currency})`, 'Category'];
-            const txHeaderRow = txSheet.addRow(txHeaders);
-            txHeaderRow.height = 24;
-            txHeaderRow.eachCell((cell) => {
-                cell.fill = headerFill;
-                cell.font = headerFont;
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            // Row 6: Table Headers (#34495E Navy Slate Blue)
+            const tableHeaders = ['#', 'Description', this.periods.p1Label, this.periods.p2Label, this.periods.p3Label, `Total (${this.filters.period} Days)`];
+            const headerRow = summarySheet.getRow(6);
+            headerRow.values = tableHeaders;
+            headerRow.height = 30;
+            headerRow.eachCell({ includeEmpty: true }, (cell) => {
+                cell.fill = colHdrFill;
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                cell.border = slateBorder;
             });
 
-            this.allTransactions.forEach((tx, idx) => {
-                const r = txSheet.addRow([
+            let sRowIdx = 7;
+
+            // Inflows Section Subheader
+            const inHeader = summarySheet.getRow(sRowIdx);
+            inHeader.values = ['+', 'PROJECTED INFLOWS', '', '', '', ''];
+            inHeader.height = 24;
+            inHeader.eachCell({ includeEmpty: true }, (cell, col) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF065F46' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = dataBorder;
+            });
+            sRowIdx++;
+
+            (this.summaryTable.inflows || []).forEach((item, idx) => {
+                const r = summarySheet.getRow(sRowIdx);
+                r.values = [
+                    idx + 1,
+                    item.name,
+                    Number(item.p1 || 0),
+                    Number(item.p2 || 0),
+                    Number(item.p3 || 0),
+                    Number(item.total || 0)
+                ];
+                r.height = 24;
+                const rowBg = (idx % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
+                r.eachCell({ includeEmpty: true }, (cell, col) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                    cell.border = dataBorder;
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.font = {
+                        name: 'Calibri',
+                        size: 11,
+                        bold: (col === 2 || col === 6),
+                        color: { argb: (col === 6 ? 'FF008000' : 'FF000000') }
+                    };
+                    if (col >= 3 && col <= 6) cell.numFmt = '#,##0.00';
+                });
+                sRowIdx++;
+            });
+
+            const inTotal = summarySheet.getRow(sRowIdx);
+            inTotal.values = [
+                '',
+                'Total Projected Inflows',
+                Number(this.summaryTable.total_inflows?.p1 || 0),
+                Number(this.summaryTable.total_inflows?.p2 || 0),
+                Number(this.summaryTable.total_inflows?.p3 || 0),
+                Number(this.summaryTable.total_inflows?.total || 0)
+            ];
+            inTotal.height = 26;
+            inTotal.eachCell({ includeEmpty: true }, (cell, col) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF065F46' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = slateBorder;
+                if (col >= 3 && col <= 6) cell.numFmt = '#,##0.00';
+            });
+            sRowIdx++;
+
+            // Outflows Section Subheader
+            const outHeader = summarySheet.getRow(sRowIdx);
+            outHeader.values = ['-', 'PROJECTED OUTFLOWS', '', '', '', ''];
+            outHeader.height = 24;
+            outHeader.eachCell({ includeEmpty: true }, (cell) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF9F1239' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = dataBorder;
+            });
+            sRowIdx++;
+
+            (this.summaryTable.outflows || []).forEach((item, idx) => {
+                const r = summarySheet.getRow(sRowIdx);
+                r.values = [
+                    idx + 1,
+                    item.name,
+                    Number(item.p1 || 0),
+                    Number(item.p2 || 0),
+                    Number(item.p3 || 0),
+                    Number(item.total || 0)
+                ];
+                r.height = 24;
+                const rowBg = (idx % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
+                r.eachCell({ includeEmpty: true }, (cell, col) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                    cell.border = dataBorder;
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.font = {
+                        name: 'Calibri',
+                        size: 11,
+                        bold: (col === 2 || col === 6),
+                        color: { argb: (col === 6 ? 'FFB91C1C' : 'FF000000') }
+                    };
+                    if (col >= 3 && col <= 6) cell.numFmt = '#,##0.00';
+                });
+                sRowIdx++;
+            });
+
+            const outTotal = summarySheet.getRow(sRowIdx);
+            outTotal.values = [
+                '',
+                'Total Projected Outflows',
+                Number(this.summaryTable.total_outflows?.p1 || 0),
+                Number(this.summaryTable.total_outflows?.p2 || 0),
+                Number(this.summaryTable.total_outflows?.p3 || 0),
+                Number(this.summaryTable.total_outflows?.total || 0)
+            ];
+            outTotal.height = 26;
+            outTotal.eachCell({ includeEmpty: true }, (cell, col) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF9F1239' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = slateBorder;
+                if (col >= 3 && col <= 6) cell.numFmt = '#,##0.00';
+            });
+            sRowIdx++;
+
+            // Footer Row: Net Projected Cash Flow (#2C3E50 Dark Slate Navy)
+            const netRow = summarySheet.getRow(sRowIdx);
+            netRow.height = 36;
+            summarySheet.getCell(`A${sRowIdx}`).value = 'NET PROJECTED CASH FLOW (SURPLUS / DEFICIT)';
+            summarySheet.getCell(`C${sRowIdx}`).value = Number(this.summaryTable.net_cash_flow?.p1 || 0);
+            summarySheet.getCell(`D${sRowIdx}`).value = Number(this.summaryTable.net_cash_flow?.p2 || 0);
+            summarySheet.getCell(`E${sRowIdx}`).value = Number(this.summaryTable.net_cash_flow?.p3 || 0);
+            summarySheet.getCell(`F${sRowIdx}`).value = Number(this.summaryTable.net_cash_flow?.total || 0);
+            summarySheet.mergeCells(`A${sRowIdx}:B${sRowIdx}`);
+            for (let c = 1; c <= 6; c++) {
+                const cell = netRow.getCell(c);
+                cell.fill = titleFill;
+                cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = totalBorder;
+                if (c >= 3 && c <= 6) cell.numFmt = '#,##0.00';
+            }
+
+            // ── SHEET 2: UPCOMING TRANSACTIONS ──
+            const txSheet = workbook.addWorksheet('Upcoming Transactions', {
+                views: [{ state: 'frozen', ySplit: 6, showGridLines: true }]
+            });
+
+            txSheet.columns = [
+                { width: 8 },
+                { width: 16 },
+                { width: 24 },
+                { width: 20 },
+                { width: 28 },
+                { width: 42 },
+                { width: 22 },
+                { width: 22 }
+            ];
+
+            const txList = this.filteredTransactions || [];
+
+            addExecutiveBanner(
+                txSheet,
+                'H',
+                8,
+                `${activeProjName} - UPCOMING KEY TRANSACTIONS REPORT`,
+                `Financial Year: ${this.getSelectedFyName()}   |   Period: Next ${this.filters.period} Days   |   Currency: ${this.currency}   |   Records: ${txList.length}`,
+                'TRANSACTION DETAILS'
+            );
+
+            const txHeaders = ['#', 'Date', 'Type', 'Reference No.', 'Party Name', 'Description', `Amount (${this.currency})`, 'Category'];
+            const txHeaderRow = txSheet.getRow(6);
+            txHeaderRow.values = txHeaders;
+            txHeaderRow.height = 30;
+            txHeaderRow.eachCell({ includeEmpty: true }, (cell) => {
+                cell.fill = colHdrFill;
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                cell.border = slateBorder;
+            });
+
+            let tRowIdx = 7;
+            let txGrandTotal = 0;
+            txList.forEach((tx, idx) => {
+                const amt = parseFloat(tx.amount) || 0;
+                txGrandTotal += amt;
+                const isInflow = (tx.category || '').toLowerCase().includes('inflow');
+
+                const r = txSheet.getRow(tRowIdx);
+                r.values = [
                     idx + 1,
                     tx.date,
                     tx.type,
                     tx.ref_no,
                     tx.party_name,
                     tx.description,
-                    parseFloat(tx.amount) || 0,
-                    tx.category
-                ]);
-                r.getCell(1).alignment = { horizontal: 'center' };
-                r.getCell(2).alignment = { horizontal: 'center' };
-                r.getCell(3).alignment = { horizontal: 'center' };
-                r.getCell(4).alignment = { horizontal: 'center' };
-                r.getCell(5).alignment = { horizontal: 'left' };
-                r.getCell(6).alignment = { horizontal: 'left' };
-                r.getCell(7).alignment = { horizontal: 'right' };
-                r.getCell(7).numFmt = '#,##0.00';
-                r.getCell(8).alignment = { horizontal: 'center' };
+                    amt,
+                    (tx.category || '').toUpperCase()
+                ];
+                r.height = 24;
+                const rowBg = (idx % 2 === 0) ? 'FFF0F8FF' : 'FFFFFFFF';
 
-                r.eachCell(cell => cell.border = borderThin);
+                r.eachCell({ includeEmpty: true }, (cell, col) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                    cell.border = dataBorder;
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+                    if (col === 5) {
+                        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF000000' } };
+                    } else if (col === 7) {
+                        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: isInflow ? 'FF008000' : 'FF000000' } };
+                        cell.numFmt = '#,##0.00';
+                    } else if (col === 8) {
+                        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: isInflow ? 'FF008000' : 'FF1D4ED8' } };
+                    } else {
+                        cell.font = { name: 'Calibri', size: 11, color: { argb: 'FF000000' } };
+                    }
+                });
+                tRowIdx++;
             });
 
-            txSheet.columns = [
-                { width: 6 },
-                { width: 14 },
-                { width: 20 },
-                { width: 18 },
-                { width: 28 },
-                { width: 38 },
-                { width: 18 },
-                { width: 18 }
-            ];
+            // Footer Row: Total Scheduled Transactions (#2C3E50 Dark Slate Navy)
+            const txTotRow = txSheet.getRow(tRowIdx);
+            txTotRow.height = 36;
+            txSheet.getCell(`A${tRowIdx}`).value = `TOTAL SCHEDULED TRANSACTIONS (${txList.length} ENTRIES)`;
+            txSheet.getCell(`G${tRowIdx}`).value = txGrandTotal;
+            txSheet.getCell(`H${tRowIdx}`).value = '';
+            txSheet.mergeCells(`A${tRowIdx}:F${tRowIdx}`);
+            for (let c = 1; c <= 8; c++) {
+                const cell = txTotRow.getCell(c);
+                cell.fill = titleFill;
+                cell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = totalBorder;
+                if (c === 7) cell.numFmt = '#,##0.00';
+            }
 
             // Download file
             const buffer = await workbook.xlsx.writeBuffer();
