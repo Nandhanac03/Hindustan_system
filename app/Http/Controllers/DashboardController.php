@@ -214,38 +214,110 @@ class DashboardController extends Controller
             $collectionsData[] = round($netMonthCollected / 100000, 2);
         }
 
-        // ── Sales & Collection Trend (Apr - Sep) ──────────────────────────────
-        $trendMonths = [4, 5, 6, 7, 8, 9];
-        $trendCategories = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-        $trendRevenue = [];
-        $trendCollections = [];
-        $trendOutstanding = [];
+        // ── Sales & Collection Trend (Financial Year Dynamic DB Data) ────────
+        $now = Carbon::now();
+        $fyStartYear = ($now->month >= 4) ? $now->year : ($now->year - 1);
+        $fyEndYear = $fyStartYear + 1;
+        $fyStartDate = Carbon::create($fyStartYear, 4, 1)->startOfDay();
+        $fyEndDate = Carbon::create($fyEndYear, 3, 31)->endOfDay();
+
+        // 1. Group active sales (bookings) by year & month in current FY
+        $fyBookings = $bookingQuery()->where('status', 'active')
+            ->whereBetween('sale_date', [$fyStartDate, $fyEndDate])
+            ->selectRaw('YEAR(sale_date) as yr, MONTH(sale_date) as mo, SUM(total_amount) as total')
+            ->groupBy('yr', 'mo')
+            ->get();
+
+        $fyBookingsMap = [];
+        foreach ($fyBookings as $b) {
+            $fyBookingsMap[$b->yr . '-' . (int)$b->mo] = (float)$b->total;
+        }
+
+        // 2. Group realized collections by year & month in current FY
+        $fyPayments = $paymentQuery()
+            ->whereBetween('receipt_date', [$fyStartDate, $fyEndDate])
+            ->selectRaw('YEAR(receipt_date) as yr, MONTH(receipt_date) as mo, SUM(amount) as total')
+            ->groupBy('yr', 'mo')
+            ->get();
+
+        $fyPaymentsMap = [];
+        foreach ($fyPayments as $p) {
+            $fyPaymentsMap[$p->yr . '-' . (int)$p->mo] = (float)$p->total;
+        }
+
+        // 3. Indian FY sequence: Apr -> Mar
+        $allFyMonths = [
+            ['mo' => 4,  'yr' => $fyStartYear, 'label' => 'Apr'],
+            ['mo' => 5,  'yr' => $fyStartYear, 'label' => 'May'],
+            ['mo' => 6,  'yr' => $fyStartYear, 'label' => 'Jun'],
+            ['mo' => 7,  'yr' => $fyStartYear, 'label' => 'Jul'],
+            ['mo' => 8,  'yr' => $fyStartYear, 'label' => 'Aug'],
+            ['mo' => 9,  'yr' => $fyStartYear, 'label' => 'Sep'],
+            ['mo' => 10, 'yr' => $fyStartYear, 'label' => 'Oct'],
+            ['mo' => 11, 'yr' => $fyStartYear, 'label' => 'Nov'],
+            ['mo' => 12, 'yr' => $fyStartYear, 'label' => 'Dec'],
+            ['mo' => 1,  'yr' => $fyEndYear,   'label' => 'Jan'],
+            ['mo' => 2,  'yr' => $fyEndYear,   'label' => 'Feb'],
+            ['mo' => 3,  'yr' => $fyEndYear,   'label' => 'Mar'],
+        ];
+
+        // Display from April up to current month (at least 6 months: Apr-Sep)
+        $currentFyIdx = ($now->month >= 4) ? ($now->month - 4) : ($now->month + 8);
+        $maxDisplayIdx = max(5, $currentFyIdx);
+        $trendMonthsList = array_slice($allFyMonths, 0, $maxDisplayIdx + 1);
+
+        $trendCategories    = [];
+        $trendRevenue       = [];
+        $trendCollections   = [];
+        $trendOutstanding   = [];
         $trendCollectionPct = [];
 
-        foreach ($trendMonths as $idx => $m) {
-            $monthRevRaw = (float)($monthlyBookings[$m] ?? 0);
-            $monthColRaw = max(0.0, (float)($monthlyPayments[$m] ?? 0) - (float)($monthlyRefunds[$m] ?? 0));
+        foreach ($trendMonthsList as $item) {
+            $mo = $item['mo'];
+            $yr = $item['yr'];
+            $key = $yr . '-' . $mo;
+
+            $monthRevRaw = (float)($fyBookingsMap[$key] ?? 0.0);
+            $monthColRaw = max(0.0, (float)($fyPaymentsMap[$key] ?? 0.0) - (float)($monthlyRefunds[$mo] ?? 0.0));
             $monthOutRaw = max(0.0, $monthRevRaw - $monthColRaw);
 
-            // In Crores (₹ Cr)
-            $revCr = round($monthRevRaw / 10000000, 1);
-            $colCr = round($monthColRaw / 10000000, 1);
-            $outCr = round($monthOutRaw / 10000000, 1);
+            // In Crores (₹ Cr) rounded to 2 decimals
+            $revCr = round($monthRevRaw / 10000000, 2);
+            $colCr = round($monthColRaw / 10000000, 2);
+            $outCr = round($monthOutRaw / 10000000, 2);
 
-            $trendRevenue[] = $revCr;
+            $trendCategories[]  = $item['label'];
+            $trendRevenue[]     = $revCr;
             $trendCollections[] = $colCr;
             $trendOutstanding[] = $outCr;
 
-            // Trend line markers: Apr: 9.2, May: 12.0, Jun: 14.8, Jul: 14.5, Aug: 18.2, Sep: 18.9
+            // Accurate Collection % per month
             if ($monthRevRaw > 0) {
-                $trendCollectionPct[] = round(($colCr * 1.1) + ($idx * 0.5), 1);
+                $trendCollectionPct[] = round(($monthColRaw / $monthRevRaw) * 100, 1);
             } else {
-                $defaultCurve = [9.2, 12.0, 14.8, 14.5, 18.2, 18.9];
-                $trendCollectionPct[] = $defaultCurve[$idx] ?? 0;
+                $trendCollectionPct[] = 0.0;
             }
         }
 
-        $overallCollectionRate = '72.4%';
+        // Live Overall Collection Rate from original DB data
+        $overallCollectionRatePct = ($totalSales > 0) ? round(($totalCollections / $totalSales) * 100, 1) : 0.0;
+        $overallCollectionRate    = $overallCollectionRatePct . '%';
+
+        // Calculate dynamic chart max for Y-axis (in Crores) with appropriate headroom
+        $maxMetric = max(array_merge($trendRevenue, $trendCollections, $trendOutstanding, [0.0]));
+        if ($maxMetric <= 5) {
+            $trendChartMax = 5;
+        } elseif ($maxMetric <= 10) {
+            $trendChartMax = 10;
+        } elseif ($maxMetric <= 20) {
+            $trendChartMax = 20;
+        } elseif ($maxMetric <= 30) {
+            $trendChartMax = 30;
+        } elseif ($maxMetric <= 50) {
+            $trendChartMax = 50;
+        } else {
+            $trendChartMax = (int)(ceil($maxMetric / 10) * 10);
+        }
 
         // ── Unit Status Donut ─────────────────────────────────────────────────
         $unitStatusCounts = $unitQuery()->selectRaw('status, COUNT(*) as count')
@@ -309,7 +381,8 @@ class DashboardController extends Controller
             'trendCollections',
             'trendOutstanding',
             'trendCollectionPct',
-            'overallCollectionRate'
+            'overallCollectionRate',
+            'trendChartMax'
         ));
     }
 }

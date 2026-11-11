@@ -616,6 +616,38 @@ const trendRevenue = @json($trendRevenue);
 const trendCollections = @json($trendCollections);
 const trendOutstanding = @json($trendOutstanding);
 const trendCollectionPct = @json($trendCollectionPct);
+const trendChartMax = @json($trendChartMax ?? 10);
+
+const getTrendYAxisConfig = (primarySeriesName) => [
+    {
+        seriesName: primarySeriesName,
+        min: 0,
+        max: trendChartMax,
+        tickAmount: 5,
+        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
+        axisTicks: { show: true, color: '#94a3b8', width: 4 },
+        labels: {
+            style: { colors: '#334155', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, sans-serif' },
+            formatter: function (val) {
+                if (val === 0) return '0';
+                return currencySymbol + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + ' Cr';
+            }
+        }
+    },
+    {
+        seriesName: 'Collections',
+        show: false,
+        min: 0,
+        max: trendChartMax
+    },
+    {
+        seriesName: 'Collection %',
+        opposite: true,
+        show: false,
+        min: 0,
+        max: 100
+    }
+];
 
 const trendChartOptions = {
     series: [
@@ -658,7 +690,7 @@ const trendChartOptions = {
     markers: {
         size: [0, 0, 5],
         colors: ['#065f46'],
-        strokeColors: '#ffffff',
+        strokeColors: '#065f46',
         strokeWidth: 2,
         hover: { size: 7 }
     },
@@ -670,19 +702,7 @@ const trendChartOptions = {
             style: { colors: '#334155', fontSize: '12px', fontWeight: 600, fontFamily: 'Inter, sans-serif' }
         }
     },
-    yaxis: {
-        min: 0,
-        max: 50,
-        tickAmount: 5,
-        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
-        axisTicks: { show: true, color: '#94a3b8', width: 4 },
-        labels: {
-            style: { colors: '#334155', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, sans-serif' },
-            formatter: function (val) {
-                return val === 0 ? '0' : currencySymbol + Math.round(val) + ' Cr';
-            }
-        }
-    },
+    yaxis: getTrendYAxisConfig('Revenue'),
     grid: {
         borderColor: '#f1f5f9',
         strokeDashArray: 0,
@@ -743,7 +763,8 @@ document.querySelectorAll('.trend-filter-btn').forEach(btn => {
             trendChart.updateOptions({
                 colors: ['#ebc76b', '#4ade80', '#065f46'],
                 stroke: { width: [0, 0, 2.5], curve: 'straight' },
-                markers: { size: [0, 0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+                markers: { size: [0, 0, 5], colors: ['#065f46'], strokeColors: '#065f46', strokeWidth: 2 },
+                yaxis: getTrendYAxisConfig('Revenue')
             });
             trendChart.updateSeries([
                 { name: 'Revenue', type: 'column', data: trendRevenue },
@@ -754,7 +775,31 @@ document.querySelectorAll('.trend-filter-btn').forEach(btn => {
             trendChart.updateOptions({
                 colors: ['#4ade80', '#065f46'],
                 stroke: { width: [0, 2.5], curve: 'straight' },
-                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#065f46', strokeWidth: 2 },
+                yaxis: [
+                    {
+                        seriesName: 'Collections',
+                        min: 0,
+                        max: trendChartMax,
+                        tickAmount: 5,
+                        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
+                        axisTicks: { show: true, color: '#94a3b8', width: 4 },
+                        labels: {
+                            style: { colors: '#334155', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, sans-serif' },
+                            formatter: function (val) {
+                                if (val === 0) return '0';
+                                return currencySymbol + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + ' Cr';
+                            }
+                        }
+                    },
+                    {
+                        seriesName: 'Collection %',
+                        opposite: true,
+                        show: false,
+                        min: 0,
+                        max: 100
+                    }
+                ]
             });
             trendChart.updateSeries([
                 { name: 'Collections', type: 'column', data: trendCollections },
@@ -764,7 +809,31 @@ document.querySelectorAll('.trend-filter-btn').forEach(btn => {
             trendChart.updateOptions({
                 colors: ['#f59e0b', '#065f46'],
                 stroke: { width: [0, 2.5], curve: 'straight' },
-                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#ffffff', strokeWidth: 2 }
+                markers: { size: [0, 5], colors: ['#065f46'], strokeColors: '#065f46', strokeWidth: 2 },
+                yaxis: [
+                    {
+                        seriesName: 'Outstanding',
+                        min: 0,
+                        max: trendChartMax,
+                        tickAmount: 5,
+                        axisBorder: { show: true, color: '#94a3b8', width: 1.5 },
+                        axisTicks: { show: true, color: '#94a3b8', width: 4 },
+                        labels: {
+                            style: { colors: '#334155', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, sans-serif' },
+                            formatter: function (val) {
+                                if (val === 0) return '0';
+                                return currencySymbol + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + ' Cr';
+                            }
+                        }
+                    },
+                    {
+                        seriesName: 'Collection %',
+                        opposite: true,
+                        show: false,
+                        min: 0,
+                        max: 100
+                    }
+                ]
             });
             trendChart.updateSeries([
                 { name: 'Outstanding', type: 'column', data: trendOutstanding },
