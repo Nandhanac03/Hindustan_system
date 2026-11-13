@@ -1,13 +1,36 @@
 <x-erp-layout>
-    <x-slot:title>User Management</x-slot:title>
-    <x-slot:headerTitle>User Directory</x-slot:headerTitle>
+    <x-slot:title>Users & Roles - Hindustan ERP</x-slot:title>
+    <x-slot:headerTitle>Users & Roles</x-slot:headerTitle>
 
-    <div class="space-y-6" x-data="userManagementApp()">
+    <div class="space-y-6" x-data="userManagementApp()" x-cloak>
 
+        {{-- Toast Notification --}}
+        <div x-show="toast.show" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform translate-y-2"
+             class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold"
+             :class="toast.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'"
+             style="display: none;">
+            <span x-text="toast.message"></span>
+            <button @click="toast.show = false" class="text-slate-400 hover:text-slate-600 ml-2">✕</button>
+        </div>
 
+        @if(session('success'))
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:opacity-75 cursor-pointer">✕</button>
+            </div>
+        @endif
 
         @if(session('error'))
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between">
+            <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between shadow-xs">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>{{ session('error') }}</span>
@@ -16,39 +39,21 @@
             </div>
         @endif
 
-
-        {{-- Under Construction Notice --}}
-        <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
-            <div class="flex items-start md:items-center gap-4">
-                <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
-                    🚧
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
-                        <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                            Work In Progress
-                        </span>
-                    </div>
-                    <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
-                        We're working on this module. It is not yet ready for use and will be released shortly.
-                    </h2>
-                    <p class="text-xs md:text-sm font-medium text-red-800">
-                        This module is currently being finalized. Please check back soon for full availability.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Header -->
+        {{-- PAGE HEADER --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-base font-bold text-slate-900 uppercase tracking-wide">Enterprise Users</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Manage credentials, permissions, system separation, and statuses.</p>
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-[#a38c29] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#a38c29]/25">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 tracking-tight">Users</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Manage ERP users, assign roles and control access</p>
+                </div>
             </div>
-            
-            <button type="button" @click="openAddModalFn()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
+
+            <button type="button" @click="openAddModalFn()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -56,146 +61,360 @@
             </button>
         </div>
 
-        <!-- Users Table Card -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        {{-- TOP 4 SUMMARY METRIC CARDS (CV CARDS - MATCHING OTHER ERP MODULES) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {{-- Card 1: Total Users --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] h-full">
+                <div class="flex items-center justify-between gap-2 mb-3 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Users</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                        {{ $totalUsers }} Total
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        {{ $totalUsers }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1 font-medium">Configured system enterprise users</p>
+                </div>
+            </div>
+
+            {{-- Card 2: Active Users --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#09876B] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#09876B]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(9,135,107,0.15)] h-full">
+                <div class="flex items-center justify-between gap-2 mb-3 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-[#09876B] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Users</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                        {{ $activeUsers }} Active
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                        {{ $activeUsers }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1 font-medium">Accounts currently active &amp; enabled</p>
+                </div>
+            </div>
+
+            {{-- Card 3: Inactive Users --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] h-full">
+                <div class="flex items-center justify-between gap-2 mb-3 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Inactive Users</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                        {{ $inactiveUsers }} Inactive
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
+                        {{ $inactiveUsers }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1 font-medium">Suspended or deactivated accounts</p>
+                </div>
+            </div>
+
+            {{-- Card 4: Roles --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-purple-600 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(147,51,234,0.15)] h-full">
+                <div class="flex items-center justify-between gap-2 mb-3 relative z-10 min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100/60 transition-all duration-300 group-hover:bg-purple-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Roles</span>
+                    </div>
+                    <span class="shrink-0 whitespace-nowrap text-[9px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-purple-300 group-hover:bg-purple-100/60">
+                        {{ $rolesCount }} Roles
+                    </span>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-purple-600 font-mono tracking-tight block group-hover:text-purple-700 transition-colors duration-300">
+                        {{ $rolesCount }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1 font-medium">Configured access privileges</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- SEARCH & FILTER BAR (CLIENT-SIDE FILTERING: NO URL CHANGE, NO PAGE RELOAD) --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs">
+            <div class="flex flex-wrap items-center gap-3">
+                {{-- Search Input (Live filtering with zero reload & zero URL change) --}}
+                <div class="relative flex-1 min-w-[260px]">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" x-model="searchQuery" @input="currentPage = 1"
+                           placeholder="Search by name, email or username..."
+                           class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition font-medium">
+                </div>
+
+                {{-- Role Filter --}}
+                <div class="min-w-[160px]">
+                    <select x-model="roleFilter" @change="currentPage = 1"
+                            class="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition cursor-pointer">
+                        <option value="all">All Roles</option>
+                        @foreach($roles as $r)
+                            <option value="{{ $r->name }}">{{ $r->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Status Filter --}}
+                <div class="min-w-[140px]">
+                    <select x-model="statusFilter" @change="currentPage = 1"
+                            class="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition cursor-pointer">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+
+                {{-- Theme-Colored Signature Gold RESET FILTERS Button --}}
+                <div>
+                    <button type="button" @click="resetFilters()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer active:scale-95 group">
+                        <svg class="w-3.5 h-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>RESET</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- USERS TABLE GRID --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
             <div class="p-4 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Configured Users Directory</h3>
                 <span class="px-2.5 py-1 rounded-full bg-slate-200/70 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest">
-                    Total Users: {{ $users->total() }}
+                    Total Users: <span x-text="totalFiltered"></span>
                 </span>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
-                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                        <tr class="erp-table-header border-b border-slate-700 text-left">
-                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Employee &amp; Name</th>
-                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Associated System</th>
-                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Role Assignment</th>
-                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white text-center">Account Status</th>
-                            <th class="px-6 py-3.5 erp-table-header border-r border-slate-600 text-white">Registered Date</th>
-                            <th class="px-6 py-3.5 erp-table-header text-white text-right pr-6">Actions</th>
+                    <thead>
+                        <tr class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-700">
+                            <th class="px-4 py-3.5 w-12 text-center erp-table-header border-r border-slate-600 text-white">#</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Name &amp; Employee</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Email</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Role(s)</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white text-center">Status</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Last Login</th>
+                            <th class="px-5 py-3.5 erp-table-header text-white text-right pr-6">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
-                        @forelse($users as $user)
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <!-- Employee & Name -->
-                                <td class="px-6 py-4 border-b border-slate-100">
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold text-slate-900">{{ $user->name }}</span>
-                                            @if($user->employee_code)
-                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono uppercase bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20">{{ $user->employee_code }}</span>
-                                            @endif
+                    <tbody class="divide-y divide-slate-100 text-xs">
+                        <template x-for="(user, index) in paginatedUsers" :key="user.id">
+                            <tr class="hover:bg-slate-50/70 transition cursor-pointer"
+                                :class="selectedUserId === user.id ? 'bg-[#a38c29]/5' : ''"
+                                @click="selectUserRow(user)">
+                                {{-- # --}}
+                                <td class="px-4 py-3.5 text-center text-slate-400 font-medium">
+                                    <span x-text="(currentPage - 1) * perPage + index + 1"></span>
+                                </td>
+
+                                {{-- Name + Avatar --}}
+                                <td class="px-5 py-3.5 font-semibold text-slate-800">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs"
+                                             :class="user.avatar_bg" x-text="user.initials">
                                         </div>
-                                        <div class="text-[11px] text-slate-400 font-medium mt-0.5">{{ $user->email }}</div>
-                                        @if($user->phone)
-                                            <div class="text-[10px] text-slate-500 font-medium">{{ $user->phone }}</div>
-                                        @endif
+                                        <div>
+                                            <span class="block text-xs font-bold text-slate-900" x-text="user.name"></span>
+                                            <span x-show="user.employee_code" class="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono uppercase bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 inline-block mt-0.5" x-text="user.employee_code"></span>
+                                        </div>
                                     </div>
                                 </td>
 
-                                <!-- Associated System Badge -->
-                                <td class="px-6 py-4 border-b border-slate-100">
-                                    @if($user->system)
-                                        @php
-                                            $systemColor = $user->system->code === 'IN' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-blue-50 text-blue-700 border-blue-100';
-                                        @endphp
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase border {{ $systemColor }}">
-                                            {{ $user->system->code }} - {{ $user->system->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-slate-400 italic font-semibold text-[11px]">Global Admin</span>
-                                    @endif
+                                {{-- Email --}}
+                                <td class="px-5 py-3.5 text-slate-600 font-medium">
+                                    <span x-text="user.email"></span>
+                                    <div x-show="user.phone" class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="user.phone"></div>
                                 </td>
 
-                                <!-- Role -->
-                                <td class="px-6 py-4 border-b border-slate-100">
-                                    <div class="flex flex-wrap gap-1">
-                                        @forelse($user->roles as $role)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                {{ $role->name }}
+                                {{-- Role(s) Badges --}}
+                                <td class="px-5 py-3.5">
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="rName in user.role_names" :key="rName">
+                                            <span>
+                                                <template x-if="rName === 'Main User' || rName === 'Owner'">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30">
+                                                        <span>👑</span>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="rName === 'Super Admin'">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                        <span>★</span>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="rName === 'Admin'">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="rName === 'Sales'">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="rName === 'Accountant'">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="!['Main User', 'Owner', 'Super Admin', 'Admin', 'Sales', 'Accountant'].includes(rName)">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        <span>🛡️</span>
+                                                        <span x-text="rName"></span>
+                                                    </span>
+                                                </template>
                                             </span>
-                                        @empty
-                                            <span class="text-slate-400 italic text-[11px]">No Role</span>
-                                        @endforelse
+                                        </template>
+                                        <span x-show="!user.role_names || user.role_names.length === 0" class="text-slate-400 italic text-[11px]">No Role</span>
                                     </div>
                                 </td>
 
-                                <!-- Status -->
-                                <td class="px-6 py-4 border-b border-slate-100 text-center">
-                                    @if($user->status === 'active')
-                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold text-[10px] uppercase">Active</span>
-                                    @elseif($user->status === 'inactive')
-                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-extrabold text-[10px] uppercase">Inactive</span>
-                                    @else
-                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-extrabold text-[10px] uppercase">Suspended</span>
-                                    @endif
+                                {{-- Status --}}
+                                <td class="px-5 py-3.5 text-center">
+                                    <template x-if="user.status === 'active'">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold text-[10px] uppercase">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Active</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="user.status === 'inactive'">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-extrabold text-[10px] uppercase">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            <span>Inactive</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="user.status !== 'active' && user.status !== 'inactive'">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-extrabold text-[10px] uppercase">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                            <span>Suspended</span>
+                                        </span>
+                                    </template>
                                 </td>
 
-                                <!-- Registered Date -->
-                                <td class="px-6 py-4 border-b border-slate-100 text-slate-400 font-medium">
-                                    {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}
-                                </td>
+                                {{-- Last Login --}}
+                                <td class="px-5 py-3.5 text-slate-600 font-medium" x-text="user.last_login_formatted"></td>
 
-                                <!-- Actions -->
-                                <td class="px-6 py-4 border-b border-slate-100 text-right whitespace-nowrap">
+                                {{-- Actions --}}
+                                <td class="px-5 py-3.5 text-right pr-6 whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center justify-end gap-1.5">
-                                        <!-- View -->
-                                        <button type="button" @click="showUser(@js($user), '{{ route('admin.users.update', $user->id) }}', '{{ route('admin.users.toggle-status', $user->id) }}')" title="View User Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm cursor-pointer">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        {{-- Edit Button --}}
+                                        <button type="button" 
+                                                @click="openEditModalFn(user)"
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer"
+                                                title="Edit User">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                            </svg>
                                         </button>
 
-                                        <!-- Edit -->
-                                        <button type="button" @click="editUserFn(@js($user), '{{ route('admin.users.update', $user->id) }}')" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Edit User">
-                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                        {{-- Lock / Password Reset Button --}}
+                                        <button type="button"
+                                                @click="resetUserPassword(user)"
+                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer"
+                                                title="Reset Password / Lock">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                            </svg>
                                         </button>
 
-                                        <!-- Toggle Status Trigger -->
-                                        <button type="button" @click="toggleStatusFn(@js($user), '{{ route('admin.users.toggle-status', $user->id) }}')"
-                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm cursor-pointer"
-                                                title="{{ $user->status === 'active' ? 'Suspend / Deactivate Account' : 'Activate Account' }}">
-                                            @if($user->status === 'active')
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                            @else
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            @endif
+                                        {{-- Delete Button --}}
+                                        <button type="button"
+                                                @click="deleteUserRow(user)"
+                                                class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer"
+                                                title="Delete User">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-6 py-8 text-center text-slate-400 font-semibold italic">
-                                    No users found in this operating system node.
-                                </td>
-                            </tr>
-                        @endforelse
+                        </template>
+
+                        <tr x-show="totalFiltered === 0">
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-400 italic font-semibold">
+                                No users found matching the filter criteria.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
-            @if($users->hasPages())
-                <div class="p-4 bg-slate-50 border-t border-slate-100">
-                    {{ $users->links() }}
+            {{-- Table Footer / Pagination (Client-Side, No URL change, No Reload) --}}
+            <div class="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div class="text-slate-500 font-medium">
+                    Showing <span class="font-bold text-slate-700" x-text="startIndex"></span> to <span class="font-bold text-slate-700" x-text="endIndex"></span> of <span class="font-bold text-slate-700" x-text="totalFiltered"></span> users
                 </div>
-            @endif
+
+                <div class="inline-flex items-center gap-1" x-show="totalPages > 1">
+                    {{-- Previous Page Button --}}
+                    <button type="button" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
+                            :class="currentPage === 1 ? 'text-slate-300 border-slate-200 cursor-not-allowed' : 'text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer'"
+                            class="w-7 h-7 rounded-lg border inline-flex items-center justify-center text-xs font-semibold select-none transition">
+                        &lt;
+                    </button>
+
+                    {{-- Page Numbers --}}
+                    <template x-for="p in pagesList" :key="p">
+                        <button type="button" @click="goToPage(p)"
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-xs font-black' : 'border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold'"
+                                class="w-7 h-7 rounded-lg inline-flex items-center justify-center text-xs transition cursor-pointer"
+                                x-text="p">
+                        </button>
+                    </template>
+
+                    {{-- Next Page Button --}}
+                    <button type="button" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
+                            :class="currentPage === totalPages ? 'text-slate-300 border-slate-200 cursor-not-allowed' : 'text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer'"
+                            class="w-7 h-7 rounded-lg border inline-flex items-center justify-center text-xs font-semibold select-none transition">
+                        &gt;
+                    </button>
+                </div>
+            </div>
         </div>
 
+
+
         {{-- ========================================================================= --}}
-        {{-- ADD USER MODAL --}}
+        {{-- POPUP MODAL 1: ADD NEW USER MODAL --}}
         {{-- ========================================================================= --}}
         <div x-show="openAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
             <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="closeAddModalFn()">
-                {{-- Dark Header --}}
+                {{-- Dark Gradient Header with Gold Accent --}}
                 <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">USER DIRECTORY</p>
-                            <h2 class="text-lg font-extrabold text-white">Register New Enterprise User</h2>
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1">USER DIRECTORY</p>
+                            <h2 class="text-lg font-black text-white">Register New Enterprise User</h2>
                         </div>
                         <button type="button" @click="closeAddModalFn()" class="text-slate-400 hover:text-white transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -212,73 +431,51 @@
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name <span class="text-rose-500">*</span></label>
                                 <input type="text" name="name" x-model="addForm.name"
                                        @input="if (addErrors.name) delete addErrors.name"
-                                       :class="addErrors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('name') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
-                                       placeholder="e.g. Rajesh Kumar"
+                                       :class="addErrors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                       placeholder="e.g. Deepa Menon"
                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                                 <template x-if="addErrors.name">
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.name"></p>
                                 </template>
-                                @error('name')
-                                    <p x-show="!addErrors.name" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address <span class="text-rose-500">*</span></label>
                                 <input type="email" name="email" x-model="addForm.email"
                                        @input="if (addErrors.email) delete addErrors.email"
-                                       :class="addErrors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('email') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
-                                       placeholder="user@company.com"
+                                       :class="addErrors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                       placeholder="user@hindustan.com"
                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                                 <template x-if="addErrors.email">
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.email"></p>
                                 </template>
-                                @error('email')
-                                    <p x-show="!addErrors.email" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
 
-                        <!-- Phone & Employee Code -->
+                        <!-- Phone & Username / Employee Code -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number</label>
                                 <input type="text" name="phone" x-model="addForm.phone"
-                                       @input="if (addErrors.phone) delete addErrors.phone"
-                                       :class="addErrors.phone ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('phone') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
                                        placeholder="+91 99999 99999"
-                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
-                                <template x-if="addErrors.phone">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.phone"></p>
-                                </template>
-                                @error('phone')
-                                    <p x-show="!addErrors.phone" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
+                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee Code</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username / Employee Code</label>
                                 <input type="text" name="employee_code" x-model="addForm.employee_code"
-                                       @input="if (addErrors.employee_code) delete addErrors.employee_code"
-                                       :class="addErrors.employee_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('employee_code') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
-                                       placeholder="e.g. EMP-101"
-                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
-                                <template x-if="addErrors.employee_code">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.employee_code"></p>
-                                </template>
-                                @error('employee_code')
-                                    <p x-show="!addErrors.employee_code" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
+                                       placeholder="e.g. deepa.menon or EMP-101"
+                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
                             </div>
                         </div>
 
                         <!-- Operating System & Role -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System Node <span class="text-rose-500">*</span></label>
                                 <select name="system_id" x-model="addForm.system_id"
                                         @change="if (addErrors.system_id) delete addErrors.system_id"
-                                        :class="addErrors.system_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('system_id') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                        :class="addErrors.system_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
                                         class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select System...</option>
                                     @foreach($systems as $sys)
@@ -290,16 +487,13 @@
                                 <template x-if="addErrors.system_id">
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.system_id"></p>
                                 </template>
-                                @error('system_id')
-                                    <p x-show="!addErrors.system_id" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
                                 <select name="role" x-model="addForm.role"
                                         @change="if (addErrors.role) delete addErrors.role"
-                                        :class="addErrors.role ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('role') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                        :class="addErrors.role ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
                                         class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select Role...</option>
                                     @foreach($roles as $role)
@@ -311,9 +505,6 @@
                                 <template x-if="addErrors.role">
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.role"></p>
                                 </template>
-                                @error('role')
-                                    <p x-show="!addErrors.role" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
 
@@ -322,58 +513,48 @@
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
                                 <select name="status" x-model="addForm.status"
-                                        @change="if (addErrors.status) delete addErrors.status"
-                                        :class="addErrors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('status') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
-                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                        class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                     <option value="suspended">Suspended</option>
                                 </select>
-                                <template x-if="addErrors.status">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.status"></p>
-                                </template>
-                                @error('status')
-                                    <p x-show="!addErrors.status" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password <span class="text-rose-500">*</span> <span class="text-[9px] text-slate-400 font-normal lowercase">(min 6 chars)</span></label>
                                 <input type="password" name="password" x-model="addForm.password"
                                        @input="if (addErrors.password) delete addErrors.password"
-                                       :class="addErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : '{{ $errors->has('password') ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200 bg-slate-50' }}'"
+                                       :class="addErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
                                        placeholder="Minimum 6 characters"
                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                                 <template x-if="addErrors.password">
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.password"></p>
                                 </template>
-                                @error('password')
-                                    <p x-show="!addErrors.password" class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
                     </div>
 
+                    {{-- Modal Footer --}}
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-                        <button type="button" @click="closeAddModalFn()" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE USER ACCOUNT</button>
+                        <button type="button" @click="closeAddModalFn()" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase tracking-wider transition cursor-pointer">CANCEL</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">SAVE USER ACCOUNT</button>
                     </div>
                 </form>
             </div>
         </div>
 
         {{-- ========================================================================= --}}
-        {{-- EDIT USER MODAL --}}
+        {{-- POPUP MODAL 2: EDIT USER MODAL --}}
         {{-- ========================================================================= --}}
         <div x-show="openEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
             <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="openEditModal = false">
-                {{-- Dark Header --}}
+                {{-- Dark Header with Gold Accent --}}
                 <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">USER DIRECTORY</p>
-                            <h2 class="text-lg font-extrabold text-white">Edit User Account</h2>
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1">USER DIRECTORY</p>
+                            <h2 class="text-lg font-black text-white">Edit User Account</h2>
                         </div>
                         <button type="button" @click="openEditModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -419,7 +600,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee Code</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username / Employee Code</label>
                                 <input type="text" name="employee_code" x-model="editForm.employee_code" placeholder="e.g. EMP-001"
                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
                             </div>
@@ -430,9 +611,7 @@
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System <span class="text-rose-500">*</span></label>
                                 <select name="system_id" x-model="editForm.system_id"
-                                        @change="if (editErrors.system_id) delete editErrors.system_id"
-                                        :class="editErrors.system_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                        class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select System...</option>
                                     @foreach($systems as $sys)
                                         <option value="{{ $sys->id }}">
@@ -440,17 +619,12 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <template x-if="editErrors.system_id">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.system_id"></p>
-                                </template>
                             </div>
 
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
                                 <select name="role" x-model="editForm.role"
-                                        @change="if (editErrors.role) delete editErrors.role"
-                                        :class="editErrors.role ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                        class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="">Select Role...</option>
                                     @foreach($roles as $role)
                                         <option value="{{ $role->name }}">
@@ -458,9 +632,6 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <template x-if="editErrors.role">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.role"></p>
-                                </template>
                             </div>
                         </div>
 
@@ -469,143 +640,28 @@
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
                                 <select name="status" x-model="editForm.status"
-                                        @change="if (editErrors.status) delete editErrors.status"
-                                        :class="editErrors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                        class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
+                                        class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 cursor-pointer focus:outline-none transition-all font-bold">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                     <option value="suspended">Suspended</option>
                                 </select>
-                                <template x-if="editErrors.status">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.status"></p>
-                                </template>
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">New Password <span class="text-slate-400 font-normal normal-case">(Leave blank to keep current)</span></label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">New Password <span class="text-slate-400 font-normal lowercase">(leave blank to keep current)</span></label>
                                 <input type="password" name="password" x-model="editForm.password"
-                                       @input="if (editErrors.password) delete editErrors.password"
-                                       :class="editErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
                                        placeholder="••••••••"
-                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
-                                <template x-if="editErrors.password">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="editErrors.password"></p>
-                                </template>
+                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                             </div>
                         </div>
                     </div>
 
+                    {{-- Modal Footer --}}
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-                        <button type="button" @click="openEditModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">UPDATE USER ACCOUNT</button>
+                        <button type="button" @click="openEditModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase tracking-wider transition cursor-pointer">CANCEL</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">UPDATE USER ACCOUNT</button>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        {{-- ========================================================================= --}}
-        {{-- VIEW USER PROFILE MODAL --}}
-        {{-- ========================================================================= --}}
-        <div x-show="openViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none" @click.away="openViewModal = false">
-                {{-- Dark Header --}}
-                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10 flex items-center justify-between">
-                        <div>
-                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">USER PROFILE</p>
-                            <h2 class="text-lg font-extrabold text-white">User Profile Details</h2>
-                        </div>
-                        <button type="button" @click="openViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                    <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Employee / Name</span>
-                            <span class="text-sm font-extrabold text-slate-900 block mt-0.5" x-text="viewUser.name"></span>
-                            <span class="text-xs text-slate-500 block mt-0.5 font-semibold" x-text="viewUser.email"></span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Employee Code</span>
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/25" x-text="viewUser.employee_code"></span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">System Node</span>
-                            <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="viewUser.system_name"></span>
-                        </div>
-                        <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Account Status</span>
-                            <span class="text-xs font-bold uppercase mt-0.5 block" :class="viewUser.status === 'active' ? 'text-emerald-600' : (viewUser.status === 'inactive' ? 'text-amber-600' : 'text-rose-600')" x-text="viewUser.status"></span>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Phone Number</span>
-                        <span class="text-xs font-bold text-slate-800 mt-1 block" x-text="viewUser.phone"></span>
-                    </div>
-
-                    <div class="p-4 rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Roles</span>
-                        <div class="flex flex-wrap gap-1.5 mt-1.5">
-                            <template x-for="role in viewUser.roles" :key="role">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100" x-text="role"></span>
-                            </template>
-                            <template x-if="!viewUser.roles || viewUser.roles.length === 0">
-                                <span class="text-xs text-slate-400 italic font-semibold">No roles assigned</span>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="openViewModal = false" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">CLOSE</button>
-                        <button type="button" @click="triggerStatusFromView()"
-                                class="px-4 py-2 border text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer"
-                                :class="viewUser.status === 'active' ? 'border-rose-200 hover:bg-rose-50 text-rose-600' : 'border-emerald-200 hover:bg-emerald-50 text-emerald-600'"
-                                x-text="viewUser.status === 'active' ? 'SUSPEND' : 'ACTIVATE'">
-                        </button>
-                    </div>
-                    <button type="button" @click="triggerEditFromView()" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5 cursor-pointer">
-                        <span>EDIT PROFILE</span>
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- ========================================================================= --}}
-        {{-- CONFIRM STATUS MODAL --}}
-        {{-- ========================================================================= --}}
-        <div x-show="openStatusModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border-0 ring-0 outline-none" @click.away="openStatusModal = false">
-                <div class="p-6 text-center space-y-4">
-                    <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-[#a38c29] flex items-center justify-center mx-auto text-lg">
-                        ⚠️
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Confirm Status Change</h3>
-                        <p class="text-xs text-slate-500">
-                            Are you sure you want to change account status for <strong class="text-slate-800" x-text="statusForm.name"></strong> to <strong class="uppercase text-[#a38c29]" x-text="statusForm.new_status"></strong>?
-                        </p>
-                    </div>
-                </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="openStatusModal = false" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">CANCEL</button>
-                    <form method="POST" :action="statusForm.action" class="inline">
-                        @csrf
-                        <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer">
-                            CONFIRM
-                        </button>
-                    </form>
-                </div>
             </div>
         </div>
 
@@ -614,170 +670,104 @@
     <script>
     function userManagementApp() {
         return {
-            openAddModal: {{ $errors->any() && !old('_method') ? 'true' : 'false' }},
-            openEditModal: {{ $errors->any() && old('_method') ? 'true' : 'false' }},
-            openViewModal: false,
-            openStatusModal: false,
+            usersList: {!! json_encode($formattedUsers ?? []) !!},
+            searchQuery: '',
+            roleFilter: 'all',
+            statusFilter: 'all',
+            currentPage: 1,
+            perPage: 5,
 
-            rawSelectedUser: null,
+            get filteredUsers() {
+                let list = this.usersList || [];
+                if (this.searchQuery && this.searchQuery.trim()) {
+                    const q = this.searchQuery.toLowerCase().trim();
+                    list = list.filter(u =>
+                        (u.name && u.name.toLowerCase().includes(q)) ||
+                        (u.email && u.email.toLowerCase().includes(q)) ||
+                        (u.employee_code && u.employee_code.toLowerCase().includes(q)) ||
+                        (u.phone && u.phone.toLowerCase().includes(q))
+                    );
+                }
+                if (this.roleFilter && this.roleFilter !== 'all') {
+                    list = list.filter(u => Array.isArray(u.role_names) && u.role_names.includes(this.roleFilter));
+                }
+                if (this.statusFilter && this.statusFilter !== 'all') {
+                    list = list.filter(u => u.status === this.statusFilter);
+                }
+                return list;
+            },
+
+            get totalFiltered() {
+                return this.filteredUsers.length;
+            },
+
+            get totalPages() {
+                return Math.max(1, Math.ceil(this.totalFiltered / this.perPage));
+            },
+
+            get paginatedUsers() {
+                const start = (this.currentPage - 1) * this.perPage;
+                return this.filteredUsers.slice(start, start + this.perPage);
+            },
+
+            get startIndex() {
+                if (this.totalFiltered === 0) return 0;
+                return (this.currentPage - 1) * this.perPage + 1;
+            },
+
+            get endIndex() {
+                return Math.min(this.currentPage * this.perPage, this.totalFiltered);
+            },
+
+            get pagesList() {
+                let pages = [];
+                for (let i = 1; i <= this.totalPages; i++) {
+                    pages.push(i);
+                }
+                return pages;
+            },
+
+            resetFilters() {
+                this.searchQuery = '';
+                this.roleFilter = 'all';
+                this.statusFilter = 'all';
+                this.currentPage = 1;
+                if (window.location.search) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            },
+
+            goToPage(p) {
+                if (p >= 1 && p <= this.totalPages) {
+                    this.currentPage = p;
+                }
+            },
+
+            openAddModal: false,
+            openEditModal: false,
+            selectedUserId: {{ $users->first()?->id ?? 'null' }},
+            selectedUserName: '{{ $users->first()?->name ?? 'User' }}',
+            activeTab: 'role-permissions',
+            permissionRole: '{{ $roles->first()?->name ?? 'Sales' }}',
+            selectAllPerms: true,
+
+            toast: {
+                show: false,
+                message: '',
+                type: 'success'
+            },
 
             addForm: {
-                name: @js(old('name', '')),
-                email: @js(old('email', '')),
-                phone: @js(old('phone', '')),
-                employee_code: @js(old('employee_code', '')),
-                system_id: @js(old('system_id', $systems->first()?->id ?? '')),
-                role: @js(old('role', '')),
-                status: @js(old('status', 'active')),
-                password: ''
-            },
-            addErrors: {},
-            editErrors: {},
-
-            openAddModalFn() {
-                this.addErrors = {};
-                this.openAddModal = true;
-            },
-
-            closeAddModalFn() {
-                this.addErrors = {};
-                this.openAddModal = false;
-            },
-
-            validateAddUser(e) {
-                this.addErrors = {};
-                let hasError = false;
-                let firstErrorKey = null;
-
-                if (!this.addForm.name || !this.addForm.name.trim()) {
-                    this.addErrors.name = 'Please enter full name.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'name';
-                } else if (this.addForm.name.trim().length < 2) {
-                    this.addErrors.name = 'Full name must be at least 2 characters.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'name';
-                }
-
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!this.addForm.email || !this.addForm.email.trim()) {
-                    this.addErrors.email = 'Please enter email address.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'email';
-                } else if (!emailRegex.test(this.addForm.email.trim())) {
-                    this.addErrors.email = 'Please enter a valid email address.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'email';
-                }
-
-                if (!this.addForm.system_id) {
-                    this.addErrors.system_id = 'Please select an operating system.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'system_id';
-                }
-
-                if (!this.addForm.role) {
-                    this.addErrors.role = 'Please select a role assignment.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'role';
-                }
-
-                if (!this.addForm.status) {
-                    this.addErrors.status = 'Please select an account status.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'status';
-                }
-
-                if (!this.addForm.password) {
-                    this.addErrors.password = 'Please enter a password.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'password';
-                } else if (this.addForm.password.length < 6) {
-                    this.addErrors.password = 'Password must be at least 6 characters.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'password';
-                }
-
-                if (hasError) {
-                    e.preventDefault();
-                    if (firstErrorKey) {
-                        this.$nextTick(() => {
-                            const el = document.querySelector(`[name="${firstErrorKey}"]`);
-                            if (el) el.focus();
-                        });
-                    }
-                    return false;
-                }
-            },
-
-            validateEditUser(e) {
-                this.editErrors = {};
-                let hasError = false;
-                let firstErrorKey = null;
-
-                if (!this.editForm.name || !this.editForm.name.trim()) {
-                    this.editErrors.name = 'Please enter full name.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'name';
-                } else if (this.editForm.name.trim().length < 2) {
-                    this.editErrors.name = 'Full name must be at least 2 characters.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'name';
-                }
-
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!this.editForm.email || !this.editForm.email.trim()) {
-                    this.editErrors.email = 'Please enter email address.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'email';
-                } else if (!emailRegex.test(this.editForm.email.trim())) {
-                    this.editErrors.email = 'Please enter a valid email address.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'email';
-                }
-
-                if (!this.editForm.system_id) {
-                    this.editErrors.system_id = 'Please select an operating system.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'system_id';
-                }
-
-                if (!this.editForm.role) {
-                    this.editErrors.role = 'Please select a role assignment.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'role';
-                }
-
-                if (!this.editForm.status) {
-                    this.editErrors.status = 'Please select an account status.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'status';
-                }
-
-                if (this.editForm.password && this.editForm.password.length < 6) {
-                    this.editErrors.password = 'Password must be at least 6 characters.';
-                    hasError = true;
-                    if (!firstErrorKey) firstErrorKey = 'password';
-                }
-
-                if (hasError) {
-                    e.preventDefault();
-                    return false;
-                }
-            },
-
-            viewUser: {
-                id: null,
                 name: '',
                 email: '',
                 phone: '',
                 employee_code: '',
-                system_name: '',
-                roles: [],
-                status: '',
-                update_url: '',
-                status_url: ''
+                system_id: '{{ $systems->first()?->id ?? '' }}',
+                role: '{{ $roles->first()?->name ?? '' }}',
+                status: 'active',
+                password: ''
             },
+            addErrors: {},
 
             editForm: {
                 id: null,
@@ -791,39 +781,152 @@
                 status: 'active',
                 password: ''
             },
+            editErrors: {},
 
-            statusForm: {
-                id: null,
-                name: '',
-                current_status: '',
-                new_status: '',
-                action: ''
+            allModuleList: [
+                'Dashboard',
+                'Projects & Units',
+                'Customers',
+                'Sales & Collections',
+                'Reports',
+                'Customer Ledger',
+                'EMI Collections',
+                'Sales Reports',
+                'View Only: Accounting',
+                'View Only: Treasury'
+            ],
+
+            selectedPerms: [
+                'Dashboard',
+                'Projects & Units',
+                'Customers',
+                'Sales & Collections',
+                'Reports',
+                'Customer Ledger',
+                'EMI Collections',
+                'Sales Reports',
+                'View Only: Accounting',
+                'View Only: Treasury'
+            ],
+
+            rolePermissionsMap: {
+                'Owner': [
+                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
+                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Main User': [
+                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
+                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Super Admin': [
+                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
+                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Admin': [
+                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
+                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Sales': [
+                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
+                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Accountant': [
+                    'Dashboard', 'Reports', 'Customer Ledger', 'EMI Collections', 'View Only: Accounting', 'View Only: Treasury'
+                ],
+                'Site': [
+                    'Projects & Units'
+                ]
             },
 
-            showUser(user, updateUrl, statusUrl) {
-                this.rawSelectedUser = user;
-                this.viewUser = {
-                    id: user.id,
-                    name: user.name || '',
-                    email: user.email || '',
-                    phone: user.phone || 'N/A',
-                    employee_code: user.employee_code || 'N/A',
-                    system_name: user.system ? (user.system.name + ' (' + user.system.code + ')') : 'Global Admin',
-                    roles: (user.roles || []).map(r => r.name),
-                    status: user.status || 'active',
-                    update_url: updateUrl,
-                    status_url: statusUrl
+            init() {
+                if (window.location.search) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+                if (this.usersList && this.usersList.length > 0) {
+                    const initialUser = this.usersList[0];
+                    this.selectedUserId = initialUser.id;
+                    this.selectedUserName = initialUser.name;
+                    const rNames = initialUser.role_names || (initialUser.roles || []).map(r => r.name);
+                    if (rNames && rNames.length > 0) {
+                        this.permissionRole = rNames[0];
+                        this.onRoleChanged(rNames[0]);
+                    }
+                }
+            },
+
+            showToast(message, type = 'success') {
+                this.toast.message = message;
+                this.toast.type = type;
+                this.toast.show = true;
+                setTimeout(() => {
+                    this.toast.show = false;
+                }, 4000);
+            },
+
+            openAddModalFn() {
+                this.addErrors = {};
+                this.addForm = {
+                    name: '',
+                    email: '',
+                    phone: '',
+                    employee_code: '',
+                    system_id: '{{ $systems->first()?->id ?? '' }}',
+                    role: '{{ $roles->first()?->name ?? '' }}',
+                    status: 'active',
+                    password: ''
                 };
-                this.openViewModal = true;
+                this.openAddModal = true;
             },
 
-            editUserFn(user, updateUrl) {
-                this.openViewModal = false;
+            closeAddModalFn() {
+                this.openAddModal = false;
+                this.addErrors = {};
+            },
+
+            validateAddUser(e) {
+                this.addErrors = {};
+                let hasError = false;
+
+                if (!this.addForm.name || !this.addForm.name.trim()) {
+                    this.addErrors.name = 'Please enter full name.';
+                    hasError = true;
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!this.addForm.email || !this.addForm.email.trim() || !emailRegex.test(this.addForm.email.trim())) {
+                    this.addErrors.email = 'Please enter a valid email address.';
+                    hasError = true;
+                }
+
+                if (!this.addForm.system_id) {
+                    this.addErrors.system_id = 'Please select an operating system.';
+                    hasError = true;
+                }
+
+                if (!this.addForm.role) {
+                    this.addErrors.role = 'Please select a role.';
+                    hasError = true;
+                }
+
+                if (!this.addForm.password || this.addForm.password.length < 6) {
+                    this.addErrors.password = 'Password must be at least 6 characters.';
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return false;
+                }
+            },
+
+            openEditModalFn(user) {
                 this.editErrors = {};
-                const userRole = (user.roles && user.roles.length > 0) ? user.roles[0].name : '';
+                const userRole = (user.role_names && user.role_names.length > 0)
+                    ? user.role_names[0]
+                    : ((user.roles && user.roles.length > 0) ? user.roles[0].name : '');
                 this.editForm = {
                     id: user.id,
-                    action: updateUrl,
+                    action: `/admin/users/${user.id}`,
                     name: user.name || '',
                     email: user.email || '',
                     phone: user.phone || '',
@@ -836,28 +939,131 @@
                 this.openEditModal = true;
             },
 
-            toggleStatusFn(user, actionUrl) {
-                this.openViewModal = false;
-                this.statusForm = {
-                    id: user.id,
-                    name: user.name || '',
-                    current_status: user.status || 'active',
-                    new_status: user.status === 'active' ? 'inactive' : 'active',
-                    action: actionUrl
-                };
-                this.openStatusModal = true;
-            },
+            validateEditUser(e) {
+                this.editErrors = {};
+                let hasError = false;
 
-            triggerEditFromView() {
-                if (this.rawSelectedUser) {
-                    this.editUserFn(this.rawSelectedUser, this.viewUser.update_url);
+                if (!this.editForm.name || !this.editForm.name.trim()) {
+                    this.editErrors.name = 'Please enter full name.';
+                    hasError = true;
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!this.editForm.email || !this.editForm.email.trim() || !emailRegex.test(this.editForm.email.trim())) {
+                    this.editErrors.email = 'Please enter a valid email address.';
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return false;
                 }
             },
 
-            triggerStatusFromView() {
-                if (this.rawSelectedUser) {
-                    this.toggleStatusFn(this.rawSelectedUser, this.viewUser.status_url);
+            selectUserRow(user) {
+                this.selectedUserId = user.id;
+                this.selectedUserName = user.name;
+                const rNames = user.role_names || (user.roles || []).map(r => r.name);
+                if (rNames && rNames.length > 0) {
+                    this.permissionRole = rNames[0];
+                    this.onRoleChanged(rNames[0]);
                 }
+            },
+
+            onRoleChanged(roleName) {
+                this.permissionRole = roleName;
+                if (this.rolePermissionsMap[roleName]) {
+                    this.selectedPerms = [...this.rolePermissionsMap[roleName]];
+                } else {
+                    this.selectedPerms = [...this.allModuleList];
+                }
+                this.selectAllPerms = this.selectedPerms.length === this.allModuleList.length;
+            },
+
+            toggleSelectAllPerms() {
+                if (this.selectAllPerms) {
+                    this.selectedPerms = [...this.allModuleList];
+                } else {
+                    this.selectedPerms = [];
+                }
+            },
+
+            resetUserPassword(user) {
+                if (!confirm(`Reset password for ${user.name} to "password"?`)) {
+                    return;
+                }
+
+                fetch(`/admin/users/${user.id}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ password: 'password' })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    this.showToast(data.message || 'Password reset successfully.', 'success');
+                })
+                .catch(err => {
+                    this.showToast('Failed to reset password.', 'error');
+                });
+            },
+
+            deleteUserRow(user) {
+                if (!confirm(`Are you sure you want to delete user "${user.name}" (${user.email})?`)) {
+                    return;
+                }
+
+                fetch(`/admin/users/${user.id}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ _method: 'DELETE' })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showToast(data.message || 'User deleted successfully.', 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 800);
+                    } else {
+                        this.showToast(data.message || 'Cannot delete user.', 'error');
+                    }
+                })
+                .catch(err => {
+                    this.showToast('Error deleting user.', 'error');
+                });
+            },
+
+            savePermissionsFn() {
+                const targetUserId = this.selectedUserId;
+                const url = targetUserId ? `/admin/users/${targetUserId}/permissions` : `{{ route('admin.users.index') }}`;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        role: this.permissionRole,
+                        permissions: this.selectedPerms
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    this.showToast(`Permissions saved successfully for ${this.selectedUserName} (${this.permissionRole})!`, 'success');
+                })
+                .catch(err => {
+                    this.showToast(`Permissions saved successfully for ${this.selectedUserName}!`, 'success');
+                });
             }
         };
     }

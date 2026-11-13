@@ -203,6 +203,24 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::match(['put', 'post'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::match(['delete', 'post'], '/users/{user}/delete', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions');
+        Route::get('/roles', [UserController::class, 'rolesIndex'])->name('roles.index');
+        Route::post('/roles', [UserController::class, 'storeRole'])->name('roles.store');
+        Route::post('/roles/{role}/permissions', [UserController::class, 'updateRolePermissions'])->name('roles.permissions');
+        Route::delete('/roles/{role}', [UserController::class, 'destroyRole'])->name('roles.destroy');
+
+        // Modules & Sub-modules Catalog
+        Route::get('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'index'])->name('modules.index');
+        Route::post('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'storeModule'])->name('modules.store');
+        Route::match(['put', 'post'], '/modules/{id}', [\App\Http\Controllers\Admin\ModuleController::class, 'updateModule'])->name('modules.update');
+        Route::match(['delete', 'post'], '/modules/{id}/delete', [\App\Http\Controllers\Admin\ModuleController::class, 'destroyModule'])->name('modules.destroy');
+        Route::post('/modules/{id}/toggle-status', [\App\Http\Controllers\Admin\ModuleController::class, 'toggleModuleStatus'])->name('modules.toggle-status');
+        Route::post('/modules/{id}/submodules', [\App\Http\Controllers\Admin\ModuleController::class, 'storeSubModule'])->name('modules.submodules.store');
+        Route::match(['put', 'post'], '/modules/{id}/submodules/{subId}', [\App\Http\Controllers\Admin\ModuleController::class, 'updateSubModule'])->name('modules.submodules.update');
+        Route::match(['delete', 'post'], '/modules/{id}/submodules/{subId}/delete', [\App\Http\Controllers\Admin\ModuleController::class, 'destroySubModule'])->name('modules.submodules.destroy');
+        Route::post('/modules/{id}/submodules/{subId}/toggle-status', [\App\Http\Controllers\Admin\ModuleController::class, 'toggleSubModuleStatus'])->name('modules.submodules.toggle-status');
     });
 
     // Project Settings

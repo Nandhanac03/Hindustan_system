@@ -635,13 +635,30 @@
             </div>
         </div>
 
-        <div class="space-y-1 mt-2">
-            <a href="{{ route('admin.users.index') }}" class="nav-item flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('admin.users.*') ? 'active text-white' : 'text-white/90' }}">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        <!-- Users & Roles Dropdown -->
+        <div x-data="{ openUsersRoles: {{ Request::routeIs('admin.users.*') || Request::routeIs('admin.roles.*') || Request::routeIs('admin.modules.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openUsersRoles = !openUsersRoles" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') || Request::routeIs('admin.roles.*') || Request::routeIs('admin.modules.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span>Users & Roles</span>
+                </div>
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openUsersRoles ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-                <span>Users & Roles</span>
-            </a>
+            </button>
+            <div x-show="openUsersRoles" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.users.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Users
+                </a>
+                <a href="{{ route('admin.roles.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.roles.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    User Roles
+                </a>
+                <a href="{{ route('admin.modules.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.modules.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Modules
+                </a>
+            </div>
         </div>
 
     </nav>

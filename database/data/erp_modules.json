@@ -1,0 +1,1053 @@
+[
+    {
+        "id": 1,
+        "name": "Dashboard",
+        "code": "dashboard",
+        "section": "Overview",
+        "icon": "chart-bar",
+        "description": "Executive dashboard and high-level KPI summaries",
+        "order": 1,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 1,
+                "name": "Executive Dashboard",
+                "code": "dashboard.view",
+                "route_name": "dashboard",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Main executive KPI statistics and collection trends",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Projects & Configuration",
+        "code": "projects_config",
+        "section": "Projects & Configuration",
+        "icon": "building-office",
+        "description": "Project configurations, unit registers, and partner shares",
+        "order": 2,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 2,
+                "name": "Projects",
+                "code": "projects.manage",
+                "route_name": "projects.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Master project creation, tower specifications, and settings",
+                "status": "active"
+            },
+            {
+                "id": 3,
+                "name": "Unit Master",
+                "code": "units.manage",
+                "route_name": "units.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Unit directory, inventory availability, and pricing setup",
+                "status": "active"
+            },
+            {
+                "id": 4,
+                "name": "Partner Management",
+                "code": "partners.manage",
+                "route_name": "partners.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Joint venture partners, equity shares, and percentage allocations",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Sales & Booking",
+        "code": "sales_booking",
+        "section": "Sales & Booking",
+        "icon": "shopping-cart",
+        "description": "Sales desks, bookings, availability grids, and rate histories",
+        "order": 3,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 5,
+                "name": "New Booking",
+                "code": "sales.create",
+                "route_name": "sales.index?action=add",
+                "actions": [
+                    "create",
+                    "edit"
+                ],
+                "description": "New property sales agreement and booking registration",
+                "status": "active"
+            },
+            {
+                "id": 6,
+                "name": "Sales Register",
+                "code": "sales.view",
+                "route_name": "sales.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Consolidated sales ledger with customer and unit records",
+                "status": "active"
+            },
+            {
+                "id": 7,
+                "name": "Unit Rate History",
+                "code": "rate-revision.view",
+                "route_name": "rate-revision.index",
+                "actions": [
+                    "view",
+                    "create"
+                ],
+                "description": "Track historical unit square foot pricing and revision approvals",
+                "status": "active"
+            },
+            {
+                "id": 8,
+                "name": "Availability Grid",
+                "code": "unit-matrix.view",
+                "route_name": "unit-matrix.index",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Floor-by-floor interactive unit visual availability matrix",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Returns & Cancellations",
+        "code": "returns_cancellations",
+        "section": "Sales & Booking",
+        "icon": "arrow-path",
+        "description": "Booking cancellations, resale, and property exchange workflows",
+        "order": 4,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 9,
+                "name": "Sales Return",
+                "code": "sales.return",
+                "route_name": "sales.index?tab=sale-return",
+                "actions": [
+                    "view",
+                    "create",
+                    "process"
+                ],
+                "description": "Process booking cancellations, forfeit charges, and customer refunds",
+                "status": "active"
+            },
+            {
+                "id": 10,
+                "name": "Unit Exchange",
+                "code": "sales.exchange",
+                "route_name": "sales.index?tab=exchange",
+                "actions": [
+                    "view",
+                    "create",
+                    "process"
+                ],
+                "description": "Swap or exchange existing booked units to new units",
+                "status": "active"
+            },
+            {
+                "id": 11,
+                "name": "Cancel Report",
+                "code": "reports.sales_return",
+                "route_name": "reports.sales_return",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Audit and history of all cancelled property contracts",
+                "status": "active"
+            },
+            {
+                "id": 12,
+                "name": "Exchange Report",
+                "code": "reports.exchange",
+                "route_name": "reports.exchange_report",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Audit trail for all swapped units and adjusted financials",
+                "status": "active"
+            },
+            {
+                "id": 13,
+                "name": "Additional Billing",
+                "code": "cancellation.additional",
+                "route_name": "cancellation-additional-work.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit"
+                ],
+                "description": "Cancellation penalty fees and custom interior modification charges",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Customer & Collections",
+        "code": "customer_collections",
+        "section": "Customer & Collections",
+        "icon": "users",
+        "description": "Customer profiles, installment schedules, and cheque clearances",
+        "order": 5,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 14,
+                "name": "Customer Directory",
+                "code": "customers.manage",
+                "route_name": "customers.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "All registered customer profiles, contact info, and documents",
+                "status": "active"
+            },
+            {
+                "id": 15,
+                "name": "Customer Ledger",
+                "code": "customers.ledger",
+                "route_name": "reports.customer_ledger",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Detailed debit/credit customer transactional accounting statements",
+                "status": "active"
+            },
+            {
+                "id": 16,
+                "name": "Payment Milestone",
+                "code": "emi.schedules",
+                "route_name": "emi-collections.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit"
+                ],
+                "description": "Construction-linked and customized installment payment schedules",
+                "status": "active"
+            },
+            {
+                "id": 17,
+                "name": "Payment Receipts",
+                "code": "cheque.entry",
+                "route_name": "cheque-receipt-entry.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit"
+                ],
+                "description": "Inward payment voucher generation for cheques, cash, and bank transfers",
+                "status": "active"
+            },
+            {
+                "id": 18,
+                "name": "Cheque Realization",
+                "code": "cheque.realize",
+                "route_name": "cheque-realization.queue",
+                "actions": [
+                    "view",
+                    "process"
+                ],
+                "description": "Deposit and clear cheques into company bank accounts or mark bounce",
+                "status": "active"
+            },
+            {
+                "id": 19,
+                "name": "Collection Insights",
+                "code": "reports.collections",
+                "route_name": "reports.collection_forecast",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Aging analysis, overdue receivables, and collection forecasts",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Contractor Operations",
+        "code": "contractor_ops",
+        "section": "Contractor Operations",
+        "icon": "wrench-screwdriver",
+        "description": "Contractor master, Running Account (RA) bills, and site payouts",
+        "order": 6,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 20,
+                "name": "Contractor",
+                "code": "contractors.manage",
+                "route_name": "contractors.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Subcontractor and primary contractor vendor registration",
+                "status": "active"
+            },
+            {
+                "id": 21,
+                "name": "New RA Bill",
+                "code": "ra-bills.create",
+                "route_name": "expenses.ra-bills.verification?new=1",
+                "actions": [
+                    "create"
+                ],
+                "description": "Generate new contractor progress bill with retention & TDS",
+                "status": "active"
+            },
+            {
+                "id": 22,
+                "name": "RA Bill Verification",
+                "code": "ra-bills.verify",
+                "route_name": "expenses.ra-bills.verification",
+                "actions": [
+                    "view",
+                    "verify",
+                    "approve"
+                ],
+                "description": "Engineering review and quantity surveyor bill verification",
+                "status": "active"
+            },
+            {
+                "id": 23,
+                "name": "Contractor Payout",
+                "code": "ra-bills.payout",
+                "route_name": "expenses.ra-bills.payment-release",
+                "actions": [
+                    "view",
+                    "disburse"
+                ],
+                "description": "Treasury release and payment disbursement for approved RA bills",
+                "status": "active"
+            },
+            {
+                "id": 24,
+                "name": "Contractor Ledger",
+                "code": "ra-bills.ledger",
+                "route_name": "expenses.ra-bills.ledger",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Historical billings, retentions, advances, and payments ledger",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "name": "Brokerage",
+        "code": "brokerage",
+        "section": "Contractor Operations",
+        "icon": "briefcase",
+        "description": "Channel partner brokers, commission rates, and incentive payouts",
+        "order": 7,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 25,
+                "name": "Broker Master",
+                "code": "brokers.manage",
+                "route_name": "brokers.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Real estate brokers directory and RERA commission agreements",
+                "status": "active"
+            },
+            {
+                "id": 26,
+                "name": "Broker Ledger",
+                "code": "brokers.ledger",
+                "route_name": "brokers.commission-ledger",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Commission earned, TDS deductions, and payable balances",
+                "status": "active"
+            },
+            {
+                "id": 27,
+                "name": "Broker Payout",
+                "code": "brokers.payout",
+                "route_name": "brokers.payable-report",
+                "actions": [
+                    "view",
+                    "disburse"
+                ],
+                "description": "Process commission payments and voucher disbursements",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "name": "Petty Cash",
+        "code": "petty_cash",
+        "section": "Contractor Operations",
+        "icon": "banknotes",
+        "description": "Daily site petty cash box, contra withdrawals, and site receipts",
+        "order": 8,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 28,
+                "name": "Categories",
+                "code": "petty-cash.categories",
+                "route_name": "categories.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Petty cash expense heads and GL account mappings",
+                "status": "active"
+            },
+            {
+                "id": 29,
+                "name": "Cash Withdrawals",
+                "code": "petty-cash.contra",
+                "route_name": "petty-cash.contra-withdrawal",
+                "actions": [
+                    "view",
+                    "create"
+                ],
+                "description": "Record bank cash withdrawals into petty cash physical boxes",
+                "status": "active"
+            },
+            {
+                "id": 30,
+                "name": "Daily Expense",
+                "code": "petty-cash.daily",
+                "route_name": "petty-cash.daily-site-expenses",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Log daily miscellaneous site expenditures and bill vouchers",
+                "status": "active"
+            },
+            {
+                "id": 31,
+                "name": "Petty Cash Report",
+                "code": "petty-cash.report",
+                "route_name": "petty-cash.balance-register",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Audited opening, inflow, outflow, and closing balance register",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "name": "Document Management (DMS)",
+        "code": "dms",
+        "section": "Contractor Operations",
+        "icon": "folder",
+        "description": "Central repository for land deeds, approvals, and blueprints",
+        "order": 9,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 32,
+                "name": "Document Repository",
+                "code": "dms.view",
+                "route_name": "dms.index",
+                "actions": [
+                    "view",
+                    "download",
+                    "delete"
+                ],
+                "description": "Browse, preview, and download digital project documents",
+                "status": "active"
+            },
+            {
+                "id": 33,
+                "name": "Upload Document",
+                "code": "dms.upload",
+                "route_name": "dms.index?upload=1",
+                "actions": [
+                    "create"
+                ],
+                "description": "Attach and index documents by project, category, and tags",
+                "status": "active"
+            },
+            {
+                "id": 34,
+                "name": "Document Categories",
+                "code": "dms.categories",
+                "route_name": "dms.categories.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Organize repository files by functional category classifications",
+                "status": "active"
+            },
+            {
+                "id": 35,
+                "name": "Document Types",
+                "code": "dms.types",
+                "route_name": "dms.document-types.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Configure file types, metadata schemas, and extension validations",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 10,
+        "name": "Site Expense",
+        "code": "site_expense",
+        "section": "Contractor Operations",
+        "icon": "building-storefront",
+        "description": "Direct site overheads, material purchases, and vendor expenses",
+        "order": 10,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 36,
+                "name": "Expense Categories",
+                "code": "site-expense.categories",
+                "route_name": "site-expense-categories.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Material, fuel, machinery rental, and overhead category heads",
+                "status": "active"
+            },
+            {
+                "id": 37,
+                "name": "Site Expense",
+                "code": "site-expense.view",
+                "route_name": "site-expenses.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Direct site purchase bill entries and verification workflow",
+                "status": "active"
+            },
+            {
+                "id": 38,
+                "name": "Expense Payout",
+                "code": "site-expense.payout",
+                "route_name": "site-expenses.payment-release",
+                "actions": [
+                    "view",
+                    "disburse"
+                ],
+                "description": "Approve and release payments for verified vendor invoices",
+                "status": "active"
+            },
+            {
+                "id": 39,
+                "name": "Vendor Master",
+                "code": "vendors.manage",
+                "route_name": "vendors.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Material suppliers, service providers, and vendors directory",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 11,
+        "name": "Project Profitability",
+        "code": "project_profitability",
+        "section": "Finance & Analytics",
+        "icon": "chart-pie",
+        "description": "Capital contributions, equity withdrawals, and margin metrics",
+        "order": 11,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 40,
+                "name": "Partner Contribution",
+                "code": "partners.contributions",
+                "route_name": "partner-contributions.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "delete"
+                ],
+                "description": "Inward capital equity deposits made by partners into projects",
+                "status": "active"
+            },
+            {
+                "id": 41,
+                "name": "Partner Ledger",
+                "code": "partners.ledger",
+                "route_name": "reports.partner_outflow_ledger",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Partner capital balances, returns, and equity accounts",
+                "status": "active"
+            },
+            {
+                "id": 42,
+                "name": "Partner Payout",
+                "code": "partners.payout",
+                "route_name": "reports.partner_statements",
+                "actions": [
+                    "view",
+                    "disburse"
+                ],
+                "description": "Distribution of profit dividends and capital return disbursements",
+                "status": "active"
+            },
+            {
+                "id": 43,
+                "name": "Project Margin Analysis",
+                "code": "reports.margins",
+                "route_name": "reports.project_margin_analysis",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Gross revenue, direct construction cost, and net project profit analysis",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 12,
+        "name": "Bank & Treasury",
+        "code": "bank_treasury",
+        "section": "Finance & Analytics",
+        "icon": "building-library",
+        "description": "Bank account masters, liquidity dashboards, and contra vouchers",
+        "order": 12,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 44,
+                "name": "Company Bank",
+                "code": "company-bank.manage",
+                "route_name": "company-bank-accounts.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Operational checking, current, and escrow company accounts",
+                "status": "active"
+            },
+            {
+                "id": 45,
+                "name": "Treasury Dashboard",
+                "code": "treasury.dashboard",
+                "route_name": "treasury.dashboard",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Real-time bank balances, daily inflows, and scheduled payouts",
+                "status": "active"
+            },
+            {
+                "id": 46,
+                "name": "Treasury Report",
+                "code": "treasury.report",
+                "route_name": "treasury.report",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Consolidated bank liquidity position and historical activity",
+                "status": "active"
+            },
+            {
+                "id": 47,
+                "name": "Contra Transfers",
+                "code": "vouchers.contra",
+                "route_name": "vouchers.contra.create",
+                "actions": [
+                    "view",
+                    "create"
+                ],
+                "description": "Internal inter-bank transfers and cash-to-bank contra vouchers",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 13,
+        "name": "Accounting Reports",
+        "code": "accounting_reports",
+        "section": "Finance & Analytics",
+        "icon": "document-chart-bar",
+        "description": "Charter of accounts, trial balances, and statutory P&L registers",
+        "order": 13,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 48,
+                "name": "Chart of Accounts",
+                "code": "coa.manage",
+                "route_name": "chart-of-accounts.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "General Ledger account master, groups, and classification tree",
+                "status": "active"
+            },
+            {
+                "id": 49,
+                "name": "Voucher Types",
+                "code": "voucher-types.manage",
+                "route_name": "voucher-types.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Receipt, Payment, Journal, Contra, and Sales voucher series",
+                "status": "active"
+            },
+            {
+                "id": 50,
+                "name": "Trial Balance",
+                "code": "reports.trial_balance",
+                "route_name": "reports.trial_balance",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Audited trial balance verifying debits equal credits per financial year",
+                "status": "active"
+            },
+            {
+                "id": 51,
+                "name": "Profit & Loss",
+                "code": "reports.profit_loss",
+                "route_name": "reports.profit_loss",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Income, operational expenditure, and net period earnings statement",
+                "status": "active"
+            },
+            {
+                "id": 52,
+                "name": "Balance Sheet",
+                "code": "reports.balance_sheet",
+                "route_name": "reports.balance_sheet",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Assets, liabilities, equity, and retained earnings register",
+                "status": "active"
+            },
+            {
+                "id": 53,
+                "name": "GST Report",
+                "code": "reports.gst",
+                "route_name": "reports.gst_report",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Input Tax Credit (ITC), output GST liability, and tax filing summary",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 14,
+        "name": "Loans & Debt Servicing",
+        "code": "loans_debt",
+        "section": "Loans & Debt Servicing",
+        "icon": "currency-rupee",
+        "description": "Corporate debt, bank loan facilities, and EMI repayment schedules",
+        "order": 14,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 54,
+                "name": "Bank Master",
+                "code": "bank.manage",
+                "route_name": "bank.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Lending institutions and commercial banks register",
+                "status": "active"
+            },
+            {
+                "id": 55,
+                "name": "Company Loans",
+                "code": "loans.manage",
+                "route_name": "loans.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Project financing facilities, principal amounts, and interest terms",
+                "status": "active"
+            },
+            {
+                "id": 56,
+                "name": "Loan Outstanding Summary",
+                "code": "loans.reports",
+                "route_name": "loans.reports",
+                "actions": [
+                    "view",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Remaining debt liabilities, interest payables, and repayment calendars",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 15,
+        "name": "Master Configuration",
+        "code": "admin_master",
+        "section": "Administration",
+        "icon": "cog-6-tooth",
+        "description": "Core entity configurations, staff masters, and physical unit types",
+        "order": 15,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 57,
+                "name": "Employee",
+                "code": "employees.manage",
+                "route_name": "employees.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Employee directory, designation, departments, and payroll profiles",
+                "status": "active"
+            },
+            {
+                "id": 58,
+                "name": "Engineer",
+                "code": "engineers.manage",
+                "route_name": "engineers.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Civil, structural, and site engineers assigned to projects",
+                "status": "active"
+            },
+            {
+                "id": 59,
+                "name": "Cheque Status",
+                "code": "cheque-statuses.manage",
+                "route_name": "cheque-statuses.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Cheque clearance workflow lifecycle status states",
+                "status": "active"
+            },
+            {
+                "id": 60,
+                "name": "Floor",
+                "code": "floors.manage",
+                "route_name": "floors.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Floor nomenclature (Basement, Ground, Typical Floors, Penthouse)",
+                "status": "active"
+            },
+            {
+                "id": 61,
+                "name": "Unit Type",
+                "code": "unit-types.manage",
+                "route_name": "unit-types.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Unit configurations (1BHK, 2BHK, 3BHK, Commercial Shop, Office)",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 16,
+        "name": "Users & Roles",
+        "code": "admin_users_roles",
+        "section": "Administration",
+        "icon": "user-group",
+        "description": "System access control, user accounts, roles, and module permissions",
+        "order": 16,
+        "status": "active",
+        "sub_modules": [
+            {
+                "id": 62,
+                "name": "Users",
+                "code": "users.manage",
+                "route_name": "admin.users.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "Enterprise user accounts, credentials, and role associations",
+                "status": "active"
+            },
+            {
+                "id": 63,
+                "name": "User Roles",
+                "code": "roles.manage",
+                "route_name": "admin.roles.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "RBAC security roles and fine-grained module permission gates",
+                "status": "active"
+            },
+            {
+                "id": 64,
+                "name": "Modules",
+                "code": "modules.manage",
+                "route_name": "admin.modules.index",
+                "actions": [
+                    "view",
+                    "create",
+                    "edit",
+                    "delete"
+                ],
+                "description": "ERP system modules and sub-module options catalog management",
+                "status": "active"
+            }
+        ]
+    },
+    {
+        "id": 17,
+        "name": "Test",
+        "code": "436574",
+        "section": "Sales & Booking",
+        "icon": "folder",
+        "description": "fdfd",
+        "order": 17,
+        "status": "active",
+        "sub_modules": []
+    }
+]
