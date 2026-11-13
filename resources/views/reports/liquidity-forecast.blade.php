@@ -310,11 +310,11 @@
                 </div>
                 <input type="text"
                        x-model="txSearch"
-                       @input="currentPage = 1"
+                       @input="currentPage = 1; triggerLoadingEffect()"
                        placeholder="Search transaction party name, reference or description..."
                        class="w-full erp-search-input pl-8 pr-6 text-xs h-[38px]">
                 <template x-if="txSearch">
-                    <button type="button" @click="txSearch = ''; currentPage = 1" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                    <button type="button" @click="txSearch = ''; currentPage = 1; triggerLoadingEffect()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">✕</button>
                 </template>
             </div>
 
@@ -439,6 +439,7 @@
             <div class="relative min-w-[130px] flex-[0.8]" style="flex: 0.8 1 0%;">
                 <input type="text"
                        x-model="filters.as_on_date"
+                       @change="triggerLoadingEffect()"
                        placeholder="DD/MM/YYYY"
                        class="w-full erp-search-input px-3 text-xs font-bold text-slate-800">
             </div>
@@ -543,7 +544,20 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
         {{-- Left 2/3 (8 cols): Cash Flow Summary (₹) Detailed Statement --}}
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+        <div class="relative lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+            {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+            <div x-show="isLoading" x-cloak
+                 class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+                 style="display: none;">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                    <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Updating Liquidity Forecast...</span>
+                </div>
+            </div>
+
             <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider" x-text="'Cash Flow Summary (' + currency + ')'">
@@ -690,7 +704,19 @@
     </div>
 
     {{-- ── 6. BOTTOM SECTION: UPCOMING KEY TRANSACTIONS (NEXT 90 DAYS) ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+    <div class="relative bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+        {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Liquidity Forecast...</span>
+            </div>
+        </div>
         
         {{-- Card Header & Filter Tabs --}}
         <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -705,7 +731,7 @@
             <div class="flex items-center gap-1.5 flex-wrap">
                 <template x-for="tab in transactionTabs" :key="tab.id">
                     <button type="button"
-                            @click="activeTxTab = tab.id; currentPage = 1"
+                            @click="activeTxTab = tab.id; currentPage = 1; triggerLoadingEffect()"
                             :class="activeTxTab === tab.id ? 'bg-[#a38c29] text-white font-black shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold'"
                             class="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer"
                             x-text="tab.label">
@@ -772,7 +798,7 @@
                 <span class="text-slate-900" x-text="filteredTransactions.length"></span> TRANSACTIONS
             </div>
             <div class="flex items-center gap-1.5">
-                <button type="button" @click="if(currentPage > 1) currentPage--" 
+                <button type="button" @click="if(currentPage > 1) { currentPage--; triggerLoadingEffect(); }" 
                         :disabled="currentPage <= 1"
                         class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
                     PREV
@@ -783,14 +809,14 @@
                     <span class="inline-flex items-center gap-1">
                         <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
                         <button type="button" x-show="p !== '...'"
-                                @click="currentPage = p"
+                                @click="currentPage = p; triggerLoadingEffect();"
                                 x-text="p"
                                 class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs cursor-pointer"
                                 :class="currentPage === p ? 'bg-[#a38c29] text-white border border-[#a38c29]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"></button>
                     </span>
                 </template>
                 
-                <button type="button" @click="if(currentPage < totalPages) currentPage++" 
+                <button type="button" @click="if(currentPage < totalPages) { currentPage++; triggerLoadingEffect(); }" 
                         :disabled="currentPage >= totalPages"
                         class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
                     NEXT
@@ -855,6 +881,20 @@ function liquidityForecastApp() {
         donutChartInstance: null,
         closingBarChartInstance: null,
 
+        // Loading Effect State
+        isLoading: false,
+        _loadingTimer: null,
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
+
         init() {
             this.$nextTick(() => {
                 this.renderComboChart();
@@ -876,6 +916,7 @@ function liquidityForecastApp() {
         },
 
         selectProject(id) {
+            this.triggerLoadingEffect();
             this.filters.project_id = String(id);
             if (this.filters.financial_year && this.filters.financial_year !== 'All') {
                 this.applyFinancialYearFilter();
@@ -885,6 +926,7 @@ function liquidityForecastApp() {
         },
 
         selectFinancialYear(fyVal) {
+            this.triggerLoadingEffect();
             this.filters.financial_year = fyVal;
             this.currentPage = 1;
             if (!fyVal || fyVal === 'All') {
@@ -898,6 +940,7 @@ function liquidityForecastApp() {
         },
 
         selectPeriod(period) {
+            this.triggerLoadingEffect();
             this.filters.period = String(period);
             if (this.filters.financial_year && this.filters.financial_year !== 'All') {
                 this.applyFinancialYearFilter();
@@ -1101,6 +1144,7 @@ function liquidityForecastApp() {
         },
 
         resetFilters() {
+            this.triggerLoadingEffect();
             this.filters.project_id = String(this.defaultProjectId);
             this.filters.financial_year = 'All';
             this.filters.period = '90';

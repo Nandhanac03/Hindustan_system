@@ -756,7 +756,19 @@
     </div>
 
     {{-- ── 5. PROFESSIONAL DATA TABLE CARD (Matched to collection-forecast.blade.php) ── --}}
-    <div id="customer-dues-table-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+    <div id="customer-dues-table-card" class="relative bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+        {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Customer Collection & Dues...</span>
+            </div>
+        </div>
         {{-- Table Card Header --}}
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
             <div>
@@ -1248,7 +1260,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200">
                         <span class="text-slate-400 font-medium">Rows per page:</span>
-                        <select x-model.number="perPage" @change="currentPage = 1; window.scrollTo({ top: 400, behavior: 'smooth' })"
+                        <select x-model.number="perPage" @change="currentPage = 1; triggerLoadingEffect(); window.scrollTo({ top: 400, behavior: 'smooth' })"
                                 class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:border-[#a38c29] focus:border-[#a38c29] focus:outline-none transition cursor-pointer shadow-2xs">
                             <option value="10">10</option>
                             <option value="25">25</option>
@@ -1261,14 +1273,14 @@
                 {{-- Pagination Buttons (Always visible when filtered rows exist) --}}
                 <div class="flex items-center gap-1" x-show="filteredRows.length > 0">
                     <button type="button" 
-                            @click="if(currentPage > 1) { currentPage--; window.scrollTo({ top: 400, behavior: 'smooth' }); }" 
+                            @click="if(currentPage > 1) { currentPage--; triggerLoadingEffect(); window.scrollTo({ top: 400, behavior: 'smooth' }); }" 
                             :disabled="currentPage === 1"
                             class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs transition cursor-pointer">
                         Previous
                     </button>
                     <template x-for="p in totalPages" :key="p">
                         <button type="button" 
-                                @click="currentPage = p; window.scrollTo({ top: 400, behavior: 'smooth' });" 
+                                @click="currentPage = p; triggerLoadingEffect(); window.scrollTo({ top: 400, behavior: 'smooth' });" 
                                 x-show="p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)"
                                 :class="currentPage === p ? 'bg-[#a38c29] text-white border-[#a38c29]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
                                 class="w-8 h-8 rounded-lg border text-xs font-bold transition flex items-center justify-center cursor-pointer">
@@ -1276,7 +1288,7 @@
                         </button>
                     </template>
                     <button type="button" 
-                            @click="if(currentPage < totalPages) { currentPage++; window.scrollTo({ top: 400, behavior: 'smooth' }); }" 
+                            @click="if(currentPage < totalPages) { currentPage++; triggerLoadingEffect(); window.scrollTo({ top: 400, behavior: 'smooth' }); }" 
                             :disabled="currentPage === totalPages"
                             class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs transition cursor-pointer">
                         Next
@@ -1920,6 +1932,20 @@ function customerCollectionDuesApp() {
         currentPage: 1,
         perPage: 50,
 
+        // Loading Effect State
+        isLoading: false,
+        _loadingTimer: null,
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
+
         // View Modal State
         viewModalOpen: false,
         selectedRow: null,
@@ -2350,6 +2376,7 @@ function customerCollectionDuesApp() {
 
         updateCharts() {
             this.currentPage = 1;
+            this.triggerLoadingEffect();
             if (!this.charts.ratio) return;
             const kpis = this.summaryKPIs;
 

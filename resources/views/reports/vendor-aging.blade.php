@@ -889,7 +889,19 @@
     </div>
 
     {{-- ── 5. PROFESSIONAL DATA TABLE CARD (PLACED DIRECTLY AFTER THE FILTER) ── --}}
-    <div id="vendor-aging-table-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+    <div id="vendor-aging-table-card" class="relative bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden print:p-0 print:border-none print:shadow-none print:rounded-none">
+        {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Vendor Aging Report...</span>
+            </div>
+        </div>
         
         {{-- Table Card Header: Title + Subtitle + Export Buttons --}}
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white print:px-2 print:py-2">
@@ -1121,21 +1133,21 @@
             <div x-text="'Showing ' + (filteredRows.length > 0 ? (currentPage - 1) * pageSize + 1 : 0) + ' to ' + Math.min(currentPage * pageSize, filteredRows.length) + ' of ' + filteredRows.length + ' entries'"></div>
 
             <div class="flex items-center gap-1" x-show="filteredRows.length > 0">
-                <button type="button" @click="currentPage > 1 ? currentPage-- : null"
+                <button type="button" @click="if(currentPage > 1) { currentPage--; triggerLoadingEffect(); }"
                         :disabled="currentPage === 1"
                         class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer">
                     Previous
                 </button>
 
                 <template x-for="p in totalPages" :key="p">
-                    <button type="button" @click="currentPage = p"
+                    <button type="button" @click="currentPage = p; triggerLoadingEffect();"
                             class="w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer"
                             :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-2xs' : 'border border-slate-200 text-slate-700 hover:bg-slate-50'"
                             x-text="p">
                     </button>
                 </template>
 
-                <button type="button" @click="currentPage < totalPages ? currentPage++ : null"
+                <button type="button" @click="if(currentPage < totalPages) { currentPage++; triggerLoadingEffect(); }"
                         :disabled="currentPage >= totalPages"
                         class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer">
                     Next
@@ -1356,10 +1368,25 @@ function vendorAgingApp() {
             return found ? found.label : ('FY ' + this.filters.financial_year);
         },
 
+        // Loading Effect State
+        isLoading: false,
+        _loadingTimer: null,
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
+
         selectFinancialYear(fyVal) {
             this.filters.financial_year = fyVal;
             this.currentPage = 1;
             this.updateCharts();
+            this.triggerLoadingEffect();
         },
 
         // Pagination
@@ -1538,6 +1565,7 @@ function vendorAgingApp() {
             this.selectedVendorDetail = null;
 
             this.updateCharts();
+            this.triggerLoadingEffect();
         },
 
         getAgeingBucketLabel() {
@@ -1723,6 +1751,7 @@ function vendorAgingApp() {
         },
 
         updateCharts() {
+            this.triggerLoadingEffect();
             // Keep selected detail in sync
             if (this.selectedVendorDetail && !this.filteredRows.some(r => r.id === this.selectedVendorDetail.id)) {
                 this.selectedVendorDetail = this.filteredRows.length > 0 ? this.filteredRows[0] : null;

@@ -379,11 +379,11 @@
                 </div>
                 <input type="text"
                        x-model="filters.search"
-                       @input="currentPage = 1"
+                       @input="currentPage = 1; triggerLoadingEffect()"
                        placeholder="Search partner name or ID..."
                        class="w-full erp-search-input pl-8 pr-6 text-xs h-[38px]">
                 <template x-if="filters.search">
-                    <button type="button" @click="filters.search = ''; currentPage = 1" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                    <button type="button" @click="filters.search = ''; currentPage = 1; triggerLoadingEffect()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">✕</button>
                 </template>
             </div>
 
@@ -506,7 +506,19 @@
     </div>
 
     {{-- ── 4. PARTNER CAPITAL & SHAREHOLDING SUMMARY TABLE ── --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm">
+    <div class="relative bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm">
+        {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+        <div x-show="isLoading" x-cloak
+             class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+             style="display: none;">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Updating Capital Statements...</span>
+            </div>
+        </div>
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white">
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
@@ -730,7 +742,19 @@
         </div>
 
         {{-- ── 6. TRANSACTION LEDGER TABLE FOR SELECTED PARTNER ── --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm">
+        <div class="relative bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm">
+            {{-- Loading Spinner Overlay (Exact Partner Contributions Style) --}}
+            <div x-show="isLoading" x-cloak
+                 class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-30 transition-opacity rounded-2xl print:hidden"
+                 style="display: none;">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/90 text-white rounded-xl shadow-xl text-xs font-bold">
+                    <svg class="animate-spin w-4 h-4 text-[#a38c29]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Updating Partner Ledger...</span>
+                </div>
+            </div>
             <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-white">
                 <div>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
@@ -747,7 +771,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <template x-for="tab in ['All', 'Opening', 'Infusion', 'Drawing', 'Profit']" :key="tab">
                         <button type="button"
-                                @click="activeEntryTypeTab = tab; currentPage = 1"
+                                @click="activeEntryTypeTab = tab; currentPage = 1; triggerLoadingEffect()"
                                 :class="activeEntryTypeTab === tab ? 'bg-[#a38c29] text-white font-black shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold'"
                                 class="px-3 py-1 rounded-xl text-xs transition-all cursor-pointer"
                                 x-text="tab">
@@ -810,7 +834,7 @@
                     <span class="text-slate-900" x-text="filteredPartnerLedger.length"></span> ENTRIES
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <button type="button" @click="if(currentPage > 1) currentPage--" 
+                    <button type="button" @click="if(currentPage > 1) { currentPage--; triggerLoadingEffect(); }" 
                             :disabled="currentPage <= 1"
                             class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
                         PREV
@@ -819,13 +843,13 @@
                         <span class="inline-flex items-center gap-1">
                             <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
                             <button type="button" x-show="p !== '...'"
-                                    @click="currentPage = p"
+                                    @click="currentPage = p; triggerLoadingEffect()"
                                     x-text="p"
                                     class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs cursor-pointer"
                                     :class="currentPage === p ? 'bg-[#a38c29] text-white border border-[#a38c29]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'"></button>
                         </span>
                     </template>
-                    <button type="button" @click="if(currentPage < totalPages) currentPage++" 
+                    <button type="button" @click="if(currentPage < totalPages) { currentPage++; triggerLoadingEffect(); }" 
                             :disabled="currentPage >= totalPages"
                             class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
                         NEXT
@@ -874,6 +898,20 @@ function capitalStatementsApp() {
         perPage: 50,
         donutChartInstance: null,
         partnerColors: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6'],
+
+        // Loading Effect State
+        isLoading: false,
+        _loadingTimer: null,
+
+        triggerLoadingEffect() {
+            this.isLoading = true;
+            if (this._loadingTimer) {
+                clearTimeout(this._loadingTimer);
+            }
+            this._loadingTimer = setTimeout(() => {
+                this.isLoading = false;
+            }, 220);
+        },
 
         init() {
             if (this.partnersData.length > 0) {
@@ -925,6 +963,7 @@ function capitalStatementsApp() {
                 this.activeDetailPartnerId = this.summaryRows[0].id;
             }
             this.currentPage = 1;
+            this.triggerLoadingEffect();
             this.$nextTick(() => this.updateDonutChart());
         },
 
@@ -944,6 +983,7 @@ function capitalStatementsApp() {
                 }
             }
             this.currentPage = 1;
+            this.triggerLoadingEffect();
             this.$nextTick(() => this.updateDonutChart());
         },
 
@@ -957,12 +997,14 @@ function capitalStatementsApp() {
                 this.filters.financial_year = 'All';
             }
             this.currentPage = 1;
+            this.triggerLoadingEffect();
             this.$nextTick(() => this.updateDonutChart());
         },
 
         selectDetailPartner(partnerId) {
             this.activeDetailPartnerId = partnerId;
             this.currentPage = 1;
+            this.triggerLoadingEffect();
         },
 
         resetFilters() {
@@ -976,6 +1018,7 @@ function capitalStatementsApp() {
             if (this.partnersData.length > 0) {
                 this.activeDetailPartnerId = this.partnersData[0].id;
             }
+            this.triggerLoadingEffect();
             this.$nextTick(() => this.updateDonutChart());
         },
 
