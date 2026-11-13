@@ -897,7 +897,7 @@ function contraVoucherWorkspace() {
                     'account_name' => (string)($b->account_name ?? $b->bank_name),
                     'account_number' => (string)($b->account_number ?? ''),
                     'branch_name' => (string)($b->branch_name ?? ''),
-                    'current_balance' => (float)($b->calculated_balance ?? $b->current_balance ?? 0),
+                    'current_balance' => (float)($b->current_balance ?? 0),
                 ];
             }
         @endphp

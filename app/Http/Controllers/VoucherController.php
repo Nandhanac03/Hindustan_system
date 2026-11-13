@@ -1568,9 +1568,7 @@ class VoucherController extends Controller
             }
             $cBank->chart_account_id = $existingAcc->id;
             $linkedChartAccountIds[] = $existingAcc->id;
-            $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('debit');
-            $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('credit');
-            $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0) + (float)$debits - (float)$credits, 2);
+            $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0), 2);
         }
 
         // Load Contra vouchers

@@ -430,12 +430,34 @@ class PettyCashController extends Controller
             ['type' => 'Asset', 'code' => 'BK-' . rand(1000, 9999), 'system_id' => $request->input('project_id')]
         );
 
-        // Safely resolve Cash Box Account
-        $cashLedgerAccount = \App\Models\Account::find($request->input('cash_box_id'));
+        // Safely resolve Petty Cash Box
+        $pettyCashBox = PettyCashBox::find($request->input('cash_box_id'));
+        if (!$pettyCashBox) {
+            $pettyCashBox = PettyCashBox::firstOrCreate(
+                ['project_id' => $request->input('project_id')],
+                [
+                    'box_code' => 'PC-' . strtoupper(\App\Models\Project::find($request->input('project_id'))->code ?? 'GEN') . '-001',
+                    'incharge_id' => auth()->id(),
+                    'current_balance' => 0
+                ]
+            );
+        }
+
+        // Safely resolve Cash Box Asset Account (Strictly Asset Type to prevent liability/expense contamination)
+        $cashBoxName = $pettyCashBox ? $pettyCashBox->box_name : 'Petty Cash Box';
+        $cashLedgerAccount = \App\Models\Account::where('system_id', $request->input('project_id'))
+            ->where('type', 'Asset')
+            ->where(function($q) use ($cashBoxName) {
+                $q->where('name', $cashBoxName)
+                  ->orWhere('name', 'Petty Cash Box')
+                  ->orWhere('name', 'Cash-in-Hand');
+            })
+            ->first();
+
         if (!$cashLedgerAccount) {
             $cashLedgerAccount = \App\Models\Account::firstOrCreate(
-                ['name' => 'Petty Cash Box'],
-                ['type' => 'Asset', 'code' => 'CA-' . rand(1000, 9999), 'system_id' => $request->input('project_id')]
+                ['name' => $cashBoxName, 'system_id' => $request->input('project_id'), 'type' => 'Asset'],
+                ['code' => 'CA-' . rand(1000, 9999), 'is_active' => true]
             );
         }
 
@@ -470,16 +492,7 @@ class PettyCashController extends Controller
             'line_narration' => 'Petty cash receipt via contra',
         ]);
 
-        // Also record in the new petty cash tables
-        $pettyCashBox = PettyCashBox::firstOrCreate(
-            ['project_id' => $request->input('project_id')],
-            [
-                'box_code' => 'PC-' . strtoupper(\App\Models\Project::find($request->input('project_id'))->code ?? 'GEN') . '-001',
-                'incharge_id' => auth()->id(),
-                'current_balance' => 0
-            ]
-        );
-
+        // Also record in the petty cash tables
         $newBalance = $pettyCashBox->current_balance + $amount;
         $pettyCashBox->update(['current_balance' => $newBalance]);
 
