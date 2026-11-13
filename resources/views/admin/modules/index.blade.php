@@ -565,7 +565,7 @@
             searchQuery: '',
             sectionFilter: 'all',
             statusFilter: 'all',
-            expandedModules: [1, 2, 3], // First 3 expanded by default
+            expandedModules: [], // Collapsed by default; expand on click
 
             availableSecurityActions: [
                 { key: 'view', label: 'View' },
