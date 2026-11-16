@@ -8,6 +8,10 @@ use App\Models\Project;
 use App\Models\SiteExpense;
 use App\Models\System;
 use App\Models\Vendor;
+
+
+use App\Models\Payee;
+use App\Models\RaBill;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 class VendorAgingReportService
 {
     /**
-     * Get Real Vendor & Sundry Creditor Aging Report data from Database
+     * Get Real Vendor & Contractor Aging Report data from Database
      */
     public function getReportData(array $filters = []): array
     {
@@ -46,23 +50,24 @@ class VendorAgingReportService
             }
         }
 
-        // 3. Build Real Dataset from Database for Vendor Master accounts
+        // 3. Build Real Dataset from Database combining Vendors and Contractors (including RA Bills)
         $allVendors = $this->buildRealDataset($asOnDate, $defaultProjectName, $systemId);
 
-        // 4. Filter by Project (defaults to the first project if not specified)
+        // 4. Filter by Project (defaults to all projects initially)
         $selectedProject = isset($filters['project']) && $filters['project'] !== ''
             ? $filters['project']
-            : ($allProjects[0] ?? 'All Projects');
+            : 'All Projects';
+
         $rows = $allVendors;
-        if ($selectedProject && $selectedProject !== 'All Projects' && $selectedProject !== 'All') {
+        if ($selectedProject && !in_array(strtolower($selectedProject), ['all projects', 'all'])) {
             $rows = array_values(array_filter($rows, function ($v) use ($selectedProject) {
                 return stripos($v['project'], $selectedProject) !== false;
             }));
         }
 
-        // 5. Filter by Vendor (if specified)
+        // 5. Filter by Vendor / Contractor (if specified)
         $selectedVendor = $filters['vendor'] ?? 'All Vendors';
-        if ($selectedVendor && $selectedVendor !== 'All Vendors' && $selectedVendor !== 'All') {
+        if ($selectedVendor && !in_array(strtolower($selectedVendor), ['all vendors', 'all', 'all vendors & contractors'])) {
             $rows = array_values(array_filter($rows, function ($v) use ($selectedVendor) {
                 return stripos($v['name'], $selectedVendor) !== false || stripos($v['company_id'], $selectedVendor) !== false;
             }));
@@ -106,7 +111,7 @@ class VendorAgingReportService
             'b90_plus_pct'      => $pct90_plus,
         ];
 
-        // 8. Top 5 Overdue Vendors from real records (90+ Days delinquent, or highest total outstanding)
+        // 8. Top 5 Overdue Vendors / Contractors from real records (90+ Days delinquent, or highest total outstanding)
         $overdueVendors = array_filter($rows, fn($v) => ($v['bucket_90_plus'] ?? 0) > 0);
         if (empty($overdueVendors)) {
             $overdueVendors = array_filter($rows, fn($v) => ($v['total_outstanding'] ?? 0) > 0);
@@ -125,10 +130,11 @@ class VendorAgingReportService
             ];
         }, $overdueVendors), 0, 5);
 
-        // 9. Vendor list for the theme dropdown filter
+        // 9. Vendor & Contractor list for the theme dropdown filter
         $vendorList = array_map(fn($v) => [
             'id' => $v['company_id'],
-            'name' => $v['name']
+            'name' => $v['name'],
+            'type' => $v['type'] ?? 'Vendor'
         ], $allVendors);
 
         return [
@@ -147,7 +153,7 @@ class VendorAgingReportService
     }
 
     /**
-     * Build the real dataset querying Vendor Master accounts and their real site expenses, bills & voucher transactions
+     * Build the real dataset querying Vendor Master accounts, Contractor Payees, and their real RA bills, site expenses & bills
      */
     private function buildRealDataset(Carbon $asOnDate, string $defaultProjectName, int $systemId): array
     {
@@ -157,10 +163,11 @@ class VendorAgingReportService
         $dbVendors = Vendor::all();
         foreach ($dbVendors as $v) {
             $code = $v->vendor_code ?: ('VND-' . str_pad((string)$v->id, 4, '0', STR_PAD_LEFT));
-            $entities[$v->id] = [
+            $entities['vendor_' . $v->id] = [
                 'type'              => 'Vendor',
                 'raw_id'            => $v->id,
                 'vendor_id'         => $v->id,
+                'payee_id'          => null,
                 'key'               => 'vendor_' . $v->id,
                 'name'              => $v->name,
                 'contact_person'    => $v->contact_person,
@@ -175,27 +182,167 @@ class VendorAgingReportService
             ];
         }
 
-        // 2. Site Expenses belonging to Vendors
+        // 1b. Contractors & Suppliers from Payee Master
+        $payees = Payee::where('system_id', $systemId)
+            ->where(function ($q) {
+                $q->whereIn('type', ['Contractor', 'Supplier'])
+                  ->orWhereIn('id', function ($sub) {
+                      $sub->select('contractor_id')->from('ra_bills')->whereNotNull('contractor_id');
+                  });
+            })
+            ->with('linkedAccount')
+            ->get();
+
+        foreach ($payees as $p) {
+            $hasRaBills = DB::table('ra_bills')->where('contractor_id', $p->id)->exists();
+            $displayType = $hasRaBills ? 'Contractor' : ($p->type ?: 'Contractor');
+            $prefix = (stripos($displayType, 'contract') !== false) ? 'CON' : 'SUP';
+            $code = $p->linkedAccount?->code ?: ($prefix . '-' . str_pad((string)$p->id, 4, '0', STR_PAD_LEFT));
+
+            $entities['payee_' . $p->id] = [
+                'type'              => $displayType,
+                'raw_id'            => $p->id,
+                'payee_id'          => $p->id,
+                'vendor_id'         => null,
+                'key'               => 'payee_' . $p->id,
+                'name'              => $p->name,
+                'contact_person'    => $p->name,
+                'company_id'        => $code,
+                'phone'             => $p->phone ?: '—',
+                'email'             => $p->email ?: '—',
+                'pan'               => $p->pan ?: '—',
+                'gstin'             => $p->gstin ?: '—',
+                'linked_account_id' => $p->linked_account_id,
+                'invoices'          => [],
+                'payments'          => []
+            ];
+        }
+
+        // 2. RA Progress Bills (Contractor Claims from http://127.0.0.1:8000/expenses/ra-bills/verification)
+        $raBills = RaBill::with(['contractor', 'project', 'unit', 'payments'])->get();
+        foreach ($raBills as $ra) {
+            $targetKey = null;
+            if ($ra->contractor_id && isset($entities['payee_' . $ra->contractor_id])) {
+                $targetKey = 'payee_' . $ra->contractor_id;
+            } else {
+                $cleanName = strtolower(trim($ra->contractor_name ?: ($ra->contractor?->name ?? '')));
+                if ($cleanName) {
+                    foreach ($entities as $k => $e) {
+                        if (strtolower(trim($e['name'])) === $cleanName) {
+                            $targetKey = $k;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!$targetKey) {
+                $cName = trim($ra->contractor_name ?: ($ra->contractor?->name ?: ('Contractor #' . $ra->contractor_id)));
+                $targetKey = 'payee_auto_' . md5(strtolower($cName));
+                if (!isset($entities[$targetKey])) {
+                    $entities[$targetKey] = [
+                        'type'              => 'Contractor',
+                        'raw_id'            => $ra->contractor_id ?: 0,
+                        'payee_id'          => $ra->contractor_id,
+                        'vendor_id'         => null,
+                        'key'               => $targetKey,
+                        'name'              => $cName,
+                        'contact_person'    => $cName,
+                        'company_id'        => 'CON-' . str_pad((string)($ra->contractor_id ?: count($entities) + 1), 4, '0', STR_PAD_LEFT),
+                        'phone'             => '—',
+                        'email'             => '—',
+                        'pan'               => '—',
+                        'gstin'             => '—',
+                        'linked_account_id' => null,
+                        'invoices'          => [],
+                        'payments'          => []
+                    ];
+                }
+            }
+
+            $netAmount = (float)($ra->net_approved_amount > 0 ? $ra->net_approved_amount : $ra->gross_amount);
+            $paidAmount = (float)$ra->paid_amount;
+            $balance = (float)($ra->balance_amount > 0 ? $ra->balance_amount : max(0, $netAmount - $paidAmount));
+
+            $vDate = $ra->verified_date ? Carbon::parse($ra->verified_date) : ($ra->submit_date ? Carbon::parse($ra->submit_date) : ($ra->created_at ? Carbon::parse($ra->created_at) : Carbon::now()));
+            $dueDate = $ra->due_date ? Carbon::parse($ra->due_date) : (clone $vDate)->addDays(30);
+
+            $daysOutstanding = 0;
+            if ($asOnDate->greaterThan($dueDate)) {
+                $daysOutstanding = (int) $dueDate->diffInDays($asOnDate);
+            }
+
+            if ($daysOutstanding <= 30) {
+                $bucket = '0 - 30 Days';
+                $bucketCode = '0_30';
+            } elseif ($daysOutstanding <= 60) {
+                $bucket = '31 - 60 Days';
+                $bucketCode = '31_60';
+            } elseif ($daysOutstanding <= 90) {
+                $bucket = '61 - 90 Days';
+                $bucketCode = '61_90';
+            } else {
+                $bucket = '90+ Days';
+                $bucketCode = '90_plus';
+            }
+
+            $unitText = $ra->unit_name ? " (Unit: {$ra->unit_name})" : ($ra->unit?->door_no ? " (Unit: {$ra->unit->door_no})" : '');
+
+            $entities[$targetKey]['invoices'][] = [
+                'source'             => 'ra_bill',
+                'source_id'          => $ra->id,
+                'invoice_no'         => $ra->ra_bill_number ?: ('RA-' . str_pad((string)$ra->id, 4, '0', STR_PAD_LEFT)),
+                'project_name'       => $ra->project?->name ?: $defaultProjectName,
+                'invoice_date'       => $vDate->format('d/m/Y'),
+                'invoice_date_raw'   => $vDate->format('Y-m-d'),
+                'due_date'           => $dueDate->format('d/m/Y'),
+                'due_date_raw'       => $dueDate->format('Y-m-d'),
+                'invoice_amount'     => $netAmount,
+                'paid_amount'        => $paidAmount,
+                'outstanding_amount' => $balance,
+                'days_outstanding'   => $daysOutstanding,
+                'bucket'             => $bucket,
+                'bucket_code'        => $bucketCode,
+                'status'             => $balance <= 0 ? 'Paid' : ($paidAmount > 0 ? 'Partially Paid' : 'Unpaid'),
+                'expense_head'       => 'RA Progress Claim' . $unitText,
+                'bill_type'          => 'RA Progress Bill'
+            ];
+
+            if ($ra->payments) {
+                foreach ($ra->payments as $pmt) {
+                    $pmtDate = $pmt->payment_date ? ($pmt->payment_date instanceof \DateTimeInterface ? $pmt->payment_date->format('Y-m-d') : (string)$pmt->payment_date) : null;
+                    $entities[$targetKey]['payments'][] = [
+                        'date'   => $pmtDate,
+                        'amount' => (float)$pmt->paid_amount,
+                        'ref'    => $pmt->reference_no ?: ('RA-PMT-' . $pmt->id)
+                    ];
+                }
+            }
+        }
+
+        // 3. Site Expenses belonging to Vendors & Payees
         $siteExpenses = SiteExpense::with(['project', 'payments'])->get();
         foreach ($siteExpenses as $se) {
-            $targetVendorId = null;
+            $targetKey = null;
 
-            if ($se->vendor_id && isset($entities[$se->vendor_id])) {
-                $targetVendorId = $se->vendor_id;
+            if ($se->vendor_id && isset($entities['vendor_' . $se->vendor_id])) {
+                $targetKey = 'vendor_' . $se->vendor_id;
+            } elseif ($se->vendor_id && isset($entities['payee_' . $se->vendor_id])) {
+                $targetKey = 'payee_' . $se->vendor_id;
             } elseif (!empty($se->casual_payee_name)) {
                 $cleanName = strtolower(trim($se->casual_payee_name));
-                foreach ($entities as $vId => $e) {
+                foreach ($entities as $k => $e) {
                     $vName = strtolower(trim($e['name']));
                     $vContact = strtolower(trim($e['contact_person'] ?? ''));
                     if ($vName === $cleanName || ($vContact && $vContact === $cleanName) || str_contains($vName, $cleanName)) {
-                        $targetVendorId = $vId;
+                        $targetKey = $k;
                         break;
                     }
                 }
             }
 
-            if (!$targetVendorId || !isset($entities[$targetVendorId])) {
-                continue; // Strictly associate with Vendor Master entities
+            if (!$targetKey || !isset($entities[$targetKey])) {
+                continue;
             }
 
             $netAmount = (float)($se->net_amount > 0 ? $se->net_amount : $se->gross_amount);
@@ -224,7 +371,7 @@ class VendorAgingReportService
                 $bucketCode = '90_plus';
             }
 
-            $entities[$targetVendorId]['invoices'][] = [
+            $entities[$targetKey]['invoices'][] = [
                 'source'             => 'site_expense',
                 'source_id'          => $se->id,
                 'invoice_no'         => $se->voucher_number ?: ('EXP-' . str_pad((string)$se->id, 4, '0', STR_PAD_LEFT)),
@@ -246,7 +393,7 @@ class VendorAgingReportService
             if ($se->payments) {
                 foreach ($se->payments as $pmt) {
                     $pmtDate = $pmt->payment_date ? ($pmt->payment_date instanceof \DateTimeInterface ? $pmt->payment_date->format('Y-m-d') : (string)$pmt->payment_date) : null;
-                    $entities[$targetVendorId]['payments'][] = [
+                    $entities[$targetKey]['payments'][] = [
                         'date'   => $pmtDate,
                         'amount' => (float)$pmt->paid_amount,
                         'ref'    => $pmt->reference_no ?: ('EXP-PMT-' . $pmt->id)
@@ -255,23 +402,30 @@ class VendorAgingReportService
             }
         }
 
-        // 3. Any direct bills from bills table matching vendor
+        // 4. Direct bills from bills table
         $bills = DB::table('bills')
             ->leftJoin('projects', 'bills.project_id', '=', 'projects.id')
             ->select('bills.*', 'projects.name as project_name')
             ->get();
 
         foreach ($bills as $b) {
-            $targetVendorId = null;
-            foreach ($entities as $vId => $e) {
-                if (($b->payee_id && $b->payee_id == $vId) || 
-                    (strcasecmp(trim($e['name']), trim($b->expense_head ?? '')) === 0)) {
-                    $targetVendorId = $vId;
-                    break;
+            $targetKey = null;
+            if (!empty($b->payee_id) && isset($entities['payee_' . $b->payee_id])) {
+                $targetKey = 'payee_' . $b->payee_id;
+            } elseif (!empty($b->payee_id) && isset($entities['vendor_' . $b->payee_id])) {
+                $targetKey = 'vendor_' . $b->payee_id;
+            } else {
+                foreach ($entities as $k => $e) {
+                    if ((!empty($e['payee_id']) && $b->payee_id && $e['payee_id'] == $b->payee_id) ||
+                        (!empty($e['vendor_id']) && $b->payee_id && $e['vendor_id'] == $b->payee_id) ||
+                        (strcasecmp(trim($e['name']), trim($b->expense_head ?? '')) === 0)) {
+                        $targetKey = $k;
+                        break;
+                    }
                 }
             }
 
-            if (!$targetVendorId || !isset($entities[$targetVendorId])) {
+            if (!$targetKey || !isset($entities[$targetKey])) {
                 continue;
             }
 
@@ -282,7 +436,7 @@ class VendorAgingReportService
 
             foreach ($billPayments as $bp) {
                 $bpDate = $bp->date ? ($bp->date instanceof \DateTimeInterface ? $bp->date->format('Y-m-d') : (string)$bp->date) : null;
-                $entities[$targetVendorId]['payments'][] = [
+                $entities[$targetKey]['payments'][] = [
                     'date'   => $bpDate,
                     'amount' => (float)$bp->amount,
                     'ref'    => $bp->voucher_id ? ('Voucher #' . $bp->voucher_id) : ('BP-' . $bp->id)
@@ -315,7 +469,7 @@ class VendorAgingReportService
                 $bucketCode = '90_plus';
             }
 
-            $entities[$targetVendorId]['invoices'][] = [
+            $entities[$targetKey]['invoices'][] = [
                 'source'             => 'bill',
                 'source_id'          => $b->id,
                 'invoice_no'         => $b->bill_number ?: ('BILL-' . str_pad((string)$b->id, 4, '0', STR_PAD_LEFT)),
@@ -335,12 +489,12 @@ class VendorAgingReportService
             ];
         }
 
-        // 4. Linked Ledger Entries from Accounting Sub-Ledger
-        foreach ($entities as $vId => &$e) {
+        // 5. Linked Ledger Entries from Accounting Sub-Ledger
+        foreach ($entities as $k => &$e) {
             if (!empty($e['linked_account_id'])) {
                 $accId = $e['linked_account_id'];
                 
-                // Debit voucher lines (Payments made to vendor)
+                // Debit voucher lines (Payments made to vendor / contractor)
                 $debitLines = DB::table('voucher_lines')
                     ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
                     ->where('voucher_lines.account_id', $accId)
@@ -360,7 +514,7 @@ class VendorAgingReportService
         }
         unset($e);
 
-        // 5. Aggregate Entity Rows
+        // 6. Aggregate Entity Rows
         $allVendors = [];
         $idCounter = 1;
 

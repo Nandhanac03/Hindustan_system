@@ -831,7 +831,7 @@
                         {{-- Master Table Row --}}
                         <tr class="hover:bg-amber-50/30 transition-colors cursor-pointer group"
                             @click="toggleRow(row.sale_id)"
-                            :class="expandedRows.includes(row.sale_id) ? 'bg-[#a38c29]/10' : ''">
+                            :class="expandedRows.includes(row.sale_id) ? 'bg-[#f4efe4] font-semibold border-b-0' : ''">
                             
                             {{-- 1. Index # --}}
                             <td class="px-3 py-3.5 text-left font-bold text-slate-400 font-mono" x-text="(currentPage - 1) * perPage + idx + 1"></td>
@@ -960,268 +960,268 @@
                             </td>
                         </tr>
 
-                        {{-- ── EXPANDABLE DETAIL ACCORDION ── --}}
+                        {{-- ── EXPANDABLE DETAIL ACCORDION (INTEGRATED CONTINUATION UI) ── --}}
                         <tr x-show="expandedRows.includes(row.sale_id)" 
                             style="display: none;"
                             x-cloak
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 -translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="bg-white border-b border-slate-200 print:hidden">
-                            <td colspan="9" class="p-4 sm:p-5">
-                                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-5">
-                                        {{-- 4 Snapshot Cards (Premium White Cards) --}}
-                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5">
-                                            
-                                            {{-- 1. Customer Information --}}
-                                            <div class="p-4 rounded-xl bg-white border border-slate-200/90 border-l-[5px] border-l-blue-600 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-                                                <div class="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100">
-                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Customer Details</span>
-                                                    <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    </div>
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="bg-[#f7f5ef] border-b-2 border-slate-300 print:hidden">
+                            <td colspan="9" class="p-0">
+                                <div class="p-4 sm:p-5 space-y-4 border-l-4 border-l-[#a38c29] bg-[#f8f6f0]">
+                                    
+                                    {{-- 4 Snapshot Cards (Harmonious Muted Panels - Big & Noticeable Data) --}}
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                                        
+                                        {{-- 1. Customer Information --}}
+                                        <div class="p-3.5 rounded-xl bg-white/90 border border-[#ded8ce] shadow-2xs flex flex-col justify-between hover:border-[#a38c29]/60 transition-all">
+                                            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#eeeae1]">
+                                                <span class="text-[10px] font-black text-[#7a7263] uppercase tracking-wider flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    Customer Profile
+                                                </span>
+                                                <span class="text-[9px] font-extrabold text-[#a38c29] bg-[#a38c29]/10 px-2 py-0.5 rounded-full uppercase" x-text="'ID #' + (row.customer_id || '—')"></span>
+                                            </div>
+                                            <div class="divide-y divide-[#eeeae1] text-xs space-y-0.5">
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Name:</span>
+                                                    <strong class="text-slate-900 truncate text-right font-black text-sm" :title="row.customer_name" x-text="row.customer_name"></strong>
                                                 </div>
-                                                <div class="divide-y divide-slate-100/90 text-xs">
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Name:</span>
-                                                        <strong class="text-slate-900 truncate text-right font-bold" :title="row.customer_name" x-text="row.customer_name"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Mobile:</span>
-                                                        <strong class="text-slate-800 font-mono font-bold text-right" x-text="row.customer_phone || '—'"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Email:</span>
-                                                        <span class="text-slate-700 truncate max-w-[140px] text-right font-medium" :title="row.customer_email" x-text="row.customer_email || '—'"></span>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Address:</span>
-                                                        <span class="text-slate-700 truncate max-w-[140px] text-right font-medium" :title="row.customer_address" x-text="row.customer_address || '—'"></span>
-                                                    </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Mobile:</span>
+                                                    <strong class="text-slate-900 font-mono font-bold text-right text-xs" x-text="row.customer_phone || '—'"></strong>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Email:</span>
+                                                    <span class="text-slate-700 truncate max-w-[150px] text-right font-medium text-xs" :title="row.customer_email" x-text="row.customer_email || '—'"></span>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Address:</span>
+                                                    <span class="text-slate-700 truncate max-w-[150px] text-right font-medium text-xs" :title="row.customer_address" x-text="row.customer_address || '—'"></span>
                                                 </div>
                                             </div>
-
-                                            {{-- 2. Unit Details --}}
-                                            <div class="p-4 rounded-xl bg-white border border-slate-200/90 border-l-[5px] border-l-indigo-600 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-                                                <div class="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100">
-                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Unit Details</span>
-                                                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                    </div>
-                                                </div>
-                                                <div class="divide-y divide-slate-100/90 text-xs">
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Unit:</span>
-                                                        <div class="flex items-center gap-1.5">
-                                                            <span class="px-2 py-0.5 rounded-md bg-slate-100 font-mono font-black text-slate-900 text-[11px] border border-slate-200/80" x-text="row.unit_display"></span>
-                                                            <template x-if="row.is_exchanged">
-                                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider border border-amber-300">Exchanged</span>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Unit Rate:</span>
-                                                        <span class="text-slate-900 font-mono font-black text-right" x-text="row.rate_per_sqft > 0 ? ('₹ ' + formatMoney(row.rate_per_sqft) + ' / sq.ft') : '—'"></span>
-                                                    </div>
-                                                    <template x-if="row.area_sqft > 0">
-                                                        <div class="py-1.5 flex items-center justify-between gap-2">
-                                                            <span class="text-slate-400 font-semibold text-[11px] shrink-0">Super Area:</span>
-                                                            <span class="text-slate-800 font-mono font-bold text-right" x-text="row.area_sqft + ' sq.ft'"></span>
-                                                        </div>
-                                                    </template>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Project:</span>
-                                                        <strong class="text-slate-800 truncate max-w-[140px] text-right font-bold" :title="row.project_name" x-text="row.project_name || '—'"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Floor:</span>
-                                                        <span class="text-slate-700 font-medium text-right" x-text="row.floor_display || '—'"></span>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Agreement Date:</span>
-                                                        <span class="text-slate-800 font-mono font-bold text-right" x-text="row.agreement_date || '—'"></span>
-                                                    </div>
-                                                </div>
-                                                <template x-if="row.is_exchanged && row.exchange_notes">
-                                                    <div class="mt-2 text-[10px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                                                        <span class="font-extrabold uppercase tracking-wider text-[9px] block">Exchange Note:</span>
-                                                        <span class="font-medium" x-text="row.exchange_notes"></span>
-                                                    </div>
-                                                </template>
-                                            </div>
-
-                                            {{-- 3. Financial Recovery Summary --}}
-                                            <div class="p-4 rounded-xl bg-white border border-slate-200/90 border-l-[5px] border-l-emerald-600 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-                                                <div class="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100">
-                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Financial Audit</span>
-                                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                                    </div>
-                                                </div>
-                                                <div class="divide-y divide-slate-100/90 text-xs">
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Contract Value:</span>
-                                                        <strong class="text-slate-900 font-mono font-black text-right" x-text="'₹ ' + formatMoney(row.agreement_value)"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-slate-400 font-semibold text-[11px] shrink-0">Realized Paid:</span>
-                                                        <strong class="text-emerald-700 font-mono font-black text-right" x-text="'₹ ' + formatMoney(row.collected_amount)"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-amber-700 font-bold text-[11px] shrink-0">Pending Cheques:</span>
-                                                        <strong class="font-mono font-black text-right" :class="row.pending_realization > 0 ? 'text-amber-800' : 'text-slate-400'" x-text="'₹ ' + formatMoney(row.pending_realization)"></strong>
-                                                    </div>
-                                                    <div class="py-1.5 flex items-center justify-between gap-2">
-                                                        <span class="text-rose-600 font-bold text-[11px] shrink-0">Outstanding Dues:</span>
-                                                        <strong class="font-mono font-black text-right" :class="row.outstanding_amount > 0 ? 'text-rose-700' : 'text-emerald-700'" x-text="'₹ ' + formatMoney(row.outstanding_amount)"></strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- 4. Payment Mode Breakdown --}}
-                                            <div class="p-4 rounded-xl bg-white border border-slate-200/90 border-l-[5px] border-l-amber-500 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-                                                <div class="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100">
-                                                    <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-wider">Instrument Share</span>
-                                                    <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-                                                    </div>
-                                                </div>
-                                                <div class="text-xs space-y-2 pt-0.5">
-                                                    <template x-for="(amt, mode) in row.payment_modes" :key="mode">
-                                                        <div class="space-y-1">
-                                                            <div class="flex items-center justify-between text-[11px]">
-                                                                <span class="text-slate-700 font-bold" x-text="mode"></span>
-                                                                <span class="font-mono font-black text-slate-900" x-text="'₹ ' + formatMoney(amt)"></span>
-                                                            </div>
-                                                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                                                <div class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] h-full rounded-full transition-all duration-300" 
-                                                                     :style="'width: ' + (row.agreement_value > 0 ? (amt / row.agreement_value * 100) : 0) + '%'"></div>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="Object.keys(row.payment_modes).length === 0">
-                                                        <p class="text-[11px] text-slate-400 italic py-3 text-center">No receipts recorded yet.</p>
-                                                    </template>
-                                                </div>
-                                            </div>
-
                                         </div>
 
-                                        {{-- Sub-tabs: Milestone Schedule vs Payment History --}}
-                                        <div x-data="{ subTab: 'milestones' }" class="pt-2">
-                                            <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                                                <div class="flex items-center gap-2">
-                                                    <button type="button" 
-                                                            @click="subTab = 'milestones'"
-                                                            :class="subTab === 'milestones' ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                                            class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer">
-                                                        Milestone Schedule (<span x-text="row.milestones.length"></span>)
-                                                    </button>
-                                                    <button type="button" 
-                                                            @click="subTab = 'payments'"
-                                                            :class="subTab === 'payments' ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                                            class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer">
-                                                        Payment Receipts (<span x-text="row.receipts.length"></span>)
-                                                    </button>
-                                                </div>
-
-                                                <a :href="'{{ route('reports.customer_ledger') }}?customer_id=' + row.customer_id" 
-                                                   class="inline-flex items-center gap-1.5 text-xs font-bold text-[#a38c29] hover:text-[#8a7522] hover:underline">
-                                                    <span>View In Customer Ledger</span>
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                                </a>
-                                            </div>
-
-                                            {{-- SubTab 1: Milestone Schedule --}}
-                                            <div x-show="subTab === 'milestones'" class="pt-3 overflow-x-auto">
-                                                <div class="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-                                                    <table class="w-full text-left border-collapse text-xs">
-                                                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                                                            <tr class="erp-table-header border-b border-[#443f38]">
-                                                                <th class="py-3 px-3 w-12 text-center text-white font-extrabold">#</th>
-                                                                <th class="py-3 px-4 text-left text-white font-extrabold">Milestone Stage</th>
-                                                                <th class="py-3 px-3 text-center text-white font-extrabold">Due Date</th>
-                                                                <th class="py-3 px-4 text-right text-white font-extrabold">Milestone Amount (₹)</th>
-                                                                <th class="py-3 px-3 text-center text-white font-extrabold">Status</th>
-                                                                <th class="py-3 px-4 text-right text-white font-extrabold">Amount Paid (₹)</th>
-                                                                <th class="py-3 px-4 text-right text-white font-extrabold">Balance Due (₹)</th>
-                                                                <th class="py-3 px-3 text-center text-white font-extrabold">Overdue Days</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="divide-y divide-slate-100 font-medium">
-                                                            <template x-for="m in row.milestones" :key="m.installment_no">
-                                                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                                                    <td class="py-3 px-3 text-center font-mono text-slate-400" x-text="m.installment_no"></td>
-                                                                    <td class="py-3 px-4 text-left font-bold text-slate-800" x-text="m.label"></td>
-                                                                    <td class="py-3 px-3 text-center font-mono text-slate-600" x-text="m.due_date"></td>
-                                                                    <td class="py-3 px-4 text-right font-mono font-bold text-slate-900" x-text="'₹ ' + formatMoney(m.amount)"></td>
-                                                                    <td class="py-3 px-3 text-center">
-                                                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                                                                              :class="m.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
-                                                                              x-text="m.status"></span>
-                                                                    </td>
-                                                                    <td class="py-3 px-4 text-right font-mono font-bold" 
-                                                                        :class="m.status === 'Paid' ? 'text-emerald-700' : 'text-slate-900'"
-                                                                        x-text="'₹ ' + formatMoney(m.paid_amount)"></td>
-                                                                    <td class="py-3 px-4 text-right font-mono font-black" 
-                                                                        :class="m.balance > 0 ? 'text-rose-600' : 'text-slate-400'"
-                                                                        x-text="'₹ ' + formatMoney(m.balance)"></td>
-                                                                    <td class="py-3 px-3 text-center font-mono font-bold"
-                                                                        :class="m.days_overdue > 0 ? 'text-rose-600' : 'text-slate-400'"
-                                                                        x-text="m.days_overdue > 0 ? (m.days_overdue + 'd') : '—'"></td>
-                                                                </tr>
-                                                            </template>
-                                                        </tbody>
-                                                    </table>
+                                        {{-- 2. Unit Details --}}
+                                        <div class="p-3.5 rounded-xl bg-white/90 border border-[#ded8ce] shadow-2xs flex flex-col justify-between hover:border-[#a38c29]/60 transition-all">
+                                            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#eeeae1]">
+                                                <span class="text-[10px] font-black text-[#7a7263] uppercase tracking-wider flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                    Unit Allocation
+                                                </span>
+                                                <div class="flex items-center gap-1">
+                                                    <span class="px-2 py-0.5 rounded bg-[#eeeae1] font-mono font-black text-slate-900 text-xs border border-[#ddd7ca]" x-text="row.unit_display"></span>
+                                                    <template x-if="row.is_exchanged">
+                                                        <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider border border-amber-300">Exchanged</span>
+                                                    </template>
                                                 </div>
                                             </div>
-
-                                            {{-- SubTab 2: Payment Receipts --}}
-                                            <div x-show="subTab === 'payments'" class="pt-3 overflow-x-auto" style="display: none;">
-                                                <div class="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-                                                    <table class="w-full text-left border-collapse text-xs">
-                                                        <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                                                            <tr class="erp-table-header border-b border-[#443f38]">
-                                                                <th class="py-3 px-3 w-12 text-center text-white font-extrabold">#</th>
-                                                                <th class="py-3 px-4 text-left text-white font-extrabold">Receipt / Voucher #</th>
-                                                                <th class="py-3 px-3 text-center text-white font-extrabold">Receipt Date</th>
-                                                                <th class="py-3 px-4 text-left text-white font-extrabold">Payment Mode</th>
-                                                                <th class="py-3 px-4 text-left text-white font-extrabold">Bank / Drawee Details</th>
-                                                                <th class="py-3 px-4 text-right text-white font-extrabold">Amount (₹)</th>
-                                                                <th class="py-3 px-3 text-center text-white font-extrabold">Realization Status</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="divide-y divide-slate-100 font-medium">
-                                                            <template x-for="r in row.receipts" :key="r.id">
-                                                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                                                    <td class="py-3 px-3 text-center font-mono text-slate-400" x-text="r.index"></td>
-                                                                    <td class="py-3 px-4 text-left font-mono font-bold text-slate-900" x-text="r.receipt_no"></td>
-                                                                    <td class="py-3 px-3 text-center font-mono text-slate-600" x-text="r.receipt_date"></td>
-                                                                    <td class="py-3 px-4 text-left font-semibold text-slate-700" x-text="r.payment_mode"></td>
-                                                                    <td class="py-3 px-4 text-left text-slate-600 truncate max-w-[150px]" x-text="r.drawee_bank || '—'"></td>
-                                                                    <td class="py-3 px-4 text-right font-mono font-black text-emerald-700" x-text="'₹ ' + formatMoney(r.amount)"></td>
-                                                                    <td class="py-3 px-3 text-center">
-                                                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border shadow-2xs inline-flex items-center gap-1"
-                                                                              :class="r.realization_status === 'realized' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-300'">
-                                                                            <span x-text="r.realization_status === 'realized' ? '✅' : '⏳'"></span>
-                                                                            <span x-text="r.realization_label"></span>
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            </template>
-                                                            <template x-if="row.receipts.length === 0">
-                                                                <tr>
-                                                                    <td colspan="7" class="py-6 text-center text-slate-400 italic">No receipts recorded for this booking.</td>
-                                                                </tr>
-                                                            </template>
-                                                        </tbody>
-                                                    </table>
+                                            <div class="divide-y divide-[#eeeae1] text-xs space-y-0.5">
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Unit Rate:</span>
+                                                    <span class="text-slate-900 font-mono font-black text-right text-xs" x-text="row.rate_per_sqft > 0 ? ('₹ ' + formatMoney(row.rate_per_sqft) + ' / sq.ft') : '—'"></span>
                                                 </div>
+                                                <template x-if="row.area_sqft > 0">
+                                                    <div class="py-1.5 flex items-center justify-between gap-2">
+                                                        <span class="text-slate-500 font-semibold text-[11px] shrink-0">Super Area:</span>
+                                                        <span class="text-slate-900 font-mono font-bold text-right text-xs" x-text="row.area_sqft + ' sq.ft'"></span>
+                                                    </div>
+                                                </template>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Project:</span>
+                                                    <strong class="text-slate-900 truncate max-w-[150px] text-right font-extrabold text-xs" :title="row.project_name" x-text="row.project_name || '—'"></strong>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Agreement Date:</span>
+                                                    <span class="text-slate-800 font-mono font-bold text-right text-xs" x-text="row.agreement_date || '—'"></span>
+                                                </div>
+                                            </div>
+                                            <template x-if="row.is_exchanged && row.exchange_notes">
+                                                <div class="mt-2 text-[10px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                                                    <span class="font-extrabold uppercase tracking-wider text-[9px] block">Exchange Note:</span>
+                                                    <span class="font-medium" x-text="row.exchange_notes"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- 3. Financial Audit (Big & Noticeable) --}}
+                                        <div class="p-3.5 rounded-xl bg-white/90 border border-[#ded8ce] shadow-2xs flex flex-col justify-between hover:border-[#a38c29]/60 transition-all">
+                                            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#eeeae1]">
+                                                <span class="text-[10px] font-black text-[#7a7263] uppercase tracking-wider flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                                    Financial Audit
+                                                </span>
+                                                <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded"
+                                                      :class="row.outstanding_amount > 0 ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'"
+                                                      x-text="row.outstanding_amount > 0 ? 'Dues Pending' : 'Fully Cleared'"></span>
+                                            </div>
+                                            <div class="divide-y divide-[#eeeae1] text-xs space-y-0.5">
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Contract Value:</span>
+                                                    <strong class="text-slate-900 font-mono font-black text-right text-[13px]" x-text="'₹ ' + formatMoney(row.agreement_value)"></strong>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-slate-500 font-semibold text-[11px] shrink-0">Realized Paid:</span>
+                                                    <strong class="text-emerald-700 font-mono font-black text-right text-[13px]" x-text="'₹ ' + formatMoney(row.collected_amount)"></strong>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-amber-800 font-bold text-[11px] shrink-0">Pending Cheques:</span>
+                                                    <strong class="font-mono font-black text-right text-[13px]" :class="row.pending_realization > 0 ? 'text-amber-800' : 'text-slate-400'" x-text="'₹ ' + formatMoney(row.pending_realization)"></strong>
+                                                </div>
+                                                <div class="py-1.5 flex items-center justify-between gap-2">
+                                                    <span class="text-rose-600 font-extrabold text-[11px] shrink-0">Outstanding Dues:</span>
+                                                    <strong class="font-mono font-black text-right text-sm" :class="row.outstanding_amount > 0 ? 'text-rose-700' : 'text-emerald-700'" x-text="'₹ ' + formatMoney(row.outstanding_amount)"></strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- 4. Payment Mode Breakdown --}}
+                                        <div class="p-3.5 rounded-xl bg-white/90 border border-[#ded8ce] shadow-2xs flex flex-col justify-between hover:border-[#a38c29]/60 transition-all">
+                                            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#eeeae1]">
+                                                <span class="text-[10px] font-black text-[#7a7263] uppercase tracking-wider flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                                                    Instrument Share
+                                                </span>
+                                                <span class="text-[9px] font-bold text-slate-500 font-mono" x-text="Object.keys(row.payment_modes).length + ' Mode(s)'"></span>
+                                            </div>
+                                            <div class="text-xs space-y-2 pt-0.5">
+                                                <template x-for="(amt, mode) in row.payment_modes" :key="mode">
+                                                    <div class="space-y-1">
+                                                        <div class="flex items-center justify-between text-[11.5px]">
+                                                            <span class="text-slate-800 font-extrabold" x-text="mode"></span>
+                                                            <span class="font-mono font-black text-slate-900" x-text="'₹ ' + formatMoney(amt)"></span>
+                                                        </div>
+                                                        <div class="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
+                                                            <div class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] h-full rounded-full transition-all duration-300" 
+                                                                 :style="'width: ' + (row.agreement_value > 0 ? (amt / row.agreement_value * 100) : 0) + '%'"></div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="Object.keys(row.payment_modes).length === 0">
+                                                    <p class="text-[11px] text-slate-400 italic py-3 text-center">No receipts recorded yet.</p>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    {{-- Sub-tabs: Milestone Schedule vs Payment History --}}
+                                    <div x-data="{ subTab: 'milestones' }" class="pt-1 space-y-2.5">
+                                        <div class="flex items-center justify-between border-b border-[#ded8ce] pb-2.5">
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" 
+                                                        @click="subTab = 'milestones'"
+                                                        :class="subTab === 'milestones' ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                                        class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer">
+                                                    Milestone Schedule (<span x-text="row.milestones.length"></span>)
+                                                </button>
+                                                <button type="button" 
+                                                        @click="subTab = 'payments'"
+                                                        :class="subTab === 'payments' ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                                        class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer">
+                                                    Payment Receipts (<span x-text="row.receipts.length"></span>)
+                                                </button>
+                                            </div>
+
+                                            <a :href="'{{ route('reports.customer_ledger') }}?customer_id=' + row.customer_id" 
+                                               class="inline-flex items-center gap-1.5 text-xs font-bold text-[#a38c29] hover:text-[#8a7522] hover:underline">
+                                                <span>View In Customer Ledger</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                            </a>
+                                        </div>
+
+                                        {{-- SubTab 1: Milestone Schedule (DULL TABLE HEADER & BIG NOTICEABLE DATA) --}}
+                                        <div x-show="subTab === 'milestones'" class="overflow-x-auto">
+                                            <div class="rounded-xl border border-[#ded8ce] overflow-hidden shadow-2xs">
+                                                <table class="w-full text-left border-collapse text-xs">
+                                                    <thead class="uppercase text-[11px] font-extrabold tracking-wider border-b border-[#cfc9bd]" style="background-color: #ECEAE6 !important; color: #443e35 !important;">
+                                                        <tr style="background-color: #ECEAE6 !important; color: #443e35 !important;">
+                                                            <th class="py-3 px-3 w-12 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">#</th>
+                                                            <th class="py-3 px-4 text-left font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Milestone Stage</th>
+                                                            <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Due Date</th>
+                                                            <th class="py-3 px-4 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Milestone Amount (₹)</th>
+                                                            <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Status</th>
+                                                            <th class="py-3 px-4 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Amount Paid (₹)</th>
+                                                            <th class="py-3 px-4 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Balance Due (₹)</th>
+                                                            <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Overdue Days</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-[#eeeae1] font-medium bg-white">
+                                                        <template x-for="m in row.milestones" :key="m.installment_no">
+                                                            <tr class="hover:bg-amber-50/40 transition-colors">
+                                                                <td class="py-3.5 px-3 text-center font-mono font-extrabold text-slate-500 text-xs" x-text="m.installment_no"></td>
+                                                                <td class="py-3.5 px-4 text-left font-extrabold text-slate-900 text-[13px]" x-text="m.label"></td>
+                                                                <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-700 text-xs" x-text="m.due_date"></td>
+                                                                <td class="py-3.5 px-4 text-right font-mono font-black text-slate-900 text-[13px]" x-text="'₹ ' + formatMoney(m.amount)"></td>
+                                                                <td class="py-3.5 px-3 text-center">
+                                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-2xs"
+                                                                          :class="m.status === 'Paid' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+                                                                          x-text="m.status"></span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right font-mono font-black text-[13px]" 
+                                                                    :class="m.status === 'Paid' ? 'text-emerald-700' : 'text-slate-900'"
+                                                                    x-text="'₹ ' + formatMoney(m.paid_amount)"></td>
+                                                                <td class="py-3.5 px-4 text-right font-mono font-black text-[13px]" 
+                                                                    :class="m.balance > 0 ? 'text-rose-600' : 'text-slate-400'"
+                                                                    x-text="'₹ ' + formatMoney(m.balance)"></td>
+                                                                <td class="py-3.5 px-3 text-center font-mono font-black text-xs"
+                                                                    :class="m.days_overdue > 0 ? 'text-rose-600' : 'text-slate-400'"
+                                                                    x-text="m.days_overdue > 0 ? (m.days_overdue + 'd') : '—'"></td>
+                                                            </tr>
+                                                        </template>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {{-- SubTab 2: Payment Receipts (DULL TABLE HEADER & BIG NOTICEABLE DATA) --}}
+                                        <div x-show="subTab === 'payments'" class="overflow-x-auto" style="display: none;">
+                                            <div class="rounded-xl border border-[#ded8ce] overflow-hidden shadow-2xs">
+                                                <table class="w-full text-left border-collapse text-xs">
+                                                    <thead class="uppercase text-[11px] font-extrabold tracking-wider border-b border-[#cfc9bd]" style="background-color: #ECEAE6 !important; color: #443e35 !important;">
+                                                        <tr style="background-color: #ECEAE6 !important; color: #443e35 !important;">
+                                                            <th class="py-3.5 px-3 w-12 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">#</th>
+                                                            <th class="py-3.5 px-4 text-left font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Receipt / Voucher #</th>
+                                                            <th class="py-3.5 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Receipt Date</th>
+                                                            <th class="py-3.5 px-4 text-left font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Payment Mode</th>
+                                                            <th class="py-3.5 px-4 text-left font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Bank / Drawee Details</th>
+                                                            <th class="py-3.5 px-4 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Amount (₹)</th>
+                                                            <th class="py-3.5 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Realization Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-[#eeeae1] font-medium bg-white">
+                                                        <template x-for="r in row.receipts" :key="r.id">
+                                                            <tr class="hover:bg-amber-50/40 transition-colors">
+                                                                <td class="py-3.5 px-3 text-center font-mono font-extrabold text-slate-500 text-xs" x-text="r.index"></td>
+                                                                <td class="py-3.5 px-4 text-left font-mono font-extrabold text-slate-900 text-xs" x-text="r.receipt_no"></td>
+                                                                <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-700 text-xs" x-text="r.receipt_date"></td>
+                                                                <td class="py-3.5 px-4 text-left font-bold text-slate-800 text-xs" x-text="r.payment_mode"></td>
+                                                                <td class="py-3.5 px-4 text-left text-slate-700 text-xs font-medium truncate max-w-[150px]" x-text="r.drawee_bank || '—'"></td>
+                                                                <td class="py-3.5 px-4 text-right font-mono font-black text-emerald-700 text-[13px]" x-text="'₹ ' + formatMoney(r.amount)"></td>
+                                                                <td class="py-3.5 px-3 text-center">
+                                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-2xs inline-flex items-center gap-1"
+                                                                          :class="r.realization_status === 'realized' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-300'">
+                                                                        <span x-text="r.realization_status === 'realized' ? '✅' : '⏳'"></span>
+                                                                        <span x-text="r.realization_label"></span>
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        </template>
+                                                        <template x-if="row.receipts.length === 0">
+                                                            <tr>
+                                                                <td colspan="7" class="py-6 text-center text-slate-400 italic">No receipts recorded for this booking.</td>
+                                                            </tr>
+                                                        </template>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
-                                </td>
-                            </tr>
+
+                                </div>
+                            </td>
+                        </tr>
                         </tbody>
                     </template>
                     <tbody x-show="filteredRows.length === 0">

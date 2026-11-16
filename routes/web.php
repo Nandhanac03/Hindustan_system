@@ -245,6 +245,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     Route::get('/units', [UnitController::class, 'index'])->name('units.index');
     Route::get('/units-matrix', [\App\Http\Controllers\UnitMatrixController::class, 'index'])->name('unit-matrix.index');
+    Route::get('/units-matrix-alias', [\App\Http\Controllers\UnitMatrixController::class, 'index'])->name('units-matrix');
     Route::post('/units', [UnitController::class, 'store'])->name('units.store');
     Route::match(['put', 'post'], '/units/{unit}', [UnitController::class, 'update'])->name('units.update');
     Route::match(['put', 'post'], '/units/{unit}/update', [UnitController::class, 'update'])->name('units.update.post');

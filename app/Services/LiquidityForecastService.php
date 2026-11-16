@@ -27,14 +27,20 @@ class LiquidityForecastService
         $currencyCode = $system?->currency_code ?: 'INR';
         $currency = $currencyCode === 'INR' ? '₹' : $currencyCode;
 
-        // 1. Projects lookup (from real Projects table)
-        $allProjects = Project::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
+        // 1. Projects lookup (ordered by ID asc so the first project is first)
+        $allProjects = Project::where('is_active', true)->orderBy('id', 'asc')->get(['id', 'name'])->toArray();
         if (empty($allProjects)) {
-            $allProjects = Project::orderBy('name')->get(['id', 'name'])->toArray();
+            $allProjects = Project::orderBy('id', 'asc')->get(['id', 'name'])->toArray();
         }
 
-        // 2. Base Filters
-        $selectedProjectId = (string)($filters['project_id'] ?? ($allProjects[0]['id'] ?? 'all'));
+        // 2. Base Filters (First Project selected by default)
+        $firstProjId = !empty($allProjects) ? (string)$allProjects[0]['id'] : 'all';
+        $selectedProjectId = (string)($filters['project_id'] ?? $firstProjId);
+        if (empty($selectedProjectId) || $selectedProjectId === 'all') {
+            if (!isset($filters['project_id'])) {
+                $selectedProjectId = $firstProjId;
+            }
+        }
         $asOnDateInput = $filters['as_on_date'] ?? Carbon::now()->format('d/m/Y');
         try {
             $asOnDate = Carbon::createFromFormat('d/m/Y', $asOnDateInput)->startOfDay();

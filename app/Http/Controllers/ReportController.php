@@ -49,7 +49,10 @@ class ReportController extends Controller
 {
     protected function getCommonLookups(Request $request): array
     {
-        $projects = Project::where('is_active', true)->orderBy('name')->get();
+        $projects = Project::where('is_active', true)->orderBy('id', 'asc')->get();
+        if ($projects->isEmpty()) {
+            $projects = Project::orderBy('id', 'asc')->get();
+        }
         if (!$request->has('project_id') && !$request->filled('project_id') && $projects->isNotEmpty()) {
             $request->merge(['project_id' => (string)$projects->first()->id]);
         }
@@ -5799,6 +5802,16 @@ class ReportController extends Controller
     public function liquidityForecast(Request $request): View
     {
         $lookups = $this->getCommonLookups($request);
+
+        $projects = Project::where('is_active', true)->orderBy('id', 'asc')->get();
+        if ($projects->isEmpty()) {
+            $projects = Project::orderBy('id', 'asc')->get();
+        }
+        $lookups['projects'] = $projects;
+
+        if (!$request->has('project_id') && $projects->isNotEmpty()) {
+            $request->merge(['project_id' => (string)$projects->first()->id]);
+        }
 
         $service = new \App\Services\LiquidityForecastService();
         $reportData = $service->getForecastData($request->all());

@@ -329,7 +329,7 @@
                         </svg>
                         <span class="truncate text-xs font-bold"
                               :class="filters.project_id !== 'all' ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'"
-                              x-text="getProjectLabel()">All Projects</span>
+                              x-text="getProjectLabel()">{{ $allProjects[0]['name'] ?? 'All Projects' }}</span>
                     </div>
                     <svg class="w-3.5 h-3.5 transition-transform duration-200 text-[#a38c29] shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
@@ -833,11 +833,11 @@ function liquidityForecastApp() {
     return {
         currency: @json($currency ?? '₹'),
         defaultAsOnDate: @json($asOnDate ?? now()->format('d/m/Y')),
-        defaultProjectId: @json((string)$selectedProjectId ?? 'all'),
+        defaultProjectId: @json((string)($selectedProjectId ?? ($allProjects[0]['id'] ?? 'all'))),
         filters: {
             as_on_date: @json($asOnDate ?? now()->format('d/m/Y')),
             period: '90',
-            project_id: @json((string)$selectedProjectId ?? 'all'),
+            project_id: @json((string)($selectedProjectId ?? ($allProjects[0]['id'] ?? 'all'))),
             financial_year: 'All'
         },
         financialYearsList: [
@@ -896,6 +896,12 @@ function liquidityForecastApp() {
         },
 
         init() {
+            // Guarantee first project is selected by default if empty or 'all'
+            if ((!this.filters.project_id || this.filters.project_id === 'all') && this.allProjects && this.allProjects.length > 0) {
+                this.filters.project_id = String(this.allProjects[0].id);
+                this.defaultProjectId = String(this.allProjects[0].id);
+                this.applyDataset();
+            }
             this.$nextTick(() => {
                 this.renderComboChart();
                 this.renderDonutChart();
@@ -1145,7 +1151,8 @@ function liquidityForecastApp() {
 
         resetFilters() {
             this.triggerLoadingEffect();
-            this.filters.project_id = String(this.defaultProjectId);
+            const firstProj = (this.allProjects && this.allProjects.length > 0) ? String(this.allProjects[0].id) : 'all';
+            this.filters.project_id = String(this.defaultProjectId || firstProj);
             this.filters.financial_year = 'All';
             this.filters.period = '90';
             this.filters.as_on_date = this.defaultAsOnDate;

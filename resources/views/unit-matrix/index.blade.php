@@ -807,7 +807,7 @@ window.unitMatrixApp = unitMatrixApp;
                     Project:
                 </h1>
                 @if(isset($projects) && $projects->count() > 1)
-                    <form method="GET" action="{{ route('units-matrix') }}" class="inline">
+                    <form method="GET" action="{{ route('unit-matrix.index') }}" class="inline">
                         <select name="project_id" onchange="this.form.submit()" class="px-3 py-1 text-xs font-extrabold uppercase tracking-wide rounded-xl border border-slate-300 bg-white text-primary-700 focus:ring-2 focus:ring-[#a38c29]/50 shadow-sm cursor-pointer">
                             @foreach($projects as $p)
                                 <option value="{{ $p->id }}" {{ ($project && $project->id == $p->id) ? 'selected' : '' }}>
