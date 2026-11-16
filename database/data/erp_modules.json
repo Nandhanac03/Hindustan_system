@@ -1011,7 +1011,7 @@
             },
             {
                 "id": 63,
-                "name": "User Roles",
+                "name": "Roles & Permissions",
                 "code": "roles.manage",
                 "route_name": "admin.roles.index",
                 "actions": [
@@ -1038,16 +1038,5 @@
                 "status": "active"
             }
         ]
-    },
-    {
-        "id": 17,
-        "name": "Test",
-        "code": "436574",
-        "section": "Sales & Booking",
-        "icon": "folder",
-        "description": "fdfd",
-        "order": 17,
-        "status": "active",
-        "sub_modules": []
     }
 ]

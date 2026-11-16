@@ -235,7 +235,9 @@
                                 <td class="px-5 py-3.5 font-semibold text-slate-800">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-8 h-8 rounded-full text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs"
-                                             :class="user.avatar_bg" x-text="user.initials">
+                                             :class="user.avatar_bg"
+                                             :style="'background-color: ' + (user.avatar_hex || '#a38c29')"
+                                             x-text="user.initials">
                                         </div>
                                         <div>
                                             <span class="block text-xs font-bold text-slate-900" x-text="user.name"></span>
@@ -325,6 +327,17 @@
                                 {{-- Actions --}}
                                 <td class="px-5 py-3.5 text-right pr-6 whitespace-nowrap" @click.stop>
                                     <div class="inline-flex items-center justify-end gap-1.5">
+                                        {{-- User Permissions Button --}}
+                                        <button type="button"
+                                                @click="openPermissionsModalFn(user)"
+                                                style="background-color: #f3e8ff; color: #9333ea;"
+                                                class="p-2 rounded-lg hover:opacity-85 transition inline-flex items-center justify-center shadow-xs cursor-pointer"
+                                                title="User Permissions">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                            </svg>
+                                        </button>
+
                                         {{-- Edit Button --}}
                                         <button type="button" 
                                                 @click="openEditModalFn(user)"
@@ -402,6 +415,152 @@
         </div>
 
 
+
+        {{-- ========================================================================= --}}
+        {{-- POPUP MODAL: USER ROLES & PARTICULAR MODULE PERMISSIONS                   --}}
+        {{-- ========================================================================= --}}
+        <div x-show="openPermissionsModal"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
+             style="display: none;"
+             x-transition.opacity>
+            <div id="user-permissions-section"
+                 class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 ring-0 outline-none"
+                 style="max-height: 90vh;"
+                 @click.away="closePermissionsModalFn()">
+                {{-- Dark Gradient Header with Gold Accent --}}
+                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 flex-shrink-0">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1">ROLE-BASED &amp; USER-WISE ACCESS</p>
+                            <h2 class="text-lg font-black text-white">
+                                User Permissions — <span class="text-[#d9bf3b]" x-text="selectedUserName"></span>
+                            </h2>
+                        </div>
+                        <button type="button" @click="closePermissionsModalFn()"
+                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer shrink-0">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Toolbar: Role Selector + Counters + Select All --}}
+                <div class="px-6 py-3.5 bg-slate-50/80 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-1 rounded-md bg-white text-slate-700 border border-slate-200 text-[10px] font-bold uppercase tracking-wider">
+                            Role: <span x-text="permissionRole || 'No Role'"></span> (<span x-text="rolePermsCount"></span>)
+                        </span>
+                        <span class="px-2.5 py-1 rounded-md bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/25 text-[10px] font-bold uppercase tracking-wider">
+                            User-Wise Direct: <span x-text="directPermsCount"></span>
+                        </span>
+                        <span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider">
+                            Total Effective: <span x-text="effectivePermsCount"></span>
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Role:</label>
+                            <select x-model="permissionRole" @change="onRoleChanged(permissionRole)"
+                                    class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29]">
+                                <option value="">No Role (User-Wise Only)</option>
+                                @foreach($roles as $r)
+                                    <option value="{{ $r->name }}">{{ $r->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <button type="button" @click="toggleSelectAllUserMatrix()"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#a38c29]/40 bg-white hover:bg-[#a38c29]/5 text-[#8a7522] text-[11px] font-bold uppercase tracking-wider transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span x-text="allUserMatrixSelected ? 'Clear User-Wise' : 'Select All User-Wise'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Scrollable Module Permissions Matrix Table --}}
+                <div class="w-full overflow-y-auto overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                <th class="px-5 py-3.5 erp-table-header text-white min-w-[240px]">Module / Feature</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">View</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">Create</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">Edit</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">Delete</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">Excel</th>
+                                <th class="px-4 py-3.5 erp-table-header text-white text-center w-24">PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($modulesCatalog as $mod)
+                                {{-- Module Group Header --}}
+                                <tr class="bg-[#faf8ef] border-t border-b border-slate-200/80 font-bold select-none">
+                                    <td colspan="7" class="px-5 py-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800">{{ $mod['name'] }}</span>
+                                            <button type="button" @click="toggleUserModuleGroup('{{ $mod['code'] }}')"
+                                                    class="px-2.5 py-1 rounded-lg bg-white border border-[#a38c29]/30 text-[#8a7522] hover:bg-[#a38c29] hover:text-white text-[10px] font-bold uppercase tracking-wider transition cursor-pointer">
+                                                Toggle ALL
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                @foreach($mod['sub_modules'] as $sub)
+                                    <tr class="hover:bg-slate-50/70 transition-colors">
+                                        <td class="px-5 py-3">
+                                            <div class="min-w-0 pl-1">
+                                                <span class="block text-xs font-bold text-slate-800">{{ $sub['name'] }}</span>
+                                                @if(!empty($sub['description']))
+                                                    <span class="block text-[10px] text-slate-400 mt-0.5 line-clamp-1">{{ $sub['description'] }}</span>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        @foreach(['view', 'create', 'edit', 'delete', 'excel', 'pdf'] as $action)
+                                            <td class="px-4 py-3 text-center w-24">
+                                                <label class="inline-flex items-center justify-center gap-1 select-none"
+                                                       :class="isRolePerm('{{ $sub['code'] }}', '{{ $action }}') ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'">
+                                                    <input type="checkbox"
+                                                           :checked="isUserPermChecked('{{ $sub['code'] }}', '{{ $action }}')"
+                                                           :disabled="isRolePerm('{{ $sub['code'] }}', '{{ $action }}')"
+                                                           @change="toggleUserDirectPerm('{{ $sub['code'] }}', '{{ $action }}')"
+                                                           style="width: 1.1rem; height: 1.1rem; accent-color: #a38c29;"
+                                                           class="rounded disabled:opacity-75">
+                                                    <!-- <span x-show="isRolePerm('{{ $sub['code'] }}', '{{ $action }}')"
+                                                          class="text-[8px] font-extrabold uppercase tracking-wider px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                                        Role
+                                                    </span> -->
+                                                </label>
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-shrink-0">
+                    <p class="text-[11px] text-slate-500 font-medium">
+                        Role permissions come from the assigned role; user-wise permissions save directly to <code class="text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200">model_has_permissions</code>.
+                    </p>
+                    <div class="flex items-center justify-end gap-2.5">
+                        <button type="button" @click="closePermissionsModalFn()"
+                                class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="button" @click="savePermissionsFn()" :disabled="savingPerms"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/25 cursor-pointer active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span x-text="savingPerms ? 'Saving...' : 'Save User Permissions'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {{-- ========================================================================= --}}
         {{-- POPUP MODAL 1: ADD NEW USER MODAL --}}
@@ -745,11 +904,17 @@
 
             openAddModal: false,
             openEditModal: false,
+            openPermissionsModal: false,
+            savingPerms: false,
             selectedUserId: {{ $users->first()?->id ?? 'null' }},
             selectedUserName: '{{ $users->first()?->name ?? 'User' }}',
             activeTab: 'role-permissions',
-            permissionRole: '{{ $roles->first()?->name ?? 'Sales' }}',
-            selectAllPerms: true,
+            permissionRole: '{{ $roles->first()?->name ?? '' }}',
+            modulesCatalog: @json($modulesCatalog ?? []),
+            rolePermissionsMap: @json($rolesPermissionsMap ?? []),
+            rolePermsList: [],
+            directPermsList: [],
+            matrixActions: ['view', 'create', 'edit', 'delete', 'excel', 'pdf'],
 
             toast: {
                 show: false,
@@ -809,52 +974,25 @@
                 'View Only: Treasury'
             ],
 
-            rolePermissionsMap: {
-                'Owner': [
-                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
-                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Main User': [
-                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
-                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Super Admin': [
-                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
-                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Admin': [
-                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
-                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Sales': [
-                    'Dashboard', 'Projects & Units', 'Customers', 'Sales & Collections', 'Reports',
-                    'Customer Ledger', 'EMI Collections', 'Sales Reports', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Accountant': [
-                    'Dashboard', 'Reports', 'Customer Ledger', 'EMI Collections', 'View Only: Accounting', 'View Only: Treasury'
-                ],
-                'Site': [
-                    'Projects & Units'
-                ]
-            },
-
             init() {
                 if (window.location.search) {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
                 if (this.usersList && this.usersList.length > 0) {
-                    const initialUser = this.usersList[0];
-                    this.selectedUserId = initialUser.id;
-                    this.selectedUserName = initialUser.name;
-                    const rNames = initialUser.role_names || (initialUser.roles || []).map(r => r.name);
-                    if (rNames && rNames.length > 0) {
-                        this.permissionRole = rNames[0];
-                        this.onRoleChanged(rNames[0]);
-                    }
+                    this.selectUserRow(this.usersList[0]);
                 }
             },
 
             showToast(message, type = 'success') {
+                if (type === 'success' && typeof window.showSuccessModal === 'function') {
+                    window.showSuccessModal(
+                        'Permissions Saved!',
+                        'User Access Updated',
+                        `${this.selectedUserName} (${this.permissionRole || 'User-Wise'})`,
+                        message
+                    );
+                    return;
+                }
                 this.toast.message = message;
                 this.toast.type = type;
                 this.toast.show = true;
@@ -960,32 +1098,154 @@
                 }
             },
 
+            permKey(subCode, action) {
+                return `${subCode}.${action}`;
+            },
+
+            get validMatrixKeysSet() {
+                const keys = new Set();
+                (this.modulesCatalog || []).forEach(m => {
+                    (m.sub_modules || []).forEach(sub => {
+                        this.matrixActions.forEach(act => keys.add(this.permKey(sub.code, act)));
+                    });
+                });
+                return keys;
+            },
+
+            get rolePermsCount() {
+                const valid = this.validMatrixKeysSet;
+                return (this.rolePermsList || []).filter(p => valid.has(p)).length;
+            },
+
+            get directPermsCount() {
+                const valid = this.validMatrixKeysSet;
+                const roleSet = new Set(this.rolePermsList || []);
+                return (this.directPermsList || []).filter(p => valid.has(p) && !roleSet.has(p)).length;
+            },
+
+            get effectivePermsCount() {
+                const valid = this.validMatrixKeysSet;
+                const combined = new Set();
+                (this.rolePermsList || []).forEach(p => { if (valid.has(p)) combined.add(p); });
+                (this.directPermsList || []).forEach(p => { if (valid.has(p)) combined.add(p); });
+                return combined.size;
+            },
+
+            openPermissionsModalFn(user) {
+                this.selectUserRow(user);
+                this.openPermissionsModal = true;
+            },
+
+            closePermissionsModalFn() {
+                this.openPermissionsModal = false;
+            },
+
             selectUserRow(user) {
                 this.selectedUserId = user.id;
                 this.selectedUserName = user.name;
                 const rNames = user.role_names || (user.roles || []).map(r => r.name);
-                if (rNames && rNames.length > 0) {
-                    this.permissionRole = rNames[0];
-                    this.onRoleChanged(rNames[0]);
-                }
+                this.permissionRole = (rNames && rNames.length > 0) ? rNames[0] : '';
+                this.rolePermsList = this.permissionRole ? [...(this.rolePermissionsMap[this.permissionRole] || [])] : [];
+                this.directPermsList = [...(user.direct_permissions || [])];
             },
 
             onRoleChanged(roleName) {
-                this.permissionRole = roleName;
-                if (this.rolePermissionsMap[roleName]) {
-                    this.selectedPerms = [...this.rolePermissionsMap[roleName]];
-                } else {
-                    this.selectedPerms = [...this.allModuleList];
-                }
-                this.selectAllPerms = this.selectedPerms.length === this.allModuleList.length;
+                this.permissionRole = roleName || '';
+                this.rolePermsList = this.permissionRole ? [...(this.rolePermissionsMap[this.permissionRole] || [])] : [];
             },
 
-            toggleSelectAllPerms() {
-                if (this.selectAllPerms) {
-                    this.selectedPerms = [...this.allModuleList];
-                } else {
-                    this.selectedPerms = [];
+            isRolePerm(subCode, action) {
+                return (this.rolePermsList || []).includes(this.permKey(subCode, action));
+            },
+
+            isUserPermChecked(subCode, action) {
+                const key = this.permKey(subCode, action);
+                return (this.rolePermsList || []).includes(key) || (this.directPermsList || []).includes(key);
+            },
+
+            toggleUserDirectPerm(subCode, action) {
+                const key = this.permKey(subCode, action);
+                if ((this.rolePermsList || []).includes(key)) {
+                    return;
                 }
+                const next = [...(this.directPermsList || [])];
+                const idx = next.indexOf(key);
+                if (idx >= 0) {
+                    next.splice(idx, 1);
+                } else {
+                    next.push(key);
+                }
+                this.directPermsList = next;
+            },
+
+            toggleUserModuleGroup(modCode) {
+                const mod = (this.modulesCatalog || []).find(m => m.code === modCode);
+                if (!mod) return;
+                const roleSet = new Set(this.rolePermsList || []);
+                const next = new Set(this.directPermsList || []);
+                let allDirectChecked = true;
+                let hasDirectCandidates = false;
+
+                (mod.sub_modules || []).forEach(sub => {
+                    this.matrixActions.forEach(act => {
+                        const key = this.permKey(sub.code, act);
+                        if (!roleSet.has(key)) {
+                            hasDirectCandidates = true;
+                            if (!next.has(key)) allDirectChecked = false;
+                        }
+                    });
+                });
+
+                if (!hasDirectCandidates) return;
+
+                (mod.sub_modules || []).forEach(sub => {
+                    this.matrixActions.forEach(act => {
+                        const key = this.permKey(sub.code, act);
+                        if (!roleSet.has(key)) {
+                            if (allDirectChecked) next.delete(key);
+                            else next.add(key);
+                        }
+                    });
+                });
+
+                this.directPermsList = Array.from(next);
+            },
+
+            get allUserMatrixSelected() {
+                const roleSet = new Set(this.rolePermsList || []);
+                let nonRoleCount = 0;
+                let checkedNonRoleCount = 0;
+                (this.modulesCatalog || []).forEach(m => {
+                    (m.sub_modules || []).forEach(sub => {
+                        this.matrixActions.forEach(act => {
+                            const key = this.permKey(sub.code, act);
+                            if (!roleSet.has(key)) {
+                                nonRoleCount++;
+                                if ((this.directPermsList || []).includes(key)) checkedNonRoleCount++;
+                            }
+                        });
+                    });
+                });
+                return nonRoleCount > 0 && checkedNonRoleCount === nonRoleCount;
+            },
+
+            toggleSelectAllUserMatrix() {
+                const shouldSelect = !this.allUserMatrixSelected;
+                const roleSet = new Set(this.rolePermsList || []);
+                const next = [];
+                if (shouldSelect) {
+                    (this.modulesCatalog || []).forEach(m => {
+                        (m.sub_modules || []).forEach(sub => {
+                            this.matrixActions.forEach(act => {
+                                const key = this.permKey(sub.code, act);
+                                if (!roleSet.has(key)) {
+                                    next.push(key);
+                                }
+                            });
+                        });
+                    });
+                }
+                this.directPermsList = next;
             },
 
             resetUserPassword(user) {
@@ -1042,10 +1302,11 @@
             },
 
             savePermissionsFn() {
-                const targetUserId = this.selectedUserId;
-                const url = targetUserId ? `/admin/users/${targetUserId}/permissions` : `{{ route('admin.users.index') }}`;
+                if (!this.selectedUserId) return;
+                this.savingPerms = true;
+                const permsArray = [...(this.directPermsList || [])];
 
-                fetch(url, {
+                fetch(`{{ url('admin/users') }}/${this.selectedUserId}/permissions`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1054,15 +1315,32 @@
                     },
                     body: JSON.stringify({
                         role: this.permissionRole,
-                        permissions: this.selectedPerms
+                        permissions: permsArray
                     })
                 })
-                .then(res => res.json())
+                .then(async res => {
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.success === false) {
+                        throw new Error(data.message || 'Failed to save user permissions.');
+                    }
+                    return data;
+                })
                 .then(data => {
-                    this.showToast(`Permissions saved successfully for ${this.selectedUserName} (${this.permissionRole})!`, 'success');
+                    this.savingPerms = false;
+                    const userObj = this.usersList.find(u => u.id === this.selectedUserId);
+                    if (userObj) {
+                        userObj.role_names = data.role ? [data.role] : [];
+                        userObj.direct_permissions = data.direct_permissions || permsArray;
+                        userObj.role_permissions = data.role_permissions || [];
+                    }
+                    this.directPermsList = [...(data.direct_permissions || permsArray)];
+                    this.rolePermsList = [...(data.role_permissions || [])];
+                    this.openPermissionsModal = false;
+                    this.showToast(data.message || `Permissions saved successfully for ${this.selectedUserName}!`, 'success');
                 })
                 .catch(err => {
-                    this.showToast(`Permissions saved successfully for ${this.selectedUserName}!`, 'success');
+                    this.savingPerms = false;
+                    this.showToast(err.message || `Failed to save permissions for ${this.selectedUserName}.`, 'error');
                 });
             }
         };

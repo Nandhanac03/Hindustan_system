@@ -60,7 +60,7 @@ class UserController extends Controller
         $perPage = (int) $request->input('per_page', 5);
         $users = $query->paginate($perPage)->withQueryString();
 
-        $allUsers = User::withoutGlobalScopes()->with(['roles', 'system'])->orderBy('id', 'asc')->get();
+        $allUsers = User::withoutGlobalScopes()->with(['roles.permissions', 'permissions', 'system'])->orderBy('id', 'asc')->get();
         $formattedUsers = $allUsers->map(function ($u) {
             $words = explode(' ', trim($u->name));
             $initials = count($words) >= 2 
@@ -68,10 +68,16 @@ class UserController extends Controller
                 : strtoupper(substr($u->name, 0, 2));
 
             $avatarColors = [
-                'bg-[#a38c29]', 'bg-purple-600', 'bg-slate-800', 'bg-[#09876B]',
-                'bg-sky-600', 'bg-indigo-600', 'bg-amber-600', 'bg-rose-600'
+                ['class' => 'bg-[#a38c29]', 'hex' => '#a38c29'],
+                ['class' => 'bg-purple-600', 'hex' => '#9333ea'],
+                ['class' => 'bg-slate-800', 'hex' => '#1e293b'],
+                ['class' => 'bg-[#09876B]', 'hex' => '#09876b'],
+                ['class' => 'bg-sky-600', 'hex' => '#0284c7'],
+                ['class' => 'bg-indigo-600', 'hex' => '#4f46e5'],
+                ['class' => 'bg-amber-600', 'hex' => '#d97706'],
+                ['class' => 'bg-rose-600', 'hex' => '#e11d48'],
             ];
-            $avatarBg = $avatarColors[$u->id % count($avatarColors)];
+            $avatarColor = $avatarColors[$u->id % count($avatarColors)];
 
             return [
                 'id' => $u->id,
@@ -84,18 +90,46 @@ class UserController extends Controller
                 'status' => $u->status ?? 'active',
                 'last_login_formatted' => $u->last_login_at ? $u->last_login_at->format('d M Y, h:i A') : 'Never',
                 'initials' => $initials,
-                'avatar_bg' => $avatarBg,
+                'avatar_bg' => $avatarColor['class'],
+                'avatar_hex' => $avatarColor['hex'],
                 'roles' => $u->roles->map(fn($r) => ['id' => $r->id, 'name' => $r->name])->values(),
                 'role_names' => $u->roles->pluck('name')->toArray(),
+                'direct_permissions' => $u->getDirectPermissions()->pluck('name')->toArray(),
+                'role_permissions' => $u->getPermissionsViaRoles()->pluck('name')->toArray(),
             ];
         });
 
         $permissions = Permission::all();
+        $rolesWithPerms = Role::with('permissions')->get();
+        $rolesPermissionsMap = $rolesWithPerms->mapWithKeys(fn($r) => [$r->name => $r->permissions->pluck('name')->toArray()]);
+
+        $erpModules = ErpModule::with(['subModules' => function ($q) {
+            $q->where('status', 'active')->orderBy('order', 'asc');
+        }])->where('status', 'active')->orderBy('order', 'asc')->get();
+
+        $modulesCatalog = $erpModules->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'code' => $m->code,
+                'section' => $m->section,
+                'sub_modules' => $m->subModules->map(function ($sm) {
+                    return [
+                        'id' => $sm->id,
+                        'name' => $sm->name,
+                        'code' => $sm->code,
+                        'description' => $sm->description,
+                    ];
+                })->values()->toArray(),
+            ];
+        })->values()->toArray();
 
         return view('admin.users.index', compact(
             'users',
             'formattedUsers',
             'roles',
+            'rolesPermissionsMap',
+            'modulesCatalog',
             'systems',
             'permissions',
             'totalUsers',
@@ -334,23 +368,29 @@ class UserController extends Controller
     public function updatePermissions(Request $request, User $user): JsonResponse|RedirectResponse
     {
         $permissions = $this->ensurePermissionsExist((array) $request->input('permissions', []));
-        $roleName = $request->input('role');
+        $roleName = trim((string) $request->input('role', ''));
 
-        if ($roleName) {
+        if ($roleName !== '' && $roleName !== '__none__') {
             $role = Role::where('name', $roleName)->first();
             if ($role) {
-                $role->syncPermissions($permissions);
+                $user->syncRoles([$roleName]);
             }
-            $user->syncRoles([$roleName]);
         } else {
-            $user->syncPermissions($permissions);
+            $user->syncRoles([]);
         }
+
+        // Save user-wise direct permissions to model_has_permissions
+        $user->syncPermissions($permissions);
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $user->load(['roles.permissions', 'permissions']);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Permissions saved successfully for ' . $user->name,
+                'message' => 'Role & user-wise permissions saved successfully for ' . $user->name,
+                'role' => $user->roles->pluck('name')->first(),
+                'direct_permissions' => $user->getDirectPermissions()->pluck('name')->toArray(),
+                'role_permissions' => $user->getPermissionsViaRoles()->pluck('name')->toArray(),
             ]);
         }
 
