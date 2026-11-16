@@ -221,6 +221,13 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::match(['put', 'post'], '/modules/{id}/submodules/{subId}', [\App\Http\Controllers\Admin\ModuleController::class, 'updateSubModule'])->name('modules.submodules.update');
         Route::match(['delete', 'post'], '/modules/{id}/submodules/{subId}/delete', [\App\Http\Controllers\Admin\ModuleController::class, 'destroySubModule'])->name('modules.submodules.destroy');
         Route::post('/modules/{id}/submodules/{subId}/toggle-status', [\App\Http\Controllers\Admin\ModuleController::class, 'toggleSubModuleStatus'])->name('modules.submodules.toggle-status');
+
+        // Activity & Audit Logs
+        Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::post('/activity-logs/toggle', [\App\Http\Controllers\Admin\ActivityLogController::class, 'toggleLogging'])->name('activity-logs.toggle');
+        Route::post('/activity-logs/clear', [\App\Http\Controllers\Admin\ActivityLogController::class, 'clearLogs'])->name('activity-logs.clear');
+        Route::get('/activity-logs/export', [\App\Http\Controllers\Admin\ActivityLogController::class, 'exportBatch'])->name('activity-logs.export');
+        Route::get('/activity-logs/export-pdf', [\App\Http\Controllers\Admin\ActivityLogController::class, 'exportPdf'])->name('activity-logs.export-pdf');
     });
 
     // Project Settings
