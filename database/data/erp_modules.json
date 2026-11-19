@@ -1036,6 +1036,20 @@
                 ],
                 "description": "ERP system modules and sub-module options catalog management",
                 "status": "active"
+            },
+            {
+                "id": 65,
+                "name": "Activity Logs",
+                "code": "activity_logs.manage",
+                "route_name": "admin.activity-logs.index",
+                "actions": [
+                    "view",
+                    "delete",
+                    "excel",
+                    "pdf"
+                ],
+                "description": "Employee activity, presence timeline, exports, and recorded changes audit",
+                "status": "active"
             }
         ]
     }

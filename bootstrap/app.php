@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'system.active' => \App\Http\Middleware\EnsureSystemIsActive::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\LogUserActivity::class,
+        ]);
         $middleware->redirectUsersTo('/dashboard');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
