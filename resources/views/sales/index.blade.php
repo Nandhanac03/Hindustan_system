@@ -4322,8 +4322,8 @@ function salesApp() {
         recalculateExtraWorkRowGst(index, mode = 'add') {
             const row = this.forms[mode].extra_works[index];
             const entered = parseFloat(row.amount) || 0;
-            let pct = parseFloat(row.gst_percentage) || 0;
             const type = row.gst_type || 'none';
+            let pct = parseFloat(row.gst_percentage) || 0;
             let gst = 0;
             let total = 0;
 

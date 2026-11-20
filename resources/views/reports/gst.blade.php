@@ -132,8 +132,33 @@ function gstReportApp() {
         get interTaxable() {
             return this.outputEntries.filter(e => (parseFloat(e.igst) || 0) > 0).reduce((sum, e) => sum + (parseFloat(e.taxable_value) || 0), 0);
         },
+        get salesTaxable() {
+            return this.outputEntries.filter(e => e.section_code === 'sales').reduce((sum, e) => sum + (parseFloat(e.taxable_value) || 0), 0);
+        },
+        get salesCgst() {
+            return this.outputEntries.filter(e => e.section_code === 'sales').reduce((sum, e) => sum + (parseFloat(e.cgst) || 0), 0);
+        },
+        get salesSgst() {
+            return this.outputEntries.filter(e => e.section_code === 'sales').reduce((sum, e) => sum + (parseFloat(e.sgst) || 0), 0);
+        },
+        get salesTax() {
+            return this.outputEntries.filter(e => e.section_code === 'sales').reduce((sum, e) => sum + (parseFloat(e.total_tax) || 0), 0);
+        },
+        get extraWorksTaxable() {
+            return this.outputEntries.filter(e => e.section_code === 'extra_works').reduce((sum, e) => sum + (parseFloat(e.taxable_value) || 0), 0);
+        },
+        get extraWorksCgst() {
+            return this.outputEntries.filter(e => e.section_code === 'extra_works').reduce((sum, e) => sum + (parseFloat(e.cgst) || 0), 0);
+        },
+        get extraWorksSgst() {
+            return this.outputEntries.filter(e => e.section_code === 'extra_works').reduce((sum, e) => sum + (parseFloat(e.sgst) || 0), 0);
+        },
+        get extraWorksTax() {
+            return this.outputEntries.filter(e => e.section_code === 'extra_works').reduce((sum, e) => sum + (parseFloat(e.total_tax) || 0), 0);
+        },
         get tabFilteredEntries() {
             if (this.tab === 'output') return this.outputEntries;
+            if (this.tab === 'extra_works') return this.outputEntries.filter(e => e.section_code === 'extra_works');
             if (this.tab === 'itc') return this.inputEntries;
             if (this.tab === 'liability') return this.outputEntries;
             return this.filteredEntries;
@@ -514,7 +539,15 @@ function gstReportApp() {
                         : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
                     class="px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                    Output Tax
+                    Output Tax (All)
+                </button>
+                <button type="button" @click="tab = 'extra_works'" 
+                    :class="tab === 'extra_works' 
+                        ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white shadow-sm font-black' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
+                    class="px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Extra Works
                 </button>
                 <!-- <button type="button" @click="tab = 'itc'" 
                     :class="tab === 'itc' 
@@ -543,7 +576,7 @@ function gstReportApp() {
             <table class="w-full text-xs text-left">
                 <thead>
                     <tr class="erp-table-header text-white border-b-2 border-slate-700 text-[10px] font-black uppercase tracking-widest shadow-xs">
-                        <th class="px-5 py-3.5 text-white font-extrabold">Tax Type</th>
+                        <th class="px-5 py-3.5 text-white font-extrabold">Revenue Source / Tax Nature</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Taxable Value (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">CGST (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">SGST (₹)</th>
@@ -552,18 +585,34 @@ function gstReportApp() {
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700 bg-white">
                     <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="px-5 py-3.5 font-bold text-slate-900">Intra-State (CGST + SGST)</td>
-                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(intraTaxable)">{{ number_format($gstStats['intra_taxable'] ?? 0, 2) }}</span></td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(totalCgst)">{{ number_format($gstStats['total_cgst'] ?? 0, 2) }}</span></td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(totalSgst)">{{ number_format($gstStats['total_sgst'] ?? 0, 2) }}</span></td>
-                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(totalCgst + totalSgst)">{{ number_format(($gstStats['total_cgst'] ?? 0) + ($gstStats['total_sgst'] ?? 0), 2) }}</span></td>
+                        <td class="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span>Sales & Unit Bookings</span>
+                        </td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(salesTaxable)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(salesCgst)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(salesSgst)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(salesTax)"></span></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29]"></span>
+                            <span>Custom Alterations / Extra Works</span>
+                        </td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(extraWorksTaxable)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(extraWorksCgst)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono">₹<span x-text="formatCurrency(extraWorksSgst)"></span></td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(extraWorksTax)"></span></td>
                     </tr>
                     <tr x-show="interTaxable > 0 || totalIgst > 0" class="hover:bg-slate-50/60 transition-colors">
-                        <td class="px-5 py-3.5 font-bold text-slate-900">Inter-State (IGST)</td>
-                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(interTaxable)">{{ number_format($gstStats['inter_taxable'] ?? 0, 2) }}</span></td>
+                        <td class="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                            <span>Inter-State (IGST)</span>
+                        </td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(interTaxable)"></span></td>
                         <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
                         <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
-                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(totalIgst)">{{ number_format($gstStats['total_igst'] ?? 0, 2) }}</span></td>
+                        <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹<span x-text="formatCurrency(totalIgst)"></span></td>
                     </tr>
                 </tbody>
                 <tfoot>

@@ -306,7 +306,14 @@ class ReportController extends Controller
                     ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
                     ->leftJoin('projects', 'sales.project_id', '=', 'projects.id')
                     ->where('sales.status', 'active')
-                    ->select('sale_extra_works.*', 'sales.sale_number', 'customers.name as customer_name', 'customers.id_proof_number as customer_gstin', 'projects.name as project_name');
+                    ->select(
+                        'sale_extra_works.*',
+                        'sales.sale_number',
+                        'sales.sale_date',
+                        'customers.name as customer_name',
+                        'customers.id_proof_number as customer_gstin',
+                        'projects.name as project_name'
+                    );
 
                 if ($request->filled('project_id')) {
                     $extraQuery->where('sales.project_id', $request->project_id);
@@ -316,10 +323,22 @@ class ReportController extends Controller
                     $extraQuery->whereIn('sales.customer_id', $customerIds);
                 }
                 if ($request->filled('date_from')) {
-                    $extraQuery->whereDate('sale_extra_works.created_at', '>=', $request->date_from);
+                    $extraQuery->where(function ($q) use ($request) {
+                        $q->whereDate('sales.sale_date', '>=', $request->date_from)
+                          ->orWhere(function ($q2) use ($request) {
+                              $q2->whereNull('sales.sale_date')
+                                 ->whereDate('sale_extra_works.created_at', '>=', $request->date_from);
+                          });
+                    });
                 }
                 if ($request->filled('date_to')) {
-                    $extraQuery->whereDate('sale_extra_works.created_at', '<=', $request->date_to);
+                    $extraQuery->where(function ($q) use ($request) {
+                        $q->whereDate('sales.sale_date', '<=', $request->date_to)
+                          ->orWhere(function ($q2) use ($request) {
+                              $q2->whereNull('sales.sale_date')
+                                 ->whereDate('sale_extra_works.created_at', '<=', $request->date_to);
+                          });
+                    });
                 }
                 $extraWorks = $extraQuery->get();
 
@@ -327,11 +346,12 @@ class ReportController extends Controller
                     $baseAmount = (float)($ew->amount ?? 0);
                     $taxAmount  = (float)($ew->gst_amount ?? 0);
                     $rate       = (float)($ew->gst_percentage ?? 0);
-                    if ($taxAmount > 0 && $baseAmount > 0) {
+                    if ($taxAmount > 0 && $baseAmount > 0 && $rate <= 0) {
                         $rate = round(($taxAmount / $baseAmount) * 100, 2);
                     }
                     $cgst = $taxAmount / 2;
                     $sgst = $taxAmount / 2;
+                    $ewDate = $ew->sale_date ? Carbon::parse($ew->sale_date) : Carbon::parse($ew->created_at);
 
                     $gstReportEntries->push((object)[
                         'id' => 'extra_' . $ew->id,
@@ -339,8 +359,8 @@ class ReportController extends Controller
                         'section_name' => 'Extra Works & Upgrades',
                         'type' => 'Output Tax (Extra Work)',
                         'invoice_number' => 'EW-' . $ew->id . ' (' . ($ew->sale_number ?? 'SALE') . ')',
-                        'date' => Carbon::parse($ew->created_at)->format('d M Y'),
-                        'raw_date' => Carbon::parse($ew->created_at)->format('Y-m-d'),
+                        'date' => $ewDate->format('d M Y'),
+                        'raw_date' => $ewDate->format('Y-m-d'),
                         'entity_name' => $ew->customer_name ?? 'Customer',
                         'customer_name' => $ew->customer_name ?? 'Customer',
                         'gstin' => $ew->customer_gstin ?? 'N/A',
@@ -433,7 +453,7 @@ class ReportController extends Controller
 
         $gstReportEntries = $gstReportEntries->filter(function ($entry) {
             return (float)($entry->total_tax ?? 0) > 0 || (float)($entry->gst_rate ?? 0) > 0 || (float)($entry->taxable_value ?? 0) > 0;
-        })->values();
+        })->sortByDesc('raw_date')->values();
 
         $outputEntries = $gstReportEntries->where('tax_nature', 'output');
         $inputEntries  = $gstReportEntries->where('tax_nature', 'input');
