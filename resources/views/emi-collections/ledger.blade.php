@@ -534,7 +534,7 @@
                               <div class="space-y-4">
                                   <div class="space-y-1.5">
                                       <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
-                                      <input type="number" step="0.01" x-model.number="form.amount" @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                      <input type="number" step="0.01" x-model.number="form.amount" @input="validatePaymentAmount(); if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="(errors.amount || isAmountExceedingBalance) ? 'border-rose-500 bg-rose-50/20' : ''">
                                       <template x-if="errors.amount">
                                           <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                       </template>
@@ -543,7 +543,7 @@
                                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                       <div class="space-y-1.5">
                                           <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Penalty / Bounce Charge (₹)</label>
-                                          <input type="number" step="0.01" min="0" x-model.number="form.penalty_amount" @input="updateCollectAmountWithPenalty()" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                          <input type="number" step="0.01" min="0" x-model.number="form.penalty_amount" @input="updateCollectAmountWithPenalty(); validatePaymentAmount();" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
                                           <span class="text-[9px] text-slate-400 font-medium block">Added to this EMI &amp; customer account if &gt; 0</span>
                                       </div>
 
@@ -558,7 +558,7 @@
                           <template x-if="!form.bounced_receipt">
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
-                                  <input type="number" step="0.01" x-model.number="form.amount" @input="if(errors.amount) delete errors.amount; if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <input type="number" step="0.01" x-model.number="form.amount" @input="validatePaymentAmount(); if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm" :class="(errors.amount || isAmountExceedingBalance) ? 'border-rose-500 bg-rose-50/20' : ''">
                                   <template x-if="errors.amount">
                                       <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                   </template>
@@ -686,7 +686,7 @@
                       <button type="button" @click="modalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">
                           Cancel
                       </button>
-                      <button type="submit" x-bind:disabled="submitting" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                      <button type="submit" x-bind:disabled="submitting || isAmountExceedingBalance" :class="isAmountExceedingBalance ? 'opacity-50 cursor-not-allowed bg-slate-400 border-slate-400' : 'bg-[#a38c29] hover:bg-[#8e7a23] cursor-pointer'" class="px-5 py-2 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider shadow-md flex items-center justify-center gap-2">
                           <span x-text="submitting ? 'Recording...' : 'Collect Payment'">Collect Payment</span>
                       </button>
                   </div>
@@ -1400,6 +1400,36 @@ function ledgerApp() {
         submitting: false,
         error: '',
         errors: {},
+        saleRemainingBalance: {{ (float)$sale->remaining_balance }},
+        get isAmountExceedingBalance() {
+            const entered = parseFloat(this.form.amount);
+            if (isNaN(entered) || entered <= 0) return false;
+            const penalty = Math.max(0, parseFloat(this.form.penalty_amount) || 0);
+            const maxAllowed = Math.round((this.saleRemainingBalance + penalty) * 100) / 100;
+            return entered > maxAllowed;
+        },
+        validatePaymentAmount() {
+            const entered = parseFloat(this.form.amount);
+            const penalty = Math.max(0, parseFloat(this.form.penalty_amount) || 0);
+            const maxAllowed = Math.round((this.saleRemainingBalance + penalty) * 100) / 100;
+
+            if (!isNaN(entered) && entered > maxAllowed) {
+                const formattedEntered = Number(entered).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const formattedMax = Number(maxAllowed).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const msg = `Payment (₹${formattedEntered}) exceeds remaining balance (₹${formattedMax}).`;
+                this.error = msg;
+                if (this.errors && this.errors.amount) {
+                    delete this.errors.amount;
+                }
+            } else {
+                if (this.error && this.error.includes('exceeds remaining balance')) {
+                    this.error = '';
+                }
+                if (this.errors && this.errors.amount) {
+                    delete this.errors.amount;
+                }
+            }
+        },
         form: {
             sale_id: '{{ $sale->id }}',
             installment_id: '',
@@ -1589,6 +1619,7 @@ function ledgerApp() {
             this.modalOpen = true;
 
             this.$nextTick(() => {
+                this.validatePaymentAmount();
                 const amtInputs = document.querySelectorAll('input[x-model*="form.amount"], input[x-model\\.number*="form.amount"]');
                 amtInputs.forEach(input => {
                     if (window.updateAmountInWordsForInput) {
@@ -1601,6 +1632,7 @@ function ledgerApp() {
             const base = parseFloat(this.form.base_amount) || 0;
             const penalty = Math.max(0, parseFloat(this.form.penalty_amount) || 0);
             this.form.amount = Math.round((base + penalty) * 100) / 100;
+            this.validatePaymentAmount();
 
             this.$nextTick(() => {
                 const amtInputs = document.querySelectorAll('input[x-model*="form.amount"], input[x-model\\.number*="form.amount"]');
@@ -1614,6 +1646,11 @@ function ledgerApp() {
         async submitPayment() {
             this.error = '';
             this.errors = {};
+
+            if (this.isAmountExceedingBalance) {
+                this.validatePaymentAmount();
+                return;
+            }
 
             if (this.form.isOutOfOrder) {
                 const msg = "Installments must be paid in sequential order. Please settle earlier pending installment '" + this.form.firstUnpaidLabel + "' first before paying '" + this.form.label + "'.";
