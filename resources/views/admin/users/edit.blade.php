@@ -12,9 +12,8 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <form method="POST" action="{{ route('admin.users.update', $user->id) }}" class="space-y-4">
+            <form method="POST" action="{{ route('admin.users.update.post', $user->id) }}" class="space-y-4">
                 @csrf
-                @method('PUT')
 
                 <!-- Name & Email Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

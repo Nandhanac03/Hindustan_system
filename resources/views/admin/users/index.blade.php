@@ -215,7 +215,7 @@
                     <thead>
                         <tr class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-700">
                             <th class="px-4 py-3.5 w-12 text-center erp-table-header border-r border-slate-600 text-white">#</th>
-                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Name &amp; Employee</th>
+                            <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Name</th>
                             <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Email</th>
                             <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white">Role(s)</th>
                             <th class="px-5 py-3.5 erp-table-header border-r border-slate-600 text-white text-center">Status</th>
@@ -740,7 +740,6 @@
 
                 <form :action="editForm.action" method="POST" class="flex flex-col" novalidate @submit="validateEditUser($event)">
                     @csrf
-                    @method('PUT')
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <!-- Name & Email -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1092,7 +1091,7 @@
                     : ((user.roles && user.roles.length > 0) ? user.roles[0].name : '');
                 this.editForm = {
                     id: user.id,
-                    action: `/admin/users/${user.id}`,
+                    action: `{{ url('/admin/users') }}/${user.id}/update`,
                     name: user.name || '',
                     email: user.email || '',
                     username: user.username || '',
@@ -1305,14 +1304,14 @@
                     return;
                 }
 
-                fetch(`/admin/users/${user.id}/delete`, {
+                fetch(`{{ url('/admin/users') }}/${user.id}/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ _method: 'DELETE' })
+                    body: JSON.stringify({})
                 })
                 .then(res => res.json())
                 .then(data => {

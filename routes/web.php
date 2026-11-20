@@ -202,6 +202,7 @@ Route::middleware(['auth', 'system.active', 'module.permission'])->group(functio
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::match(['put', 'post'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::match(['put', 'post'], '/users/{user}/update', [UserController::class, 'update'])->name('users.update.post');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::match(['delete', 'post'], '/users/{user}/delete', [UserController::class, 'destroy'])->name('users.destroy');
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
