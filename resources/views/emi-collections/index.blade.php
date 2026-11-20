@@ -674,11 +674,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Amount (₹) <span class="text-rose-500">*</span></label>
-                                <input type="number" step="1" x-model.number="form.amount" min="1"
-                                       @input="if(errors.amount) delete errors.amount; if(form.amount && form.amount.toString().includes('.')) { form.amount = Math.floor(form.amount); }"
+                                <input type="number" step="0.01" x-model.number="form.amount" min="1"
+                                       @input="validateAmount(); if(window.updateAmountInWordsForInput) window.updateAmountInWordsForInput($el);"
                                        placeholder="0"
                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
-                                       :class="errors.amount ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                       :class="(errors.amount || isAmountExceedingBalance) ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
                                 <template x-if="errors.amount">
                                     <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                 </template>
@@ -730,7 +730,9 @@
                             CANCEL
                         </button>
                         <button type="submit"
-                                class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/25 flex items-center justify-center gap-2 cursor-pointer">
+                                :disabled="isAmountExceedingBalance"
+                                :class="isAmountExceedingBalance ? 'opacity-50 cursor-not-allowed bg-slate-400 border-slate-400' : 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] cursor-pointer shadow-md shadow-[#a38c29]/25'"
+                                class="px-6 py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>COLLECT RECEIPT</span>
                         </button>
@@ -774,6 +776,34 @@ function emiApp() {
             type: 'success'
         },
         errors: {},
+        get isAmountExceedingBalance() {
+            if (!this.form.booking_id) return false;
+            const entered = parseFloat(this.form.amount);
+            if (isNaN(entered) || entered <= 0) return false;
+            const maxAllowed = Math.round((parseFloat(this.form.outstanding) || 0) * 100) / 100;
+            return entered > maxAllowed;
+        },
+        validateAmount() {
+            const entered = parseFloat(this.form.amount);
+            if (!this.form.booking_id) {
+                if (this.errors && this.errors.amount) {
+                    delete this.errors.amount;
+                }
+                return;
+            }
+
+            const maxAllowed = Math.round((parseFloat(this.form.outstanding) || 0) * 100) / 100;
+
+            if (!isNaN(entered) && entered > maxAllowed) {
+                const formattedEntered = Number(entered).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const formattedMax = Number(maxAllowed).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                this.errors.amount = [`Payment (₹${formattedEntered}) exceeds remaining balance (₹${formattedMax}).`];
+            } else {
+                if (this.errors && this.errors.amount) {
+                    delete this.errors.amount;
+                }
+            }
+        },
 
         allSales: @json($allSalesFormatted ?? []),
         filters: {
@@ -973,6 +1003,7 @@ function emiApp() {
                 this.form.total_amount = 0;
                 this.form.amount = '';
             }
+            this.validateAmount();
         },
 
         openCollectModal(item) {
@@ -1033,6 +1064,11 @@ function emiApp() {
             if (!this.form.booking_id) {
                 this.errors.booking_id = ['please select active sale'];
                 hasError = true;
+            }
+
+            if (this.isAmountExceedingBalance) {
+                this.validateAmount();
+                return;
             }
 
             if (this.form.collection_type !== 'reschedule') {
@@ -1097,7 +1133,12 @@ function emiApp() {
                 } else if (data.errors) {
                     this.errors = data.errors;
                 } else if (data.error || data.message) {
-                    this.showToast(data.error || data.message, 'error');
+                    const errMsg = data.error || data.message;
+                    if (errMsg.toLowerCase().includes('exceeds remaining balance')) {
+                        this.errors.amount = [errMsg];
+                    } else {
+                        this.showToast(errMsg, 'error');
+                    }
                 }
             })
             .catch(err => {
