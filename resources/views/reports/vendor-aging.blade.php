@@ -984,11 +984,11 @@
                         <th class="erp-table-header py-3 px-3 w-12 text-center text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">#</th>
                         <th class="erp-table-header py-3 px-4 min-w-[160px] text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Vendor / Contractor Name</th>
                         <th class="erp-table-header py-3 px-3 min-w-[110px] text-white" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Company ID</th>
-                        <th class="erp-table-header py-3 px-4 min-w-[160px] text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'Total Outstanding (' + currency + ')'">Total Outstanding (₹)</th>
-                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'0 - 30 Days (' + currency + ')'">0 - 30 Days (₹)</th>
-                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'31 - 60 Days (' + currency + ')'">31 - 60 Days (₹)</th>
-                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'61 - 90 Days (' + currency + ')'">61 - 90 Days (₹)</th>
-                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'90+ Days (' + currency + ')'">90+ Days (₹)</th>
+                        <th class="erp-table-header py-3 px-4 min-w-[160px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'Total Outstanding (' + currency + ')'">Total Outstanding (₹)</th>
+                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'0 - 30 Days (' + currency + ')'">0 - 30 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'31 - 60 Days (' + currency + ')'">31 - 60 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'61 - 90 Days (' + currency + ')'">61 - 90 Days (₹)</th>
+                        <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;" x-text="'90+ Days (' + currency + ')'">90+ Days (₹)</th>
                         <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Last Payment Date</th>
                         <th class="erp-table-header py-3 px-3 min-w-[130px] text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Last Payment Ref.</th>
                         <th class="erp-table-header py-3 px-3 min-w-[130px] text-center text-white print:hidden" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Actions</th>
@@ -1030,19 +1030,19 @@
                             </td>
 
                             {{-- Total Outstanding --}}
-                            <td class="py-3 px-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap" x-text="formatMoney(row.total_outstanding)"></td>
+                            <td class="py-3 px-4 text-center font-mono font-bold text-slate-900 whitespace-nowrap" x-text="formatMoney(row.total_outstanding)"></td>
 
                             {{-- 0 - 30 Days --}}
-                            <td class="py-3 px-3 text-right font-mono text-emerald-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_0_30)"></td>
+                            <td class="py-3 px-3 text-center font-mono text-emerald-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_0_30)"></td>
 
                             {{-- 31 - 60 Days --}}
-                            <td class="py-3 px-3 text-right font-mono text-amber-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_31_60)"></td>
+                            <td class="py-3 px-3 text-center font-mono text-amber-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_31_60)"></td>
 
                             {{-- 61 - 90 Days --}}
-                            <td class="py-3 px-3 text-right font-mono text-orange-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_61_90)"></td>
+                            <td class="py-3 px-3 text-center font-mono text-orange-600 font-semibold whitespace-nowrap" x-text="formatMoney(row.bucket_61_90)"></td>
 
                             {{-- 90+ Days --}}
-                            <td class="py-3 px-3 text-right font-mono text-rose-600 font-bold whitespace-nowrap" x-text="formatMoney(row.bucket_90_plus)"></td>
+                            <td class="py-3 px-3 text-center font-mono text-rose-600 font-bold whitespace-nowrap" x-text="formatMoney(row.bucket_90_plus)"></td>
 
                             {{-- Last Payment Date --}}
                             <td class="py-3 px-3 text-center font-mono text-slate-600 whitespace-nowrap" x-text="row.last_payment_date || '—'"></td>
@@ -1216,9 +1216,9 @@
                                                         <th class="py-3 px-3 font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Type</th>
                                                         <th class="py-3 px-3 font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Claim / Bill Date</th>
                                                         <th class="py-3 px-3 font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Due Date</th>
-                                                        <th class="py-3 px-3 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Claim / Bill (' + currency + ')'"></th>
-                                                        <th class="py-3 px-3 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Paid Amount (' + currency + ')'"></th>
-                                                        <th class="py-3 px-3 text-right font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Outstanding (' + currency + ')'"></th>
+                                                        <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Claim / Bill (' + currency + ')'"></th>
+                                                        <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Paid Amount (' + currency + ')'"></th>
+                                                        <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;" x-text="'Outstanding (' + currency + ')'"></th>
                                                         <th class="py-3 px-3 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Days Overdue</th>
                                                         <th class="py-3 px-4 text-center font-extrabold" style="background-color: #ECEAE6 !important; color: #443e35 !important;">Aging Bucket</th>
                                                     </tr>
@@ -1236,9 +1236,9 @@
                                                             </td>
                                                             <td class="py-3.5 px-3 font-mono font-bold text-slate-700 text-xs" x-text="inv.invoice_date"></td>
                                                             <td class="py-3.5 px-3 font-mono font-bold text-slate-700 text-xs" x-text="inv.due_date"></td>
-                                                            <td class="py-3.5 px-3 text-right font-mono font-black text-slate-900 text-[13px]" x-text="formatMoney(inv.invoice_amount)"></td>
-                                                            <td class="py-3.5 px-3 text-right font-mono font-black text-emerald-700 text-[13px]" x-text="formatMoney(inv.paid_amount)"></td>
-                                                            <td class="py-3.5 px-3 text-right font-mono font-black text-slate-900 text-[13px]" x-text="formatMoney(inv.outstanding_amount)"></td>
+                                                            <td class="py-3.5 px-3 text-center font-mono font-black text-slate-900 text-[13px]" x-text="formatMoney(inv.invoice_amount)"></td>
+                                                            <td class="py-3.5 px-3 text-center font-mono font-black text-emerald-700 text-[13px]" x-text="formatMoney(inv.paid_amount)"></td>
+                                                            <td class="py-3.5 px-3 text-center font-mono font-black text-slate-900 text-[13px]" x-text="formatMoney(inv.outstanding_amount)"></td>
                                                             <td class="py-3.5 px-3 text-center font-mono font-black text-xs"
                                                                 :class="inv.days_outstanding > 90 ? 'text-rose-600' : (inv.days_outstanding > 60 ? 'text-orange-600' : (inv.days_outstanding > 30 ? 'text-amber-600' : 'text-emerald-600'))"
                                                                 x-text="inv.days_outstanding">
@@ -1284,11 +1284,11 @@
                         <td colspan="3" class="py-3.5 px-4 uppercase tracking-wider text-xs font-black text-slate-800">
                             <span class="text-[#8a7522]">Grand Total</span> (<span x-text="filteredRows.length">{{ count($rows) }}</span> Vendors)
                         </td>
-                        <td class="py-3.5 px-4 text-right font-mono text-xs font-black text-slate-900 whitespace-nowrap" x-text="formatMoney(summaryKPIs.total_outstanding)">{{ number_format($kpis['total_outstanding'] ?? 0, 2) }}</td>
-                        <td class="py-3.5 px-3 text-right font-mono text-xs font-black text-emerald-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b0_30)">{{ number_format($kpis['b0_30'] ?? 0, 2) }}</td>
-                        <td class="py-3.5 px-3 text-right font-mono text-xs font-black text-amber-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b31_60)">{{ number_format($kpis['b31_60'] ?? 0, 2) }}</td>
-                        <td class="py-3.5 px-3 text-right font-mono text-xs font-black text-orange-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b61_90)">{{ number_format($kpis['b61_90'] ?? 0, 2) }}</td>
-                        <td class="py-3.5 px-3 text-right font-mono text-xs font-black text-rose-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b90_plus)">{{ number_format($kpis['b90_plus'] ?? 0, 2) }}</td>
+                        <td class="py-3.5 px-4 text-center font-mono text-xs font-black text-slate-900 whitespace-nowrap" x-text="formatMoney(summaryKPIs.total_outstanding)">{{ number_format($kpis['total_outstanding'] ?? 0, 2) }}</td>
+                        <td class="py-3.5 px-3 text-center font-mono text-xs font-black text-emerald-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b0_30)">{{ number_format($kpis['b0_30'] ?? 0, 2) }}</td>
+                        <td class="py-3.5 px-3 text-center font-mono text-xs font-black text-amber-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b31_60)">{{ number_format($kpis['b31_60'] ?? 0, 2) }}</td>
+                        <td class="py-3.5 px-3 text-center font-mono text-xs font-black text-orange-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b61_90)">{{ number_format($kpis['b61_90'] ?? 0, 2) }}</td>
+                        <td class="py-3.5 px-3 text-center font-mono text-xs font-black text-rose-700 whitespace-nowrap" x-text="formatMoney(summaryKPIs.b90_plus)">{{ number_format($kpis['b90_plus'] ?? 0, 2) }}</td>
                         <td colspan="3" class="print:hidden"></td>
                     </tr>
                 </tfoot>
@@ -1501,9 +1501,9 @@
                                           <th class="erp-table-header py-2.5 px-3 text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Type</th>
                                           <th class="erp-table-header py-2.5 px-3 text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Claim Date</th>
                                           <th class="erp-table-header py-2.5 px-3 text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Due Date</th>
-                                          <th class="erp-table-header py-2.5 px-3.5 text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Bill Amount</th>
-                                          <th class="erp-table-header py-2.5 px-3.5 text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Paid Amount</th>
-                                          <th class="erp-table-header py-2.5 px-3.5 text-right text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Outstanding</th>
+                                          <th class="erp-table-header py-2.5 px-3.5 text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Bill Amount</th>
+                                          <th class="erp-table-header py-2.5 px-3.5 text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Paid Amount</th>
+                                          <th class="erp-table-header py-2.5 px-3.5 text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Outstanding</th>
                                           <th class="erp-table-header py-2.5 px-3 text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Days Overdue</th>
                                           <th class="erp-table-header py-2.5 px-4 text-center text-white whitespace-nowrap" style="background-color: var(--erp-table-header-bg, #534E47) !important; color: #ffffff !important;">Aging Bucket</th>
                                       </tr>
@@ -1521,9 +1521,9 @@
                                               </td>
                                               <td class="py-3 px-3 font-mono font-bold text-slate-700 text-xs whitespace-nowrap" x-text="inv.invoice_date"></td>
                                               <td class="py-3 px-3 font-mono font-bold text-slate-700 text-xs whitespace-nowrap" x-text="inv.due_date"></td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-slate-900 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.invoice_amount)"></td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-emerald-700 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.paid_amount)"></td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-slate-900 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.outstanding_amount)"></td>
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-slate-900 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.invoice_amount)"></td>
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-emerald-700 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.paid_amount)"></td>
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-slate-900 text-[13px] whitespace-nowrap" x-text="formatMoney(inv.outstanding_amount)"></td>
                                               <td class="py-3 px-3 text-center font-mono font-black text-xs whitespace-nowrap"
                                                   :class="inv.days_outstanding > 90 ? 'text-rose-600' : (inv.days_outstanding > 60 ? 'text-orange-600' : (inv.days_outstanding > 30 ? 'text-amber-600' : 'text-emerald-600'))"
                                                   x-text="inv.days_outstanding"></td>
@@ -1549,11 +1549,11 @@
                                               <td colspan="5" class="py-3 px-3 text-right font-black uppercase text-slate-700 tracking-wider">
                                                   Total Outstanding Across All Claims:
                                               </td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-slate-900 text-[13px]" 
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-slate-900 text-[13px]" 
                                                   x-text="formatMoney(modalVendor.invoices.reduce((acc, i) => acc + Number(i.invoice_amount || 0), 0))"></td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-emerald-700 text-[13px]" 
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-emerald-700 text-[13px]" 
                                                   x-text="formatMoney(modalVendor.invoices.reduce((acc, i) => acc + Number(i.paid_amount || 0), 0))"></td>
-                                              <td class="py-3 px-3.5 text-right font-mono font-black text-rose-700 text-sm" 
+                                              <td class="py-3 px-3.5 text-center font-mono font-black text-rose-700 text-sm" 
                                                   x-text="formatMoney(modalVendor.invoices.reduce((acc, i) => acc + Number(i.outstanding_amount || 0), 0))"></td>
                                               <td colspan="2"></td>
                                           </tr>

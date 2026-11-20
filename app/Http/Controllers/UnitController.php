@@ -442,7 +442,7 @@ class UnitController extends Controller
 
         $unit->update($validated);
 
-        return response()->json(['success' => true, 'unit' => $unit]);
+        return response()->json(['success' => true, 'unit' => $unit, 'message' => 'Unit details updated successfully.']);
     }
 
     private function canManageUnits($user): bool
@@ -651,7 +651,7 @@ class UnitController extends Controller
             $amountChange
         );
 
-        return response()->json(['success' => true, 'unit' => $unit]);
+        return response()->json(['success' => true, 'unit' => $unit, 'message' => 'Base rate updated successfully.']);
     }
 
     public function updateStatus(Request $request, Unit $unit): JsonResponse

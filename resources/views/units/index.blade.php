@@ -921,7 +921,7 @@
                          x-transition:leave-start="opacity-100"
                          x-transition:leave-end="opacity-0"
                          @click="panelOpen = false" 
-                         class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+                         class="absolute inset-0 bg-slate-900/75 transition-opacity"></div>
 
                     <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                         <div x-show="panelOpen" 
@@ -1164,7 +1164,7 @@
              x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
              x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
              @click="closeAddModal()"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+             class="absolute inset-0 bg-slate-900/75"></div>
 
         {{-- Modal Panel --}}
         <div x-show="modals.add.open"
@@ -1287,7 +1287,7 @@
              x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
              x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
              @click="closeEditModal()"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+             class="absolute inset-0 bg-slate-900/75"></div>
 
         {{-- Modal Panel --}}
         <div x-show="modals.edit.open"
@@ -1560,7 +1560,7 @@
              x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
              x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
              @click="closeBulkModal()"
-             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+             class="absolute inset-0 bg-slate-900/75"></div>
 
         {{-- Modal Panel --}}
         <div x-show="modals.bulk.open"
@@ -1683,7 +1683,7 @@
 
 {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
 @if($project)
-<div x-show="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+<div x-show="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75" style="display: none;" x-transition.opacity>
     <div x-show="editProjectModal" class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="editProjectModal = false">
         {{-- Header --}}
         <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
@@ -1873,7 +1873,7 @@
 
 
     <!-- MODAL 4: DELETE CONFIRMATION -->
-    <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-900/10">
                 <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -1902,7 +1902,7 @@
          VIEW UNIT MODAL
     ═══════════════════════════════════════════ --}}
     <!-- VIEW UNIT MODAL -->
-    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
+    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75" style="display: none;" x-cloak>
         <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="modals.view.open = false">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
@@ -2004,7 +2004,7 @@
          RATE HISTORY MODAL
     ═══════════════════════════════════════════ --}}
     <!-- RATE HISTORY MODAL -->
-    <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
+    <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75" style="display: none;" x-cloak>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
@@ -2183,7 +2183,7 @@
         {{-- ═══════════════════════════════════════════
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.viewSale.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.viewSale.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewSaleModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
@@ -3181,9 +3181,18 @@ function unitsApp() {
                 } else if (!res.ok) {
                     this.showToast(data.error || 'Server error occurred.', 'error');
                 } else {
-                    this.showToast('Unit added successfully.');
+                    const successMsg = data.message || 'Unit added successfully.';
                     this.closeAddModal();
                     this.resetFilters();
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'UNIT ADDED!',
+                            'UNIT CONFIGURED',
+                            'Unit created successfully.',
+                            successMsg
+                        );
+                    }
+                    this.showToast(successMsg, 'success');
                 }
             })
             .catch(err => {
@@ -3247,9 +3256,18 @@ function unitsApp() {
                 } else if (!res.ok) {
                     this.showToast(data.error || data.message || ('Server error when updating unit (HTTP ' + res.status + ').'), 'error');
                 } else {
-                    this.showToast('Unit details updated successfully.');
-                    this.fetchUnits();
+                    const successMsg = data.message || 'Unit details updated successfully.';
                     this.closeEditModal();
+                    this.fetchUnits();
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'UNIT UPDATED!',
+                            'UNIT CONFIGURED',
+                            'Unit profile updated successfully.',
+                            successMsg
+                        );
+                    }
+                    this.showToast(successMsg, 'success');
                 }
             })
             .catch(err => {
@@ -3311,9 +3329,18 @@ function unitsApp() {
                 } else if (!res.ok) {
                     this.showToast(data.error || 'Server error occurred.', 'error');
                 } else {
-                    this.showToast(`Bulk created ${data.count} units successfully.`);
+                    const successMsg = `Bulk created ${data.count} units successfully.`;
                     this.closeBulkModal();
                     this.resetFilters();
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'UNITS CREATED!',
+                            'BULK UNITS CONFIGURED',
+                            `Bulk created ${data.count} units successfully.`,
+                            successMsg
+                        );
+                    }
+                    this.showToast(successMsg, 'success');
                 }
             })
             .catch(err => {
@@ -3347,9 +3374,18 @@ function unitsApp() {
                 if (!res.ok) {
                     this.showToast(data.error || data.message || ('Server error (HTTP ' + res.status + ').'), 'error');
                 } else {
-                    this.showToast('Unit deleted successfully.');
+                    const successMsg = data.message || 'Unit deleted successfully.';
                     this.closeDeleteModal();
                     this.fetchUnits();
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'UNIT DELETED!',
+                            'UNIT REMOVED',
+                            'Unit deleted successfully.',
+                            successMsg
+                        );
+                    }
+                    this.showToast(successMsg, 'success');
                 }
             })
             .catch(err => {
@@ -3418,9 +3454,18 @@ function unitsApp() {
                     }
                     this.showToast(data.error || data.message || 'Failed to update base rate.', 'error');
                 } else {
-                    this.showToast('Base rate updated successfully.');
-                    this.fetchUnits();
+                    const successMsg = data.message || 'Base rate updated successfully.';
                     this.closeEditModal();
+                    this.fetchUnits();
+                    if (typeof window.showSuccessModal === 'function') {
+                        window.showSuccessModal(
+                            'RATE UPDATED!',
+                            'UNIT RATE CONFIGURED',
+                            'Base rate updated successfully.',
+                            successMsg
+                        );
+                    }
+                    this.showToast(successMsg, 'success');
                 }
             })
             .catch(err => {
