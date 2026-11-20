@@ -83,24 +83,29 @@ class ActivityLog extends Model
             return null;
         }
 
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        return self::create(array_merge([
-            'user_id' => $extra['user_id'] ?? ($user ? $user->id : null),
-            'system_id' => $extra['system_id'] ?? ($user ? $user->system_id : null),
-            'action' => $action,
-            'category' => $extra['category'] ?? ($subject ? 'record' : 'action'),
-            'screen' => $extra['screen'] ?? null,
-            'route_name' => $extra['route_name'] ?? null,
-            'method' => $extra['method'] ?? null,
-            'module' => $extra['module'] ?? null,
-            'duration_seconds' => $extra['duration_seconds'] ?? null,
-            'subject_type' => $subject ? get_class($subject) : null,
-            'subject_id' => $subject ? $subject->getKey() : null,
-            'description' => Str::limit($description, 250, ''),
-            'ip_address' => Request::ip() ?? '127.0.0.1',
-            'user_agent' => Str::limit((string) (Request::userAgent() ?? 'CLI/System'), 250, ''),
-            'metadata' => $extra['metadata'] ?? null,
-        ]));
+            return self::create(array_merge([
+                'user_id' => $extra['user_id'] ?? ($user ? $user->id : null),
+                'system_id' => $extra['system_id'] ?? ($user ? $user->system_id : null),
+                'action' => $action,
+                'category' => $extra['category'] ?? ($subject ? 'record' : 'action'),
+                'screen' => $extra['screen'] ?? null,
+                'route_name' => $extra['route_name'] ?? null,
+                'method' => $extra['method'] ?? null,
+                'module' => $extra['module'] ?? null,
+                'duration_seconds' => $extra['duration_seconds'] ?? null,
+                'subject_type' => $subject ? get_class($subject) : null,
+                'subject_id' => $subject ? $subject->getKey() : null,
+                'description' => Str::limit($description, 250, ''),
+                'ip_address' => Request::ip() ?? '127.0.0.1',
+                'user_agent' => Str::limit((string) (Request::userAgent() ?? 'CLI/System'), 250, ''),
+                'metadata' => $extra['metadata'] ?? null,
+            ]));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ActivityLog::record failed: ' . $e->getMessage());
+            return null;
+        }
     }
 }
