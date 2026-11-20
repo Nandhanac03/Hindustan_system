@@ -18,8 +18,17 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\RedirectResponse
     {
+        // Role & Permission enforcement: Redirect to first permitted module if dashboard.view is missing
+        if (auth()->check() && !auth()->user()->canViewModule('dashboard.view')) {
+            $firstPermittedUrl = \App\Support\ErpMenu::getFirstPermittedUrl(auth()->user());
+            if ($firstPermittedUrl) {
+                return redirect($firstPermittedUrl);
+            }
+            abort(403, 'You do not have permission to view the Executive Dashboard or any assigned modules.');
+        }
+
         // ── KPI Cards ────────────────────────────────────────────────────────
         $activeProject      = Project::where('is_active', true)->first();
         $totalProjects      = Project::count();

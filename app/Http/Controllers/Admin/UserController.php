@@ -20,27 +20,70 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    private function isCurrentUserSuperAdmin(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole('Super Admin');
+    }
+
+    private function guardSuperAdminUserAccess(User $targetUser): ?JsonResponse
+    {
+        if (!$this->isCurrentUserSuperAdmin() && $targetUser->hasRole('Super Admin')) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Super Admin accounts can only be accessed by Super Admin.',
+                ], 403);
+            }
+            abort(403, 'Unauthorized: Super Admin accounts can only be accessed by Super Admin.');
+        }
+
+        return null;
+    }
+
+    private function guardSuperAdminRoleAssignment(array $rolesToAssign): ?JsonResponse
+    {
+        if (!$this->isCurrentUserSuperAdmin() && in_array('Super Admin', $rolesToAssign, true)) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only Super Admin can assign the Super Admin role.',
+                ], 403);
+            }
+            abort(403, 'Unauthorized: Only Super Admin can assign the Super Admin role.');
+        }
+
+        return null;
+    }
+
     public function index(Request $request): View
     {
+        $isSuperAdmin = $this->isCurrentUserSuperAdmin();
         $search = $request->input('search');
         $roleFilter = $request->input('role');
         $statusFilter = $request->input('status');
 
         $baseQuery = User::withoutGlobalScopes();
+        if (!$isSuperAdmin) {
+            $baseQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
         $totalUsers = (clone $baseQuery)->count();
         $activeUsers = (clone $baseQuery)->where('status', 'active')->count();
         $inactiveUsers = (clone $baseQuery)->where('status', '!=', 'active')->count();
 
-        $roles = Role::all();
+        $roles = $isSuperAdmin ? Role::all() : Role::where('name', '!=', 'Super Admin')->get();
         $rolesCount = $roles->count();
         $systems = System::where('is_active', true)->get();
 
         $query = User::withoutGlobalScopes()->with(['roles', 'system']);
+        if (!$isSuperAdmin) {
+            $query->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
                   ->orWhere('employee_code', 'like', "%{$search}%");
             });
         }
@@ -60,7 +103,11 @@ class UserController extends Controller
         $perPage = (int) $request->input('per_page', 5);
         $users = $query->paginate($perPage)->withQueryString();
 
-        $allUsers = User::withoutGlobalScopes()->with(['roles.permissions', 'permissions', 'system'])->orderBy('id', 'asc')->get();
+        $allUsersQuery = User::withoutGlobalScopes()->with(['roles.permissions', 'permissions', 'system'])->orderBy('id', 'asc');
+        if (!$isSuperAdmin) {
+            $allUsersQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
+        $allUsers = $allUsersQuery->get();
         $formattedUsers = $allUsers->map(function ($u) {
             $words = explode(' ', trim($u->name));
             $initials = count($words) >= 2 
@@ -83,6 +130,7 @@ class UserController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
                 'email' => $u->email,
+                'username' => $u->username ?? '',
                 'phone' => $u->phone ?? '',
                 'employee_code' => $u->employee_code ?? '',
                 'system_id' => $u->system_id,
@@ -100,7 +148,9 @@ class UserController extends Controller
         });
 
         $permissions = Permission::all();
-        $rolesWithPerms = Role::with('permissions')->get();
+        $rolesWithPerms = $isSuperAdmin
+            ? Role::with('permissions')->get()
+            : Role::with('permissions')->where('name', '!=', 'Super Admin')->get();
         $rolesPermissionsMap = $rolesWithPerms->mapWithKeys(fn($r) => [$r->name => $r->permissions->pluck('name')->toArray()]);
 
         $erpModules = ErpModule::with(['subModules' => function ($q) {
@@ -144,7 +194,7 @@ class UserController extends Controller
 
     public function create(): View
     {
-        $roles = Role::all();
+        $roles = $this->isCurrentUserSuperAdmin() ? Role::all() : Role::where('name', '!=', 'Super Admin')->get();
         $systems = System::where('is_active', true)->get();
 
         return view('admin.users.create', compact('roles', 'systems'));
@@ -155,7 +205,7 @@ class UserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'username' => ['nullable', 'string', 'max:50'],
+            'username' => ['nullable', 'string', 'max:50', 'unique:users,username'],
             'phone' => ['nullable', 'string', 'max:20'],
             'employee_code' => ['nullable', 'string', 'max:50', 'unique:users,employee_code'],
             'system_id' => ['nullable'],
@@ -165,27 +215,33 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
         ]);
 
-        $defaultSys = System::where('is_active', true)->first();
-        $systemId = $request->filled('system_id') ? (int) $request->system_id : ($defaultSys ? $defaultSys->id : null);
-        $empCode = $request->filled('employee_code') ? $request->employee_code : ($request->filled('username') ? $request->username : null);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'employee_code' => $empCode,
-            'system_id' => $systemId,
-            'password' => $request->password,
-            'status' => $request->status,
-        ]);
-
-        // Process roles
+        // Process roles before creating user so unauthorized Super Admin assignment is blocked early
         $rolesToAssign = [];
         if ($request->has('roles') && is_array($request->roles)) {
             $rolesToAssign = $request->roles;
         } elseif ($request->filled('role')) {
             $rolesToAssign = [$request->role];
         }
+
+        if ($denied = $this->guardSuperAdminRoleAssignment($rolesToAssign)) {
+            return $denied;
+        }
+
+        $defaultSys = System::where('is_active', true)->first();
+        $systemId = $request->filled('system_id') ? (int) $request->system_id : ($defaultSys ? $defaultSys->id : null);
+        $username = $request->filled('username') ? trim((string) $request->username) : null;
+        $empCode = $request->filled('employee_code') ? trim((string) $request->employee_code) : null;
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $username,
+            'phone' => $request->phone,
+            'employee_code' => $empCode,
+            'system_id' => $systemId,
+            'password' => $request->password,
+            'status' => $request->status,
+        ]);
 
         if (!empty($rolesToAssign)) {
             $user->syncRoles($rolesToAssign);
@@ -205,7 +261,8 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        $roles = Role::all();
+        $this->guardSuperAdminUserAccess($user);
+        $roles = $this->isCurrentUserSuperAdmin() ? Role::all() : Role::where('name', '!=', 'Super Admin')->get();
         $systems = System::where('is_active', true)->get();
 
         return view('admin.users.edit', compact('user', 'roles', 'systems'));
@@ -213,10 +270,14 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): JsonResponse|RedirectResponse
     {
+        if ($denied = $this->guardSuperAdminUserAccess($user)) {
+            return $denied;
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
-            'username' => ['nullable', 'string', 'max:50'],
+            'username' => ['nullable', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
             'employee_code' => ['nullable', 'string', 'max:50', Rule::unique('users', 'employee_code')->ignore($user->id)],
             'system_id' => ['nullable'],
@@ -227,11 +288,13 @@ class UserController extends Controller
 
         $defaultSys = System::where('is_active', true)->first();
         $systemId = $request->filled('system_id') ? (int) $request->system_id : ($user->system_id ?? ($defaultSys ? $defaultSys->id : null));
-        $empCode = $request->filled('employee_code') ? $request->employee_code : ($request->filled('username') ? $request->username : $user->employee_code);
+        $username = $request->has('username') ? ($request->filled('username') ? trim((string) $request->username) : null) : $user->username;
+        $empCode = $request->has('employee_code') ? ($request->filled('employee_code') ? trim((string) $request->employee_code) : null) : $user->employee_code;
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $username,
             'phone' => $request->phone,
             'employee_code' => $empCode,
             'system_id' => $systemId,
@@ -254,6 +317,10 @@ class UserController extends Controller
             $rolesToAssign = [$request->role];
         }
 
+        if ($denied = $this->guardSuperAdminRoleAssignment($rolesToAssign)) {
+            return $denied;
+        }
+
         if (!empty($rolesToAssign)) {
             $user->syncRoles($rolesToAssign);
         }
@@ -272,6 +339,10 @@ class UserController extends Controller
 
     public function toggleStatus(User $user): JsonResponse|RedirectResponse
     {
+        if ($denied = $this->guardSuperAdminUserAccess($user)) {
+            return $denied;
+        }
+
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
         $user->update(['status' => $newStatus]);
 
@@ -289,6 +360,10 @@ class UserController extends Controller
 
     public function destroy(User $user): JsonResponse|RedirectResponse
     {
+        if ($denied = $this->guardSuperAdminUserAccess($user)) {
+            return $denied;
+        }
+
         if (auth()->check() && auth()->id() === $user->id) {
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Cannot delete currently active logged in user.'], 422);
@@ -311,6 +386,10 @@ class UserController extends Controller
 
     public function resetPassword(Request $request, User $user): JsonResponse|RedirectResponse
     {
+        if ($denied = $this->guardSuperAdminUserAccess($user)) {
+            return $denied;
+        }
+
         $newPass = $request->input('password', 'password');
         $user->update([
             'password' => Hash::make($newPass),
@@ -347,6 +426,16 @@ class UserController extends Controller
 
     public function updateRolePermissions(Request $request, Role $role): JsonResponse|RedirectResponse
     {
+        if (!$this->isCurrentUserSuperAdmin() && $role->name === 'Super Admin') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Super Admin permissions can only be managed by Super Admin.',
+                ], 403);
+            }
+            abort(403, 'Unauthorized: Super Admin permissions can only be managed by Super Admin.');
+        }
+
         $permissions = $this->ensurePermissionsExist((array) $request->input('permissions', []));
 
         $role->syncPermissions($permissions);
@@ -367,10 +456,17 @@ class UserController extends Controller
 
     public function updatePermissions(Request $request, User $user): JsonResponse|RedirectResponse
     {
+        if ($denied = $this->guardSuperAdminUserAccess($user)) {
+            return $denied;
+        }
+
         $permissions = $this->ensurePermissionsExist((array) $request->input('permissions', []));
         $roleName = trim((string) $request->input('role', ''));
 
         if ($roleName !== '' && $roleName !== '__none__') {
+            if ($denied = $this->guardSuperAdminRoleAssignment([$roleName])) {
+                return $denied;
+            }
             $role = Role::where('name', $roleName)->first();
             if ($role) {
                 $user->syncRoles([$roleName]);
@@ -400,12 +496,20 @@ class UserController extends Controller
 
     public function rolesIndex(): View
     {
-        $roles = Role::with('permissions')->get();
+        $isSuperAdmin = $this->isCurrentUserSuperAdmin();
+        $roles = $isSuperAdmin
+            ? Role::with('permissions')->get()
+            : Role::with('permissions')->where('name', '!=', 'Super Admin')->get();
         $rolesCount = $roles->count();
         $permissions = Permission::all();
-        $users = User::withoutGlobalScopes()->with(['roles', 'system'])->get();
-        $totalUsers = User::withoutGlobalScopes()->count();
-        $activeUsers = User::withoutGlobalScopes()->where('status', 'active')->count();
+
+        $usersQuery = User::withoutGlobalScopes()->with(['roles', 'system']);
+        if (!$isSuperAdmin) {
+            $usersQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
+        $users = $usersQuery->get();
+        $totalUsers = $users->count();
+        $activeUsers = $users->where('status', 'active')->count();
 
         $erpModules = ErpModule::with(['subModules' => function ($q) {
             $q->where('status', 'active')->orderBy('order', 'asc');
@@ -578,6 +682,13 @@ class UserController extends Controller
 
     public function destroyRole(Request $request, Role $role): JsonResponse|RedirectResponse
     {
+        if (!$this->isCurrentUserSuperAdmin() && $role->name === 'Super Admin') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized: Super Admin role cannot be accessed.'], 403);
+            }
+            abort(403, 'Unauthorized: Super Admin role cannot be accessed.');
+        }
+
         $protectedRoles = ['Owner', 'Main User', 'Super Admin', 'Admin', 'Sales', 'Accountant'];
         if (in_array($role->name, $protectedRoles)) {
             if ($request->wantsJson() || $request->ajax()) {

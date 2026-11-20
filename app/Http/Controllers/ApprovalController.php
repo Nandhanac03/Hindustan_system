@@ -23,14 +23,14 @@ class ApprovalController extends Controller
             ->latest()
             ->get()
             ->filter(function ($approval) use ($user) {
-                // If user is Owner, they can approve anything
-                if ($user->hasRole('Owner')) {
+                // If user is Owner or Super Admin, they can approve anything
+                if ($user->hasRole('Owner') || $user->hasRole('Super Admin')) {
                     return true;
                 }
                 
-                // If it is a discount or cancellation request, only Owner can approve
+                // If it is a discount or cancellation request, only Owner or Super Admin can approve
                 $type = strtolower(class_basename($approval->approvable_type));
-                if ($type === 'booking' && $user->hasRole('Owner')) {
+                if ($type === 'booking' && ($user->hasRole('Owner') || $user->hasRole('Super Admin'))) {
                     return true;
                 }
                 

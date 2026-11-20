@@ -182,7 +182,7 @@ Route::get('/{any}/storage/{path}', function ($any, $path) {
 })->where('any', '.*')->where('path', '.*')->name('storage.local.any');
 
 // Authenticated and active system routes
-Route::middleware(['auth', 'system.active'])->group(function () {
+Route::middleware(['auth', 'system.active', 'module.permission'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

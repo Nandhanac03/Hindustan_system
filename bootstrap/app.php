@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'system.active' => \App\Http\Middleware\EnsureSystemIsActive::class,
+            'module.permission' => \App\Http\Middleware\EnforceModulePermission::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\LogUserActivity::class,

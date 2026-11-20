@@ -47,7 +47,36 @@
                     </div>
                 </div>
 
-                <!-- Phone & Employee Code Row -->
+                <!-- Username & Employee Code Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="username" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Username</label>
+                        <input id="username" 
+                               type="text" 
+                               name="username" 
+                               value="{{ old('username', $user->username) }}" 
+                               placeholder="e.g. rajesh.kumar"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition font-mono" />
+                        @if($errors->has('username'))
+                            <p class="text-xs text-rose-500 font-medium mt-1">{{ $errors->first('username') }}</p>
+                        @endif
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="employee_code" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Employee Code</label>
+                        <input id="employee_code" 
+                               type="text" 
+                               name="employee_code" 
+                               value="{{ old('employee_code', $user->employee_code) }}" 
+                               placeholder="e.g. EMP-IN-ACC01"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition font-mono" />
+                        @if($errors->has('employee_code'))
+                            <p class="text-xs text-rose-500 font-medium mt-1">{{ $errors->first('employee_code') }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Phone Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label for="phone" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Phone Number</label>
@@ -59,19 +88,6 @@
                                class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition" />
                         @if($errors->has('phone'))
                             <p class="text-xs text-rose-500 font-medium mt-1">{{ $errors->first('phone') }}</p>
-                        @endif
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label for="employee_code" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Employee Code</label>
-                        <input id="employee_code" 
-                               type="text" 
-                               name="employee_code" 
-                               value="{{ old('employee_code', $user->employee_code) }}" 
-                               placeholder="e.g. EMP-IN-ACC01"
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition" />
-                        @if($errors->has('employee_code'))
-                            <p class="text-xs text-rose-500 font-medium mt-1">{{ $errors->first('employee_code') }}</p>
                         @endif
                     </div>
                 </div>

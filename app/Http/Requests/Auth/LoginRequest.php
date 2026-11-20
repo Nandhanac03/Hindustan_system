@@ -42,18 +42,53 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $login = $this->input('email');
-        $password = $this->input('password');
+        $login = trim((string) $this->input('email'));
+        $password = (string) $this->input('password');
         $remember = $this->boolean('remember');
 
-        // Determine if login input is email, name/username, or employee code
-        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+        $authenticated = false;
 
-        $authenticated = Auth::attempt([$fieldType => $login, 'password' => $password], $remember);
+        // 1. If valid email format, try email first
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            $authenticated = Auth::attempt(['email' => $login, 'password' => $password], $remember);
+        }
 
-        // Fallback checks for username or employee_code if initial attempt fails
-        if (!$authenticated && $fieldType === 'name') {
+        // 2. Try username
+        if (!$authenticated) {
+            $authenticated = Auth::attempt(['username' => $login, 'password' => $password], $remember);
+        }
+
+        // 3. Try name
+        if (!$authenticated) {
+            $authenticated = Auth::attempt(['name' => $login, 'password' => $password], $remember);
+        }
+
+        // 4. Try email as fallback (e.g., custom format or legacy email handle)
+        if (!$authenticated) {
+            $authenticated = Auth::attempt(['email' => $login, 'password' => $password], $remember);
+        }
+
+        // 5. Try employee_code
+        if (!$authenticated) {
             $authenticated = Auth::attempt(['employee_code' => $login, 'password' => $password], $remember);
+        }
+
+        // 6. Case-insensitive lookup fallback (handles case variations like Admin vs admin, EMP-001 vs emp-001)
+        if (!$authenticated) {
+            $lower = strtolower($login);
+            $user = \App\Models\User::withoutGlobalScopes()
+                ->where(function ($q) use ($lower) {
+                    $q->whereRaw('LOWER(username) = ?', [$lower])
+                      ->orWhereRaw('LOWER(email) = ?', [$lower])
+                      ->orWhereRaw('LOWER(name) = ?', [$lower])
+                      ->orWhereRaw('LOWER(employee_code) = ?', [$lower]);
+                })
+                ->first();
+
+            if ($user && \Illuminate\Support\Facades\Hash::check($password, $user->password)) {
+                Auth::login($user, $remember);
+                $authenticated = true;
+            }
         }
 
         if (!$authenticated) {

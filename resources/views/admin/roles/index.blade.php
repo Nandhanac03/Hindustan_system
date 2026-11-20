@@ -106,6 +106,7 @@
                     <span>View Users</span>
                 </a>
 
+                @if(auth()->user()->hasModulePermission('roles.manage', 'create'))
                 <button type="button" @click="openCreateRoleModal = true"
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/25 cursor-pointer active:scale-95">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +114,7 @@
                     </svg>
                     <span>Add New Role</span>
                 </button>
+                @endif
             </div>
         </div>
 
@@ -246,7 +248,7 @@
                                 </div>
 
                                 <div class="shrink-0 flex items-center gap-1.5">
-                                    @if(!$r['is_system'])
+                                    @if(!$r['is_system'] && auth()->user()->hasModulePermission('roles.manage', 'delete'))
                                         <button type="button" @click.stop="deleteCustomRoleById({{ $r['id'] }}, '{{ addslashes($r['name']) }}')" title="Delete Custom Role"
                                                 class="w-5 h-5 rounded hover:bg-rose-100 text-rose-500 flex items-center justify-center transition">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -258,6 +260,7 @@
                     </div>
 
                     {{-- Add New Role Button --}}
+                    @if(auth()->user()->hasModulePermission('roles.manage', 'create'))
                     <div class="p-3 bg-white border-t border-slate-100">
                         <button type="button" @click="openCreateRoleModal = true"
                                 class="w-full py-2 px-3 border border-dashed border-slate-300 hover:border-[#a38c29] hover:bg-[#a38c29]/5 text-slate-600 hover:text-[#8a7522] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
@@ -265,6 +268,7 @@
                             <span>Add New Role</span>
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
 
@@ -293,6 +297,7 @@
 
                         {{-- Action Buttons: Save Permissions & Select All --}}
                         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                            @if(auth()->user()->hasModulePermission('roles.manage', 'edit'))
                             <button type="button" @click="saveRolePermissions()" :disabled="saving"
                                     class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] disabled:opacity-50 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition shadow-sm cursor-pointer active:scale-95">
                                 <template x-if="saving">
@@ -303,6 +308,7 @@
                                 </template>
                                 <span x-text="saving ? 'Saving...' : 'Save Permissions'"></span>
                             </button>
+                            @endif
 
                             <button type="button" @click="toggleSelectAllMatrix()"
                                     class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#a38c29]/40 bg-white hover:bg-[#a38c29]/5 text-[#8a7522] text-[11px] font-bold uppercase tracking-wider transition cursor-pointer">
@@ -399,6 +405,7 @@
                         </div>
 
                         <div class="flex items-center gap-2.5">
+                            @if(auth()->user()->hasModulePermission('roles.manage', 'edit'))
                             <button type="button" @click="saveRolePermissions()" :disabled="saving"
                                     class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/25 cursor-pointer active:scale-95">
                                 <template x-if="saving">
@@ -409,6 +416,7 @@
                                 </template>
                                 <span x-text="saving ? 'Saving...' : 'Save Permissions'"></span>
                             </button>
+                            @endif
                         </div>
                     </div>
 
@@ -585,7 +593,9 @@
                 const set = this.rolePermsMap[this.selectedRoleId];
                 if (!set) return false;
                 const key = this.permKey(subCode, action);
-                return set.has(key) || set.has(subCode);
+                if (set.has(key)) return true;
+                if (action === 'view' && set.has(subCode)) return true;
+                return false;
             },
 
             togglePerm(subCode, action) {
@@ -600,6 +610,9 @@
                     set.delete(key);
                 } else {
                     set.add(key);
+                }
+                if (set.has(subCode)) {
+                    set.delete(subCode);
                 }
                 this.rolePermsMap[this.selectedRoleId] = new Set(set);
             },

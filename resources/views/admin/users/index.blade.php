@@ -53,12 +53,14 @@
                 </div>
             </div>
 
+            @if(auth()->user()->hasModulePermission('users.manage', 'create'))
             <button type="button" @click="openAddModalFn()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span>Add New User</span>
             </button>
+            @endif
         </div>
 
         {{-- TOP 4 SUMMARY METRIC CARDS (CV CARDS - MATCHING OTHER ERP MODULES) --}}
@@ -241,7 +243,10 @@
                                         </div>
                                         <div>
                                             <span class="block text-xs font-bold text-slate-900" x-text="user.name"></span>
-                                            <span x-show="user.employee_code" class="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono uppercase bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 inline-block mt-0.5" x-text="user.employee_code"></span>
+                                            <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                                <span x-show="user.username" class="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono bg-slate-100 text-slate-700 border border-slate-200 inline-block" x-text="'@' + user.username"></span>
+                                                <span x-show="user.employee_code" class="px-1.5 py-0.2 rounded text-[9px] font-bold font-mono uppercase bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 inline-block" x-text="user.employee_code"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
@@ -339,6 +344,7 @@
                                         </button>
 
                                         {{-- Edit Button --}}
+                                        @if(auth()->user()->hasModulePermission('users.manage', 'edit'))
                                         <button type="button" 
                                                 @click="openEditModalFn(user)"
                                                 class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer"
@@ -357,8 +363,10 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                             </svg>
                                         </button>
+                                        @endif
 
                                         {{-- Delete Button --}}
+                                        @if(auth()->user()->hasModulePermission('users.manage', 'delete'))
                                         <button type="button"
                                                 @click="deleteUserRow(user)"
                                                 class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer"
@@ -367,6 +375,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -611,7 +620,24 @@
                             </div>
                         </div>
 
-                        <!-- Phone & Username / Employee Code -->
+                        <!-- Username & Employee Code -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username</label>
+                                <input type="text" name="username" x-model="addForm.username"
+                                       placeholder="e.g. deepa.menon"
+                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee Code</label>
+                                <input type="text" name="employee_code" x-model="addForm.employee_code"
+                                       placeholder="e.g. EMP-101"
+                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Phone Number & Operating System Node -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number</label>
@@ -620,16 +646,6 @@
                                        class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                             </div>
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username / Employee Code</label>
-                                <input type="text" name="employee_code" x-model="addForm.employee_code"
-                                       placeholder="e.g. deepa.menon or EMP-101"
-                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
-                            </div>
-                        </div>
-
-                        <!-- Operating System & Role -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System Node <span class="text-rose-500">*</span></label>
                                 <select name="system_id" x-model="addForm.system_id"
@@ -647,7 +663,10 @@
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.system_id"></p>
                                 </template>
                             </div>
+                        </div>
 
+                        <!-- Role & Status -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
                                 <select name="role" x-model="addForm.role"
@@ -665,10 +684,7 @@
                                     <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.role"></p>
                                 </template>
                             </div>
-                        </div>
 
-                        <!-- Status & Password -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
                                 <select name="status" x-model="addForm.status"
@@ -678,18 +694,19 @@
                                     <option value="suspended">Suspended</option>
                                 </select>
                             </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password <span class="text-rose-500">*</span> <span class="text-[9px] text-slate-400 font-normal lowercase">(min 6 chars)</span></label>
-                                <input type="password" name="password" x-model="addForm.password"
-                                       @input="if (addErrors.password) delete addErrors.password"
-                                       :class="addErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                       placeholder="Minimum 6 characters"
-                                       class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
-                                <template x-if="addErrors.password">
-                                    <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.password"></p>
-                                </template>
-                            </div>
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password <span class="text-rose-500">*</span> <span class="text-[9px] text-slate-400 font-normal lowercase">(min 6 chars)</span></label>
+                            <input type="password" name="password" x-model="addForm.password"
+                                   @input="if (addErrors.password) delete addErrors.password"
+                                   :class="addErrors.password ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                   placeholder="Minimum 6 characters"
+                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
+                            <template x-if="addErrors.password">
+                                <p class="text-[11px] text-rose-600 font-semibold mt-1" x-text="addErrors.password"></p>
+                            </template>
                         </div>
                     </div>
 
@@ -750,7 +767,22 @@
                             </div>
                         </div>
 
-                        <!-- Phone & Employee Code -->
+                        <!-- Username & Employee Code -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username</label>
+                                <input type="text" name="username" x-model="editForm.username" placeholder="e.g. deepa.menon"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee Code</label>
+                                <input type="text" name="employee_code" x-model="editForm.employee_code" placeholder="e.g. EMP-001"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Phone Number & Operating System -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number</label>
@@ -758,15 +790,6 @@
                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                             </div>
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username / Employee Code</label>
-                                <input type="text" name="employee_code" x-model="editForm.employee_code" placeholder="e.g. EMP-001"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold font-mono">
-                            </div>
-                        </div>
-
-                        <!-- Operating System & Role -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Operating System <span class="text-rose-500">*</span></label>
                                 <select name="system_id" x-model="editForm.system_id"
@@ -779,7 +802,10 @@
                                     @endforeach
                                 </select>
                             </div>
+                        </div>
 
+                        <!-- Role & Status -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Role Assignment <span class="text-rose-500">*</span></label>
                                 <select name="role" x-model="editForm.role"
@@ -792,10 +818,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
 
-                        <!-- Status & Password (optional on edit) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Status <span class="text-rose-500">*</span></label>
                                 <select name="status" x-model="editForm.status"
@@ -805,13 +828,14 @@
                                     <option value="suspended">Suspended</option>
                                 </select>
                             </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">New Password <span class="text-slate-400 font-normal lowercase">(leave blank to keep current)</span></label>
-                                <input type="password" name="password" x-model="editForm.password"
-                                       placeholder="••••••••"
-                                       class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
-                            </div>
+                        <!-- Password (optional on edit) -->
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">New Password <span class="text-slate-400 font-normal lowercase">(leave blank to keep current)</span></label>
+                            <input type="password" name="password" x-model="editForm.password"
+                                   placeholder="••••••••"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-bold">
                         </div>
                     </div>
 
@@ -843,6 +867,7 @@
                     list = list.filter(u =>
                         (u.name && u.name.toLowerCase().includes(q)) ||
                         (u.email && u.email.toLowerCase().includes(q)) ||
+                        (u.username && u.username.toLowerCase().includes(q)) ||
                         (u.employee_code && u.employee_code.toLowerCase().includes(q)) ||
                         (u.phone && u.phone.toLowerCase().includes(q))
                     );
@@ -925,6 +950,7 @@
             addForm: {
                 name: '',
                 email: '',
+                username: '',
                 phone: '',
                 employee_code: '',
                 system_id: '{{ $systems->first()?->id ?? '' }}',
@@ -939,6 +965,7 @@
                 action: '',
                 name: '',
                 email: '',
+                username: '',
                 phone: '',
                 employee_code: '',
                 system_id: '',
@@ -1006,6 +1033,7 @@
                 this.addForm = {
                     name: '',
                     email: '',
+                    username: '',
                     phone: '',
                     employee_code: '',
                     system_id: '{{ $systems->first()?->id ?? '' }}',
@@ -1067,6 +1095,7 @@
                     action: `/admin/users/${user.id}`,
                     name: user.name || '',
                     email: user.email || '',
+                    username: user.username || '',
                     phone: user.phone || '',
                     employee_code: user.employee_code || '',
                     system_id: user.system_id || '',

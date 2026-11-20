@@ -295,7 +295,7 @@
                                        value="{{ old('email') }}"
                                        autofocus
                                        autocomplete="username"
-                                       placeholder="name@hindustan.com"
+                                       placeholder="Username or Email (e.g. admin or deepa.menon)"
                                        class="login-input" />
                             </div>
                             <div id="email-error" class="login-field-error" style="display: none;">

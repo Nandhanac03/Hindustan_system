@@ -52,6 +52,7 @@
                     <span>Role Permissions</span>
                 </a>
 
+                @if(auth()->user()->hasModulePermission('modules.manage', 'create'))
                 <button type="button" @click="openAddModuleModalFn()"
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md shadow-[#a38c29]/25 cursor-pointer active:scale-95">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,6 +60,7 @@
                     </svg>
                     <span>Add Module</span>
                 </button>
+                @endif
             </div>
         </div>
 
@@ -238,23 +240,29 @@
                                   x-text="(mod.sub_modules ? mod.sub_modules.length : 0) + ' Sub-modules'"></span>
 
                             {{-- Add Sub-module Button --}}
+                            @if(auth()->user()->hasModulePermission('modules.manage', 'create'))
                             <button type="button" @click="openAddSubModuleModalFn(mod)"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-xs cursor-pointer">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                 <span>Add Sub-module</span>
                             </button>
+                            @endif
 
                             {{-- Edit Module Button --}}
+                            @if(auth()->user()->hasModulePermission('modules.manage', 'edit'))
                             <button type="button" @click="openEditModuleModalFn(mod)"
                                     class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Edit Module">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             </button>
+                            @endif
 
                             {{-- Delete Module Button --}}
+                            @if(auth()->user()->hasModulePermission('modules.manage', 'delete'))
                             <button type="button" @click="deleteModuleFn(mod)"
                                     class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Delete Module">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
+                            @endif
                         </div>
                     </div>
 
@@ -317,14 +325,18 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-right pr-5 whitespace-nowrap">
                                                     <div class="inline-flex items-center gap-1">
+                                                        @if(auth()->user()->hasModulePermission('modules.manage', 'edit'))
                                                         <button type="button" @click="openEditSubModuleModalFn(mod, sub)"
                                                                 class="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition" title="Edit Sub-module">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                                         </button>
+                                                        @endif
+                                                        @if(auth()->user()->hasModulePermission('modules.manage', 'delete'))
                                                         <button type="button" @click="deleteSubModuleFn(mod, sub)"
                                                                 class="p-1.5 rounded-md hover:bg-rose-50 text-rose-500 transition" title="Delete Sub-module">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                         </button>
+                                                        @endif
                                                     </div>
                                                 </td>
                                             </tr>

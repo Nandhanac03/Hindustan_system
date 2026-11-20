@@ -114,14 +114,17 @@
         <nav id="sidebar-nav" class="flex-1 px-1.5 py-3 space-y-1 overflow-y-auto">
 
         <!-- 📊 Executive Dashboard -->
+        @if(auth()->user()->canViewModule('dashboard.view'))
         <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-white/90' }}">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
             </svg>
             <span>Dashboard</span>
         </a>
+        @endif
 
         <!-- 🏗️ Projects & Configuration -->
+        @if(auth()->user()->canAccessAnySubModule(['projects.manage', 'units.manage', 'partners.manage']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Projects & Configuration</p>
         
         <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
@@ -137,23 +140,30 @@
                 </svg>
             </button>
             <div x-show="openProjects" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
-                @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
+                @if(auth()->user()->canViewModule('projects.manage'))
                 <a href="{{ route('projects.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('projects.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Projects
                 </a>
                 @endif
+                @if(auth()->user()->canViewModule('units.manage'))
                 <a href="{{ route('units.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('units.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Master
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('partners.manage'))
                 <a href="{{ route('partners.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partners.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Management
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🏠 Sales & Property Management -->
+        @if(auth()->user()->canAccessAnySubModule(['sales.create', 'sales.view', 'rate-revision.view', 'unit-matrix.view', 'sales.return', 'sales.exchange', 'reports.sales_return', 'reports.exchange', 'cancellation.additional']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Sales & Booking</p>
         
+        @if(auth()->user()->canAccessAnySubModule(['sales.create', 'sales.view', 'rate-revision.view', 'unit-matrix.view']))
         <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'true' : 'false' }} }" class="space-y-1">
             <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -167,22 +177,32 @@
                 </svg>
             </button>
             <div x-show="openSalesProperty" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('sales.create'))
                 <a href="{{ route('sales.index', ['action' => 'add']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && request('action') === 'add' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     New Booking
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('sales.view'))
                 <a href="{{ route('sales.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('action') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Sales Register
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('rate-revision.view'))
                 <a href="{{ route('rate-revision.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('rate-revision.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Rate History
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('unit-matrix.view'))
                 <a href="{{ route('unit-matrix.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-matrix.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Availability Grid
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🔄 Property Transfer & Exchange -->
+        @if(auth()->user()->canAccessAnySubModule(['sales.return', 'sales.exchange', 'reports.sales_return', 'reports.exchange', 'cancellation.additional']))
         <div x-data="{ openTransfer: {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -196,25 +216,38 @@
                 </svg>
             </button>
             <div x-show="openTransfer" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('sales.return'))
                 <a href="{{ route('sales.index', ['tab'=>'sale-return']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Sales Return
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('sales.exchange'))
                 <a href="{{ route('sales.index', ['tab'=>'exchange']) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Exchange
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.sales_return'))
                 <a href="{{ route('reports.sales_return') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.sales_return') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cancel Report
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.exchange'))
                 <a href="{{ route('reports.exchange_report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.exchange_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Exchange Report
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('cancellation.additional'))
                 <a href="{{ route('cancellation-additional-work.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cancellation-additional-work.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Additional Billing
                 </a>
+                @endif
             </div>
         </div>
+        @endif
+        @endif
 
         <!-- 💳 Customer Management & Collections -->
+        @if(auth()->user()->canAccessAnySubModule(['customers.manage', 'customers.ledger', 'emi.schedules', 'cheque.entry', 'cheque.realize', 'reports.collections']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Customer & Collections</p>
         
         <div x-data="{ openCustomerColls: {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') || Request::routeIs('cheque-realization.*') ? 'true' : 'false' }} }" class="space-y-1">
@@ -230,30 +263,45 @@
                 </svg>
             </button>
             <div x-show="openCustomerColls" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('customers.manage'))
                 <a href="{{ route('customers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('customers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Customer Directory
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('customers.ledger'))
                 <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Customer Ledger
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('emi.schedules'))
                 <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Payment Milestone
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('cheque.entry'))
                 <a href="{{ route('cheque-receipt-entry.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-receipt-entry.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Payment Receipts
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('cheque.realize'))
                 <a href="{{ route('cheque-realization.queue') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Realization
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.collections'))
                 <a href="{{ route('reports.collection_forecast') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.collection_forecast') || Request::routeIs('emi-collections.outstanding') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Collection Insights
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🛠️ Contractor Operations (RA Bills) -->
+        @if(auth()->user()->canAccessAnySubModule(['contractors.manage', 'ra-bills.create', 'ra-bills.verify', 'ra-bills.payout', 'ra-bills.ledger', 'brokers.manage', 'brokers.ledger', 'brokers.payout', 'petty-cash.categories', 'petty-cash.contra', 'petty-cash.daily', 'petty-cash.report', 'dms.view', 'dms.upload', 'dms.categories', 'dms.types', 'site-expense.categories', 'site-expense.view', 'site-expense.payout', 'vendors.manage']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Contractor Operations</p>
 
+        @if(auth()->user()->canAccessAnySubModule(['contractors.manage', 'ra-bills.create', 'ra-bills.verify', 'ra-bills.payout', 'ra-bills.ledger']))
         <div x-data="{ 
             openContractors: {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'true' : 'false' }},
             isNewRaBillModalOpen: {{ (!session('success') && Request::routeIs('expenses.ra-bills.*') && (request('new') == '1' || request('create') == '1' || request('action') == 'new' || $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount'))) ? 'true' : 'false' }}
@@ -274,9 +322,12 @@
                 </svg>
             </button>
             <div x-show="openContractors" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('contractors.manage'))
                 <a href="{{ route('contractors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Contractor
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('ra-bills.create'))
                  <a href="{{ route('expenses.ra-bills.verification', ['new' => 1]) }}" 
                     @if(Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index'))
                         @click.prevent="isNewRaBillModalOpen = true; window.dispatchEvent(new CustomEvent('open-new-ra-bill'))"
@@ -285,7 +336,9 @@
                     class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200">
                    New RA Bill 
                 </a>
+                @endif
 
+                @if(auth()->user()->canViewModule('ra-bills.verify'))
                 <a href="{{ route('expenses.ra-bills.verification') }}" 
                     @if(Request::routeIs('expenses.ra-bills.verification') || Request::routeIs('expenses.ra-bills.index'))
                         @click="if(isNewRaBillModalOpen) { $event.preventDefault(); window.dispatchEvent(new CustomEvent('close-new-ra-bill')); isNewRaBillModalOpen = false; }"
@@ -294,18 +347,25 @@
                     class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200">
                     RA Bill Verification
                 </a>
+                @endif
 
+                @if(auth()->user()->canViewModule('ra-bills.payout'))
                 <a href="{{ route('expenses.ra-bills.payment-release') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Contractor Payout
                 </a>
+                @endif
 
+                @if(auth()->user()->canViewModule('ra-bills.ledger'))
                 <a href="{{ route('expenses.ra-bills.ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Contractor Ledger 
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🤝 Agents & Brokerage -->
+        @if(auth()->user()->canAccessAnySubModule(['brokers.manage', 'brokers.ledger', 'brokers.payout']))
         <div x-data="{ openBrokers: {{ Request::routeIs('brokers.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openBrokers = !openBrokers" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('brokers.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -319,19 +379,27 @@
                 </svg>
             </button>
             <div x-show="openBrokers" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('brokers.manage'))
                 <a href="{{ route('brokers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Broker Master
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('brokers.ledger'))
                 <a href="{{ route('brokers.commission-ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.commission-ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                    Broker Ledger
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('brokers.payout'))
                 <a href="{{ route('brokers.payable-report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.payable-report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Broker Payout
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 💵 Petty Cash -->
+        @if(auth()->user()->canAccessAnySubModule(['petty-cash.categories', 'petty-cash.contra', 'petty-cash.daily', 'petty-cash.report']))
         <div x-data="{ openPettyCash: {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openPettyCash = !openPettyCash" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -345,27 +413,37 @@
                 </svg>
             </button>
             <div x-show="openPettyCash" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('petty-cash.categories'))
                 <a href="{{ route('categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Categories
                 </a>
+                @endif
                 
+                @if(auth()->user()->canViewModule('petty-cash.contra'))
                 <a href="{{ route('petty-cash.contra-withdrawal') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.contra-withdrawal') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cash Withdrawals
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('petty-cash.daily'))
                 <a href="{{ route('petty-cash.daily-site-expenses') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.daily-site-expenses') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Daily Expense
                 </a>
+                @endif
 
+                @if(auth()->user()->canViewModule('petty-cash.report'))
                 <a href="{{ route('petty-cash.balance-register') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.balance-register') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Petty Cash Report
                 </a>
+                @endif
                 <!-- <a href="{{ route('reports.petty_cash.reports') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Petty Cash Report
                 </a> -->
             </div>
         </div>
+        @endif
 
         <!-- 📂 Document Management (DMS) -->
+        @if(auth()->user()->canAccessAnySubModule(['dms.view', 'dms.upload', 'dms.categories', 'dms.types']))
         <div x-data="{ openDMS: {{ Request::routeIs('dms.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openDMS = !openDMS" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('dms.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -377,9 +455,12 @@
                 <svg :class="openDMS ? 'rotate-90' : ''" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
             <div x-show="openDMS" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('dms.view'))
                 <a href="{{ route('dms.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && !request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Repository
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('dms.upload'))
                 <a href="{{ route('dms.index', ['upload' => 1]) }}" 
                    @if(Request::routeIs('dms.index'))
                        @click.prevent="window.dispatchEvent(new CustomEvent('open-dms-upload'))"
@@ -387,17 +468,24 @@
                    class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') && request('upload') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Upload Document
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('dms.categories'))
                 <a href="{{ route('dms.categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Categories
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('dms.types'))
                 <a href="{{ route('dms.document-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.document-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Types
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🏢 Site Expense Operations -->
-       <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.') || Request::routeIs('vendors.') || Request::routeIs('reports.vendor_aging') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+        @if(auth()->user()->canAccessAnySubModule(['site-expense.categories', 'site-expense.view', 'site-expense.payout', 'vendors.manage']))
+        <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.') || Request::routeIs('vendors.') || Request::routeIs('reports.vendor_aging') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.') || Request::routeIs('vendors.') || Request::routeIs('reports.vendor_aging') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,27 +496,39 @@
                 <svg :class="openSiteExpensesMenu ? 'rotate-90' : ''" class="w-3.5 h-3.5 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
             <div x-show="openSiteExpensesMenu" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('site-expense.categories'))
                  <a href="{{ route('site-expense-categories.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expense-categories.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Expense Categories
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('site-expense.view'))
                 <a href="{{ route('site-expenses.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Site Expense
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('site-expense.payout'))
                 <a href="{{ route('site-expenses.payment-release') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Expense Payout
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('vendors.manage'))
                 <a href="{{ route('vendors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor Master
                 </a>
+                @endif
                 <!-- <a href="{{ route('reports.vendor_aging') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.vendor_aging') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor Aging Report
                 </a> -->
             </div>
         </div>
+        @endif
+        @endif
 
         <!-- 💰 Project Profitability & Costing -->
+        @if(auth()->user()->canAccessAnySubModule(['partners.contributions', 'partners.ledger', 'partners.payout', 'reports.margins', 'company-bank.manage', 'treasury.dashboard', 'treasury.report', 'vouchers.contra', 'coa.manage', 'voucher-types.manage', 'reports.trial_balance', 'reports.profit_loss', 'reports.balance_sheet', 'reports.gst']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Finance & Analytics</p>
         
+        @if(auth()->user()->canAccessAnySubModule(['partners.contributions', 'partners.ledger', 'partners.payout', 'reports.margins']))
         <div x-data="{ openProfitability: {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'true' : 'false' }} }" class="space-y-1">
             <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('partner-contributions.*') || Request::routeIs('reports.partner_statements') || Request::routeIs('reports.partner_outflow_ledger') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -443,22 +543,32 @@
                 </svg>
             </button>
             <div x-show="openProfitability" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('partners.contributions'))
                 <a href="{{ route('partner-contributions.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partner-contributions.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Contribution
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('partners.ledger'))
                 <a href="{{ route('reports.partner_outflow_ledger') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_outflow_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Ledger
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('partners.payout'))
                 <a href="{{ route('reports.partner_statements') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_statements') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Payout
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.margins'))
                 <a href="{{ route('reports.project_margin_analysis') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_margin_analysis') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Project Margin Analysis
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 🏦 Bank & Treasury Management -->
+        @if(auth()->user()->canAccessAnySubModule(['company-bank.manage', 'treasury.dashboard', 'treasury.report', 'vouchers.contra']))
         <div x-data="{ openTreasury: {{ Request::routeIs('treasury.*') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') || Request::routeIs('vouchers.contra.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('treasury.*') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') || Request::routeIs('vouchers.contra.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -472,25 +582,35 @@
                 </svg>
             </button>
             <div x-show="openTreasury" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('company-bank.manage'))
                 <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Company Bank
-                </a>    
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('treasury.dashboard'))
                 <a href="{{ route('treasury.dashboard') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.dashboard') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Treasury Dashboard
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('treasury.report'))
                 <a href="{{ route('treasury.report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('treasury.report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Treasury Report
                 </a>
+                @endif
                 <!-- <a href="{{ route('reports.cash_book') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.cash_book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cash Book
                 </a> -->
+                @if(auth()->user()->canViewModule('vouchers.contra'))
                 <a href="{{ route('vouchers.contra.create') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.contra.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Contra Transfers
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- 📈 Accounting & Financial Reports (Restricted) -->
+        @if(auth()->user()->canAccessAnySubModule(['coa.manage', 'voucher-types.manage', 'reports.trial_balance', 'reports.profit_loss', 'reports.balance_sheet', 'reports.gst']))
         <div x-data="{ openAccounting: {{ Request::routeIs('journal-vouchers.*') || Request::routeIs('opening-balances.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('journal-vouchers.*') || Request::routeIs('opening-balances.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -504,34 +624,49 @@
                 </svg>
             </button>
             <div x-show="openAccounting" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('coa.manage'))
                 <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('voucher-types.manage'))
                 <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Voucher Types
                 </a>
+                @endif
                 <!-- <a href="{{ route('opening-balances.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('opening-balances.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Opening Balance
                 </a> -->
                 <!-- <a href="{{ route('journal-vouchers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('journal-vouchers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Journal Vouchers
                 </a> -->
+                @if(auth()->user()->canViewModule('reports.trial_balance'))
                 <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Trial Balance
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.profit_loss'))
                 <a href="{{ route('reports.profit_loss') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.profit_loss') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Profit & Loss
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.balance_sheet'))
                 <a href="{{ route('reports.balance_sheet') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.balance_sheet') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Balance Sheet
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('reports.gst'))
                 <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     GST Report
                 </a>
+                @endif
             </div>
         </div>
+        @endif
+        @endif
 
         <!-- 💸 Loans & Debt Servicing -->
+        @if(auth()->user()->canAccessAnySubModule(['bank.manage', 'loans.manage', 'loans.reports']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Loans & Debt Servicing</p>
         
         <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.index') || Request::routeIs('loans.schedule') || Request::routeIs('loans.reports') || Request::routeIs('loan-disbursals.*') || Request::routeIs('bank.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
@@ -547,20 +682,27 @@
                 </svg>
             </button>
             <div x-show="openLoansDebt" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('bank.manage'))
                 <a href="{{ route('bank.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Bank Master
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('loans.manage'))
                 <a href="{{ route('loans.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Company Loans
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('loans.reports'))
                 <a href="{{ route('loans.reports') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Loan Outstanding Summary
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
-        <!-- 📊 Reports & Analytics -->
-        <!-- <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Reports & Analytics</p>
+        {{-- 📊 Reports & Analytics (Legacy block commented out)
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Reports & Analytics</p>
         
         <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openReports = !openReports" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
@@ -595,12 +737,15 @@
                     Availability Report
                 </a>
             </div>
-        </div> -->
+        </div>
+        --}}
 
         <!-- ⚙️ System Settings & Administration -->
+        @if(auth()->user()->canAccessAnySubModule(['employees.manage', 'engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage', 'users.manage', 'roles.manage', 'modules.manage', 'activity_logs.manage']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Administration</p>
         
         <!-- Master Configuration -->
+        @if(auth()->user()->canAccessAnySubModule(['employees.manage', 'engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage']))
         <div x-data="{ openMaster: {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'true' : 'false' }} }" class="space-y-1">
             <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -614,28 +759,40 @@
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('employees.manage'))
                 <a href="{{ route('employees.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('employees.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Employee
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('engineers.manage'))
                 <a href="{{ route('engineers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer
                 </a>
+                @endif
                 <!-- <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Company Bank Accounts
                 </a> -->
+                @if(auth()->user()->canViewModule('cheque-statuses.manage'))
                 <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Status
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('floors.manage'))
                 <a href="{{ route('floors.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Floor
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('unit-types.manage'))
                 <a href="{{ route('unit-types.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Type
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
         <!-- Users & Roles Dropdown -->
+        @if(auth()->user()->canAccessAnySubModule(['users.manage', 'roles.manage', 'modules.manage', 'activity_logs.manage']))
         <div x-data="{ openUsersRoles: {{ Request::routeIs('admin.users.*') || Request::routeIs('admin.roles.*') || Request::routeIs('admin.modules.*') || Request::routeIs('admin.activity-logs.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openUsersRoles = !openUsersRoles" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') || Request::routeIs('admin.roles.*') || Request::routeIs('admin.modules.*') || Request::routeIs('admin.activity-logs.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
@@ -649,20 +806,30 @@
                 </svg>
             </button>
             <div x-show="openUsersRoles" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('users.manage'))
                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.users.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Users
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('roles.manage'))
                 <a href="{{ route('admin.roles.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.roles.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Roles & Permissions
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('modules.manage'))
                 <a href="{{ route('admin.modules.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.modules.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Modules
                 </a>
+                @endif
+                @if(auth()->user()->canViewModule('activity_logs.manage'))
                 <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('admin.activity-logs.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Activity Logs
                 </a>
+                @endif
             </div>
         </div>
+        @endif
+        @endif
 
     </nav>
     </aside>
@@ -743,14 +910,18 @@
                         <!-- Quick Administration Links -->
                         <div class="border-t border-slate-100 pt-2 space-y-1">
                             <span class="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Quick Configs</span>
+                            @if(auth()->user()->canViewModule('floors.manage'))
                             <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-semibold transition">
                                 <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H9"/></svg>
                                 Master Configuration
                             </a>
+                            @endif
+                            @if(auth()->user()->canViewModule('users.manage'))
                             <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-semibold transition">
                                 <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                                 Users & Roles Settings
                             </a>
+                            @endif
                         </div>
                     </div>
                 </div>

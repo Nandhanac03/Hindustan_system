@@ -133,6 +133,7 @@
                         <span x-text="loading ? 'Refreshing...' : 'Refresh'"></span>
                     </button>
 
+                    @if(auth()->user()->hasModulePermission('activity_logs.manage', 'excel'))
                     <a :href="exportUrl"
                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition shadow-sm shadow-emerald-600/20">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +141,9 @@
                         </svg>
                         Export Excel
                     </a>
+                    @endif
 
+                    @if(auth()->user()->hasModulePermission('activity_logs.manage', 'pdf'))
                     <a :href="exportPdfUrl"
                        target="_blank"
                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider transition shadow-sm shadow-rose-600/20">
@@ -149,6 +152,7 @@
                         </svg>
                         Export PDF
                     </a>
+                    @endif
                 </div>
             </div>
         </div>

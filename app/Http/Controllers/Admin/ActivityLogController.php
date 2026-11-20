@@ -18,9 +18,12 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $employees = User::withoutGlobalScopes()
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'employee_code']);
+        $isSuperAdmin = auth()->check() && auth()->user()->hasRole('Super Admin');
+        $employeesQuery = User::withoutGlobalScopes()->orderBy('name');
+        if (!$isSuperAdmin) {
+            $employeesQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
+        $employees = $employeesQuery->get(['id', 'name', 'email', 'employee_code']);
 
         $selectedUserId = $request->input('user_id', '');
         $fromDate = $request->input('from_date', now('Asia/Kolkata')->subDays(7)->toDateString());
@@ -158,6 +161,10 @@ class ActivityLogController extends Controller
     private function filteredQuery(string $selectedUserId, ?string $fromDate, ?string $toDate)
     {
         $query = ActivityLog::query();
+
+        if (!auth()->check() || !auth()->user()->hasRole('Super Admin')) {
+            $query->whereDoesntHave('user.roles', fn($q) => $q->where('name', 'Super Admin'));
+        }
 
         if ($selectedUserId !== '' && $selectedUserId !== 'all') {
             $query->where('user_id', (int) $selectedUserId);
