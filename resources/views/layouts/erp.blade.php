@@ -740,14 +740,76 @@
         </div>
         --}}
 
+        <!-- 👥 Human Capital -->
+        @if(auth()->user()->canAccessAnySubModule(['employees.manage', 'payroll.financial_period', 'payroll.leave_quota', 'payroll.salary_head', 'payroll.salary', 'payroll.salary_report', 'payroll.components']))
+        <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Human Capital</p>
+        @if(auth()->user()->canViewModule('employees.manage'))
+        <a href="{{ route('employees.index') }}" class="flex items-center gap-2 px-2 py-2 text-xs font-semibold rounded-lg transition-all duration-200 {{ Request::routeIs('employees.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/90 hover:text-primary-300 hover:bg-slate-800/30' }}">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span>Employees</span>
+        </a>
+        @endif
+
+        <!-- 💰 Payroll -->
+        @if(auth()->user()->canAccessAnySubModule(['payroll.financial_period', 'payroll.leave_quota', 'payroll.salary_head', 'payroll.salary', 'payroll.salary_report', 'payroll.components']))
+        <div x-data="{ openPayroll: {{ Request::routeIs('payroll.*') ? 'true' : 'false' }} }" class="space-y-1 mt-1">
+            <button @click="openPayroll = !openPayroll" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('payroll.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Payroll</span>
+                </div>
+                <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-250" :class="openPayroll ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openPayroll" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
+                @if(auth()->user()->canViewModule('payroll.financial_period'))
+                <a href="{{ route('payroll.financial-period.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.financial-period.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Financial Period
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('payroll.leave_quota'))
+                <a href="{{ route('payroll.leave-quota.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.leave-quota.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Leave Quota
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('payroll.salary_head'))
+                <a href="{{ route('payroll.salary-head.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.salary-head.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Salary Head
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('payroll.salary'))
+                <a href="{{ route('payroll.salary.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.salary.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Salary
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('payroll.salary_report'))
+                <a href="{{ route('payroll.salary-report.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.salary-report.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Salary Report
+                </a>
+                @endif
+                @if(auth()->user()->canViewModule('payroll.components'))
+                <a href="{{ route('payroll.components.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payroll.components.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Allowance &amp; Deduction
+                </a>
+                @endif
+            </div>
+        </div>
+        @endif
+        @endif
+
         <!-- ⚙️ System Settings & Administration -->
-        @if(auth()->user()->canAccessAnySubModule(['employees.manage', 'engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage', 'users.manage', 'roles.manage', 'modules.manage', 'activity_logs.manage']))
+        @if(auth()->user()->canAccessAnySubModule(['engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage', 'users.manage', 'roles.manage', 'modules.manage', 'activity_logs.manage']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Administration</p>
         
         <!-- Master Configuration -->
-        @if(auth()->user()->canAccessAnySubModule(['employees.manage', 'engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage']))
-        <div x-data="{ openMaster: {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('employees.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
+        @if(auth()->user()->canAccessAnySubModule(['engineers.manage', 'cheque-statuses.manage', 'floors.manage', 'unit-types.manage']))
+        <div x-data="{ openMaster: {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-2 py-2 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('opening-balances.*') || Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('categories.*') || Request::routeIs('site-expense-categories.*') ? 'text-[#a38c29] bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -759,11 +821,6 @@
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-3 space-y-0.5" style="display: none;">
-                @if(auth()->user()->canViewModule('employees.manage'))
-                <a href="{{ route('employees.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('employees.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Employee
-                </a>
-                @endif
                 @if(auth()->user()->canViewModule('engineers.manage'))
                 <a href="{{ route('engineers.index') }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer

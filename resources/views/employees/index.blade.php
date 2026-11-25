@@ -99,11 +99,27 @@ function employeeMasterComponent() {
             this.openViewModal = true;
         },
         initEdit(emp) {
-            this.editEmployee = { ...emp };
-            if (emp.joining_date) {
-                this.editEmployee.joining_date = String(emp.joining_date).substring(0, 10);
+            const copy = { ...emp };
+            ['joining_date', 'date_of_birth', 'confirmation_date', 'probation_end_date'].forEach(f => {
+                if (copy[f]) {
+                    copy[f] = String(copy[f]).substring(0, 10);
+                } else {
+                    copy[f] = '';
+                }
+            });
+            if (!copy.first_name && copy.name) {
+                const parts = String(copy.name).trim().split(/\s+/);
+                copy.first_name = parts.shift() || '';
+                if (!copy.last_name) copy.last_name = parts.join(' ');
             }
-            this.editEmployee.salary = emp.salary ? Math.round(parseFloat(emp.salary)) : '';
+            if (!copy.work_email && copy.email) copy.work_email = copy.email;
+            if (!copy.portal_email && copy.email) copy.portal_email = copy.email;
+            copy.salary = copy.salary !== null && copy.salary !== undefined ? parseFloat(copy.salary) : '';
+            copy.basic_salary = copy.basic_salary !== null && copy.basic_salary !== undefined ? parseFloat(copy.basic_salary) : '';
+            copy.hra = copy.hra !== null && copy.hra !== undefined ? parseFloat(copy.hra) : '';
+            copy.allowances = copy.allowances !== null && copy.allowances !== undefined ? parseFloat(copy.allowances) : '';
+            copy.deductions = copy.deductions !== null && copy.deductions !== undefined ? parseFloat(copy.deductions) : '';
+            this.editEmployee = copy;
             this.openEditModal = true;
         },
         initDelete(emp) {
@@ -145,12 +161,14 @@ function employeeMasterComponent() {
             </div>
         </div>
         <div>
+            @if(auth()->user()->hasModulePermission('employees.manage', 'create'))
             <button @click="openAddModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span>Add Employee</span>
             </button>
+            @endif
         </div>
     </div>
 
@@ -174,31 +192,69 @@ function employeeMasterComponent() {
     </div>
     @endif
 
-    <!-- Metrics (Border-left style cards) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Metrics (Customer Ledger KPI Card Style) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Total Workforce (Gold) -->
-        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/50">
-            <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Total Workforce</p>
-            <h4 class="text-[22px] font-bold text-[#8a7522] m-0">{{ $totalCount }}</h4>
-            <p class="text-[10px] text-gray-500 mt-1">Registered Personnel</p>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] border border-amber-200/60 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Total Workforce</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-[#8a7522] font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm">
+                    Staff
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                    {{ $totalCount }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Registered Personnel</p>
+            </div>
         </div>
+
         <!-- Active Staff (Green) -->
-        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#10b981] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#10b981]/30">
-            <p class="text-[11px] font-bold text-[#10b981] uppercase tracking-wider mb-1">Active Staff</p>
-            <h4 class="text-[22px] font-bold text-[#10b981] m-0">{{ $activeCount }}</h4>
-            <p class="text-[10px] text-gray-500 mt-1">On Active Duty</p>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Active Staff</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm">
+                    Active
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block">
+                    {{ $activeCount }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">On Active Duty</p>
+            </div>
         </div>
+
         <!-- Inactive Staff (Red) -->
-        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#ef4444] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#ef4444]/30">
-            <p class="text-[11px] font-bold text-[#ef4444] uppercase tracking-wider mb-1">Inactive Staff</p>
-            <h4 class="text-[22px] font-bold text-[#ef4444] m-0">{{ $inactiveCount }}</h4>
-            <p class="text-[10px] text-gray-500 mt-1">Separated / On Hold</p>
-        </div>
-        <!-- Monthly Payroll (Gray/Black) -->
-        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-gray-700 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-gray-300 group">
-            <p class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 group-hover:text-[#a38c29] transition-colors duration-300">Monthly Payroll</p>
-            <h4 class="text-[22px] font-bold text-gray-800 m-0 group-hover:text-[#a38c29] transition-colors duration-300">₹ {{ number_format((float) ($totalPayroll ?? 0), 2) }}</h4>
-            <p class="text-[10px] text-gray-500 mt-1">Gross Salary Obligation</p>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-300 transition-all duration-300 hover:-translate-y-1.5 cursor-default h-full">
+            <div class="flex items-center justify-between gap-2 mb-4 relative z-10 min-w-0">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider truncate">Inactive Staff</span>
+                </div>
+                <span class="shrink-0 whitespace-nowrap text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm">
+                    Inactive
+                </span>
+            </div>
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block">
+                    {{ $inactiveCount }}
+                </span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Separated / On Hold</p>
+            </div>
         </div>
     </div>
 
@@ -344,7 +400,6 @@ function employeeMasterComponent() {
                         <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">DEPARTMENT</th>
                         <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">CONTACT</th>
                         <th class="px-4 py-3.5 erp-table-header border-r border-slate-600">JOINING DATE</th>
-                        <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-right">MONTHLY SALARY</th>
                         <th class="px-4 py-3.5 erp-table-header border-r border-slate-600 text-center">STATUS</th>
                         <th class="px-4 py-3.5 erp-table-header text-right pr-4">ACTIONS</th>
                     </tr>
@@ -353,8 +408,12 @@ function employeeMasterComponent() {
                     <template x-for="emp in paginatedEmployees" :key="emp.id">
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3.5 font-bold text-slate-400 font-mono text-center" x-text="'#' + emp.id"></td>
-                            <td class="px-4 py-3.5 font-bold font-mono text-[#a38c29]" x-text="emp.employee_id"></td>
-                            <td class="px-4 py-3.5 font-bold text-slate-900" x-text="emp.name"></td>
+                            <td class="px-4 py-3.5 font-bold font-mono text-[#a38c29]">
+                                <a :href="'{{ url('/employees') }}/' + emp.id" class="hover:underline" x-text="emp.employee_id"></a>
+                            </td>
+                            <td class="px-4 py-3.5 font-bold text-slate-900">
+                                <a :href="'{{ url('/employees') }}/' + emp.id" class="hover:text-[#0f5253] hover:underline transition" x-text="emp.name"></a>
+                            </td>
                             <td class="px-4 py-3.5 font-semibold text-slate-800" x-text="emp.designation"></td>
                             <td class="px-4 py-3.5">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" x-text="emp.department || 'General'">
@@ -365,7 +424,6 @@ function employeeMasterComponent() {
                                 <div class="text-[10px] text-slate-400 truncate max-w-[140px]" x-text="emp.email || ''"></div>
                             </td>
                             <td class="px-4 py-3.5 font-mono text-slate-600" x-text="formatDate(emp.joining_date)"></td>
-                            <td class="px-4 py-3.5 text-right font-mono font-extrabold text-slate-900" x-text="'₹' + formatCurrency(emp.salary)"></td>
                             <td class="px-4 py-3.5 text-center">
                                 <template x-if="emp.status === 'active'">
                                     <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
@@ -376,27 +434,31 @@ function employeeMasterComponent() {
                             </td>
                             <td class="px-4 py-3.5 text-right pr-4 whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    {{-- View Trigger --}}
-                                    <button type="button" @click="initView(emp)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Details">
+                                    {{-- View Full Profile Trigger --}}
+                                    <a :href="'{{ url('/employees') }}/' + emp.id" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Employee Details">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    </button>
+                                    </a>
                                     
                                     {{-- Edit Trigger --}}
+                                    @if(auth()->user()->hasModulePermission('employees.manage', 'edit'))
                                     <button type="button" @click="initEdit(emp)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Edit Employee">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
+                                    @endif
 
                                     {{-- Delete Trigger --}}
+                                    @if(auth()->user()->hasModulePermission('employees.manage', 'delete'))
                                     <button type="button" @click="initDelete(emp)" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Delete Employee">
                                         <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
                     </template>
                     <template x-if="paginatedEmployees.length === 0">
                         <tr>
-                            <td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No employee records match the selected filters.</td>
+                            <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">No employee records match the selected filters.</td>
                         </tr>
                     </template>
                 </tbody>
@@ -491,54 +553,179 @@ function employeeMasterComponent() {
 
     <!-- Add Modal -->
     <div x-show="openAddModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openAddModal = false">
+        <div x-data="{ addTab: 'personal' }" class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openAddModal = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMPLOYEE MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">ADD EMPLOYEE</h3>
+                    <h3 class="font-black text-base uppercase tracking-wider text-white">ADD EMPLOYEE — COMPLETE PROFILE</h3>
                 </div>
                 <button type="button" @click="openAddModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
-            <form action="{{ route('employees.store') }}" method="POST" class="p-6 space-y-4 text-xs font-sans">
+
+            {{-- Section Tabs inside Add Modal --}}
+            <div class="border-b border-slate-200 px-6 bg-slate-50 flex items-center gap-1 overflow-x-auto">
+                <button type="button" @click="addTab = 'personal'" :class="addTab === 'personal' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">1. Personal &amp; Contact</button>
+                <button type="button" @click="addTab = 'employment'" :class="addTab === 'employment' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">2. Employment &amp; Job</button>
+                <button type="button" @click="addTab = 'address'" :class="addTab === 'address' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">3. Address</button>
+                <button type="button" @click="addTab = 'salary'" :class="addTab === 'salary' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">4. Bank Details</button>
+            </div>
+
+            <form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 text-xs font-sans">
                 @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMPLOYEE CODE</label>
-                        <input type="text" name="employee_id" value="{{ $nextEmpId }}" readonly class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold font-mono text-slate-800 focus:outline-none cursor-not-allowed">
+                <div class="max-h-[60vh] overflow-y-auto pr-1 space-y-4">
+
+                    {{-- TAB 1: PERSONAL & CONTACT --}}
+                    <div x-show="addTab === 'personal'" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">EMPLOYEE CODE <span class="text-rose-500">*</span></label>
+                            <input type="text" name="employee_id" value="{{ $nextEmpId }}" required class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold font-mono text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">FIRST NAME <span class="text-rose-500">*</span></label>
+                            <input type="text" name="first_name" required placeholder="e.g. Priya" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">LAST NAME</label>
+                            <input type="text" name="last_name" placeholder="e.g. Menon" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">GENDER</label>
+                            <select name="gender" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DATE OF BIRTH</label>
+                            <input type="date" name="date_of_birth" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">NATIONALITY</label>
+                            <input type="text" name="nationality" placeholder="e.g. Indian" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BLOOD GROUP</label>
+                            <input type="text" name="blood_group" placeholder="e.g. O+" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">MOBILE PHONE</label>
+                            <input type="text" name="phone" placeholder="+91 9876543210" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ALTERNATE PHONE</label>
+                            <input type="text" name="alternate_phone" placeholder="+91 9876509999" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">WORK EMAIL</label>
+                            <input type="email" name="work_email" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PERSONAL EMAIL</label>
+                            <input type="email" name="personal_email" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PROFILE PHOTO</label>
+                            <input type="file" name="photo" accept="image/*" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">FULL NAME <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="text" name="name" required placeholder="e.g. Rajesh Kumar" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+
+                    {{-- TAB 2: EMPLOYMENT & JOB --}}
+                    <div x-show="addTab === 'employment'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">POSITION / DESIGNATION <span class="text-rose-500">*</span></label>
+                            <input type="text" name="designation" list="empDesignationOptions" required placeholder="e.g. Civil Engineer" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DEPARTMENT</label>
+                            <input type="text" name="department" list="empDepartmentOptions" placeholder="e.g. Human Resources" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BRANCH</label>
+                            <input type="text" name="branch" placeholder="e.g. Kochi Development Center" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">JOINING DATE <span class="text-rose-500">*</span></label>
+                            <input type="date" name="joining_date" required value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">WORK LOCATION</label>
+                            <input type="text" name="work_location" placeholder="e.g. Head Office" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">STATUS</label>
+                            <select name="status" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="on_leave">On Leave</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DESIGNATION <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="text" name="designation" list="empDesignationOptions" required placeholder="e.g. Civil Engineer" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+
+                    {{-- TAB 3: ADDRESS --}}
+                    <div x-show="addTab === 'address'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ADDRESS LINE 1</label>
+                            <input type="text" name="address_line_1" placeholder="Flat / House / Street" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ADDRESS LINE 2</label>
+                            <input type="text" name="address_line_2" placeholder="Area / Landmark" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">COUNTRY</label>
+                            <input type="text" name="country" placeholder="e.g. India" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">STATE / PROVINCE / REGION</label>
+                            <input type="text" name="state" placeholder="e.g. Kerala" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CITY</label>
+                            <input type="text" name="city" placeholder="e.g. Kochi" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">POSTAL CODE</label>
+                            <input type="text" name="postal_code" placeholder="e.g. 560103" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DEPARTMENT</label>
-                        <input type="text" name="department" list="empDepartmentOptions" placeholder="e.g. Construction / Site" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+
+                    {{-- TAB 4: BANK DETAILS --}}
+                    <div x-show="addTab === 'salary'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BANK NAME</label>
+                            <input type="text" name="bank_name" placeholder="e.g. HDFC Bank" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ACCOUNT NUMBER</label>
+                            <input type="text" name="bank_account_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">IFSC CODE</label>
+                            <input type="text" name="ifsc_code" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono uppercase text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAN NUMBER</label>
+                            <input type="text" name="pan_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono uppercase text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">UAN / PF NUMBER</label>
+                            <input type="text" name="uan_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
-                        <input type="text" name="phone" placeholder="e.g. +91 9876543210" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
-                        <input type="email" name="email" placeholder="e.g. rajesh@tabasco.com" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">JOINING DATE <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="joining_date" required value="{{ date('Y-m-d') }}" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none cursor-pointer">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">MONTHLY SALARY (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" name="salary" required min="0" step="1" placeholder="e.g. 25000" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
+
                 </div>
 
-                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" @click="openAddModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">SAVE EMPLOYEE</button>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-100">
+                    <label class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                        <input type="checkbox" name="open_profile" value="1" checked class="rounded border-slate-300 text-[#a38c29]">
+                        <span>Open full Employee Details profile after saving</span>
+                    </label>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" @click="openAddModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">SAVE EMPLOYEE</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -546,57 +733,170 @@ function employeeMasterComponent() {
 
     <!-- Edit Modal -->
     <div x-show="openEditModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openEditModal = false">
+        <div x-data="{ editTab: 'personal' }" class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none transform transition-all" @click.outside="openEditModal = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMPLOYEE MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">EDIT EMPLOYEE</h3>
+                    <h3 class="font-black text-base uppercase tracking-wider text-white">EDIT EMPLOYEE — COMPLETE PROFILE</h3>
                 </div>
                 <button type="button" @click="openEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
-            <form :action="'/employees/' + editEmployee.id" method="POST" class="p-6 space-y-4 text-xs font-sans">
+
+            {{-- Section Tabs inside Edit Modal --}}
+            <div class="border-b border-slate-200 px-6 bg-slate-50 flex items-center gap-1 overflow-x-auto">
+                <button type="button" @click="editTab = 'personal'" :class="editTab === 'personal' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">1. Personal &amp; Contact</button>
+                <button type="button" @click="editTab = 'employment'" :class="editTab === 'employment' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">2. Employment &amp; Job</button>
+                <button type="button" @click="editTab = 'address'" :class="editTab === 'address' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">3. Address</button>
+                <button type="button" @click="editTab = 'salary'" :class="editTab === 'salary' ? 'border-[#a38c29] text-[#a38c29] font-extrabold' : 'border-transparent text-slate-500 font-bold'" class="px-3 py-2.5 text-[11px] uppercase tracking-wider border-b-2 whitespace-nowrap cursor-pointer">4. Bank Details</button>
+            </div>
+
+            <form :action="'{{ url('/employees') }}/' + editEmployee.id + '/update'" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 text-xs font-sans">
                 @csrf
-                @method('PUT')
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMPLOYEE CODE</label>
-                        <input type="text" readonly :value="editEmployee.employee_id" class="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold font-mono text-slate-700 focus:outline-none cursor-not-allowed">
+                <div class="max-h-[60vh] overflow-y-auto pr-1 space-y-4">
+
+                    {{-- TAB 1: PERSONAL & CONTACT --}}
+                    <div x-show="editTab === 'personal'" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">EMPLOYEE CODE</label>
+                            <input type="text" readonly :value="editEmployee.employee_id" class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-xl font-bold font-mono text-slate-700 focus:outline-none cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">FIRST NAME <span class="text-rose-500">*</span></label>
+                            <input type="text" name="first_name" required x-model="editEmployee.first_name" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">LAST NAME</label>
+                            <input type="text" name="last_name" x-model="editEmployee.last_name" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">GENDER</label>
+                            <select name="gender" x-model="editEmployee.gender" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DATE OF BIRTH</label>
+                            <input type="date" name="date_of_birth" x-model="editEmployee.date_of_birth" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">NATIONALITY</label>
+                            <input type="text" name="nationality" x-model="editEmployee.nationality" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BLOOD GROUP</label>
+                            <input type="text" name="blood_group" x-model="editEmployee.blood_group" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">MOBILE PHONE</label>
+                            <input type="text" name="phone" x-model="editEmployee.phone" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ALTERNATE PHONE</label>
+                            <input type="text" name="alternate_phone" x-model="editEmployee.alternate_phone" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">WORK EMAIL</label>
+                            <input type="email" name="work_email" x-model="editEmployee.work_email" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PERSONAL EMAIL</label>
+                            <input type="email" name="personal_email" x-model="editEmployee.personal_email" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">UPDATE PROFILE PHOTO</label>
+                            <input type="file" name="photo" accept="image/*" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">STATUS <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="status" required x-model="editEmployee.status" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none cursor-pointer">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+
+                    {{-- TAB 2: EMPLOYMENT & JOB --}}
+                    <div x-show="editTab === 'employment'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">POSITION / DESIGNATION <span class="text-rose-500">*</span></label>
+                            <input type="text" name="designation" list="empDesignationOptions" required x-model="editEmployee.designation" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DEPARTMENT</label>
+                            <input type="text" name="department" list="empDepartmentOptions" x-model="editEmployee.department" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BRANCH</label>
+                            <input type="text" name="branch" x-model="editEmployee.branch" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">JOINING DATE <span class="text-rose-500">*</span></label>
+                            <input type="date" name="joining_date" required x-model="editEmployee.joining_date" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">WORK LOCATION</label>
+                            <input type="text" name="work_location" x-model="editEmployee.work_location" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">STATUS <span class="text-rose-500">*</span></label>
+                            <select name="status" required x-model="editEmployee.status" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 cursor-pointer">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="on_leave">On Leave</option>
+                                <option value="terminated">Terminated</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">FULL NAME <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="text" name="name" required x-model="editEmployee.name" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+
+                    {{-- TAB 3: ADDRESS --}}
+                    <div x-show="editTab === 'address'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ADDRESS LINE 1</label>
+                            <input type="text" name="address_line_1" x-model="editEmployee.address_line_1" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ADDRESS LINE 2</label>
+                            <input type="text" name="address_line_2" x-model="editEmployee.address_line_2" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">COUNTRY</label>
+                            <input type="text" name="country" x-model="editEmployee.country" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">STATE / PROVINCE / REGION</label>
+                            <input type="text" name="state" x-model="editEmployee.state" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CITY</label>
+                            <input type="text" name="city" x-model="editEmployee.city" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">POSTAL CODE</label>
+                            <input type="text" name="postal_code" x-model="editEmployee.postal_code" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DESIGNATION <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="text" name="designation" list="empDesignationOptions" required x-model="editEmployee.designation" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+
+                    {{-- TAB 4: BANK DETAILS --}}
+                    <div x-show="editTab === 'salary'" style="display: none;" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <input type="hidden" name="salary" :value="editEmployee.salary ?? 0">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">BANK NAME</label>
+                            <input type="text" name="bank_name" x-model="editEmployee.bank_name" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">ACCOUNT NUMBER</label>
+                            <input type="text" name="bank_account_number" x-model="editEmployee.bank_account_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">IFSC CODE</label>
+                            <input type="text" name="ifsc_code" x-model="editEmployee.ifsc_code" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono uppercase text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAN NUMBER</label>
+                            <input type="text" name="pan_number" x-model="editEmployee.pan_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono uppercase text-slate-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">UAN / PF NUMBER</label>
+                            <input type="text" name="uan_number" x-model="editEmployee.uan_number" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DEPARTMENT</label>
-                        <input type="text" name="department" list="empDepartmentOptions" x-model="editEmployee.department" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
-                        <input type="text" name="phone" x-model="editEmployee.phone" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
-                        <input type="email" name="email" x-model="editEmployee.email" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">JOINING DATE <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="joining_date" required x-model="editEmployee.joining_date" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none cursor-pointer">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">MONTHLY SALARY (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" name="salary" required min="0" step="1" x-model="editEmployee.salary" placeholder="e.g. 25000" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                    </div>
+
                 </div>
 
                 <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
@@ -619,9 +919,8 @@ function employeeMasterComponent() {
             </div>
             <div class="p-6 space-y-4 text-center">
                 <p class="text-xs font-semibold text-slate-600">Are you sure you want to remove <span class="font-bold text-slate-900" x-text="deleteEmployee.name"></span>?</p>
-                <form :action="'/employees/' + deleteEmployee.id" method="POST" class="flex justify-center gap-3 pt-2">
+                <form :action="'{{ url('/employees') }}/' + deleteEmployee.id + '/delete'" method="POST" class="flex justify-center gap-3 pt-2">
                     @csrf
-                    @method('DELETE')
                     <button type="button" @click="openDeleteModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
                     <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">CONFIRM DELETE</button>
                 </form>

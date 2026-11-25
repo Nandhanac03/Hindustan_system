@@ -126,20 +126,26 @@ class EnforceModulePermission
                 parse_str($parts[1], $queryParams);
             }
 
-            // Base route matching or prefix resource matching (e.g. projects.create -> projects.index)
+            // Base route matching or prefix resource matching (e.g. projects.create -> projects.index, payroll.salary.store -> payroll.salary.index)
             $matchesRoute = false;
+            $prefixSpecificity = 1;
             if ($currentRouteName === $baseRoute) {
                 $matchesRoute = true;
+                $prefixSpecificity = 5;
             } else {
-                $basePrefix = explode('.', $baseRoute)[0] ?? '';
-                $currentPrefix = explode('.', $currentRouteName)[0] ?? '';
-                if ($basePrefix !== '' && $basePrefix === $currentPrefix) {
+                $baseParts = explode('.', $baseRoute);
+                $currParts = explode('.', $currentRouteName);
+                if (count($baseParts) >= 3 && count($currParts) >= 2 && ($baseParts[0] . '.' . $baseParts[1]) === ($currParts[0] . '.' . $currParts[1])) {
                     $matchesRoute = true;
+                    $prefixSpecificity = 3;
+                } elseif (count($baseParts) === 2 && !empty($baseParts[0]) && $baseParts[0] === ($currParts[0] ?? '')) {
+                    $matchesRoute = true;
+                    $prefixSpecificity = 1;
                 }
             }
 
             if ($matchesRoute) {
-                $specificity = 0;
+                $specificity = $prefixSpecificity;
                 if (!empty($queryParams)) {
                     $allMatched = true;
                     foreach ($queryParams as $k => $v) {
@@ -153,8 +159,6 @@ class EnforceModulePermission
                     } else {
                         continue;
                     }
-                } else {
-                    $specificity = 1;
                 }
 
                 if ($specificity > $maxSpecificity) {

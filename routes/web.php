@@ -506,8 +506,70 @@ Route::middleware(['auth', 'system.active', 'module.permission'])->group(functio
     // Employee Master Module
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
     Route::post('/employees', [\App\Http\Controllers\EmployeeController::class, 'store'])->name('employees.store');
-    Route::match(['put', 'post'], '/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('employees.update');
-    Route::match(['get', 'post', 'delete'], '/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
+    Route::get('/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'show'])->name('employees.show');
+    Route::match(['put', 'post'], '/employees/{employee}/update', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('employees.update');
+    Route::post('/employees/{employee}/status', [\App\Http\Controllers\EmployeeController::class, 'updateStatus'])->name('employees.status');
+    Route::post('/employees/{employee}/photo', [\App\Http\Controllers\EmployeeController::class, 'updatePhoto'])->name('employees.photo');
+    Route::match(['get', 'post', 'delete'], '/employees/{employee}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
+
+    Route::post('/employees/{employee}/experiences', [\App\Http\Controllers\EmployeeController::class, 'storeExperience'])->name('employees.experiences.store');
+    Route::post('/employees/{employee}/experiences/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyExperience'])->name('employees.experiences.destroy');
+    Route::post('/employees/{employee}/attendances', [\App\Http\Controllers\EmployeeController::class, 'storeAttendance'])->name('employees.attendances.store');
+    Route::post('/employees/{employee}/attendances/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyAttendance'])->name('employees.attendances.destroy');
+    Route::post('/employees/{employee}/overtimes', [\App\Http\Controllers\EmployeeController::class, 'storeOvertime'])->name('employees.overtimes.store');
+    Route::post('/employees/{employee}/overtimes/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyOvertime'])->name('employees.overtimes.destroy');
+    Route::post('/employees/{employee}/leaves', [\App\Http\Controllers\EmployeeController::class, 'storeLeave'])->name('employees.leaves.store');
+    Route::post('/employees/{employee}/leaves/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyLeave'])->name('employees.leaves.destroy');
+    Route::post('/employees/{employee}/payrolls', [\App\Http\Controllers\EmployeeController::class, 'storePayroll'])->name('employees.payrolls.store');
+    Route::post('/employees/{employee}/payrolls/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyPayroll'])->name('employees.payrolls.destroy');
+    Route::post('/employees/{employee}/documents', [\App\Http\Controllers\EmployeeController::class, 'storeDocument'])->name('employees.documents.store');
+    Route::post('/employees/{employee}/documents/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyDocument'])->name('employees.documents.destroy');
+    Route::post('/employees/{employee}/assets', [\App\Http\Controllers\EmployeeController::class, 'storeAsset'])->name('employees.assets.store');
+    Route::post('/employees/{employee}/assets/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyAsset'])->name('employees.assets.destroy');
+    Route::post('/employees/{employee}/emergency-contacts', [\App\Http\Controllers\EmployeeController::class, 'storeEmergencyContact'])->name('employees.emergency.store');
+    Route::post('/employees/{employee}/emergency-contacts/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyEmergencyContact'])->name('employees.emergency.destroy');
+    Route::post('/employees/{employee}/link-user', [\App\Http\Controllers\EmployeeController::class, 'linkUser'])->name('employees.link-user');
+    Route::post('/employees/{employee}/salary-structure', [\App\Http\Controllers\EmployeeController::class, 'updateSalaryStructure'])->name('employees.salary-structure.update');
+    Route::post('/employees/{employee}/bank-details', [\App\Http\Controllers\EmployeeController::class, 'updateBankDetails'])->name('employees.bank.update');
+    Route::post('/employees/{employee}/salary-components', [\App\Http\Controllers\EmployeeController::class, 'storeSalaryComponent'])->name('employees.salary-components.store');
+    Route::post('/employees/{employee}/salary-components/{item}/update', [\App\Http\Controllers\EmployeeController::class, 'updateSalaryComponent'])->name('employees.salary-components.update');
+    Route::post('/employees/{employee}/salary-components/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroySalaryComponent'])->name('employees.salary-components.destroy');
+    Route::post('/employees/{employee}/salary-revisions', [\App\Http\Controllers\EmployeeController::class, 'storeSalaryRevision'])->name('employees.salary-revisions.store');
+    Route::post('/employees/{employee}/salary-revisions/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroySalaryRevision'])->name('employees.salary-revisions.destroy');
+
+    // Payroll Module (Financial Period, Leave Quota, Salary Head, Salary, Salary Report, Components)
+    Route::prefix('payroll')->name('payroll.')->group(function () {
+        Route::get('/financial-period', [\App\Http\Controllers\PayrollController::class, 'financialPeriodIndex'])->name('financial-period.index');
+        Route::post('/financial-period', [\App\Http\Controllers\PayrollController::class, 'storeFinancialPeriod'])->name('financial-period.store');
+        Route::post('/financial-period/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateFinancialPeriod'])->name('financial-period.update');
+        Route::post('/financial-period/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroyFinancialPeriod'])->name('financial-period.destroy');
+
+        Route::get('/leave-quota', [\App\Http\Controllers\PayrollController::class, 'leaveQuotaIndex'])->name('leave-quota.index');
+        Route::post('/leave-quota/save', [\App\Http\Controllers\PayrollController::class, 'saveLeaveQuotas'])->name('leave-quota.save');
+        Route::post('/leave-quota', [\App\Http\Controllers\PayrollController::class, 'storeLeaveQuota'])->name('leave-quota.store');
+        Route::post('/leave-quota/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateLeaveQuota'])->name('leave-quota.update');
+        Route::post('/leave-quota/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroyLeaveQuota'])->name('leave-quota.destroy');
+
+        Route::get('/salary-head', [\App\Http\Controllers\PayrollController::class, 'salaryHeadIndex'])->name('salary-head.index');
+        Route::post('/salary-head', [\App\Http\Controllers\PayrollController::class, 'storeSalaryHead'])->name('salary-head.store');
+        Route::post('/salary-head/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateSalaryHead'])->name('salary-head.update');
+        Route::post('/salary-head/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroySalaryHead'])->name('salary-head.destroy');
+
+        Route::get('/salary', [\App\Http\Controllers\PayrollController::class, 'salaryIndex'])->name('salary.index');
+        Route::post('/salary', [\App\Http\Controllers\PayrollController::class, 'storeSalary'])->name('salary.store');
+        Route::post('/salary/generate', [\App\Http\Controllers\PayrollController::class, 'generateSalaries'])->name('salary.generate');
+        Route::post('/salary/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateSalary'])->name('salary.update');
+        Route::post('/salary/{id}/pay', [\App\Http\Controllers\PayrollController::class, 'paySalary'])->name('salary.pay');
+        Route::post('/salary/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroySalary'])->name('salary.destroy');
+
+        Route::get('/salary-report', [\App\Http\Controllers\PayrollController::class, 'salaryReportIndex'])->name('salary-report.index');
+        Route::get('/salary-report/export', [\App\Http\Controllers\PayrollController::class, 'exportSalaryReportCsv'])->name('salary-report.export');
+
+        Route::get('/components', [\App\Http\Controllers\PayrollController::class, 'componentsIndex'])->name('components.index');
+        Route::post('/components', [\App\Http\Controllers\PayrollController::class, 'storeComponent'])->name('components.store');
+        Route::post('/components/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateComponent'])->name('components.update');
+        Route::post('/components/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroyComponent'])->name('components.destroy');
+    });
 
     // Vouchers & Core Accounting Engine
     Route::get('/vouchers/approvals', [\App\Http\Controllers\VoucherController::class, 'approvalsIndex'])->name('vouchers.approvals');

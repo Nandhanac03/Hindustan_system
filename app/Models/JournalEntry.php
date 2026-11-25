@@ -98,6 +98,14 @@ class JournalEntry extends Model
     }
 
     /**
+     * Employee / Staff entity relation
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'entity_id');
+    }
+
+    /**
      * Dynamic entity accessor helper ($journalEntry->entity)
      */
     public function getEntityAttribute()
@@ -116,6 +124,8 @@ class JournalEntry extends Model
             'PETTY_CASH',
             'PETTY_CASH_BOX' => PettyCashBox::find($this->entity_id),
             'AGENT'          => Broker::find($this->entity_id),
+            'STAFF',
+            'EMPLOYEE'       => Employee::find($this->entity_id),
             default          => null,
         };
     }

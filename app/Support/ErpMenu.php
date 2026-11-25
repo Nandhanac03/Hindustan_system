@@ -39,6 +39,7 @@ class ErpMenu
             'Contractor Operations',
             'Finance & Analytics',
             'Loans & Debt Servicing',
+            'Human Capital',
             'Administration',
         ];
 
