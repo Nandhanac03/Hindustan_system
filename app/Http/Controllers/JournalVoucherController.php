@@ -45,9 +45,9 @@ class JournalVoucherController extends Controller
                             'line_narration' => $e->line_narration ?: '-',
                             'entity_type' => $e->entity_type,
                             'bank_account_id' => $e->entity_type === 'BANK' ? $e->entity_id : null,
-                            'bank_account_name' => $e->bankAccount ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
+                            'bank_account_name' => ($e->entity_type === 'BANK' && $e->bankAccount) ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
                             'petty_cash_box_id' => $e->entity_type === 'PETTY_CASH' ? $e->entity_id : null,
-                            'petty_cash_box_name' => $e->pettyCashBox ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
+                            'petty_cash_box_name' => ($e->entity_type === 'PETTY_CASH' && $e->pettyCashBox) ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
                         ];
                     })->values()
                 ];
@@ -211,9 +211,9 @@ class JournalVoucherController extends Controller
                     'line_narration' => $e->line_narration ?: '-',
                     'entity_type' => $e->entity_type,
                     'bank_account_id' => $e->entity_type === 'BANK' ? $e->entity_id : null,
-                    'bank_account_name' => $e->bankAccount ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
+                    'bank_account_name' => ($e->entity_type === 'BANK' && $e->bankAccount) ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
                     'petty_cash_box_id' => $e->entity_type === 'PETTY_CASH' ? $e->entity_id : null,
-                    'petty_cash_box_name' => $e->pettyCashBox ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
+                    'petty_cash_box_name' => ($e->entity_type === 'PETTY_CASH' && $e->pettyCashBox) ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
                 ];
             }),
         ]);

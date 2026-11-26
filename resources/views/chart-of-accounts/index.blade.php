@@ -431,9 +431,8 @@
                 </div>
                 <button type="button" @click="openEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
-            <form :action="'/chart-of-accounts/' + editAccount.id" method="POST" class="p-6 space-y-4 text-xs font-sans">
+            <form :action="'{{ url('/chart-of-accounts') }}/' + editAccount.id + '/update'" method="POST" class="p-6 space-y-4 text-xs font-sans">
                 @csrf
-                @method('PUT')
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">ACCOUNT CODE <span class="text-rose-500 font-bold">*</span></label>
                     <input type="text" name="account_code" x-model="editAccount.account_code" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
@@ -472,9 +471,8 @@
             </div>
             <div class="p-6 space-y-4 text-center">
                 <p class="text-xs font-semibold text-slate-600">Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteAccount.account_name"></span>?</p>
-                <form :action="'/chart-of-accounts/' + deleteAccount.id" method="POST" class="flex justify-center gap-3 pt-2">
+                <form :action="'{{ url('/chart-of-accounts') }}/' + deleteAccount.id + '/delete'" method="POST" class="flex justify-center gap-3 pt-2">
                     @csrf
-                    @method('DELETE')
                     <button type="button" @click="openDeleteModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
                     <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">CONFIRM DELETE</button>
                 </form>

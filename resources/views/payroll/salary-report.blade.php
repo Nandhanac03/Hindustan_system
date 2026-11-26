@@ -27,6 +27,7 @@
         }
 
         $deductionsList = [];
+        $lopAmt = (float) ($r->lop_amount ?? 0);
         if ($dedComps->isNotEmpty()) {
             foreach ($dedComps as $dc) {
                 $deductionsList[] = [
@@ -35,8 +36,19 @@
                     'amount' => (float) $dc->calculated_amount,
                 ];
             }
+            if ($lopAmt > 0) {
+                $deductionsList[] = ['name' => 'LOP Deduction', 'percent' => null, 'amount' => $lopAmt];
+            }
         } elseif ((float) $r->deductions > 0) {
-            $deductionsList[] = ['name' => 'Deductions', 'percent' => null, 'amount' => (float) $r->deductions];
+            if ($lopAmt > 0) {
+                $deductionsList[] = ['name' => 'LOP Deduction', 'percent' => null, 'amount' => $lopAmt];
+                $otherDed = round(max(0, (float) $r->deductions - $lopAmt), 2);
+                if ($otherDed > 0) {
+                    $deductionsList[] = ['name' => 'Deductions', 'percent' => null, 'amount' => $otherDed];
+                }
+            } else {
+                $deductionsList[] = ['name' => 'Deductions', 'percent' => null, 'amount' => (float) $r->deductions];
+            }
         }
 
         $empQuotas = $leaveQuotasByEmp->get($r->employee_id, collect());
@@ -44,10 +56,8 @@
             ? ($empQuotas->firstWhere('financial_period_id', $head->financial_period_id) ?? $empQuotas->first())
             : $empQuotas->first();
 
-        $casualAllowed = (float) ($quota?->casual_allowed ?? 15);
-        $casualTaken = (float) ($quota?->casual_taken ?? 0);
-        $medicalAllowed = (float) ($quota?->medical_allowed ?? 10);
-        $medicalTaken = (float) ($quota?->medical_taken ?? 0);
+        $allowedLeave = (float) ($quota?->allowed_leave ?? 0);
+        $takenLeave = (float) ($quota?->taken_leave ?? 0);
 
         $empName = $emp?->name ?? 'Employee';
         $initials = collect(explode(' ', trim($empName)))->filter()->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->implode('') ?: 'EM';
@@ -71,16 +81,10 @@
             'deductions' => $deductionsList,
             'leaves' => [
                 [
-                    'type' => 'Casual Leave',
-                    'allowed' => $casualAllowed,
-                    'taken' => $casualTaken,
-                    'balance' => max(0, $casualAllowed - $casualTaken),
-                ],
-                [
-                    'type' => 'Medical Leave',
-                    'allowed' => $medicalAllowed,
-                    'taken' => $medicalTaken,
-                    'balance' => max(0, $medicalAllowed - $medicalTaken),
+                    'type' => $quota?->financialPeriod?->name ?: 'Financial Year Leave',
+                    'allowed' => $allowedLeave,
+                    'taken' => $takenLeave,
+                    'balance' => max(0, $allowedLeave - $takenLeave),
                 ],
             ],
         ];
@@ -328,7 +332,7 @@
 
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 6,
-            head: [['Leave Type', 'Allowed', 'Taken (FY)', 'Balance']],
+            head: [['Financial Period', 'Allowed', 'Taken (FY)', 'Balance']],
             body: (item.leaves || []).map(l => [l.type, l.allowed, l.taken, l.balance]),
             headStyles: { fillColor: [83, 78, 71], textColor: 255 },
             styles: { fontSize: 9 },
@@ -543,7 +547,12 @@
                                         {{ $r->status }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-right font-mono font-extrabold text-slate-900">₹{{ number_format((float)$r->net_salary, 2) }}</td>
+                                <td class="px-4 py-3 text-right font-mono font-extrabold text-slate-900">
+                                    ₹{{ number_format((float)$r->net_salary, 2) }}
+                                    @if((float)($r->lop_amount ?? 0) > 0)
+                                        <div class="text-[9px] text-rose-600 font-bold">LOP: -₹{{ number_format((float)$r->lop_amount, 2) }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center justify-end gap-1.5">
                                         <button type="button" @click="initView({{ $r->id }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Salary Report">
@@ -705,7 +714,7 @@
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-200">
                             <tr>
-                                <th class="px-3.5 py-2">Leave Type</th>
+                                <th class="px-3.5 py-2">Financial Period</th>
                                 <th class="px-3.5 py-2 text-center">Allowed</th>
                                 <th class="px-3.5 py-2 text-center">Taken (FY)</th>
                                 <th class="px-3.5 py-2 text-center">Balance</th>

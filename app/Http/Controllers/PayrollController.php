@@ -166,32 +166,35 @@ class PayrollController extends Controller
         }
         $leavesByEmp = $leavesQuery->get()->groupBy('employee_id');
 
-        $rows = $employees->map(function ($emp) use ($quotaMap, $leavesByEmp) {
-            $saved = $quotaMap->get($emp->id);
-            $empLeaves = $leavesByEmp->get($emp->id, collect());
+        $rows = $employees
+            ->filter(fn($emp) => $quotaMap->has($emp->id))
+            ->map(function ($emp) use ($quotaMap) {
+                $saved = $quotaMap->get($emp->id);
+                $allowed = (float) $saved->allowed_leave;
+                $taken = (float) $saved->taken_leave;
 
-            $casualTakenFromLogs = (float) $empLeaves
-                ->filter(fn($l) => str_contains(strtolower((string) $l->leave_type), 'casual') || strtolower((string) $l->leave_type) === 'cl')
-                ->sum('days');
-            $medicalTakenFromLogs = (float) $empLeaves
-                ->filter(fn($l) => str_contains(strtolower((string) $l->leave_type), 'medical') || str_contains(strtolower((string) $l->leave_type), 'sick') || strtolower((string) $l->leave_type) === 'ml')
-                ->sum('days');
+                return [
+                    'employee_id' => $emp->id,
+                    'employee_code' => $emp->employee_id,
+                    'name' => $emp->name,
+                    'allowed_leave' => $allowed,
+                    'taken_leave' => $taken,
+                ];
+            })->values()->all();
 
-            $casualTaken = $saved ? (float) $saved->casual_taken : $casualTakenFromLogs;
-            $medicalTaken = $saved ? (float) $saved->medical_taken : $medicalTakenFromLogs;
+        $allQuotasMap = EmployeeLeaveQuota::whereIn('employee_id', $employees->pluck('id'))
+            ->get()
+            ->mapWithKeys(function ($q) {
+                $key = $q->financial_period_id . '_' . $q->employee_id;
+                return [
+                    $key => [
+                        'allowed_leave' => (float) $q->allowed_leave,
+                        'taken_leave' => (float) $q->taken_leave,
+                    ],
+                ];
+            })->all();
 
-            return [
-                'employee_id' => $emp->id,
-                'employee_code' => $emp->employee_id,
-                'name' => $emp->name,
-                'casual_allowed' => (float) ($saved?->casual_allowed ?? 15),
-                'casual_taken' => $casualTaken,
-                'medical_allowed' => (float) ($saved?->medical_allowed ?? 10),
-                'medical_taken' => $medicalTaken,
-            ];
-        })->values()->all();
-
-        return view('payroll.leave-quota', compact('periods', 'selectedPeriod', 'selectedPeriodId', 'rows'));
+        return view('payroll.leave-quota', compact('periods', 'selectedPeriod', 'selectedPeriodId', 'rows', 'allQuotasMap'));
     }
 
     public function saveLeaveQuotas(Request $request)
@@ -200,42 +203,36 @@ class PayrollController extends Controller
         $data = $request->validate([
             'financial_period_id' => 'nullable|integer',
             'quotas' => 'required|array',
-            'quotas.*.casual_allowed' => 'required|numeric|min:0|max:365',
-            'quotas.*.medical_allowed' => 'required|numeric|min:0|max:365',
-            'quotas.*.casual_taken' => 'nullable|numeric|min:0|max:365',
-            'quotas.*.medical_taken' => 'nullable|numeric|min:0|max:365',
+            'quotas.*.allowed_leave' => 'nullable|numeric|min:0|max:365',
+            'quotas.*.taken_leave' => 'required|numeric|min:0|max:365',
         ]);
 
         $periodId = !empty($data['financial_period_id']) ? (int) $data['financial_period_id'] : null;
 
         foreach ($data['quotas'] as $empId => $vals) {
-            $updateData = [
-                'system_id' => $systemId,
-                'casual_allowed' => (float) $vals['casual_allowed'],
-                'medical_allowed' => (float) $vals['medical_allowed'],
-            ];
-            if (array_key_exists('casual_taken', $vals) && $vals['casual_taken'] !== null) {
-                $updateData['casual_taken'] = (float) $vals['casual_taken'];
-            }
-            if (array_key_exists('medical_taken', $vals) && $vals['medical_taken'] !== null) {
-                $updateData['medical_taken'] = (float) $vals['medical_taken'];
-            }
+            $existing = EmployeeLeaveQuota::where('financial_period_id', $periodId)
+                ->where('employee_id', (int) $empId)
+                ->first();
+
+            $allowed = $existing
+                ? (float) $existing->allowed_leave
+                : (float) ($vals['allowed_leave'] ?? 0);
 
             EmployeeLeaveQuota::updateOrCreate(
                 [
                     'financial_period_id' => $periodId,
                     'employee_id' => (int) $empId,
                 ],
-                $updateData
+                [
+                    'system_id' => $systemId,
+                    'allowed_leave' => $allowed,
+                    'taken_leave' => (float) $vals['taken_leave'],
+                ]
             );
         }
 
-        if ($request->expectsJson()) {
-            return response()->json(['status' => 'ok']);
-        }
-
         return redirect()->route('payroll.leave-quota.index', ['financial_period_id' => $periodId])
-            ->with('status', 'Leave quotas saved successfully.');
+            ->with('status', 'Leave quota updated successfully.');
     }
 
     public function storeLeaveQuota(Request $request): RedirectResponse
@@ -557,6 +554,7 @@ class PayrollController extends Controller
             'payment_date' => 'required|date',
             'payment_mode' => 'nullable|string|max:50',
             'payment_reference' => 'nullable|string|max:100',
+            'lop_amount' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string|max:255',
         ]);
 
@@ -566,13 +564,21 @@ class PayrollController extends Controller
             return back()->withErrors(['payment' => 'This salary record has already been paid.']);
         }
 
-        $netAmount = (float) $salary->net_salary;
-        if ($netAmount <= 0) {
-            return back()->withErrors(['payment' => 'Net salary must be greater than zero to process a bank payment.']);
+        $currentNet = (float) $salary->net_salary;
+        $lopAmount = round((float) ($data['lop_amount'] ?? 0), 2);
+        if ($lopAmount > $currentNet) {
+            return back()->withErrors(['lop_amount' => 'LOP amount cannot exceed the payable salary (₹' . number_format($currentNet, 2) . ').']);
         }
 
+        $netAmount = round(max(0, $currentNet - $lopAmount), 2);
+        if ($netAmount <= 0) {
+            return back()->withErrors(['payment' => 'Net payable after LOP must be greater than zero to process a bank payment.']);
+        }
+
+        $newDeductions = round((float) $salary->deductions + $lopAmount, 2);
+
         try {
-            DB::transaction(function () use ($salary, $data, $netAmount) {
+            DB::transaction(function () use ($salary, $data, $netAmount, $lopAmount, $newDeductions) {
                 $bankAccount = CompanyBankAccount::lockForUpdate()->findOrFail((int) $data['company_bank_account_id']);
                 if ((float) $bankAccount->current_balance < $netAmount) {
                     throw new \RuntimeException(
@@ -667,6 +673,9 @@ class PayrollController extends Controller
 
                 $salary->update([
                     'status' => 'Paid',
+                    'deductions' => $newDeductions,
+                    'lop_amount' => $lopAmount,
+                    'net_salary' => $netAmount,
                     'company_bank_account_id' => $bankAccount->id,
                     'payment_date' => $payDate,
                     'payment_mode' => $data['payment_mode'] ?: 'Bank Transfer',
@@ -877,6 +886,7 @@ class PayrollController extends Controller
                 'Overtime Pay',
                 'Gross Salary',
                 'Deductions',
+                'LOP Amount',
                 'Net Salary',
                 'Payment Mode',
                 'Status',
@@ -896,6 +906,7 @@ class PayrollController extends Controller
                     $r->overtime_pay,
                     $r->gross_salary,
                     $r->deductions,
+                    $r->lop_amount,
                     $r->net_salary,
                     $r->payment_mode,
                     $r->status,

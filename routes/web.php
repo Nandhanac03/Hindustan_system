@@ -372,8 +372,8 @@ Route::middleware(['auth', 'system.active', 'module.permission'])->group(functio
     // Chart of Accounts Master Module
     Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'index'])->name('chart-of-accounts.index');
     Route::post('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'store'])->name('chart-of-accounts.store');
-    Route::match(['put', 'post'], '/chart-of-accounts/{chartOfAccount}', [\App\Http\Controllers\ChartOfAccountController::class, 'update'])->name('chart-of-accounts.update');
-    Route::match(['get', 'post', 'delete'], '/chart-of-accounts/{chartOfAccount}', [\App\Http\Controllers\ChartOfAccountController::class, 'destroy'])->name('chart-of-accounts.destroy');
+    Route::post('/chart-of-accounts/{chartOfAccount}/update', [\App\Http\Controllers\ChartOfAccountController::class, 'update'])->name('chart-of-accounts.update');
+    Route::post('/chart-of-accounts/{chartOfAccount}/delete', [\App\Http\Controllers\ChartOfAccountController::class, 'destroy'])->name('chart-of-accounts.destroy');
     Route::post('/chart-of-accounts/{chartOfAccount}/toggle-status', [\App\Http\Controllers\ChartOfAccountController::class, 'toggleStatus'])->name('chart-of-accounts.toggle-status');
 
     // Opening Balance Master Module
@@ -520,6 +520,8 @@ Route::middleware(['auth', 'system.active', 'module.permission'])->group(functio
     Route::post('/employees/{employee}/overtimes/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyOvertime'])->name('employees.overtimes.destroy');
     Route::post('/employees/{employee}/leaves', [\App\Http\Controllers\EmployeeController::class, 'storeLeave'])->name('employees.leaves.store');
     Route::post('/employees/{employee}/leaves/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyLeave'])->name('employees.leaves.destroy');
+    Route::post('/employees/{employee}/leave-quota', [\App\Http\Controllers\EmployeeController::class, 'storeLeaveQuota'])->name('employees.leave-quota.store');
+    Route::post('/employees/{employee}/leave-quota/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyLeaveQuota'])->name('employees.leave-quota.destroy');
     Route::post('/employees/{employee}/payrolls', [\App\Http\Controllers\EmployeeController::class, 'storePayroll'])->name('employees.payrolls.store');
     Route::post('/employees/{employee}/payrolls/{item}/delete', [\App\Http\Controllers\EmployeeController::class, 'destroyPayroll'])->name('employees.payrolls.destroy');
     Route::post('/employees/{employee}/documents', [\App\Http\Controllers\EmployeeController::class, 'storeDocument'])->name('employees.documents.store');
@@ -569,6 +571,15 @@ Route::middleware(['auth', 'system.active', 'module.permission'])->group(functio
         Route::post('/components', [\App\Http\Controllers\PayrollController::class, 'storeComponent'])->name('components.store');
         Route::post('/components/{id}/update', [\App\Http\Controllers\PayrollController::class, 'updateComponent'])->name('components.update');
         Route::post('/components/{id}/delete', [\App\Http\Controllers\PayrollController::class, 'destroyComponent'])->name('components.destroy');
+    });
+
+    // Office Rent Module
+    Route::prefix('office-rent')->name('office-rent.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\OfficeRentController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\OfficeRentController::class, 'exportExcel'])->name('export');
+        Route::post('/', [\App\Http\Controllers\OfficeRentController::class, 'store'])->name('store');
+        Route::post('/{id}/pay', [\App\Http\Controllers\OfficeRentController::class, 'pay'])->name('pay');
+        Route::post('/{id}/delete', [\App\Http\Controllers\OfficeRentController::class, 'destroy'])->name('destroy');
     });
 
     // Vouchers & Core Accounting Engine

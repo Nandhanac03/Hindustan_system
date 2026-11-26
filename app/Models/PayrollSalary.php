@@ -24,6 +24,7 @@ class PayrollSalary extends Model
         'overtime_pay',
         'gross_salary',
         'deductions',
+        'lop_amount',
         'net_salary',
         'payment_date',
         'payment_mode',
@@ -45,6 +46,7 @@ class PayrollSalary extends Model
         'overtime_pay' => 'decimal:2',
         'gross_salary' => 'decimal:2',
         'deductions' => 'decimal:2',
+        'lop_amount' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'payment_date' => 'date',
     ];

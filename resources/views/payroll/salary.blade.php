@@ -35,6 +35,7 @@
         }
 
         $deductionsList = [];
+        $lopAmt = (float) ($s->lop_amount ?? 0);
         if ($dedComps->isNotEmpty()) {
             foreach ($dedComps as $dc) {
                 $deductionsList[] = [
@@ -42,6 +43,15 @@
                     'percent' => $dc->calculation_type === 'Percentage' ? number_format((float)$dc->configured_value, 2) . '%' : null,
                     'amount' => (float) $dc->calculated_amount,
                 ];
+            }
+            if ($lopAmt > 0) {
+                $deductionsList[] = ['name' => 'LOP Deduction', 'percent' => null, 'amount' => $lopAmt];
+            }
+        } elseif ($lopAmt > 0) {
+            $deductionsList[] = ['name' => 'LOP Deduction', 'percent' => null, 'amount' => $lopAmt];
+            $otherDed = round(max(0, (float) $s->deductions - $lopAmt), 2);
+            if ($otherDed > 0) {
+                $deductionsList[] = ['name' => 'Deductions', 'percent' => null, 'amount' => $otherDed];
             }
         } else {
             $deductionsList[] = ['name' => 'Deductions', 'percent' => null, 'amount' => (float) $s->deductions];
@@ -99,7 +109,7 @@
         return Math.max(0, gross - parseFloat(this.addForm.deductions || 0)).toFixed(2);
     },
     editItem: { id: null, employee_name: '', working_days: 26, present_days: 26, leave_days: 0, overtime_hours: 0, basic_salary: 0, hra: 0, allowances: 0, overtime_pay: 0, deductions: 0, payment_date: '', payment_mode: 'Bank Transfer', status: 'Pending', remarks: '' },
-    payItem: { id: null, employee_name: '', employee_code: '', head_name: '', net_salary: 0, company_bank_account_id: '{{ $bankAccounts->first()?->id ?? '' }}', payment_date: '{{ now()->toDateString() }}', payment_mode: 'Bank Transfer', payment_reference: '', remarks: '' },
+    payItem: { id: null, employee_name: '', employee_code: '', head_name: '', net_salary: 0, lop_amount: 0, company_bank_account_id: '{{ $bankAccounts->first()?->id ?? '' }}', payment_date: '{{ now()->toDateString() }}', payment_mode: 'Bank Transfer', payment_reference: '', remarks: '' },
     initView(id) {
         if (this.detailsMap[id]) {
             this.viewItem = this.detailsMap[id];
@@ -115,6 +125,7 @@
                 employee_code: d.employee_code,
                 head_name: d.head_name,
                 net_salary: d.net_salary,
+                lop_amount: 0,
                 company_bank_account_id: '{{ $bankAccounts->first()?->id ?? '' }}',
                 payment_date: '{{ now()->toDateString() }}',
                 payment_mode: 'Bank Transfer',
@@ -604,12 +615,15 @@
                     </div>
                     <div class="text-right">
                         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Net Payable</div>
-                        <div class="text-lg font-black font-mono text-emerald-700" x-text="formatMoney(payItem.net_salary)"></div>
+                        <div class="text-lg font-black font-mono text-emerald-700" x-text="formatMoney(Math.max(0, Number(payItem.net_salary || 0) - Number(payItem.lop_amount || 0)))"></div>
+                        <template x-if="Number(payItem.lop_amount || 0) > 0">
+                            <div class="text-[9px] font-mono text-rose-600 font-bold" x-text="'Base ' + formatMoney(payItem.net_salary) + ' - LOP ' + formatMoney(payItem.lop_amount)"></div>
+                        </template>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div class="sm:col-span-2">
+                    <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Company Bank Account *</label>
                         <select name="company_bank_account_id" required x-model="payItem.company_bank_account_id" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-semibold text-slate-900">
                             @forelse($bankAccounts as $ba)
@@ -620,6 +634,10 @@
                                 <option value="">No active company bank accounts found</option>
                             @endforelse
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">LOP Amount (₹)</label>
+                        <input type="number" step="0.01" min="0" :max="payItem.net_salary" name="lop_amount" x-model="payItem.lop_amount" placeholder="0.00" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-bold font-mono text-rose-600">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Payment Date *</label>

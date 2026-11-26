@@ -132,6 +132,21 @@ class EmployeeController extends Controller
 
         $activeTab = $request->query('tab', 'personal');
 
+        $salaryLogs = \App\Models\PayrollSalary::with(['salaryHead', 'companyBankAccount', 'journalVoucher'])
+            ->where('employee_id', $employee->id)
+            ->orderByDesc('id')
+            ->get();
+
+        $financialPeriods = \App\Models\PayrollFinancialPeriod::where('system_id', $employee->system_id)
+            ->orderByDesc('start_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $leaveQuotas = \App\Models\EmployeeLeaveQuota::with('financialPeriod')
+            ->where('employee_id', $employee->id)
+            ->orderByDesc('id')
+            ->get();
+
         return view('employees.show', [
             'employee' => $employee,
             'prevEmployee' => $prevEmployee,
@@ -139,6 +154,9 @@ class EmployeeController extends Controller
             'erpUsers' => $erpUsers,
             'masterAllowances' => $masterComponents->where('type', 'allowance')->values(),
             'masterDeductions' => $masterComponents->where('type', 'deduction')->values(),
+            'salaryLogs' => $salaryLogs,
+            'financialPeriods' => $financialPeriods,
+            'leaveQuotas' => $leaveQuotas,
             'activeTab' => $activeTab,
         ]);
     }
@@ -661,6 +679,43 @@ class EmployeeController extends Controller
 
         return redirect()->route('employees.show', ['employee' => $employee->id, 'tab' => 'leave'])
             ->with('status', 'Leave record removed.');
+    }
+
+    public function storeLeaveQuota(Request $request, int $id): RedirectResponse
+    {
+        $employee = $this->scopedQuery()->findOrFail($id);
+        $data = $request->validate([
+            'financial_period_id' => 'required|exists:payroll_financial_periods,id',
+            'allowed_leave' => 'required|numeric|min:0|max:366',
+        ]);
+
+        $existing = \App\Models\EmployeeLeaveQuota::where('financial_period_id', (int) $data['financial_period_id'])
+            ->where('employee_id', $employee->id)
+            ->first();
+
+        \App\Models\EmployeeLeaveQuota::updateOrCreate(
+            [
+                'financial_period_id' => (int) $data['financial_period_id'],
+                'employee_id' => $employee->id,
+            ],
+            [
+                'system_id' => $employee->system_id,
+                'allowed_leave' => (float) $data['allowed_leave'],
+                'taken_leave' => $existing ? (float) $existing->taken_leave : 0,
+            ]
+        );
+
+        return redirect()->route('employees.show', ['employee' => $employee->id, 'tab' => 'leave'])
+            ->with('status', 'Financial year leave quota saved.');
+    }
+
+    public function destroyLeaveQuota(int $id, int $itemId): RedirectResponse
+    {
+        $employee = $this->scopedQuery()->findOrFail($id);
+        \App\Models\EmployeeLeaveQuota::where('employee_id', $employee->id)->where('id', $itemId)->delete();
+
+        return redirect()->route('employees.show', ['employee' => $employee->id, 'tab' => 'leave'])
+            ->with('status', 'Financial year leave quota removed.');
     }
 
     public function storePayroll(Request $request, int $id): RedirectResponse

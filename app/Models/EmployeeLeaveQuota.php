@@ -13,17 +13,13 @@ class EmployeeLeaveQuota extends Model
         'system_id',
         'financial_period_id',
         'employee_id',
-        'casual_allowed',
-        'medical_allowed',
-        'casual_taken',
-        'medical_taken',
+        'allowed_leave',
+        'taken_leave',
     ];
 
     protected $casts = [
-        'casual_allowed' => 'float',
-        'medical_allowed' => 'float',
-        'casual_taken' => 'float',
-        'medical_taken' => 'float',
+        'allowed_leave' => 'float',
+        'taken_leave' => 'float',
     ];
 
     public function employee(): BelongsTo

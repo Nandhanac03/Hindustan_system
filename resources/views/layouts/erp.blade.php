@@ -525,7 +525,7 @@
         @endif
 
         <!-- 💰 Project Profitability & Costing -->
-        @if(auth()->user()->canAccessAnySubModule(['partners.contributions', 'partners.ledger', 'partners.payout', 'reports.margins', 'company-bank.manage', 'treasury.dashboard', 'treasury.report', 'vouchers.contra', 'coa.manage', 'voucher-types.manage', 'reports.trial_balance', 'reports.profit_loss', 'reports.balance_sheet', 'reports.gst']))
+        @if(auth()->user()->canAccessAnySubModule(['partners.contributions', 'partners.ledger', 'partners.payout', 'reports.margins', 'company-bank.manage', 'treasury.dashboard', 'treasury.report', 'vouchers.contra', 'coa.manage', 'voucher-types.manage', 'reports.trial_balance', 'reports.profit_loss', 'reports.balance_sheet', 'reports.gst', 'office_rent.manage']))
         <p class="px-2 pt-3 pb-0.5 text-[9.5px] font-bold text-white/60 uppercase tracking-wider">Finance & Analytics</p>
         
         @if(auth()->user()->canAccessAnySubModule(['partners.contributions', 'partners.ledger', 'partners.payout', 'reports.margins']))
@@ -663,6 +663,16 @@
             </div>
         </div>
         @endif
+        @endif
+
+        <!-- 🏢 Office Rent -->
+        @if(auth()->user()->canViewModule('office_rent.manage'))
+        <a href="{{ route('office-rent.index') }}" class="flex items-center gap-2 px-2 py-2 mt-1 text-xs font-semibold rounded-lg transition-all duration-200 {{ Request::routeIs('office-rent.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/90 hover:text-primary-300 hover:bg-slate-800/30' }}">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <span>Office Rent</span>
+        </a>
         @endif
 
         <!-- 💸 Loans & Debt Servicing -->

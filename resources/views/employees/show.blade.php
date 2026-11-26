@@ -11,6 +11,7 @@
             'employment' => 'Employment',
             'salary' => 'Salary Details',
             'payroll' => 'Payroll',
+            'leave' => 'Leave',
             'documents' => 'Documents',
             'assets' => 'Assets',
             'emergency' => 'Emergency',
@@ -198,6 +199,7 @@
         activeTab: '{{ array_key_exists($activeTab, $tabs) ? $activeTab : 'personal' }}',
         openPersonalModal: false,
         openExperienceModal: false,
+        openLeaveQuotaModal: false,
         openDeleteModal: false,
         deleteTitle: 'DELETE ITEM',
         deleteItemName: '',
@@ -698,76 +700,92 @@
                         </div>
                     </div>
 
-                    {{-- TAB 6: LEAVE --}}
+                    {{-- TAB 6: LEAVE (Financial Year Leave Quota) --}}
                     <div x-show="activeTab === 'leave'" style="display: none;" class="space-y-4">
-                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-                            <div class="emp-sec-header"><span>Apply / Record Leave</span></div>
-                            <form action="{{ route('employees.leaves.store', $employee->id) }}" method="POST" class="p-4 grid grid-cols-1 sm:grid-cols-6 gap-3 items-end text-xs">
-                                @csrf
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Leave Type *</label>
-                                    <select name="leave_type" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                        <option value="Casual Leave">Casual Leave</option>
-                                        <option value="Sick Leave">Sick Leave</option>
-                                        <option value="Earned Leave">Earned Leave</option>
-                                        <option value="Unpaid Leave">Unpaid Leave</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">From *</label>
-                                    <input type="date" name="from_date" required value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">To *</label>
-                                    <input type="date" name="to_date" required value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Days *</label>
-                                    <input type="number" step="0.5" min="0.5" name="days" required value="1" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Status</label>
-                                    <select name="status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                        <option value="Approved">Approved</option>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Rejected">Rejected</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <button type="submit" style="background:#a38c29;" class="w-full px-4 py-2 rounded-xl text-white font-bold cursor-pointer">+ Add Leave</button>
-                                </div>
-                            </form>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900">Financial Year Leave</h3>
+                                <p class="text-[11px] text-slate-500">Allocated annual leave by financial period.</p>
+                            </div>
+                            <button type="button" @click="openLeaveQuotaModal = true" class="emp-theme-btn px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-xs cursor-pointer">
+                                + Add Leave
+                            </button>
                         </div>
-                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table class="w-full text-left text-xs">
-                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                                    <tr>
-                                        <th class="px-4 py-2.5">Type</th>
-                                        <th class="px-4 py-2.5">Period</th>
-                                        <th class="px-4 py-2.5">Days</th>
-                                        <th class="px-4 py-2.5">Status</th>
-                                        <th class="px-4 py-2.5 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    @forelse($employee->leaves as $lv)
+
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                                         <tr>
-                                            <td class="px-4 py-2.5 font-bold">{{ $lv->leave_type }}</td>
-                                            <td class="px-4 py-2.5">{{ $lv->from_date->format('d M Y') }} &ndash; {{ $lv->to_date->format('d M Y') }}</td>
-                                            <td class="px-4 py-2.5 font-mono">{{ $lv->days }}</td>
-                                            <td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">{{ $lv->status }}</span></td>
-                                            <td class="px-4 py-2.5 text-right">
-                                                <form action="{{ route('employees.leaves.destroy', [$employee->id, $lv->id]) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" class="text-rose-600 font-bold hover:underline cursor-pointer">Delete</button>
-                                                </form>
-                                            </td>
+                                            <th class="px-4 py-2.5">Financial Year</th>
+                                            <th class="px-4 py-2.5 text-center">Allowed Leave</th>
+                                            <th class="px-4 py-2.5 text-center">Taken</th>
+                                            <th class="px-4 py-2.5 text-center">Balance</th>
+                                            <th class="px-4 py-2.5 text-right">Action</th>
                                         </tr>
-                                    @empty
-                                        <tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">No leave records found.</td></tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        @forelse($leaveQuotas as $lq)
+                                            @php
+                                                $allowed = (float) $lq->allowed_leave;
+                                                $taken = (float) $lq->taken_leave;
+                                                $balance = max(0, $allowed - $taken);
+                                            @endphp
+                                            <tr class="hover:bg-slate-50/70">
+                                                <td class="px-4 py-2.5 font-bold text-slate-900">
+                                                    {{ $lq->financialPeriod?->name ?? 'Financial Period #' . $lq->financial_period_id }}
+                                                </td>
+                                                <td class="px-4 py-2.5 text-center font-mono font-bold text-slate-800">{{ $allowed }}</td>
+                                                <td class="px-4 py-2.5 text-center font-mono text-rose-600">{{ $taken }}</td>
+                                                <td class="px-4 py-2.5 text-center font-mono font-extrabold text-emerald-700">{{ $balance }}</td>
+                                                <td class="px-4 py-2.5 text-right">
+                                                    <button type="button" @click="openDeleteConfirm('{{ route('employees.leave-quota.destroy', [$employee->id, $lq->id]) }}', 'DELETE LEAVE QUOTA', {{ Js::from($lq->financialPeriod?->name ?? 'Quota') }})" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition inline-flex items-center justify-center cursor-pointer" title="Delete Leave Quota">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="5" class="px-4 py-6 text-center text-slate-400 italic">No financial year leave added yet.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- Add Financial Year Leave Modal --}}
+                        <div x-show="openLeaveQuotaModal" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+                            <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none" @click.outside="openLeaveQuotaModal = false">
+                                <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between border-b border-[#a38c29]/30">
+                                    <div>
+                                        <span class="inline-block px-2 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">LEAVE ALLOCATION</span>
+                                        <h3 class="font-black text-sm uppercase tracking-wider text-white">Add Financial Year Leave</h3>
+                                    </div>
+                                    <button type="button" @click="openLeaveQuotaModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                                </div>
+                                <form action="{{ route('employees.leave-quota.store', $employee->id) }}" method="POST" class="p-6 space-y-4 text-xs font-sans">
+                                    @csrf
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Financial Year *</label>
+                                        <select name="financial_period_id" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-900">
+                                            @forelse($financialPeriods as $fp)
+                                                <option value="{{ $fp->id }}" {{ $fp->status === 'active' ? 'selected' : '' }}>
+                                                    {{ $fp->name }} ({{ $fp->start_date?->format('M Y') }} &ndash; {{ $fp->end_date?->format('M Y') }})
+                                                </option>
+                                            @empty
+                                                <option value="">No financial periods found</option>
+                                            @endforelse
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Allowed Leave (Days) *</label>
+                                        <input type="number" step="0.5" min="0" max="366" name="allowed_leave" required value="12" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-bold font-mono text-slate-900">
+                                    </div>
+                                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                                        <button type="button" @click="openLeaveQuotaModal = false" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold uppercase cursor-pointer">Cancel</button>
+                                        <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm">Save</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -1310,67 +1328,63 @@
                         </div>
                     </div>
 
-                    {{-- TAB 8: PAYROLL --}}
+                    {{-- TAB 8: PAYROLL (Salary Payment Log) --}}
                     <div x-show="activeTab === 'payroll'" style="display: none;" class="space-y-4">
                         <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-                            <div class="emp-sec-header"><span>Generate Payroll Entry</span></div>
-                            <form action="{{ route('employees.payrolls.store', $employee->id) }}" method="POST" class="p-4 grid grid-cols-1 sm:grid-cols-5 gap-3 items-end text-xs">
-                                @csrf
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Month *</label>
-                                    <input type="text" name="payroll_month" required value="{{ now()->format('F Y') }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Allowances (₹)</label>
-                                    <input type="number" step="0.01" name="allowances" value="{{ $employee->allowances ?? 0 }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold font-mono">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Deductions (₹)</label>
-                                    <input type="number" step="0.01" name="deductions" value="{{ $employee->deductions ?? 0 }}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold font-mono">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Status</label>
-                                    <select name="status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold">
-                                        <option value="Paid">Paid</option>
-                                        <option value="Pending">Pending</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <button type="submit" style="background:#a38c29;" class="w-full px-4 py-2 rounded-xl text-white font-bold cursor-pointer">+ Generate</button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table class="w-full text-left text-xs">
-                                <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
-                                    <tr>
-                                        <th class="px-4 py-2.5">Month</th>
-                                        <th class="px-4 py-2.5">Allowances</th>
-                                        <th class="px-4 py-2.5">Deductions</th>
-                                        <th class="px-4 py-2.5">Net Salary</th>
-                                        <th class="px-4 py-2.5">Status</th>
-                                        <th class="px-4 py-2.5 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    @forelse($employee->payrolls as $pay)
+                            <div class="emp-sec-header flex items-center justify-between">
+                                <span>Salary Payment Log</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#f3e5ab]">{{ $salaryLogs->count() }} Record(s)</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
                                         <tr>
-                                            <td class="px-4 py-2.5 font-bold">{{ $pay->payroll_month }}</td>
-                                            <td class="px-4 py-2.5 font-mono">₹{{ number_format((float)$pay->allowances, 2) }}</td>
-                                            <td class="px-4 py-2.5 font-mono">₹{{ number_format((float)$pay->deductions, 2) }}</td>
-                                            <td class="px-4 py-2.5 font-mono font-extrabold text-emerald-700">₹{{ number_format((float)$pay->net_salary, 2) }}</td>
-                                            <td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">{{ $pay->status }}</span></td>
-                                            <td class="px-4 py-2.5 text-right whitespace-nowrap">
-                                                <button type="button" @click="openDeleteConfirm('{{ route('employees.payrolls.destroy', [$employee->id, $pay->id]) }}', 'DELETE PAYROLL ENTRY', {{ Js::from($pay->payroll_month) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="Delete Payroll Entry">
-                                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                </button>
-                                            </td>
+                                            <th class="px-4 py-2.5">Payroll Head / Month</th>
+                                            <th class="px-4 py-2.5 text-right">Gross Salary</th>
+                                            <th class="px-4 py-2.5 text-right">Deductions</th>
+                                            <th class="px-4 py-2.5 text-right">Net Salary</th>
+                                            <th class="px-4 py-2.5 text-center">Status</th>
+                                            <th class="px-4 py-2.5">Payment Date</th>
+                                            <th class="px-4 py-2.5">Bank &amp; Reference</th>
                                         </tr>
-                                    @empty
-                                        <tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No payroll history found.</td></tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        @forelse($salaryLogs as $log)
+                                            <tr class="hover:bg-slate-50/70">
+                                                <td class="px-4 py-2.5 font-bold text-slate-900">
+                                                    {{ $log->salaryHead?->name ?? $log->payroll_month }}
+                                                    @if($log->journalVoucher)
+                                                        <div class="text-[9px] font-mono text-slate-400">{{ $log->journalVoucher->voucher_no }}</div>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-2.5 text-right font-mono font-semibold text-slate-700">₹{{ number_format((float)$log->gross_salary, 2) }}</td>
+                                                <td class="px-4 py-2.5 text-right font-mono font-semibold text-rose-600">-₹{{ number_format((float)$log->deductions, 2) }}</td>
+                                                <td class="px-4 py-2.5 text-right font-mono font-extrabold text-emerald-700">₹{{ number_format((float)$log->net_salary, 2) }}</td>
+                                                <td class="px-4 py-2.5 text-center">
+                                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $log->status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($log->status === 'Processed' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-50 text-amber-700 border border-amber-200') }}">
+                                                        {{ $log->status }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2.5 font-mono text-slate-600">
+                                                    {{ $log->payment_date ? $log->payment_date->format('d/m/Y') : '—' }}
+                                                </td>
+                                                <td class="px-4 py-2.5 text-slate-700">
+                                                    @if($log->companyBankAccount)
+                                                        <div class="font-semibold">{{ $log->companyBankAccount->bank_name }}{{ $log->companyBankAccount->account_number ? ' (A/C ' . $log->companyBankAccount->account_number . ')' : '' }}</div>
+                                                    @else
+                                                        <span class="text-slate-400">{{ $log->payment_mode ?: '—' }}</span>
+                                                    @endif
+                                                    @if($log->payment_reference)
+                                                        <div class="text-[9px] font-mono text-slate-400">Ref: {{ $log->payment_reference }}</div>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">No salary payment logs found for this employee.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
