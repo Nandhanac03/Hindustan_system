@@ -752,6 +752,41 @@
                             </div>
                         </div>
 
+                        {{-- Monthly Leave Log --}}
+                        @php
+                            $monthlyLeaves = $employee->leaves
+                                ->where('reason', 'Added via Leave Quotas')
+                                ->groupBy('leave_type')
+                                ->map(fn($grp, $monthLabel) => ['month' => $monthLabel, 'days' => (float) $grp->sum('days')])
+                                ->values();
+                        @endphp
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                            <div class="emp-sec-header flex items-center justify-between">
+                                <span>Monthly Leave Log</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#f3e5ab]">{{ $monthlyLeaves->count() }} Month(s)</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                        <tr>
+                                            <th class="px-4 py-2.5">Month</th>
+                                            <th class="px-4 py-2.5 text-center">Taken Leave</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        @forelse($monthlyLeaves as $ml)
+                                            <tr class="hover:bg-slate-50/70">
+                                                <td class="px-4 py-2.5 font-bold text-slate-900">{{ $ml['month'] }}</td>
+                                                <td class="px-4 py-2.5 text-center font-mono font-bold text-rose-600">{{ $ml['days'] }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="2" class="px-4 py-6 text-center text-slate-400 italic">No monthly leave logs recorded yet.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         {{-- Add Financial Year Leave Modal --}}
                         <div x-show="openLeaveQuotaModal" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
                             <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border-0 ring-0 outline-none" @click.outside="openLeaveQuotaModal = false">

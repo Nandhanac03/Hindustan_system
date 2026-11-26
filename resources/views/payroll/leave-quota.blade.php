@@ -7,11 +7,19 @@
         x-data="{
             search: '',
             openAddQuotaModal: false,
+            openLogModal: false,
+            logItem: { employee_code: '', name: '', allowed_leave: 0, taken_leave: 0, logs: [] },
+            initLogView(row) {
+                this.logItem = row;
+                this.openLogModal = true;
+            },
             modalForm: {
                 financial_period_id: '{{ $selectedPeriodId }}',
                 employee_id: '{{ $rows[0]['employee_id'] ?? '' }}',
+                leave_month: '{{ now()->month }}',
                 allowed_leave: 0,
-                taken_leave: 0
+                taken_leave: 0,
+                add_leave: 1
             },
             rows: window.__leaveQuotaRows || [],
             allQuotasMap: window.__allLeaveQuotasMap || {},
@@ -19,8 +27,10 @@
                 this.modalForm = {
                     financial_period_id: '{{ $selectedPeriodId }}',
                     employee_id: this.rows.length ? this.rows[0].employee_id : '',
+                    leave_month: '{{ now()->month }}',
                     allowed_leave: 0,
-                    taken_leave: 0
+                    taken_leave: 0,
+                    add_leave: 1
                 };
                 this.onModalSelectionChange();
                 this.openAddQuotaModal = true;
@@ -121,6 +131,7 @@
                             <th class="px-4 py-3.5 erp-table-header text-center">Allowed</th>
                             <th class="px-4 py-3.5 erp-table-header text-center">Taken</th>
                             <th class="px-4 py-3.5 erp-table-header text-center">Remaining</th>
+                            <th class="px-4 py-3.5 erp-table-header text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -136,15 +147,73 @@
                                     <span class="inline-flex items-center justify-center min-w-[28px] px-2.5 py-0.5 rounded-md text-[11px] font-extrabold font-mono bg-emerald-100 text-emerald-700"
                                           x-text="remaining(row.allowed_leave, row.taken_leave)"></span>
                                 </td>
+                                <td class="px-4 py-3 text-right">
+                                    <button type="button" @click="initLogView(row)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-xs cursor-pointer" title="View Monthly Leave Log">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                </td>
                             </tr>
                         </template>
                         <template x-if="filteredRows().length === 0">
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">No employees found.</td>
+                                <td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">No employees found.</td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        {{-- Monthly Leave Log Modal --}}
+        <div x-show="openLogModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+            <div @click.away="openLogModal = false" class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border-0 ring-0 outline-none">
+                <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between border-b border-[#a38c29]/30">
+                    <div>
+                        <span class="inline-block px-2 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1" x-text="logItem.employee_code"></span>
+                        <h3 class="font-black text-sm uppercase tracking-wider text-white">Monthly Leave Log &mdash; <span x-text="logItem.name"></span></h3>
+                    </div>
+                    <button type="button" @click="openLogModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                </div>
+                <div class="p-6 space-y-4 text-xs font-sans">
+                    <div class="grid grid-cols-3 gap-3 bg-slate-50 rounded-xl border border-slate-200 p-3 text-center">
+                        <div>
+                            <div class="text-[10px] font-bold uppercase text-slate-400">Allowed</div>
+                            <div class="font-mono font-extrabold text-slate-900 text-sm" x-text="formatNum(logItem.allowed_leave)"></div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold uppercase text-slate-400">Taken</div>
+                            <div class="font-mono font-extrabold text-rose-600 text-sm" x-text="formatNum(logItem.taken_leave)"></div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold uppercase text-slate-400">Remaining</div>
+                            <div class="font-mono font-extrabold text-emerald-700 text-sm" x-text="remaining(logItem.allowed_leave, logItem.taken_leave)"></div>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 overflow-hidden max-h-64 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="erp-table-header text-white uppercase text-[10px] font-extrabold tracking-wider">
+                                <tr>
+                                    <th class="px-3.5 py-2">Month</th>
+                                    <th class="px-3.5 py-2 text-center">Taken Leave</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="(lg, idx) in logItem.logs" :key="idx">
+                                    <tr>
+                                        <td class="px-3.5 py-2 font-bold text-slate-800" x-text="lg.month"></td>
+                                        <td class="px-3.5 py-2 text-center font-mono font-bold text-rose-600" x-text="formatNum(lg.days)"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="!logItem.logs || logItem.logs.length === 0">
+                                    <tr><td colspan="2" class="px-3.5 py-6 text-center text-slate-400 italic">No monthly leave logs recorded yet.</td></tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button type="button" @click="openLogModal = false" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase cursor-pointer">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -167,28 +236,43 @@
                             @endforelse
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Employee *</label>
-                        <select x-model="modalForm.employee_id" @change="onModalSelectionChange()" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-semibold text-slate-900">
-                            <option value="">-- Select Employee --</option>
-                            <template x-for="r in rows" :key="r.employee_id">
-                                <option :value="r.employee_id" x-text="r.employee_code + ' — ' + r.name"></option>
-                            </template>
-                        </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Employee *</label>
+                            <select name="employee_id" x-model="modalForm.employee_id" @change="onModalSelectionChange()" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-semibold text-slate-900">
+                                <option value="">-- Select Employee --</option>
+                                <template x-for="r in rows" :key="r.employee_id">
+                                    <option :value="r.employee_id" x-text="r.employee_code + ' — ' + r.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Month *</label>
+                            <select name="leave_month" x-model="modalForm.leave_month" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-semibold text-slate-900">
+                                @for($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->format('F') }}</option>
+                                @endfor
+                            </select>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Allowed Leave</label>
                             <input type="number" step="0.5" readonly
-                                   :name="'quotas[' + modalForm.employee_id + '][allowed_leave]'"
                                    x-model="modalForm.allowed_leave"
                                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-100 font-mono font-bold text-slate-500 cursor-not-allowed">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Taken Leave *</label>
-                            <input type="number" step="0.5" min="0" max="365" required
-                                   :name="'quotas[' + modalForm.employee_id + '][taken_leave]'"
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Already Taken</label>
+                            <input type="number" step="0.5" readonly
                                    x-model="modalForm.taken_leave"
+                                   class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-100 font-mono font-bold text-slate-500 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Add Leave *</label>
+                            <input type="number" step="0.5" min="0.5" max="31" required
+                                   name="add_leave"
+                                   x-model="modalForm.add_leave"
                                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold text-slate-900">
                         </div>
                     </div>

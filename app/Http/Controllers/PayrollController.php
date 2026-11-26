@@ -157,21 +157,27 @@ class PayrollController extends Controller
             : collect();
 
         $leavesQuery = EmployeeLeave::whereIn('employee_id', $employees->pluck('id'))
-            ->where('status', '!=', 'Rejected');
+            ->where('reason', 'Added via Leave Quotas');
         if ($selectedPeriod) {
             $leavesQuery->whereBetween('from_date', [
                 $selectedPeriod->start_date->toDateString(),
                 $selectedPeriod->end_date->toDateString(),
             ]);
         }
-        $leavesByEmp = $leavesQuery->get()->groupBy('employee_id');
+        $leavesByEmp = $leavesQuery->orderBy('from_date')->orderBy('id')->get()->groupBy('employee_id');
 
         $rows = $employees
             ->filter(fn($emp) => $quotaMap->has($emp->id))
-            ->map(function ($emp) use ($quotaMap) {
+            ->map(function ($emp) use ($quotaMap, $leavesByEmp) {
                 $saved = $quotaMap->get($emp->id);
                 $allowed = (float) $saved->allowed_leave;
                 $taken = (float) $saved->taken_leave;
+                $logs = $leavesByEmp->get($emp->id, collect())
+                    ->groupBy('leave_type')
+                    ->map(fn($group, $monthLabel) => [
+                        'month' => $monthLabel,
+                        'days' => (float) $group->sum('days'),
+                    ])->values()->all();
 
                 return [
                     'employee_id' => $emp->id,
@@ -179,6 +185,7 @@ class PayrollController extends Controller
                     'name' => $emp->name,
                     'allowed_leave' => $allowed,
                     'taken_leave' => $taken,
+                    'logs' => $logs,
                 ];
             })->values()->all();
 
@@ -202,37 +209,59 @@ class PayrollController extends Controller
         $systemId = $this->resolveSystemId();
         $data = $request->validate([
             'financial_period_id' => 'nullable|integer',
-            'quotas' => 'required|array',
-            'quotas.*.allowed_leave' => 'nullable|numeric|min:0|max:365',
-            'quotas.*.taken_leave' => 'required|numeric|min:0|max:365',
+            'employee_id' => 'required|exists:employees,id',
+            'leave_month' => 'required|integer|min:1|max:12',
+            'add_leave' => 'required|numeric|min:0.5|max:31',
         ]);
 
         $periodId = !empty($data['financial_period_id']) ? (int) $data['financial_period_id'] : null;
+        $empId = (int) $data['employee_id'];
+        $addLeave = (float) $data['add_leave'];
+        $monthNum = (int) $data['leave_month'];
 
-        foreach ($data['quotas'] as $empId => $vals) {
-            $existing = EmployeeLeaveQuota::where('financial_period_id', $periodId)
-                ->where('employee_id', (int) $empId)
-                ->first();
+        $existing = EmployeeLeaveQuota::where('financial_period_id', $periodId)
+            ->where('employee_id', $empId)
+            ->first();
 
-            $allowed = $existing
-                ? (float) $existing->allowed_leave
-                : (float) ($vals['allowed_leave'] ?? 0);
-
-            EmployeeLeaveQuota::updateOrCreate(
-                [
-                    'financial_period_id' => $periodId,
-                    'employee_id' => (int) $empId,
-                ],
-                [
-                    'system_id' => $systemId,
-                    'allowed_leave' => $allowed,
-                    'taken_leave' => (float) $vals['taken_leave'],
-                ]
-            );
+        if (!$existing) {
+            return back()->withErrors(['employee_id' => 'Please set Financial Year Allowed Leave for this employee first.'])->withInput();
         }
 
+        $newTaken = round((float) $existing->taken_leave + $addLeave, 1);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($existing, $newTaken, $empId, $monthNum, $addLeave, $periodId) {
+            $existing->update([
+                'taken_leave' => $newTaken,
+            ]);
+
+            $period = $periodId ? PayrollFinancialPeriod::find($periodId) : null;
+            $year = $period?->start_date ? (int) $period->start_date->format('Y') : (int) date('Y');
+            if ($period?->start_date && $monthNum < (int) $period->start_date->format('n') && $period?->end_date) {
+                $year = (int) $period->end_date->format('Y');
+            }
+            $monthObj = \Carbon\Carbon::createFromDate($year, $monthNum, 1);
+            $leaveDateObj = $monthObj->copy();
+            if ($period?->start_date && $leaveDateObj->lt($period->start_date)) {
+                $leaveDateObj = $period->start_date->copy();
+            }
+            if ($period?->end_date && $leaveDateObj->gt($period->end_date)) {
+                $leaveDateObj = $period->end_date->copy();
+            }
+            $leaveDate = $leaveDateObj->toDateString();
+
+            EmployeeLeave::create([
+                'employee_id' => $empId,
+                'leave_type' => $monthObj->format('F Y'),
+                'from_date' => $leaveDate,
+                'to_date' => $leaveDate,
+                'days' => $addLeave,
+                'reason' => 'Added via Leave Quotas',
+                'status' => 'Approved',
+            ]);
+        });
+
         return redirect()->route('payroll.leave-quota.index', ['financial_period_id' => $periodId])
-            ->with('status', 'Leave quota updated successfully.');
+            ->with('status', 'Leave added and taken count updated successfully.');
     }
 
     public function storeLeaveQuota(Request $request): RedirectResponse
